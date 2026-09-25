@@ -317,92 +317,104 @@ with st.sidebar:
         st.rerun()
 
 st.markdown(f'<div class="tm-header"><h1>{APP_NAME}</h1><p>{APP_TAGLINE}</p></div>', unsafe_allow_html=True)
-
-col1, col2 = st.columns(2, gap="large")
-with col1:
-    st.markdown('<div class="tm-card"><h4>📋 Job Setup</h4>', unsafe_allow_html=True)
-    job_title_input = st.text_input("Job Title / Position Name", placeholder="e.g. Senior Python Developer")
-    jd_text = st.text_area("Job Description", height=130, placeholder="Paste Job Description here...")
-    st.markdown('</div>', unsafe_allow_html=True)
-
-with col2:
-    st.markdown('<div class="tm-card"><h4>📥 Upload Resumes</h4>', unsafe_allow_html=True)
-    uploaded_files = st.file_uploader("Upload resumes", type=ACCEPTED_TYPES, accept_multiple_files=True, label_visibility="collapsed")
-    st.markdown('</div>', unsafe_allow_html=True)
-
-if st.button("🚀 Process & Screen Candidates", type="primary", use_container_width=True, disabled=not (uploaded_files and jd_text.strip() and job_title_input.strip() and groq_api_key)):
-    client = Groq(api_key=groq_api_key)
-    results = []
+tab1, tab2 = st.tabs(["🚀 New Processing", "🗄️ Database Records"])
+with tab1:
+    col1, col2 = st.columns(2, gap="large")
+    with col1:
+        st.markdown('<div class="tm-card"><h4>📋 Job Setup</h4>', unsafe_allow_html=True)
+        job_title_input = st.text_input("Job Title / Position Name", placeholder="e.g. Senior Python Developer")
+        jd_text = st.text_area("Job Description", height=130, placeholder="Paste Job Description here...")
+        st.markdown('</div>', unsafe_allow_html=True)
     
-    progress = st.progress(0.0, text="Initializing...")
-    for i, file in enumerate(uploaded_files):
-        progress.progress((i + 1) / (len(uploaded_files) + 1), text=f"Processing {file.name}...")
+    with col2:
+        st.markdown('<div class="tm-card"><h4>📥 Upload Resumes</h4>', unsafe_allow_html=True)
+        uploaded_files = st.file_uploader("Upload resumes", type=ACCEPTED_TYPES, accept_multiple_files=True, label_visibility="collapsed")
+        st.markdown('</div>', unsafe_allow_html=True)
+    
+    if st.button("🚀 Process & Screen Candidates", type="primary", use_container_width=True, disabled=not (uploaded_files and jd_text.strip() and job_title_input.strip() and groq_api_key)):
+        client = Groq(api_key=groq_api_key)
+        results = []
         
-        text = extract_resume_text(file)
-        if text:
-            analysis = analyze_and_extract_with_groq(client, text, jd_text, job_title_input, file.name)
-            if analysis:
-                results.append(analysis)
-                
-    progress.empty()
-    st.session_state.results = results
-    
-    # Save newly processed candidates to local database
-    if results:
-        save_to_database(results)
+        progress = st.progress(0.0, text="Initializing...")
+        for i, file in enumerate(uploaded_files):
+            progress.progress((i + 1) / (len(uploaded_files) + 1), text=f"Processing {file.name}...")
+            
+            text = extract_resume_text(file)
+            if text:
+                analysis = analyze_and_extract_with_groq(client, text, jd_text, job_title_input, file.name)
+                if analysis:
+                    results.append(analysis)
+                    
+        progress.empty()
+        st.session_state.results = results
         
-    st.success(f"Successfully processed {len(results)} candidates and updated records!")
-
-# --- DISPLAY RESULTS ---
-if st.session_state.results:
-    results = st.session_state.results
-
-    st.markdown('<div class="tm-card"><h4>📊 Screening Overview</h4>', unsafe_allow_html=True)
-    m1, m2 = st.columns(2)
-    m1.metric("Total Candidates Processed", len(results))
-    avg_score = round(sum(r["match_score"] for r in results) / len(results), 1)
-    m2.metric("Average Match Score", f"{avg_score}%")
-    st.markdown("</div>", unsafe_allow_html=True)
-
-    st.markdown('<div class="tm-card"><h4>🧾 Candidate Details & Rankings</h4>', unsafe_allow_html=True)
+        # Save newly processed candidates to local database
+        if results:
+            save_to_database(results)
+            
+        st.success(f"Successfully processed {len(results)} candidates and updated records!")
     
-    results = sorted(results, key=lambda x: x["match_score"], reverse=True)
+    # --- DISPLAY RESULTS ---
+    if st.session_state.results:
+        results = st.session_state.results
     
-    for rank, cand in enumerate(results, start=1):
-        # Indicate if candidate already existed in database before this session
-        history_badge = " ⚠️ (Previously Saved in DB)" if cand["is_duplicate"] else " 🆕 (New Candidate)"
+        st.markdown('<div class="tm-card"><h4>📊 Screening Overview</h4>', unsafe_allow_html=True)
+        m1, m2 = st.columns(2)
+        m1.metric("Total Candidates Processed", len(results))
+        avg_score = round(sum(r["match_score"] for r in results) / len(results), 1)
+        m2.metric("Average Match Score", f"{avg_score}%")
+        st.markdown("</div>", unsafe_allow_html=True)
+    
+        st.markdown('<div class="tm-card"><h4>🧾 Candidate Details & Rankings</h4>', unsafe_allow_html=True)
         
-        with st.expander(f"#{rank} — {cand['name']} | Score: {cand['match_score']}% {history_badge}", expanded=(rank == 1)):
-            c1, c2 = st.columns([1.2, 1])
-            with c1:
-                st.markdown(f"**✉️ Email:** {cand['email']} | **📞 Phone:** {cand['phone']}")
-                st.markdown(f"**👤 Father's Name:** {cand['father_name']}")
-                st.markdown(f"**🎓 Education:** {cand['education']} (CGPA: {cand['cgpa']})")
-                st.markdown(f"**🏫 University:** {cand['university_name']}")
-                st.markdown(f"**💼 Experience:** {cand['experience_years']} | **Latest:** {cand['latest_experience']}")
-                st.markdown(f"**🔗 Reference:** {cand['reference']}")
-                st.markdown(f"**🛠️ Skills:** {cand['skills']}")
-                
-                score_class = "tm-score-high" if cand["match_score"] >= 75 else ("tm-score-mid" if cand["match_score"] >= 50 else "tm-score-low")
-                st.markdown(f'<div class="tm-metric-box" style="margin-top: 15px; width: 160px;"><div class="tm-value {score_class}">{cand["match_score"]}%</div><div class="tm-label">Match Score</div></div>', unsafe_allow_html=True)
-
-            with c2:
-                st.markdown("**❌ Missing Skills (vs. JD):**")
-                if cand["missing_skills"]:
-                    for skill in cand["missing_skills"]:
-                        st.markdown(f"- {skill}")
-                else:
-                    st.caption("No significant gaps identified.")
-    st.markdown("</div>", unsafe_allow_html=True)
-
-    st.markdown('<div class="tm-card"><h4>⬇️ Export Master Sheet</h4>', unsafe_allow_html=True)
-    df = build_results_dataframe(results)
-    st.download_button(
-        "Download Formatted Excel (.xlsx)",
-        data=dataframe_to_formatted_excel_bytes(df),
-        file_name=f"{job_title_input.replace(' ', '_')}_Candidates.xlsx",
-        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        use_container_width=True,
-    )
-    st.dataframe(df, use_container_width=True)
+        results = sorted(results, key=lambda x: x["match_score"], reverse=True)
+        
+        for rank, cand in enumerate(results, start=1):
+            # Indicate if candidate already existed in database before this session
+            history_badge = " ⚠️ (Previously Saved in DB)" if cand["is_duplicate"] else " 🆕 (New Candidate)"
+            
+            with st.expander(f"#{rank} — {cand['name']} | Score: {cand['match_score']}% {history_badge}", expanded=(rank == 1)):
+                c1, c2 = st.columns([1.2, 1])
+                with c1:
+                    st.markdown(f"**✉️ Email:** {cand['email']} | **📞 Phone:** {cand['phone']}")
+                    st.markdown(f"**👤 Father's Name:** {cand['father_name']}")
+                    st.markdown(f"**🎓 Education:** {cand['education']} (CGPA: {cand['cgpa']})")
+                    st.markdown(f"**🏫 University:** {cand['university_name']}")
+                    st.markdown(f"**💼 Experience:** {cand['experience_years']} | **Latest:** {cand['latest_experience']}")
+                    st.markdown(f"**🔗 Reference:** {cand['reference']}")
+                    st.markdown(f"**🛠️ Skills:** {cand['skills']}")
+                    
+                    score_class = "tm-score-high" if cand["match_score"] >= 75 else ("tm-score-mid" if cand["match_score"] >= 50 else "tm-score-low")
+                    st.markdown(f'<div class="tm-metric-box" style="margin-top: 15px; width: 160px;"><div class="tm-value {score_class}">{cand["match_score"]}%</div><div class="tm-label">Match Score</div></div>', unsafe_allow_html=True)
+    
+                with c2:
+                    st.markdown("**❌ Missing Skills (vs. JD):**")
+                    if cand["missing_skills"]:
+                        for skill in cand["missing_skills"]:
+                            st.markdown(f"- {skill}")
+                    else:
+                        st.caption("No significant gaps identified.")
+        st.markdown("</div>", unsafe_allow_html=True)
+    
+        st.markdown('<div class="tm-card"><h4>⬇️ Export Master Sheet</h4>', unsafe_allow_html=True)
+        df = build_results_dataframe(results)
+        st.download_button(
+            "Download Formatted Excel (.xlsx)",
+            data=dataframe_to_formatted_excel_bytes(df),
+            file_name=f"{job_title_input.replace(' ', '_')}_Candidates.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            use_container_width=True,
+        )
+        st.dataframe(df, use_container_width=True)
+        st.markdown("</div>", unsafe_allow_html=True)
+with tab2:
+    st.markdown('<div class="tm-card"><h4>🗄️ All Saved Candidates (Database)</h4>', unsafe_allow_html=True)
+    try:
+        df_history = load_database()
+        if df_history.empty:
+            st.info("No candidates saved in the database yet.")
+        else:
+            st.dataframe(df_history, use_container_width=True)
+    except Exception as e:
+        st.error(f"Could not load history: {e}")
     st.markdown("</div>", unsafe_allow_html=True)
