@@ -28,8 +28,6 @@ DB_FILE = "master_candidates.csv" # Local Database to track previous candidates
 # PAGE CONFIG & CSS
 # ===========================================================================
 st.set_page_config(
-    page_title=f"{APP_NAME} | HR Dashboard",
-    page_icon="🎯",
     layout="wide",
     initial_sidebar_state="expanded",
 )
