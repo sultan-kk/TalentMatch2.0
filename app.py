@@ -18,6 +18,8 @@ from groq import Groq
 # ===========================================================================
 # CONFIGURATION
 # ===========================================================================
+APP_NAME = "TalentMatch AI"
+APP_TAGLINE = "Hybrid AI Resume Screener — Instant Local Scoring + Deep LLM Analysis"
 GROQ_MODEL = "openai/gpt-oss-120b" 
 ACCEPTED_TYPES = ["pdf", "docx", "png", "jpg", "jpeg"]
 DB_FILE = "master_candidates.csv" # Local Database to track previous candidates
