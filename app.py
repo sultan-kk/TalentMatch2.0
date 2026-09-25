@@ -33,7 +33,7 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded",
 )
-st.sidebar.image("logo.jpg")
+st.sidebar.image("logo.png")
 CUSTOM_CSS = """
 <style>
 html, body, [class*="css"] {
