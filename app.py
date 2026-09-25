@@ -33,7 +33,15 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded",
 )
-st.sidebar.image("logo.png")
+st.sidebar.markdown(
+    """
+    <div style="text-align: center; padding: 10px;">
+        <h2 style="color: #00e5ff; margin-bottom: 0px;">⚡ Super TalentMatch AI</h2>
+        <p style="color: #888888; font-size: 12px;">Unified Resume Extraction & Deep LLM Screening</p>
+    </div>
+    """, 
+    unsafe_allow_html=True
+)
 CUSTOM_CSS = """
 <style>
 html, body, [class*="css"] {
