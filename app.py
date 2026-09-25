@@ -1,16 +1,14 @@
 """
 Super TalentMatch AI — Unified HR Screener & Extractor
 ======================================================
-Professional Edition: Adaptive UI, Precise Data Extraction, 
-Job Roles Management, Local Database for Duplicate Checking, 
-and Deep LLM Screening.
+Professional Edition: Adaptive UI, Precise Data Extraction, Job Roles Management, 
+Local Database for Duplicate Checking, and Deep LLM Screening.
 """
 
 import io
 import json
 import os
 import re
-
 import pandas as pd
 import streamlit as st
 from groq import Groq
@@ -18,9 +16,9 @@ from groq import Groq
 # ===========================================================================
 # CONFIGURATION
 # ===========================================================================
-APP_NAME = "TalentMatch AI"
-APP_TAGLINE = "Hybrid AI Resume Screener — Instant Local Scoring + Deep LLM Analysis"
-GROQ_MODEL = "openai/gpt-oss-120b" 
+APP_NAME = "Super TalentMatch AI"
+APP_TAGLINE = "Unified Resume Extraction & Deep LLM Screening"
+GROQ_MODEL = "openai/gpt-oss-120b"
 ACCEPTED_TYPES = ["pdf", "docx", "png", "jpg", "jpeg"]
 DB_FILE = "master_candidates.csv" # Local Database to track previous candidates
 
@@ -28,65 +26,27 @@ DB_FILE = "master_candidates.csv" # Local Database to track previous candidates
 # PAGE CONFIG & CSS
 # ===========================================================================
 st.set_page_config(
+    page_title=f"{APP_NAME} | HR Dashboard",
+    page_icon="⚡",
     layout="wide",
     initial_sidebar_state="expanded",
 )
-st.sidebar.markdown(
-    """
-    <div style="text-align: center; padding: 10px;">
-        <h2 style="color: #00e5ff; margin-bottom: 0px;">⚡ Super TalentMatch AI</h2>
-        <p style="color: #888888; font-size: 12px;">Unified Resume Extraction & Deep LLM Screening</p>
-    </div>
-    """, 
-    unsafe_allow_html=True
-)
+
 CUSTOM_CSS = """
 <style>
-html, body, [class*="css"] {
-    font-family: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    font-size: 15px;
-}
-.tm-header {
-    padding: 1.5rem 2rem;
-    border-radius: 8px;
-    margin-bottom: 1.5rem;
-    background: #1A202C; 
-    border-left: 6px solid #3182CE;
-}
+html, body, [class*="css"] {font-family: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; font-size: 15px;}
+.tm-header {padding: 1.5rem 2rem; border-radius: 8px; margin-bottom: 1.5rem; background: #1A202C; border-left: 6px solid #3182CE;}
 .tm-header h1 { color: #FFFFFF; font-size: 1.7rem; font-weight: 600; margin: 0; padding: 0;}
-.tm-header p { color: #A0AEC0; margin-top: 0.3rem; margin-bottom: 0; font-size: 0.95rem; }
-
-.tm-card {
-    background: var(--background-color);
-    border: 1px solid var(--faded-text-20);
-    border-radius: 8px;
-    padding: 1.2rem 1.5rem;
-    margin-bottom: 1rem;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-}
-.tm-card h4 { font-size: 1.1rem; color: var(--text-color); font-weight: 600; margin-bottom: 1rem; }
-
-.tm-metric-box {
-    background: var(--secondary-background-color);
-    border-radius: 6px;
-    padding: 0.8rem;
-    text-align: center;
-    border: 1px solid var(--faded-text-20);
-}
-.tm-metric-box .tm-value { font-size: 1.4rem; font-weight: 700; color: var(--text-color); }
-.tm-metric-box .tm-label { font-size: 0.75rem; color: var(--text-color); text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.8; }
-
+.tm-header p { color: #A0AEC0; margin-top: 0.3rem; margin-bottom: 0; font-size: 0.95rem;}
+.tm-card {background: var(--background-color); border: 1px solid var(--faded-text-20); border-radius: 8px; padding: 1.2rem 1.5rem; margin-bottom: 1rem; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);}
+.tm-card h4 { font-size: 1.1rem; color: var(--text-color); font-weight: 600; margin-bottom: 1rem;}
+.tm-metric-box {background: var(--secondary-background-color); border-radius: 6px; padding: 0.8rem; text-align: center; border: 1px solid var(--faded-text-20);}
+.tm-metric-box .tm-value { font-size: 1.4rem; font-weight: 700; color: var(--text-color);}
+.tm-metric-box .tm-label { font-size: 0.75rem; color: var(--text-color); text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.8;}
 .tm-score-high { color: #38A169; }
 .tm-score-mid { color: #DD6B20; }
 .tm-score-low { color: #E53E3E; }
-
-.stButton>button[kind="primary"] { 
-    background: #3182CE; 
-    color: #fff; 
-    font-weight: 600; 
-    border-radius: 6px; 
-    padding: 0.5rem 1rem;
-}
+.stButton>button[kind="primary"] {background: #3182CE; color: #fff; font-weight: 600; border-radius: 6px; padding: 0.5rem 1rem;}
 .stButton>button[kind="primary"]:hover { background: #2B6CB0; border-color: #2B6CB0; color: white;}
 </style>
 """
@@ -118,13 +78,13 @@ def save_to_database(new_results):
     df_combined.to_csv(DB_FILE, index=False)
 
 def check_if_exists_in_db(email):
-    if not os.path.exists(DB_FILE) or email == "Not Provided" or email == "Not Found" or not email:
+    if not os.path.exists(DB_FILE) or email in ["Not Provided", "Not Found", ""] or not email:
         return False
     df = load_database()
     return email.lower().strip() in df["Email"].str.lower().str.strip().values
 
 # ===========================================================================
-# TEXT EXTRACTION (PDF, DOCX, PNG, JPG) + OCR
+# TEXT EXTRACTION & OCR
 # ===========================================================================
 def extract_text_from_image(file_bytes: bytes) -> str:
     import pytesseract
@@ -181,7 +141,7 @@ def extract_resume_text(uploaded_file):
     return None
 
 # ===========================================================================
-# GROQ API INTEGRATION (Unified Extraction & Analysis)
+# GROQ API INTEGRATION
 # ===========================================================================
 def build_unified_prompt(resume_text: str, jd_text: str) -> str:
     return f"""You are an expert HR AI assistant. Analyze the CANDIDATE RESUME against the JOB DESCRIPTION.
@@ -194,19 +154,19 @@ JOB DESCRIPTION:
 
 Return ONLY a valid JSON object with exactly the following keys. Extract the information precisely. Do not include markdown fences or explanations.
 {{
-    "name": "Candidate's full name",
-    "father_name": "Father's name (if available, else 'Not Provided')",
-    "email": "Candidate's email address (if available, else 'Not Provided')",
-    "phone": "Candidate's phone number (if available, else 'Not Provided')",
-    "cgpa": "CGPA or grades (if available, else 'Not Provided')",
-    "education": "Highest degree or education level",
-    "university_name": "Name of the University/Institution",
-    "experience_years": "Total years of experience (e.g. '3 Years', 'Fresh', etc.)",
-    "latest_experience": "Most recent job title and company (or 'None')",
-    "skills": "Core skills extracted from the resume (comma-separated)",
-    "reference": "Reference names/details mentioned (if any, else 'Available on Request' or 'Not Provided')",
-    "match_score": A number between 0 and 100 representing how well the resume matches the JD,
-    "missing_skills": ["List", "of", "key JD skills", "missing from resume"]
+  "name": "Candidate's full name",
+  "father_name": "Father's name (if available, else 'Not Provided')",
+  "email": "Candidate's email address (if available, else 'Not Provided')",
+  "phone": "Candidate's phone number (if available, else 'Not Provided')",
+  "cgpa": "CGPA or grades (if available, else 'Not Provided')",
+  "education": "Highest degree or education level",
+  "university_name": "Name of the University/Institution",
+  "experience_years": "Total years of experience (e.g. '3 Years', 'Fresh', etc.)",
+  "latest_experience": "Most recent job title and company (or 'None')",
+  "skills": "Core skills extracted from the resume (comma-separated)",
+  "reference": "Reference names/details mentioned (if any, else 'Available on Request' or 'Not Provided')",
+  "match_score": A number between 0 and 100 representing how well the resume matches the JD,
+  "missing_skills": ["List", "of", "key JD skills", "missing from resume"]
 }}
 """
 
@@ -219,10 +179,8 @@ def analyze_and_extract_with_groq(client, resume_text: str, jd_text: str, job_ti
             response_format={"type": "json_object"},
             temperature=0.2,
         )
-        
         raw_content = response.choices[0].message.content.strip()
         result = json.loads(raw_content)
-        
         email = result.get("email", "Not Provided")
         is_duplicate = check_if_exists_in_db(email)
         
@@ -280,13 +238,13 @@ def dataframe_to_formatted_excel_bytes(df: pd.DataFrame) -> bytes:
         df.to_excel(writer, index=False, sheet_name="Candidates")
         workbook = writer.book
         worksheet = writer.sheets["Candidates"]
-
+        
         header_format = workbook.add_format({
-            "bold": True, "bg_color": "#2D3748", "font_color": "#FFFFFF",
+            "bold": True, "bg_color": "#2D3748", "font_color": "#FFFFFF", 
             "border": 1, "align": "center", "valign": "vcenter",
         })
         wrap_format = workbook.add_format({"text_wrap": True, "valign": "top"})
-
+        
         for col_idx, col_name in enumerate(df.columns):
             worksheet.write(0, col_idx, col_name, header_format)
             width = 20
@@ -296,7 +254,6 @@ def dataframe_to_formatted_excel_bytes(df: pd.DataFrame) -> bytes:
                 width = 15
             worksheet.set_column(col_idx, col_idx, width, wrap_format)
         worksheet.freeze_panes(1, 0)
-
     buffer.seek(0)
     return buffer.getvalue()
 
@@ -307,8 +264,12 @@ if "results" not in st.session_state:
     st.session_state.results = []
 
 with st.sidebar:
-    st.markdown(f"## 🎯 {APP_NAME}")
-    st.caption(APP_TAGLINE)
+    st.markdown("""
+        <div style="text-align: center; padding: 10px;">
+            <h2 style="color: #00e5ff; margin-bottom: 0px;">⚡ Super TalentMatch AI</h2>
+            <p style="color: #888888; font-size: 12px;">Unified Resume Extraction & Deep LLM Screening</p>
+        </div>
+    """, unsafe_allow_html=True)
     st.markdown("---")
     
     if "GROQ_API_KEY" in st.secrets:
@@ -323,7 +284,9 @@ with st.sidebar:
         st.rerun()
 
 st.markdown(f'<div class="tm-header"><h1>{APP_NAME}</h1><p>{APP_TAGLINE}</p></div>', unsafe_allow_html=True)
+
 tab1, tab2 = st.tabs(["🚀 New Processing", "🗄️ Database Records"])
+
 with tab1:
     col1, col2 = st.columns(2, gap="large")
     with col1:
@@ -331,20 +294,19 @@ with tab1:
         job_title_input = st.text_input("Job Title / Position Name", placeholder="e.g. Senior Python Developer")
         jd_text = st.text_area("Job Description", height=130, placeholder="Paste Job Description here...")
         st.markdown('</div>', unsafe_allow_html=True)
-    
+        
     with col2:
         st.markdown('<div class="tm-card"><h4>📥 Upload Resumes</h4>', unsafe_allow_html=True)
         uploaded_files = st.file_uploader("Upload resumes", type=ACCEPTED_TYPES, accept_multiple_files=True, label_visibility="collapsed")
         st.markdown('</div>', unsafe_allow_html=True)
-    
+
     if st.button("🚀 Process & Screen Candidates", type="primary", use_container_width=True, disabled=not (uploaded_files and jd_text.strip() and job_title_input.strip() and groq_api_key)):
         client = Groq(api_key=groq_api_key)
         results = []
-        
         progress = st.progress(0.0, text="Initializing...")
+        
         for i, file in enumerate(uploaded_files):
             progress.progress((i + 1) / (len(uploaded_files) + 1), text=f"Processing {file.name}...")
-            
             text = extract_resume_text(file)
             if text:
                 analysis = analyze_and_extract_with_groq(client, text, jd_text, job_title_input, file.name)
@@ -353,33 +315,26 @@ with tab1:
                     
         progress.empty()
         st.session_state.results = results
-        
-        # Save newly processed candidates to local database
         if results:
             save_to_database(results)
-            
-        st.success(f"Successfully processed {len(results)} candidates and updated records!")
-    
+            st.success(f"Successfully processed {len(results)} candidates and updated records!")
+
     # --- DISPLAY RESULTS ---
     if st.session_state.results:
         results = st.session_state.results
-    
         st.markdown('<div class="tm-card"><h4>📊 Screening Overview</h4>', unsafe_allow_html=True)
         m1, m2 = st.columns(2)
         m1.metric("Total Candidates Processed", len(results))
         avg_score = round(sum(r["match_score"] for r in results) / len(results), 1)
         m2.metric("Average Match Score", f"{avg_score}%")
         st.markdown("</div>", unsafe_allow_html=True)
-    
+
         st.markdown('<div class="tm-card"><h4>🧾 Candidate Details & Rankings</h4>', unsafe_allow_html=True)
-        
         results = sorted(results, key=lambda x: x["match_score"], reverse=True)
         
         for rank, cand in enumerate(results, start=1):
-            # Indicate if candidate already existed in database before this session
             history_badge = " ⚠️ (Previously Saved in DB)" if cand["is_duplicate"] else " 🆕 (New Candidate)"
-            
-            with st.expander(f"#{rank} — {cand['name']} | Score: {cand['match_score']}% {history_badge}", expanded=(rank == 1)):
+            with st.expander(f"#{rank} — {cand['name']} | Score: {cand['match_score']}%{history_badge}", expanded=(rank == 1)):
                 c1, c2 = st.columns([1.2, 1])
                 with c1:
                     st.markdown(f"**✉️ Email:** {cand['email']} | **📞 Phone:** {cand['phone']}")
@@ -392,7 +347,7 @@ with tab1:
                     
                     score_class = "tm-score-high" if cand["match_score"] >= 75 else ("tm-score-mid" if cand["match_score"] >= 50 else "tm-score-low")
                     st.markdown(f'<div class="tm-metric-box" style="margin-top: 15px; width: 160px;"><div class="tm-value {score_class}">{cand["match_score"]}%</div><div class="tm-label">Match Score</div></div>', unsafe_allow_html=True)
-    
+                
                 with c2:
                     st.markdown("**❌ Missing Skills (vs. JD):**")
                     if cand["missing_skills"]:
@@ -401,7 +356,7 @@ with tab1:
                     else:
                         st.caption("No significant gaps identified.")
         st.markdown("</div>", unsafe_allow_html=True)
-    
+
         st.markdown('<div class="tm-card"><h4>⬇️ Export Master Sheet</h4>', unsafe_allow_html=True)
         df = build_results_dataframe(results)
         st.download_button(
@@ -413,6 +368,7 @@ with tab1:
         )
         st.dataframe(df, use_container_width=True)
         st.markdown("</div>", unsafe_allow_html=True)
+
 with tab2:
     st.markdown('<div class="tm-card"><h4>🗄️ All Saved Candidates (Database)</h4>', unsafe_allow_html=True)
     try:
