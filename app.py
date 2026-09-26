@@ -298,12 +298,13 @@ html, body, [class*="css"] { font-family: 'Inter', sans-serif !important; }
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.06);
 }
 
-/* Custom Profile Master Box Background & Contrast */
-div[data-testid="stVerticalBlock"] div[data-testid="stContainer"] {
-    background: rgba(14, 165, 233, 0.035) !important;
+/* Custom Profile Master Box Styling with Distinct Background Color */
+.profile-master-box {
+    background: rgba(14, 165, 233, 0.05) !important;
     border: 1.5px solid rgba(14, 165, 233, 0.35) !important;
     border-radius: 14px !important;
     padding: 1.5rem !important;
+    margin-bottom: 1rem !important;
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.04);
 }
 
