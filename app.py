@@ -1,9 +1,9 @@
 """
-HireMatrix Pro — Enterprise Edition v9.4 (TRX ID Verified Licensing)
+HireMatrix Pro — Enterprise Edition v9.5 (Admin Verification & Approval Gateway)
 ========================================================================
-Features: Manual Payment Transaction ID (TRX ID) Verification, 
-Auto-License Dispatch only upon valid payment ref, Live SMTP OTP, 
-Pro Subscription Gate, AI Interview Q&A, and Kanban Pipeline.
+Features: Admin Payment Verification Dashboard, Manual TRX ID submission, 
+Admin Approval to Dispatch Pro License Key, Live SMTP OTP, Pro Subscription Gate, 
+AI Interview Q&A, and Kanban Pipeline.
 """
 
 import io
@@ -60,6 +60,7 @@ def init_auth_db():
         CREATE TABLE IF NOT EXISTS payment_requests (
             trx_id TEXT PRIMARY KEY,
             email TEXT,
+            name TEXT,
             status TEXT DEFAULT 'Pending'
         )
     """)
@@ -100,38 +101,47 @@ def send_smtp_email(receiver_email, subject, body_text):
     except Exception as e:
         return False, f"Failed to send email: {e}"
 
-def verify_and_issue_license(email, trx_id):
+def submit_payment_request(email, name, trx_id):
     clean_trx = trx_id.strip()
-    if len(clean_trx) < 6:
-        return False, "Please enter a valid Transaction ID / Reference Number (min 6 chars)."
-    
-    # Check if TRX ID is already used
-    conn = sqlite3.connect(AUTH_DB_FILE)
-    cursor = conn.cursor()
-    cursor.execute("SELECT email FROM payment_requests WHERE trx_id = ?", (clean_trx,))
-    row = cursor.fetchone()
-    if row:
+    if len(clean_trx) < 5:
+        return False, "Please enter a valid Transaction ID."
+    try:
+        conn = sqlite3.connect(AUTH_DB_FILE)
+        cursor = conn.cursor()
+        cursor.execute("SELECT status FROM payment_requests WHERE trx_id = ?", (clean_trx,))
+        if cursor.fetchone():
+            conn.close()
+            return False, "This Transaction ID has already been submitted."
+        
+        cursor.execute("INSERT INTO payment_requests (trx_id, email, name, status) VALUES (?, ?, ?, 'Pending')", (clean_trx, email, name))
+        conn.commit()
         conn.close()
-        return False, "This Transaction ID has already been used or submitted."
-    
-    # Save TRX ID request
-    cursor.execute("INSERT INTO payment_requests (trx_id, email, status) VALUES (?, ?, 'Verified')", (clean_trx, email))
-    
-    # Generate License Key
+        return True, "Payment request submitted! Admin will verify and approve your license key shortly."
+    except Exception as e:
+        return False, str(e)
+
+def admin_approve_payment(trx_id, email):
     key = f"HMPRO-{random.randint(1000, 9999)}-{random.randint(1000, 9999)}"
-    cursor.execute("INSERT OR REPLACE INTO license_keys (license_key, email, is_used) VALUES (?, ?, 0)", (key, email))
-    conn.commit()
-    conn.close()
-    
-    body = f"""
-    Hello,\n\n
-    Your Payment Transaction ID ({clean_trx}) has been verified successfully!\n\n
-    Your Exclusive Pro License Key is: {key}\n\n
-    Enter this key in your app sidebar to unlock all Pro executive features instantly (6,999 PKR).\n\n
-    Regards,\nTeam HireMatrix Pro Billing
-    """
-    send_smtp_email(email, "Your Verified HireMatrix Pro License Key", body)
-    return True, key
+    try:
+        conn = sqlite3.connect(AUTH_DB_FILE)
+        cursor = conn.cursor()
+        cursor.execute("UPDATE payment_requests SET status = 'Approved' WHERE trx_id = ?", (trx_id,))
+        cursor.execute("INSERT OR REPLACE INTO license_keys (license_key, email, is_used) VALUES (?, ?, 0)", (key, email))
+        cursor.execute("UPDATE hr_users SET is_pro = 1 WHERE email = ?", (email,))
+        conn.commit()
+        conn.close()
+        
+        body = f"""
+        Hello,\n\n
+        Your payment for HireMatrix Pro (6,999 PKR) has been verified and approved by Admin!\n\n
+        Your Exclusive Pro License Key is: {key}\n\n
+        Your account has been automatically upgraded to PRO Tier.\n\n
+        Regards,\nTeam HireMatrix Pro Billing
+        """
+        send_smtp_email(email, "Your Approved HireMatrix Pro License Key", body)
+        return True, "Payment approved & license dispatched!"
+    except Exception as e:
+        return False, str(e)
 
 def get_all_verified_profiles():
     conn = sqlite3.connect(AUTH_DB_FILE)
@@ -234,7 +244,7 @@ def verify_employee_pin(email, entered_pin):
     return False, None, None, 0
 
 # ===========================================================================
-# PAGE CONFIG & ADAPTIVE STYLING
+# PAGE CONFIG & STYLING
 # ===========================================================================
 st.set_page_config(
     page_title=f"{APP_NAME} | Executive Portal",
@@ -319,7 +329,7 @@ if not st.session_state.logged_in:
     st.markdown("""
         <div style="text-align: center; padding: 2.5rem 0 1rem 0;">
             <div style="display: inline-flex; align-items: center; gap: 8px; background: rgba(0,229,255,0.08); border: 1px solid rgba(0,229,255,0.3); padding: 6px 16px; border-radius: 30px; color: #00838f; font-size: 0.8rem; font-weight: 700; margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 1px;">
-                ⚡ Enterprise Verified Payment Portal (6,999 PKR / mo)
+                ⚡ Enterprise Admin-Verified Payment Portal (6,999 PKR / mo)
             </div>
             <h1 style="font-size: 2.5rem; font-weight: 800; margin: 0;">HireMatrix Pro</h1>
             <p style="opacity: 0.8; font-size: 1.1rem; margin-top: 0.5rem;">Autonomous HR Intelligence & Executive Recruitment Suite</p>
@@ -678,7 +688,7 @@ with st.sidebar:
     st.markdown(f"""
         <div class="sidebar-brand">
             <h3>⚡ HireMatrix Pro</h3>
-            <span>Pro Edition v9.4</span>
+            <span>Pro Edition v9.5</span>
         </div>
     """, unsafe_allow_html=True)
     st.markdown("---")
@@ -694,21 +704,21 @@ with st.sidebar:
     
     if st.session_state.is_pro == 0:
         st.markdown("### 🌟 Upgrade to PRO (6,999 PKR)")
-        st.info("Transfer to our Meezan/Sadapay account, then enter your Transaction ID (TRX ID) below to verify and get your Pro License Key.")
+        st.info("Transfer to our Meezan/Sadapay account and submit your Transaction ID (TRX ID). Admin will verify and approve your license key.")
         
         with st.expander("💳 View Bank / Sadapay Details"):
             st.markdown(f"**Meezan Bank Account:**\n- Title: `{MEEZAN_TITLE}`\n- IBAN: `{MEEZAN_IBAN}`")
             st.markdown(f"**Sadapay / JazzCash Wallet:**\n- Number: `{SADAPAY_NUMBER}`")
         
-        trx_input = st.text_input("Enter Transaction ID (TRX ID)", placeholder="e.g. TRX98234105")
-        if st.button("Verify Payment & Get License", use_container_width=True):
-            ok, k_or_err = verify_and_issue_license(st.session_state.hr_email, trx_input)
+        trx_input = st.text_input("Enter Transaction ID (TRX ID)", placeholder="e.g. TRX98234105", key="trx_sub_in")
+        if st.button("Submit Payment for Approval", use_container_width=True):
+            ok, msg = submit_payment_request(st.session_state.hr_email, st.session_state.hr_name, trx_input)
             if ok:
-                st.success("Payment verified! Pro License Key has been emailed to you.")
+                st.success(msg)
             else:
-                st.error(k_or_err)
+                st.error(msg)
 
-        license_input = st.text_input("Enter Pro License Key", type="password", placeholder="HMPRO-XXXX-XXXX")
+        license_input = st.text_input("Enter Pro License Key", type="password", placeholder="HMPRO-XXXX-XXXX", key="lic_act_in")
         if st.button("Activate Pro Subscription", use_container_width=True):
             ok, msg = activate_license_key(st.session_state.hr_email, license_input)
             if ok:
@@ -906,11 +916,40 @@ with tab2:
     st.markdown("</div>", unsafe_allow_html=True)
 
 with tab3:
-    st.markdown('<div class="glass-card">🛡️ Admin Access & Employee Management</h4>', unsafe_allow_html=True)
+    st.markdown('<div class="glass-card"><h4>🛡️ Admin Access & Employee & Payment Management</h4>', unsafe_allow_html=True)
     if st.session_state.hr_role != "Admin":
-        st.warning("⚠️ Access Restricted: Only users with **Admin** role can manage company employee profiles.")
+        st.warning("⚠️ Access Restricted: Only users with **Admin** role can manage company employee profiles and payment requests.")
     else:
         st.success("✓ Admin privileges active.")
+        
+        st.markdown("### 💳 Pending Subscription Payment Requests")
+        try:
+            conn_p = sqlite3.connect(AUTH_DB_FILE)
+            cur_p = conn_p.cursor()
+            cur_p.execute("SELECT trx_id, email, name, status FROM payment_requests WHERE status = 'Pending'")
+            pendings = cur_p.fetchall()
+            conn_p.close()
+            
+            if not pendings:
+                st.info("No pending payment requests found.")
+            else:
+                for trx, p_email, p_name, status in pendings:
+                    c_pr1, c_pr2 = st.columns([3, 1])
+                    with c_pr1:
+                        st.write(f"👤 **{p_name}** (`{p_email}`) — TRX ID: **`{trx}`**")
+                    with c_pr2:
+                        if st.button("✅ Approve & Send Key", key=f"app_{trx}", use_container_width=True):
+                            ok_a, msg_a = admin_approve_payment(trx, p_email)
+                            if ok_a:
+                                st.success(msg_a)
+                                st.rerun()
+                            else:
+                                st.error(msg_a)
+        except Exception as e:
+            st.error(f"Error loading payments: {e}")
+            
+        st.markdown("---")
+        st.markdown("### 👥 Active Employee Profiles")
         all_emps = get_all_verified_profiles()
         st.markdown(f"**Total Active Registered Employees:** {len(all_emps)}")
         for emp_email, emp_name, emp_pin, emp_role, emp_pro in all_emps:
