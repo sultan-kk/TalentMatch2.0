@@ -1,8 +1,8 @@
 """
-HireMatrix Pro — Enterprise Edition v10.57 (Strict JD-Relevance Filtering)
+HireMatrix Pro — Enterprise Edition v10.58 (Excel Latest Experience Fix)
 ========================================================================
-Features: Strict filtering in Step 2 so only candidates relevant to the entered Job Description are displayed, 
-Clean database with zero duplicates, manual pipeline staging, and conditional email dispatchers.
+Features: Added Latest Experience column to Excel export and database, strict JD-relevance matching, 
+Clean database with zero duplicates, manual pipeline staging, and email dispatchers.
 """
 
 import io
@@ -364,8 +364,7 @@ Return ONLY a valid JSON object with exactly the following keys. Extract the inf
 """
 
 def build_jd_matching_prompt(candidate_text_summary: str, jd_text: str) -> str:
-    return f"""You are an expert HR recruiter AI. Evaluate the CANDIDATE PROFILE against the JOB DESCRIPTION.
-Determine if the candidate is relevant to the job description (e.g. matching domain, background, or skills).
+    return f"""You are an expert HR recruiter AI. Evaluate the CANDIDATE PROFILE against the JOB DESCRIPTION. Determine if the candidate is relevant to the job description (e.g. matching domain, background, or skills).
 
 CANDIDATE PROFILE SUMMARY:
 {candidate_text_summary}
@@ -450,7 +449,7 @@ with st.sidebar:
     st.markdown(f"""
         <div class="sidebar-brand-box">
             <h2>{APP_NAME}</h2>
-            <p>Multi-Stage ATS v10.57</p>
+            <p>Multi-Stage ATS v10.58</p>
         </div>
     """, unsafe_allow_html=True)
     st.markdown("---")
@@ -531,7 +530,7 @@ with tab1:
     df_repo = load_database()
     if not df_repo.empty:
         st.markdown('<div class="corp-card"><h4>📋 Current Candidates in Talent Repository</h4>', unsafe_allow_html=True)
-        st.dataframe(df_repo[["Candidate Name", "Email", "Phone", "Education", "Experience Years", "Extracted Skills", "Pipeline Status"]], use_container_width=True)
+        st.dataframe(df_repo[["Candidate Name", "Email", "Phone", "Education", "Experience Years", "Latest Experience", "Extracted Skills", "Pipeline Status"]], use_container_width=True)
         st.markdown('</div>', unsafe_allow_html=True)
 
 with tab2:
@@ -562,7 +561,6 @@ with tab2:
             progress.progress((idx + 1) / (len(df_pool) + 1), text=f"Evaluating {row['Candidate Name']}...")
             score, is_relevant, missing = evaluate_candidate_against_jd(client, row, jd_desc_text)
             
-            # STRICT RELEVANCE FILTER: Only include candidates deemed relevant by AI to the JD
             if is_relevant:
                 initial_status = "Shortlisted" if score >= screening_threshold else row.get("Pipeline Status", "Talent Pool")
                 
@@ -586,7 +584,7 @@ with tab2:
             
         progress.empty()
         st.session_state.screening_results = screened_results
-        st.success(f"Screening complete! Found {len(screened_results)} JD-relevant candidates (filtered out unrelated profiles).")
+        st.success(f"Screening complete! Found {len(screened_results)} JD-relevant candidates.")
         st.rerun()
         
     if df_pool.empty:
