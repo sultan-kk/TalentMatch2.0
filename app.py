@@ -1,8 +1,8 @@
 """
-HireMatrix Pro — Enterprise Edition v10.31 (Fixed Visible Profile Card & Colors)
+HireMatrix Pro — Enterprise Edition v10.33 (Complete Code with Styled Profile Box)
 ========================================================================
-Features: Restored and styled HTML profile container with distinct background color, 
-Styled buttons, dynamic threshold slider, and duplicate email prevention.
+Features: Visually distinct Saved Profile box with custom background color and border, 
+Dynamic Passing Score Threshold, Smart Duplicate Prevention, and Executive Excel Report.
 """
 
 import io
@@ -296,19 +296,18 @@ html, body, [class*="css"] { font-family: 'Inter', sans-serif !important; }
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.06);
 }
 
-/* Custom HTML Profile Card Wrapper with Distinct Background Color */
-.custom-profile-card {
+/* Explicit Distinct Background Color Override for Profile Box */
+div[data-testid="stVerticalBlock"] div[data-testid="stContainer"] {
     background: rgba(14, 165, 233, 0.08) !important;
-    border: 1.5px solid rgba(14, 165, 233, 0.45) !important;
+    border: 1.5px solid #0EA5E9 !important;
     border-radius: 16px !important;
-    padding: 2rem !important;
-    margin-bottom: 1.5rem !important;
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+    padding: 1.5rem !important;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.06) !important;
 }
 
 /* Custom Distinct Background Color for Profile & Action Buttons */
 .stButton > button {
-    background: rgba(14, 165, 233, 0.12) !important;
+    background: rgba(14, 165, 233, 0.14) !important;
     color: inherit !important;
     border: 1.5px solid rgba(14, 165, 233, 0.45) !important;
     border-radius: 10px !important;
@@ -316,7 +315,7 @@ html, body, [class*="css"] { font-family: 'Inter', sans-serif !important; }
     transition: all 0.2s ease-in-out;
 }
 .stButton > button:hover {
-    background: rgba(14, 165, 233, 0.22) !important;
+    background: rgba(14, 165, 233, 0.25) !important;
     border-color: #0EA5E9 !important;
     box-shadow: 0 4px 12px rgba(14, 165, 233, 0.18);
 }
@@ -450,24 +449,23 @@ if not st.session_state.logged_in:
                     st.rerun()
             
         elif saved_profiles and not st.session_state.selected_profile_email:
-            # --- CUSTOM HTML PROFILE CARD WRAPPER ---
-            st.markdown('<div class="custom-profile-card">', unsafe_allow_html=True)
-            st.markdown("### 👥 Saved Employee Profiles")
-            st.caption("Select your secure profile card below to sign in instantly:")
-            
-            for p_email, p_name, p_pin, p_role, p_pro in saved_profiles:
-                pro_badge = " 🌟 [PRO]" if p_pro == 1 else " 🆓 [Free]"
-                c_p1, c_p2 = st.columns([3, 1])
-                with c_p1:
-                    if st.button(f"👤 {p_name} ({p_role}){pro_badge}", use_container_width=True, key=f"sel_{p_email}"):
-                        st.session_state.selected_profile_email = p_email
-                        st.rerun()
-                with c_p2:
-                    if st.button("🗑️ Delete", key=f"del_{p_email}", use_container_width=True):
-                        delete_employee_profile(p_email)
-                        st.success(f"Profile for {p_name} has been removed.")
-                        st.rerun()
-            st.markdown('</div>', unsafe_allow_html=True)
+            # --- SAVED PROFILES CONTAINER WITH STYLING ---
+            with st.container(border=True):
+                st.markdown("### 👥 Saved Employee Profiles")
+                st.caption("Select your secure profile card below to sign in instantly:")
+                
+                for p_email, p_name, p_pin, p_role, p_pro in saved_profiles:
+                    pro_badge = " 🌟 [PRO]" if p_pro == 1 else " 🆓 [Free]"
+                    c_p1, c_p2 = st.columns([3, 1])
+                    with c_p1:
+                        if st.button(f"👤 {p_name} ({p_role}){pro_badge}", use_container_width=True, key=f"sel_{p_email}"):
+                            st.session_state.selected_profile_email = p_email
+                            st.rerun()
+                    with c_p2:
+                        if st.button("🗑️ Delete", key=f"del_{p_email}", use_container_width=True):
+                            delete_employee_profile(p_email)
+                            st.success(f"Profile for {p_name} has been removed.")
+                            st.rerun()
             
             st.markdown("")
             if st.button("➕ Register New Employee Profile", use_container_width=True):
@@ -581,7 +579,7 @@ def save_to_database(new_results, default_status="Shortlisted"):
         })
     df_new = pd.DataFrame(new_data)
     
-    # --- SMART DUPLICATE MERGE & PREVENTION BASED ON EMAIL & JOB TITLE ---
+    # --- SMART DUPLICATE MERGE & PREVENTION BASED ON EMAIL ---
     if not df.empty and not df_new.empty:
         for _, new_row in df_new.iterrows():
             incoming_email = str(new_row["Email"]).lower().strip()
@@ -783,7 +781,7 @@ with st.sidebar:
     st.markdown(f"""
         <div class="sidebar-brand-box">
             <h2>{APP_NAME}</h2>
-            <p>Enterprise v10.31</p>
+            <p>Enterprise v10.33</p>
         </div>
     """, unsafe_allow_html=True)
     st.markdown("---")
