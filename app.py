@@ -448,7 +448,7 @@ if not st.session_state.logged_in:
                     st.session_state.pending_otp_email = None
                     st.rerun()
             
-elif saved_profiles and not st.session_state.selected_profile_email:
+        elif saved_profiles and not st.session_state.selected_profile_email:
             # --- FULL HTML CONTAINER WITH DISTINCT BACKGROUND & PROFILES ---
             st.markdown("""
                 <div style="background: rgba(200, 200, 200, 0.18); border: 1.5px solid #0EA5E9; border-radius: 16px; padding: 1.8rem; margin-bottom: 1.5rem; box-shadow: 0 8px 25px rgba(0,0,0,0.06);">
