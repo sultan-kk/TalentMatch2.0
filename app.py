@@ -234,7 +234,7 @@ if not st.session_state.logged_in:
                         
             with auth_tab2:
                 st.markdown("### Register New HR Account")
-                reg_name = st.text_input("Full Name", placeholder="Muhammad Sultan", key="r_name")
+                reg_name = st.text_input("Full Name", placeholder="Your Full Name", key="r_name")
                 reg_email = st.text_input("Work Email", placeholder="hr@company.com", key="r_email")
                 reg_pass = st.text_input("Create Password", type="password", key="r_pass")
                 
