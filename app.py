@@ -1,8 +1,8 @@
 """
-HireMatrix Pro — Enterprise Edition v10.27 (Polished Executive Report Exporter)
+HireMatrix Pro — Enterprise Edition v10.28 (Dynamic Score Threshold in Screening)
 ========================================================================
-Features: Tailored executive spreadsheet export with professional table headers, 
-Automatic text wrapping, clean column widths, and timestamped tracking.
+Features: Custom match score threshold slider in Screening Workspace, 
+Executive formatted report export, unified profile card login, and balanced theme contrast.
 """
 
 import io
@@ -530,7 +530,7 @@ def load_database():
             "Latest Experience", "Extracted Skills", "Reference", "Match Score", "Pipeline Status", "Screened At"
         ])
 
-def save_to_database(new_results):
+def save_to_database(new_results, default_status="Shortlisted"):
     df = load_database()
     current_timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     new_data = []
@@ -549,7 +549,7 @@ def save_to_database(new_results):
             "Extracted Skills": r.get("skills", "Not Provided"),
             "Reference": r.get("reference", "Not Provided"),
             "Match Score": r["match_score"],
-            "Pipeline Status": "Shortlisted",
+            "Pipeline Status": default_status,
             "Screened At": current_timestamp
         })
     df_new = pd.DataFrame(new_data)
@@ -581,7 +581,6 @@ def dataframe_to_formatted_executive_report(df: pd.DataFrame) -> bytes:
         workbook = writer.book
         worksheet = writer.sheets["Recruitment Master Report"]
         
-        # Professional Corporate Header Formatting
         header_format = workbook.add_format({
             "bold": True,
             "bg_color": "#1E293B",
@@ -591,17 +590,14 @@ def dataframe_to_formatted_executive_report(df: pd.DataFrame) -> bytes:
             "valign": "vcenter",
         })
         
-        # Text Wrap & Alignment for Data Rows
         wrap_format = workbook.add_format({
             "text_wrap": True,
             "valign": "top",
             "border": 1
         })
         
-        # Apply header formatting and column widths
         for col_idx, col_name in enumerate(df.columns):
             worksheet.write(0, col_idx, col_name, header_format)
-            # Give wider width to specific analysis columns
             if col_name in ["Extracted Skills", "Latest Experience", "University Name", "Job Title"]:
                 worksheet.set_column(col_idx, col_idx, 30, wrap_format)
             else:
@@ -753,7 +749,7 @@ with st.sidebar:
     st.markdown(f"""
         <div class="sidebar-brand-box">
             <h2>{APP_NAME}</h2>
-            <p>Enterprise v10.27</p>
+            <p>Enterprise v10.28</p>
         </div>
     """, unsafe_allow_html=True)
     st.markdown("---")
@@ -836,9 +832,19 @@ tab1, tab2, tab3 = st.tabs(["🚀 Screening Workspace", "🗄️ Candidate Datab
 with tab1:
     col1, col2 = st.columns(2, gap="large")
     with col1:
-        st.markdown('<div class="corp-card"><h4>📋 Job Specification</h4>', unsafe_allow_html=True)
+        st.markdown('<div class="corp-card"><h4>📋 Job Specification & Threshold</h4>', unsafe_allow_html=True)
         job_title_input = st.text_input("Job Position Title", placeholder="e.g. Lead AI Engineer")
-        jd_text = st.text_area("Job Description & Requirements", height=140, placeholder="Paste detailed job description here...")
+        jd_text = st.text_area("Job Description & Requirements", height=110, placeholder="Paste detailed job description here...")
+        
+        # --- DYNAMIC MATCH SCORE THRESHOLD SETTING ---
+        st.markdown("---")
+        st.markdown("**🎯 Select Minimum Passing Score Threshold (%)**")
+        custom_threshold = st.slider(
+            "Candidates scoring above this will be Shortlisted; others will be marked as Rejected.",
+            min_value=0, max_value=100, value=50, step=5,
+            label_visibility="collapsed"
+        )
+        st.caption(f"Current Selected Threshold: **{custom_threshold}%**")
         st.markdown('</div>', unsafe_allow_html=True)
         
     with col2:
@@ -862,8 +868,38 @@ with tab1:
         progress.empty()
         st.session_state.results = results
         if results:
-            save_to_database(results)
-            st.success(f"Successfully processed {len(results)} candidate resumes!")
+            # Apply dynamic threshold for initial pipeline status
+            for r in results:
+                r["initial_status"] = "Shortlisted" if r["match_score"] >= custom_threshold else "Rejected"
+            
+            # Save to database using the dynamic threshold statuses
+            df = load_database()
+            current_timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            new_data = []
+            for r in results:
+                new_data.append({
+                    "Job Title": r["job_title"],
+                    "Candidate Name": r["name"],
+                    "Father Name": r.get("father_name", "Not Provided"),
+                    "Email": r["email"],
+                    "Phone": r["phone"],
+                    "CGPA": r.get("cgpa", "Not Provided"),
+                    "Education": r.get("education", "Not Provided"),
+                    "University Name": r.get("university_name", "Not Provided"),
+                    "Experience Years": r.get("experience_years", "0"),
+                    "Latest Experience": r.get("latest_experience", "Not Provided"),
+                    "Extracted Skills": r.get("skills", "Not Provided"),
+                    "Reference": r.get("reference", "Not Provided"),
+                    "Match Score": r["match_score"],
+                    "Pipeline Status": r["initial_status"],
+                    "Screened At": current_timestamp
+                })
+            df_new = pd.DataFrame(new_data)
+            df_combined = pd.concat([df, df_new], ignore_index=True)
+            df_combined.drop_duplicates(subset=['Email', 'Job Title'], keep='last', inplace=True)
+            df_combined.to_csv(DB_FILE, index=False)
+            
+            st.success(f"Successfully processed {len(results)} candidate resumes! Threshold applied: {custom_threshold}%")
             st.rerun()
 
     # --- RESULTS DISPLAY ---
@@ -950,7 +986,7 @@ with tab1:
 with tab2:
     st.markdown('<div class="corp-card"><h4>🗄️ Candidate Database, Search Filters & Analytics Charts</h4>', unsafe_allow_html=True)
     
-    # --- DOWLOAD EXECUTIVE FORMATTED REPORT BUTTON ---
+    # --- DOWNLOAD EXECUTIVE FORMATTED REPORT BUTTON ---
     df_export = load_database()
     st.download_button(
         "📊 Download Executive Formatted Report (.xlsx)",
