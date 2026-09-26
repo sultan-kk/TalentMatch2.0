@@ -1,7 +1,7 @@
 """
-HireMatrix Pro — Enterprise Edition v10.50 (Multi-Stage ATS Architecture)
+HireMatrix Pro — Enterprise Edition v10.51 (Repository Extraction Fix)
 ========================================================================
-Features: 2-Step Workflow (1. Talent Pool Repository & CV Extraction -> 2. JD Matching & Ranked Scoring), 
+Features: Fixed independent talent pool repository extraction, seamless 2-step workflow, 
 Conditional Email Dispatchers, Dynamic Threshold, and Executive Excel Report.
 """
 
@@ -485,7 +485,6 @@ def save_candidates_to_repository(new_candidates):
         })
     df_new = pd.DataFrame(new_data)
     
-    # Smart Duplicate Prevention based on Email
     if not df.empty and not df_new.empty:
         for _, new_row in df_new.iterrows():
             incoming_email = str(new_row["Email"]).lower().strip()
@@ -711,7 +710,7 @@ with st.sidebar:
     st.markdown(f"""
         <div class="sidebar-brand-box">
             <h2>{APP_NAME}</h2>
-            <p>Multi-Stage ATS v10.50</p>
+            <p>Multi-Stage ATS v10.51</p>
         </div>
     """, unsafe_allow_html=True)
     st.markdown("---")
@@ -789,7 +788,6 @@ with tab1:
             
     st.markdown("</div>", unsafe_allow_html=True)
     
-    # Display current repo summary
     df_repo = load_database()
     if not df_repo.empty:
         st.markdown('<div class="corp-card"><h4>📋 Current Candidates in Talent Repository</h4>', unsafe_allow_html=True)
@@ -854,7 +852,6 @@ with tab2:
         
     st.markdown('</div>', unsafe_allow_html=True)
 
-    # --- SCREENED RESULTS & PIPELINE STATUS / CONDITIONAL EMAILS ---
     if st.session_state.screening_results:
         st.markdown('<div class="corp-card"><h4>📊 Ranked Screening Results & Conditional Action Pipeline</h4>', unsafe_allow_html=True)
         results = sorted(st.session_state.screening_results, key=lambda x: x["match_score"], reverse=True)
@@ -886,7 +883,6 @@ with tab2:
                         st.caption("No significant skill gaps identified.")
 
                 st.markdown("---")
-                # --- PIPELINE STATUS SELECTOR ---
                 st.markdown("#### 🔄 Candidate Pipeline Stage")
                 new_stage = st.selectbox(
                     "Update Stage", 
@@ -910,7 +906,6 @@ with tab2:
                     else:
                         st.error("Groq API key required.")
 
-                # --- CONDITIONAL EMAIL DISPATCHER (TRIGGERS ONLY ON STAGE CHANGE) ---
                 if cand['email'] not in ["Not Provided", "Not Found", ""] and cand['email']:
                     st.markdown("#### ✉️ Conditional Email Dispatcher")
                     
