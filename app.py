@@ -1,8 +1,8 @@
 """
-HireMatrix Pro — Enterprise Edition v10.58 (Excel Latest Experience Fix)
+HireMatrix Pro — Enterprise Edition v10.59 (Strict Single-Candidate Duplicate Prevention)
 ========================================================================
-Features: Added Latest Experience column to Excel export and database, strict JD-relevance matching, 
-Clean database with zero duplicates, manual pipeline staging, and email dispatchers.
+Features: Instant single-candidate duplicate email blocking during Step 1 extraction, 
+Strict JD-relevance filtering, manual pipeline staging, and email dispatchers.
 """
 
 import io
@@ -163,7 +163,7 @@ def verify_employee_pin(email, entered_pin):
     return False, None, None
 
 # ===========================================================================
-# DATABASE OPERATIONS & DUPLICATE CLEANING
+# DATABASE OPERATIONS & STRICT DUPLICATE PREVENTION
 # ===========================================================================
 def load_database():
     if os.path.exists(DB_FILE):
@@ -177,7 +177,7 @@ def load_database():
             if col not in df.columns:
                 df[col] = "Not Provided"
         
-        # --- AUTOMATIC DUPLICATE REMOVAL BASED ON EMAIL ---
+        # Clean existing duplicates immediately on load
         if not df.empty and "Email" in df.columns:
             df["CleanEmail"] = df["Email"].astype(str).str.lower().str.strip()
             valid_mask = ~df["CleanEmail"].isin(["not provided", "not found", "nan", ""])
@@ -194,11 +194,27 @@ def load_database():
             "Latest Experience", "Extracted Skills", "Reference", "Pipeline Status", "Added At"
         ])
 
+def check_if_exists_in_db(email):
+    if not os.path.exists(DB_FILE) or email in ["Not Provided", "Not Found", ""] or not email:
+        return False
+    df = load_database()
+    clean_in = email.lower().strip()
+    if "Email" not in df.columns:
+        return False
+    existing_emails = df["Email"].astype(str).str.lower().str.strip().values
+    return clean_in in existing_emails
+
 def save_candidates_to_repository(new_candidates):
     df = load_database()
     current_timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     new_data = []
+    
     for c in new_candidates:
+        email = str(c.get("email", "Not Provided")).lower().strip()
+        # STRICT CHECK: Skip if email already exists in database
+        if email not in ["not provided", "not found", "", "nan"] and check_if_exists_in_db(email):
+            continue
+            
         new_data.append({
             "Candidate Name": c["name"],
             "Father Name": c.get("father_name", "Not Provided"),
@@ -214,23 +230,17 @@ def save_candidates_to_repository(new_candidates):
             "Pipeline Status": "Talent Pool",
             "Added At": current_timestamp
         })
-    df_new = pd.DataFrame(new_data)
-    
-    if not df.empty and not df_new.empty:
-        for _, new_row in df_new.iterrows():
-            incoming_email = str(new_row["Email"]).lower().strip()
-            if incoming_email not in ["not provided", "not found", "", "nan"]:
-                df = df[~(df["Email"].str.lower().str.strip() == incoming_email)]
-                
-    df_combined = pd.concat([df, df_new], ignore_index=True)
-    if "Email" in df_combined.columns:
-        df_combined["CleanEmail"] = df_combined["Email"].astype(str).str.lower().str.strip()
-        valid_mask = ~df_combined["CleanEmail"].isin(["not provided", "not found", "nan", ""])
-        df_v = df_combined[valid_mask].drop_duplicates(subset=["CleanEmail"], keep="first")
-        df_inv = df_combined[~valid_mask]
-        df_combined = pd.concat([df_v, df_inv], ignore_index=True).drop(columns=["CleanEmail"])
         
-    df_combined.to_csv(DB_FILE, index=False)
+    if new_data:
+        df_new = pd.DataFrame(new_data)
+        df_combined = pd.concat([df, df_new], ignore_index=True)
+        if "Email" in df_combined.columns:
+            df_combined["CleanEmail"] = df_combined["Email"].astype(str).str.lower().str.strip()
+            valid_mask = ~df_combined["CleanEmail"].isin(["not provided", "not found", "nan", ""])
+            df_v = df_combined[valid_mask].drop_duplicates(subset=["CleanEmail"], keep="first")
+            df_inv = df_combined[~valid_mask]
+            df_combined = pd.concat([df_v, df_inv], ignore_index=True).drop(columns=["CleanEmail"])
+        df_combined.to_csv(DB_FILE, index=False)
 
 def update_candidate_pipeline_status(email, new_status):
     if os.path.exists(DB_FILE):
@@ -241,12 +251,6 @@ def update_candidate_pipeline_status(email, new_status):
 def clear_candidate_database():
     if os.path.exists(DB_FILE):
         os.remove(DB_FILE)
-
-def check_if_exists_in_db(email):
-    if not os.path.exists(DB_FILE) or email in ["Not Provided", "Not Found", ""] or not email:
-        return False
-    df = load_database()
-    return email.lower().strip() in df["Email"].str.lower().str.strip().values
 
 def dataframe_to_formatted_executive_report(df: pd.DataFrame) -> bytes:
     buffer = io.BytesIO()
@@ -392,7 +396,6 @@ def extract_candidate_for_repo(client, resume_text: str, file_name: str):
         raw_content = response.choices[0].message.content.strip()
         result = json.loads(raw_content)
         email = result.get("email", "Not Provided")
-        is_duplicate = check_if_exists_in_db(email)
         
         return {
             "file_name": file_name,
@@ -406,8 +409,7 @@ def extract_candidate_for_repo(client, resume_text: str, file_name: str):
             "experience_years": str(result.get("experience_years", "0")),
             "latest_experience": result.get("latest_experience", "Not Provided"),
             "skills": result.get("skills", "Not Provided"),
-            "reference": result.get("reference", "Not Provided"),
-            "is_duplicate": is_duplicate
+            "reference": result.get("reference", "Not Provided")
         }
     except Exception as exc:
         st.error(f"⚠️ Extraction failed for **{file_name}**: {exc}")
@@ -449,7 +451,7 @@ with st.sidebar:
     st.markdown(f"""
         <div class="sidebar-brand-box">
             <h2>{APP_NAME}</h2>
-            <p>Multi-Stage ATS v10.58</p>
+            <p>Multi-Stage ATS v10.59</p>
         </div>
     """, unsafe_allow_html=True)
     st.markdown("---")
@@ -522,7 +524,7 @@ with tab1:
         progress.empty()
         if extracted_batch:
             save_candidates_to_repository(extracted_batch)
-            st.success(f"Successfully processed and added {len(extracted_batch)} candidates to the Talent Pool!")
+            st.success(f"Successfully processed and added candidates to the Talent Pool (Duplicates automatically blocked)!")
             st.rerun()
             
     st.markdown("</div>", unsafe_allow_html=True)
