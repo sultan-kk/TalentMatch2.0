@@ -1,7 +1,7 @@
 """
-HireMatrix Pro — Enterprise Edition v10.63 (Same-File Append Master)
+HireMatrix Pro — Enterprise Edition v10.64 (Duplicate Widget ID Fix)
 ========================================================================
-Features: All newly extracted and screened candidates automatically append to the same persistent Excel files, 
+Features: Fixed duplicate widget key errors in loops, persistent same-file master Excel appends, 
 Clean numbered exports, individual candidate deletes, strict duplicate blocking, and complete ATS workflow.
 """
 
@@ -267,6 +267,8 @@ def generate_repository_excel(df: pd.DataFrame) -> bytes:
         
         export_df.to_excel(writer, index=False, sheet_name="Talent Repository")
         workbook = writer.book
+        worksheet = workbook.add_worksheet("Talent Repository")
+        # Use existing sheet if already present
         worksheet = writer.sheets["Talent Repository"]
         
         header_format = workbook.add_format({
@@ -488,7 +490,7 @@ with st.sidebar:
     st.markdown(f"""
         <div class="sidebar-brand-box">
             <h2>{APP_NAME}</h2>
-            <p>Multi-Stage ATS v10.63</p>
+            <p>Multi-Stage ATS v10.64</p>
         </div>
     """, unsafe_allow_html=True)
     st.markdown("---")
@@ -570,7 +572,6 @@ with tab1:
     if not df_repo.empty:
         st.markdown('<div class="corp-card"><h4>📋 Current Candidates in Talent Repository (Manage & Delete)</h4>', unsafe_allow_html=True)
         
-        # Talent Pool Persistent Master Download Button (Always Appends Same File Name)
         st.download_button(
             "📊 Download Master Talent Repository Report (.xlsx)",
             data=generate_repository_excel(df_repo),
@@ -586,7 +587,9 @@ with tab1:
             with c_d2: st.write(f"✉️ `{row['Email']}`")
             with c_d3: st.write(f"🎓 {row['Education']}")
             with c_d4:
-                if st.button("🗑️ Delete", key=f"del_repo_{idx}", use_container_width=True):
+                # Unique safe key using email and index combination
+                safe_key = f"del_repo_{idx}_{str(row['Email']).replace('@', '_').replace('.', '_')}"
+                if st.button("🗑️ Delete", key=safe_key, use_container_width=True):
                     delete_single_candidate_from_db(row['Email'] if row['Email'] not in ["Not Provided", "Not Found", ""] else row['Candidate Name'])
                     st.success(f"Removed {row['Candidate Name']} from repository!")
                     st.rerun()
@@ -658,7 +661,6 @@ with tab2:
         if not results:
             st.warning("⚠️ No candidates in the repository matched the requirements of this Job Description.")
         else:
-            # Persistent Screened Results Master Download Button
             st.download_button(
                 "📊 Download Master Screened Candidates Report (.xlsx)",
                 data=generate_screening_excel(results),
@@ -700,11 +702,13 @@ with tab2:
                 current_stage = cand["pipeline_status"]
                 stage_idx = stage_options.index(current_stage) if current_stage in stage_options else 0
                 
+                # Unique safe key for stage selector
+                stage_key = f"stage_sel_{rank}_{str(cand['email']).replace('@', '_').replace('.', '_')}"
                 new_stage = st.selectbox(
                     "Update Stage", 
                     stage_options, 
                     index=stage_idx,
-                    key=f"stage_sel_{rank}"
+                    key=stage_key
                 )
                 if new_stage != cand["pipeline_status"]:
                     cand["pipeline_status"] = new_stage
@@ -713,7 +717,8 @@ with tab2:
                     st.rerun()
 
                 st.markdown("---")
-                if st.button(f"💡 Generate AI Interview Q&A for {cand['name']}", key=f"gen_q_{rank}"):
+                q_key = f"gen_q_{rank}_{str(cand['email']).replace('@', '_').replace('.', '_')}"
+                if st.button(f"💡 Generate AI Interview Q&A for {cand['name']}", key=q_key):
                     if client:
                         with st.spinner("Generating tailored interview questions..."):
                             q_text = generate_ai_interview_questions(client, cand['skills'], cand['job_title'])
@@ -738,9 +743,11 @@ with tab2:
                         email_subject = f"Application Status Update - {cand['job_title']}"
                         st.warning("⚠️ Stage is **Rejected**: Regret template loaded.")
 
-                    invite_msg = st.text_area("Email Message", value=default_msg, key=f"inv_msg_{rank}")
+                    msg_key = f"inv_msg_{rank}_{str(cand['email']).replace('@', '_').replace('.', '_')}"
+                    invite_msg = st.text_area("Email Message", value=default_msg, key=msg_key)
                     
-                    if st.button(f"📧 Send Email to {cand['name']}", key=f"send_inv_{rank}"):
+                    send_key = f"send_inv_{rank}_{str(cand['email']).replace('@', '_').replace('.', '_')}"
+                    if st.button(f"📧 Send Email to {cand['name']}", key=send_key):
                         ok, res_m = send_smtp_email(cand['email'], email_subject, invite_msg)
                         if ok:
                             st.success(f"Email sent successfully to {cand['email']}!")
