@@ -229,39 +229,112 @@ st.set_page_config(
 ADVANCED_CSS = """
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
-html, body, [class*="css"] { font-family: 'Plus Jakarta Sans', sans-serif !important; }
-.stApp { background: radial-gradient(circle at 10% 10%, rgba(10, 15, 25, 1) 0%, rgba(4, 7, 13, 1) 100%); color: #F8FAFC; }
+
+html, body, [class*="css"] {
+    font-family: 'Plus Jakarta Sans', sans-serif !important;
+}
+
+/* Adaptive App Background & Text */
+.stApp {
+    color: inherit !important;
+}
+
+/* Cyber-Hero Header with Adaptive Glassmorphism */
 .cyber-hero {
-    background: linear-gradient(135deg, rgba(30, 41, 59, 0.5) 0%, rgba(15, 23, 42, 0.8) 100%);
-    backdrop-filter: blur(20px); border: 1px solid rgba(0, 229, 255, 0.15); border-radius: 20px;
-    padding: 2.2rem 2.8rem; margin-bottom: 2rem; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
-    position: relative; overflow: hidden;
+    background: linear-gradient(135deg, rgba(30, 41, 59, 0.4) 0%, rgba(15, 23, 42, 0.6) 100%);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(0, 229, 255, 0.2);
+    border-radius: 20px;
+    padding: 2.2rem 2.8rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.3);
+    position: relative;
+    overflow: hidden;
 }
 .cyber-hero::before {
-    content: ''; position: absolute; top: 0; left: 0; width: 6px; height: 100%;
+    content: '';
+    position: absolute;
+    top: 0; left: 0; width: 6px; height: 100%;
     background: linear-gradient(to bottom, #00e5ff, #3b82f6, #8b5cf6);
 }
 .cyber-badge {
-    display: inline-flex; align-items: center; gap: 8px; background: rgba(0, 229, 255, 0.08);
-    border: 1px solid rgba(0, 229, 255, 0.25); color: #00e5ff; padding: 5px 14px; border-radius: 25px;
-    font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 0.8rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(0, 229, 255, 0.1);
+    border: 1px solid rgba(0, 229, 255, 0.3);
+    color: #00838f;
+    padding: 5px 14px;
+    border-radius: 25px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    margin-bottom: 0.8rem;
 }
-.cyber-hero h1 { color: #FFFFFF; font-size: 2.3rem; font-weight: 800; margin: 0; background: linear-gradient(to right, #FFFFFF, #94A3B8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-.cyber-hero p { color: #94A3B8; margin-top: 0.5rem; margin-bottom: 0; font-size: 1.05rem; }
-.glass-card { background: rgba(26, 35, 50, 0.4); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 16px; padding: 1.6rem; margin-bottom: 1.5rem; box-shadow: 0 12px 35px -10px rgba(0,0,0,0.5); }
-.glass-card h4 { font-size: 1.15rem; color: #F8FAFC; font-weight: 700; margin-bottom: 1rem; }
-.metric-pill { background: rgba(13, 20, 32, 0.8); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 14px; padding: 1.1rem; text-align: center; }
-.metric-pill .val { font-size: 1.7rem; font-weight: 800; color: #00e5ff; }
-.metric-pill .lbl { font-size: 0.75rem; color: #94A3B8; text-transform: uppercase; letter-spacing: 1.2px; margin-top: 4px; font-weight: 600; }
+.cyber-hero h1 {
+    font-size: 2.3rem;
+    font-weight: 800;
+    letter-spacing: -0.8px;
+    margin: 0;
+}
+.cyber-hero p {
+    margin-top: 0.5rem;
+    margin-bottom: 0;
+    font-size: 1.05rem;
+}
+
+/* Glassmorphism Floating Cards */
+.glass-card {
+    background: rgba(128, 128, 128, 0.05);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(128, 128, 128, 0.15);
+    border-radius: 16px;
+    padding: 1.6rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 10px 30px -10px rgba(0,0,0,0.1);
+}
+.glass-card h4 {
+    font-size: 1.15rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+}
+
+/* Glowing Metric Pill */
+.metric-pill {
+    background: rgba(128, 128, 128, 0.08);
+    border: 1px solid rgba(128, 128, 128, 0.15);
+    border-radius: 14px;
+    padding: 1.1rem;
+    text-align: center;
+}
+.metric-pill .val {
+    font-size: 1.7rem;
+    font-weight: 800;
+    color: #00838f;
+}
+.metric-pill .lbl {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    margin-top: 4px;
+    font-weight: 600;
+}
+
 .score-high { color: #10B981 !important; }
 .score-mid { color: #F59E0B !important; }
 .score-low { color: #EF4444 !important; }
-.stButton>button[kind="primary"] { background: linear-gradient(135deg, #00e5ff 0%, #3b82f6 50%, #6366f1 100%); color: #04070D; font-weight: 800; border-radius: 12px; padding: 0.65rem 1.4rem; border: none; box-shadow: 0 6px 20px rgba(0, 229, 255, 0.35); }
-[data-testid="stSidebar"] { background: linear-gradient(180deg, rgba(8, 12, 20, 0.95) 0%, rgba(4, 7, 13, 0.98) 100%); border-right: 1px solid rgba(0, 229, 255, 0.1); }
-.sidebar-card { background: rgba(20, 30, 48, 0.5); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 14px; padding: 1.2rem; margin-bottom: 1.2rem; }
-.sidebar-brand { background: linear-gradient(135deg, rgba(0, 229, 255, 0.1) 0%, rgba(59, 130, 246, 0.1) 100%); border: 1px solid rgba(0, 229, 255, 0.25); border-radius: 14px; padding: 1.2rem 1rem; text-align: center; margin-bottom: 1rem; }
-.sidebar-brand h3 { color: #00e5ff; font-size: 1.25rem; font-weight: 800; margin: 0; }
-.sidebar-brand span { font-size: 0.65rem; color: #94A3B8; text-transform: uppercase; letter-spacing: 2px; font-weight: 700; display: block; margin-top: 4px; }
+
+/* Buttons */
+.stButton>button[kind="primary"] {
+    background: linear-gradient(135deg, #00e5ff 0%, #3b82f6 50%, #6366f1 100%);
+    color: #FFFFFF;
+    font-weight: 800;
+    border-radius: 12px;
+    padding: 0.65rem 1.4rem;
+    border: none;
+    box-shadow: 0 6px 20px rgba(0, 229, 255, 0.35);
+}
 </style>
 """
 st.markdown(ADVANCED_CSS, unsafe_allow_html=True)
