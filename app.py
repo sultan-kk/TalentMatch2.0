@@ -258,6 +258,7 @@ EXECUTIVE_UI_CSS = """
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 html, body, [class*="css"] { font-family: 'Inter', sans-serif !important; }
 
+/* Premium Sidebar Brand Styling */
 .sidebar-brand-box {
     background: linear-gradient(135deg, rgba(14, 165, 233, 0.12) 0%, rgba(2, 132, 199, 0.04) 100%);
     border: 1px solid rgba(14, 165, 233, 0.3);
@@ -274,6 +275,7 @@ html, body, [class*="css"] { font-family: 'Inter', sans-serif !important; }
     font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1.2px; font-weight: 600; opacity: 0.85; margin: 0;
 }
 
+/* Executive Split Auth Layout Containers */
 .auth-brand-side {
     background: linear-gradient(135deg, #0EA5E9 0%, #1E293B 100%);
     border-radius: 18px;
@@ -294,6 +296,30 @@ html, body, [class*="css"] { font-family: 'Inter', sans-serif !important; }
     border-radius: 18px;
     padding: 2.5rem;
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.06);
+}
+
+/* Custom Profile Master Box Styling with Soft Contrasting Background */
+.profile-master-container {
+    background: linear-gradient(135deg, rgba(14, 165, 233, 0.04) 0%, rgba(30, 41, 59, 0.02) 100%);
+    border: 1px solid rgba(14, 165, 233, 0.3);
+    border-radius: 14px;
+    padding: 1.5rem;
+    margin-bottom: 1.2rem;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+}
+
+/* Custom Styling for Profile Action Buttons */
+.stButton > button {
+    background: var(--background-color) !important;
+    border: 1px solid rgba(14, 165, 233, 0.35) !important;
+    border-radius: 10px !important;
+    font-weight: 600 !important;
+    transition: all 0.2s ease-in-out;
+}
+.stButton > button:hover {
+    border-color: #0EA5E9 !important;
+    background: rgba(14, 165, 233, 0.06) !important;
+    box-shadow: 0 4px 12px rgba(14, 165, 233, 0.12);
 }
 
 .corp-hero {
@@ -334,10 +360,10 @@ html, body, [class*="css"] { font-family: 'Inter', sans-serif !important; }
 .score-low { color: #DC2626 !important; font-weight: 800; }
 
 .stButton>button[kind="primary"] {
-    background: #0EA5E9; color: #FFFFFF; font-weight: 700; border-radius: 10px; padding: 0.6rem 1.4rem; border: none;
+    background: #0EA5E9 !important; color: #FFFFFF !important; font-weight: 700; border-radius: 10px; padding: 0.6rem 1.4rem; border: none !important;
     box-shadow: 0 4px 12px rgba(14, 165, 233, 0.25);
 }
-.stButton>button[kind="primary"]:hover { background: #0284C7; }
+.stButton>button[kind="primary"]:hover { background: #0284C7 !important; }
 
 .sidebar-card { background: var(--secondary-background-color); border-radius: 12px; padding: 1.1rem; margin-bottom: 1rem; border: 1px solid rgba(14,165,233,0.15); }
 </style>
