@@ -1,8 +1,8 @@
 """
-HireMatrix Pro — Enterprise Edition v10.70 (Clean Cache & Stable Excel Master)
+HireMatrix Pro — Enterprise Edition v10.71 (Session State Safe Guard Fix)
 ========================================================================
-Features: Completely independent Excel export buffers using openpyxl, unique cryptographic widget keys, 
-Persistent master file appends, individual candidate deletes, strict duplicate blocking, and complete ATS workflow.
+Features: Fixed session state attribute errors during startup/login, secure database appends, 
+Clean numbered exports, individual candidate deletes, strict duplicate blocking, and complete ATS workflow.
 """
 
 import io
@@ -161,6 +161,284 @@ def verify_employee_pin(email, entered_pin):
     if row and row[1] == entered_pin:
         return True, row[0], row[2]
     return False, None, None
+
+# ===========================================================================
+# PAGE CONFIG & EXECUTIVE STYLING
+# ===========================================================================
+st.set_page_config(
+    page_title=f"{APP_NAME} | Executive Portal",
+    page_icon="💼",
+    layout="wide",
+    initial_sidebar_state="expanded",
+)
+
+EXECUTIVE_UI_CSS = """
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+html, body, [class*="css"] { font-family: 'Inter', sans-serif !important; }
+
+.sidebar-brand-box {
+    background: linear-gradient(135deg, rgba(14, 165, 233, 0.12) 0%, rgba(2, 132, 199, 0.04) 100%);
+    border: 1px solid rgba(14, 165, 233, 0.3);
+    border-radius: 14px;
+    padding: 1.4rem 1rem;
+    text-align: center;
+    margin-bottom: 1.2rem;
+    box-shadow: 0 4px 12px rgba(14, 165, 233, 0.08);
+}
+.sidebar-brand-box h2 {
+    font-size: 1.35rem; font-weight: 800; color: #0EA5E9; margin: 0 0 4px 0; letter-spacing: -0.5px;
+}
+.sidebar-brand-box p {
+    font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1.2px; font-weight: 600; opacity: 0.85; margin: 0;
+}
+
+.auth-brand-side {
+    background: linear-gradient(135deg, #0EA5E9 0%, #1E293B 100%);
+    border-radius: 18px;
+    padding: 3.5rem 2.5rem;
+    color: #FFFFFF;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    box-shadow: 0 10px 30px rgba(14, 165, 233, 0.15);
+}
+.auth-brand-side h1 { font-size: 2.6rem; font-weight: 800; margin-bottom: 1rem; color: #FFFFFF; letter-spacing: -0.5px; }
+.auth-brand-side p { font-size: 1.05rem; opacity: 0.9; line-height: 1.6; }
+
+.auth-form-card {
+    background: var(--background-color);
+    border: 1.5px solid rgba(14, 165, 233, 0.3);
+    border-radius: 18px;
+    padding: 2.5rem;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.06);
+}
+
+.stButton > button {
+    background: rgba(14, 165, 233, 0.14) !important;
+    color: inherit !important;
+    border: 1.5px solid rgba(14, 165, 233, 0.45) !important;
+    border-radius: 10px !important;
+    font-weight: 600 !important;
+    transition: all 0.2s ease-in-out;
+}
+.stButton > button:hover {
+    background: rgba(14, 165, 233, 0.25) !important;
+    border-color: #0EA5E9 !important;
+    box-shadow: 0 4px 12px rgba(14, 165, 233, 0.18);
+}
+
+.corp-hero {
+    background: linear-gradient(135deg, rgba(14, 165, 233, 0.10) 0%, rgba(30, 41, 59, 0.06) 100%);
+    border: 1.5px solid rgba(14, 165, 233, 0.35);
+    border-radius: 14px;
+    padding: 2rem 2.5rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 6px 20px rgba(14, 165, 233, 0.08);
+    border-left: 6px solid #0EA5E9;
+}
+.corp-badge {
+    display: inline-flex; align-items: center; gap: 8px; 
+    background: rgba(14, 165, 233, 0.15); color: #0EA5E9; 
+    padding: 5px 14px; border-radius: 8px;
+    font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.8rem;
+}
+.corp-card {
+    background: var(--background-color);
+    border: 1px solid var(--secondary-background-color);
+    border-radius: 14px;
+    padding: 1.6rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.03);
+}
+.metric-box {
+    background: var(--secondary-background-color);
+    border: 1px solid var(--secondary-background-color);
+    border-radius: 12px;
+    padding: 1.1rem;
+    text-align: center;
+}
+.metric-box .val { font-size: 1.7rem; font-weight: 800; color: #0EA5E9; }
+.metric-box .lbl { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.9px; margin-top: 4px; font-weight: 700; opacity: 0.8; }
+
+.score-high { color: #10B981 !important; font-weight: 800; }
+.score-mid { color: #D97706 !important; font-weight: 800; }
+.score-low { color: #DC2626 !important; font-weight: 800; }
+
+.stButton>button[kind="primary"] {
+    background: #0EA5E9 !important; color: #FFFFFF !important; font-weight: 700; border-radius: 10px; padding: 0.6rem 1.4rem; border: none !important;
+    box-shadow: 0 4px 12px rgba(14, 165, 233, 0.25);
+}
+.stButton>button[kind="primary"]:hover { background: #0284C7 !important; }
+
+.sidebar-card { background: var(--secondary-background-color); border-radius: 12px; padding: 1.1rem; margin-bottom: 1rem; border: 1px solid rgba(14,165,233,0.15); }
+</style>
+"""
+st.markdown(EXECUTIVE_UI_CSS, unsafe_allow_html=True)
+
+# ===========================================================================
+# SESSION STATE INITIALIZATION
+# ===========================================================================
+if "logged_in" not in st.session_state: st.session_state.logged_in = False
+if "hr_name" not in st.session_state: st.session_state.hr_name = ""
+if "hr_email" not in st.session_state: st.session_state.hr_email = ""
+if "hr_role" not in st.session_state: st.session_state.hr_role = "Recruiter"
+if "selected_profile_email" not in st.session_state: st.session_state.selected_profile_email = None
+if "pending_otp_email" not in st.session_state: st.session_state.pending_otp_email = None
+if "pending_pin_email" not in st.session_state: st.session_state.pending_pin_email = None
+if "screening_results" not in st.session_state: st.session_state.screening_results = []
+
+# ===========================================================================
+# AUTHENTICATION SCREEN
+# ===========================================================================
+if not st.session_state.logged_in:
+    saved_profiles = get_all_verified_profiles()
+    
+    col_left, col_right = st.columns([1.1, 1.4], gap="large")
+    
+    with col_left:
+        st.markdown(f"""
+            <div class="auth-brand-side">
+                <h1>{APP_NAME}</h1>
+                <p>{APP_TAGLINE}</p>
+                <hr style="border-color: rgba(255,255,255,0.2); margin: 1.8rem 0;">
+                <p style="font-size: 0.95rem; opacity: 0.9;">Empowering modern corporate enterprises with multi-stage ATS workflow, intelligent talent repository, automated candidate scoring, and secure role management.</p>
+            </div>
+        """, unsafe_allow_html=True)
+        
+    with col_right:
+        st.markdown('<div class="auth-form-card">', unsafe_allow_html=True)
+        
+        if st.session_state.pending_pin_email:
+            st.markdown("### 🔐 Security Setup")
+            st.info(f"Email verified for **{st.session_state.pending_pin_email}**.")
+            
+            with st.form("pin_setup_form"):
+                new_pin = st.text_input("Enter 4-Digit PIN", type="password", max_chars=4, placeholder="••••")
+                confirm_pin = st.text_input("Confirm 4-Digit PIN", type="password", max_chars=4, placeholder="••••")
+                submit_pin = st.form_submit_button("Save PIN & Enter Portal", use_container_width=True)
+                
+            if submit_pin:
+                if not new_pin or len(new_pin) != 4 or not new_pin.isdigit():
+                    st.warning("Please enter an exact 4-digit numeric PIN.")
+                elif new_pin != confirm_pin:
+                    st.error("PINs do not match. Please try again.")
+                else:
+                    success, msg = save_employee_pin(st.session_state.pending_pin_email, new_pin)
+                    if success:
+                        st.success(msg)
+                        st.session_state.pending_pin_email = None
+                        st.rerun()
+                    else:
+                        st.error(msg)
+
+        elif st.session_state.pending_otp_email:
+            st.markdown("### 📬 Email Verification")
+            st.info(f"Enter the 6-digit security code sent to **{st.session_state.pending_otp_email}**.")
+            
+            with st.form("otp_form"):
+                otp_input = st.text_input("Enter 6-Digit OTP", placeholder="123456")
+                submit_otp = st.form_submit_button("Verify OTP", use_container_width=True)
+                
+            col_o1, col_o2 = st.columns(2)
+            if submit_otp:
+                success, msg = verify_otp_code(st.session_state.pending_otp_email, otp_input)
+                if success:
+                    st.success(msg)
+                    st.session_state.pending_pin_email = st.session_state.pending_otp_email
+                    st.session_state.pending_otp_email = None
+                    st.rerun()
+                else:
+                    st.error(msg)
+            with col_o2:
+                if st.button("Cancel", use_container_width=True, key="cancel_otp_btn"):
+                    st.session_state.pending_otp_email = None
+                    st.rerun()
+            
+        elif saved_profiles and not st.session_state.selected_profile_email:
+            st.markdown("""
+                <div style="background: rgba(14, 165, 233, 0.08); border: 1.5px solid #0EA5E9; border-radius: 14px; padding: 1.6rem; margin-bottom: 1.5rem; box-shadow: 0 4px 15px rgba(0,0,0,0.04);">
+                    <h3 style="margin-top: 0; margin-bottom: 0.3rem; font-size: 1.2rem; font-weight: 700;">👥 Saved Employee Profiles</h3>
+                    <p style="font-size: 0.85rem; opacity: 0.8; margin-bottom: 0;">Select your secure profile card below to sign in instantly:</p>
+                </div>
+            """, unsafe_allow_html=True)
+            
+            for p_email, p_name, p_pin, p_role in saved_profiles:
+                c_p1, c_p2 = st.columns([3, 1])
+                with c_p1:
+                    if st.button(f"👤 {p_name} ({p_role})", use_container_width=True, key=f"sel_{p_email}"):
+                        st.session_state.selected_profile_email = p_email
+                        st.rerun()
+                with c_p2:
+                    if st.button("🗑️ Delete", key=f"del_{p_email}", use_container_width=True):
+                        delete_employee_profile(p_email)
+                        st.success(f"Profile for {p_name} has been removed.")
+                        st.rerun()
+            
+            st.markdown("")
+            if st.button("➕ Register New Employee Profile", use_container_width=True, key="reg_new_emp_auth_btn"):
+                st.session_state.selected_profile_email = "new"
+                st.rerun()
+            
+        elif st.session_state.selected_profile_email and st.session_state.selected_profile_email != "new":
+            target_email = st.session_state.selected_profile_email
+            p_match = next((p for p in saved_profiles if p[0] == target_email), ("Employee", "", "", "Recruiter"))
+            
+            st.markdown(f"### 🔐 Sign In: {p_match[1]}")
+            st.caption("Enter your 4-digit security PIN to access portal.")
+            
+            with st.form("pin_login_form"):
+                pin_input = st.text_input("4-Digit PIN", type="password", max_chars=4, placeholder="••••")
+                submit_login = st.form_submit_button("Sign In (Press Enter)", use_container_width=True)
+                
+            col_b1, col_b2 = st.columns(2)
+            if submit_login:
+                success, name, role = verify_employee_pin(target_email, pin_input)
+                if success:
+                    st.session_state.logged_in = True
+                    st.session_state.hr_name = name
+                    st.session_state.hr_email = target_email
+                    st.session_state.hr_role = role
+                    st.success(f"Welcome back, {name}!")
+                    st.rerun()
+                else:
+                    st.error("Incorrect 4-Digit PIN. Please verify.")
+            with col_b2:
+                if st.button("Switch Profile", use_container_width=True, key="switch_prof_auth_btn"):
+                    st.session_state.selected_profile_email = None
+                    st.rerun()
+            
+        else:
+            st.markdown("### 📝 Employee Registration")
+            st.caption("Enter your credentials to create a secure corporate account.")
+            
+            with st.form("registration_form"):
+                reg_name = st.text_input("Full Name", placeholder="Alex Mercer")
+                reg_email = st.text_input("Company Email", placeholder="employee@company.com")
+                reg_pass = st.text_input("Master Password", type="password")
+                submit_reg = st.form_submit_button("Send Verification OTP (Press Enter)", use_container_width=True)
+                
+            col_r1, col_r2 = st.columns(2)
+            if submit_reg:
+                if not reg_name.strip() or not reg_email.strip() or not reg_pass.strip():
+                    st.warning("Please fill in all required fields.")
+                else:
+                    success, msg = register_initial_employee(reg_name, reg_email, reg_pass)
+                    if success:
+                        st.success(msg)
+                        st.session_state.pending_otp_email = reg_email.lower().strip()
+                        st.rerun()
+                    else:
+                        st.error(msg)
+            with col_r2:
+                if saved_profiles and st.button("Back to Profiles", use_container_width=True, key="back_to_prof_auth_btn"):
+                    st.session_state.selected_profile_email = None
+                    st.rerun()
+                    
+        st.markdown('</div>', unsafe_allow_html=True)
+            
+    st.stop()
 
 # ===========================================================================
 # DATABASE OPERATIONS & PERSISTENT SAME-FILE EXPORT
@@ -460,7 +738,7 @@ with st.sidebar:
     st.markdown(f"""
         <div class="sidebar-brand-box">
             <h2>{APP_NAME}</h2>
-            <p>Multi-Stage ATS v10.70</p>
+            <p>Multi-Stage ATS v10.71</p>
         </div>
     """, unsafe_allow_html=True)
     st.markdown("---")
@@ -468,7 +746,7 @@ with st.sidebar:
     st.markdown(f"""
         <div class="sidebar-card">
             <div style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.8px; font-weight: 700; margin-bottom: 4px;">Active Employee</div>
-            <div style="font-size: 0.95rem; font-weight: 700;">👤 {st.session_state.hr_name}</div>
+            <div style="font-size: 0.95rem; font-weight: 700;">👤 {st.session_state.get('hr_name', 'Recruiter')}</div>
             <div style="font-size: 0.75rem; color: #10B981; margin-top: 4px; font-weight: 600;">🌟 FULL ACCESS UNLOCKED</div>
         </div>
     """, unsafe_allow_html=True)
@@ -502,10 +780,10 @@ latest_candidate = df_all.iloc[-1]["Candidate Name"] if not df_all.empty else "N
 st.markdown(f"""
     <div class="corp-hero">
         <div class="corp-badge">
-            <span>🟢 Multi-Stage ATS Session</span> &bull; <span>{st.session_state.hr_email} (UNLOCKED)</span>
+            <span>🟢 Multi-Stage ATS Session</span> &bull; <span>{st.session_state.get('hr_email', 'admin@company.com')} (UNLOCKED)</span>
         </div>
         <h1>{APP_NAME}</h1>
-        <p>Welcome back, <b>{st.session_state.hr_name}</b> &mdash; Total Candidates in Talent Pool: <b>{total_repo_db}</b> | Latest Added: <b>{latest_candidate}</b></p>
+        <p>Welcome back, <b>{st.session_state.get('hr_name', 'Recruiter')}</b> &mdash; Total Candidates in Talent Pool: <b>{total_repo_db}</b> | Latest Added: <b>{latest_candidate}</b></p>
     </div>
 """, unsafe_allow_html=True)
 
