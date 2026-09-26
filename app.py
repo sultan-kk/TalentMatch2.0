@@ -1,8 +1,8 @@
 """
-HireMatrix Pro — Enterprise Edition v10.13 (Unified Lean Auth Container & Theme Fix)
+HireMatrix Pro — Enterprise Edition v10.14 (Executive Split-Screen & Unified Profiles)
 ========================================================================
-Features: Unified centered single card container for login/signup, adaptive theme contrast fix, 
-Advanced Search & Score Filter, Live Dashboard Activity Feed, and Master Excel Export.
+Features: Two-sided executive split-screen login/signup, unified single container for saved profiles, 
+Adaptive light/dark theme contrast fix, Advanced Search & Score Filter, and Master Excel Export.
 """
 
 import io
@@ -244,7 +244,7 @@ def verify_employee_pin(email, entered_pin):
     return False, None, None, 0
 
 # ===========================================================================
-# PAGE CONFIG & ADAPTIVE STYLING (THEME CONTRAST FIX)
+# PAGE CONFIG & EXECUTIVE STYLING (THEME CONTRAST FIX)
 # ===========================================================================
 st.set_page_config(
     page_title=f"{APP_NAME} | Executive Portal",
@@ -253,7 +253,7 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-LEAN_UI_CSS = """
+EXECUTIVE_UI_CSS = """
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 html, body, [class*="css"] { font-family: 'Inter', sans-serif !important; }
@@ -275,24 +275,27 @@ html, body, [class*="css"] { font-family: 'Inter', sans-serif !important; }
     font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1.2px; font-weight: 600; opacity: 0.85; margin: 0;
 }
 
-/* Lean Centered Unified Auth Container */
-.lean-auth-box {
+/* Executive Split Auth Layout Containers */
+.auth-brand-side {
+    background: linear-gradient(135deg, #0EA5E9 0%, #1E293B 100%);
+    border-radius: 18px;
+    padding: 3.5rem 2.5rem;
+    color: #FFFFFF;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    box-shadow: 0 10px 30px rgba(14, 165, 233, 0.15);
+}
+.auth-brand-side h1 { font-size: 2.6rem; font-weight: 800; margin-bottom: 1rem; color: #FFFFFF; letter-spacing: -0.5px; }
+.auth-brand-side p { font-size: 1.05rem; opacity: 0.9; line-height: 1.6; }
+
+.auth-form-side {
     background: var(--background-color);
     border: 1px solid rgba(14, 165, 233, 0.25);
-    border-radius: 16px;
+    border-radius: 18px;
     padding: 2.5rem;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
-    margin-top: 2rem;
-}
-.lean-auth-header {
-    text-align: center;
-    margin-bottom: 1.8rem;
-}
-.lean-auth-header h1 {
-    font-size: 2rem; font-weight: 800; color: #0EA5E9; margin-bottom: 0.3rem; letter-spacing: -0.5px;
-}
-.lean-auth-header p {
-    font-size: 0.95rem; opacity: 0.8; font-weight: 500;
 }
 
 /* Corporate Hero Header & Cards */
@@ -342,7 +345,7 @@ html, body, [class*="css"] { font-family: 'Inter', sans-serif !important; }
 .sidebar-card { background: var(--secondary-background-color); border-radius: 12px; padding: 1.1rem; margin-bottom: 1rem; border: 1px solid rgba(14,165,233,0.15); }
 </style>
 """
-st.markdown(LEAN_UI_CSS, unsafe_allow_html=True)
+st.markdown(EXECUTIVE_UI_CSS, unsafe_allow_html=True)
 
 # ===========================================================================
 # SESSION STATE
@@ -358,22 +361,28 @@ if "pending_pin_email" not in st.session_state: st.session_state.pending_pin_ema
 if "results" not in st.session_state: st.session_state.results = []
 
 # ===========================================================================
-# AUTHENTICATION SCREEN (UNIFIED LEAN CENTERED CONTAINER)
+# AUTHENTICATION SCREEN (EXECUTIVE SPLIT-SCREEN & UNIFIED PROFILES CONTAINER)
 # ===========================================================================
 if not st.session_state.logged_in:
     saved_profiles = get_all_verified_profiles()
     
-    col_l, col_m, col_r = st.columns([1, 1.3, 1])
-    with col_m:
-        st.markdown('<div class="lean-auth-box">', unsafe_allow_html=True)
+    col_left, col_right = st.columns([1.1, 1.4], gap="large")
+    
+    with col_left:
+        st.markdown(f"""
+            <div class="auth-brand-side">
+                <h1>{APP_NAME}</h1>
+                <p>{APP_TAGLINE}</p>
+                <hr style="border-color: rgba(255,255,255,0.2); margin: 1.8rem 0;">
+                <p style="font-size: 0.95rem; opacity: 0.9;">Empowering modern corporate enterprises with deep AI resume evaluation, automated candidate scoring, instant workflow pipelines, and secure employee role management.</p>
+            </div>
+        """, unsafe_allow_html=True)
+        
+    with col_right:
+        st.markdown('<div class="auth-form-side">', unsafe_allow_html=True)
         
         if st.session_state.pending_pin_email:
-            st.markdown("""
-                <div class="lean-auth-header">
-                    <h1>Security Setup</h1>
-                    <p>Create your 4-digit quick access PIN</p>
-                </div>
-            """, unsafe_allow_html=True)
+            st.markdown("### 🔐 Security Setup")
             st.info(f"Email verified for **{st.session_state.pending_pin_email}**.")
             
             with st.form("pin_setup_form"):
@@ -396,13 +405,8 @@ if not st.session_state.logged_in:
                         st.error(msg)
 
         elif st.session_state.pending_otp_email:
-            st.markdown("""
-                <div class="lean-auth-header">
-                    <h1>Email Verification</h1>
-                    <p>Enter the 6-digit security code sent to your inbox</p>
-                </div>
-            """, unsafe_allow_html=True)
-            st.info(f"Code dispatched to **{st.session_state.pending_otp_email}**.")
+            st.markdown("### 📬 Email Verification")
+            st.info(f"Enter the 6-digit security code sent to **{st.session_state.pending_otp_email}**.")
             
             with st.form("otp_form"):
                 otp_input = st.text_input("Enter 6-Digit OTP", placeholder="123456")
@@ -424,14 +428,8 @@ if not st.session_state.logged_in:
                     st.rerun()
             
         elif saved_profiles and not st.session_state.selected_profile_email:
-            st.markdown(f"""
-                <div class="lean-auth-header">
-                    <h1>{APP_NAME}</h1>
-                    <p>{APP_TAGLINE}</p>
-                </div>
-                <h4 style="margin-bottom: 0.4rem; font-weight: 700;">👥 Saved Employee Profiles</h4>
-                <p style="font-size: 0.85rem; opacity: 0.75; margin-bottom: 1.2rem;">Select your secure profile card below:</p>
-            """, unsafe_allow_html=True)
+            st.markdown("### 👥 Saved Employee Profiles")
+            st.caption("Select your secure profile card below to sign in instantly:")
             
             for p_email, p_name, p_pin, p_role, p_pro in saved_profiles:
                 pro_badge = " 🌟 [PRO]" if p_pro == 1 else " 🆓 [Free]"
@@ -454,12 +452,8 @@ if not st.session_state.logged_in:
             target_email = st.session_state.selected_profile_email
             p_match = next((p for p in saved_profiles if p[0] == target_email), ("Employee", "", "", "Recruiter", 0))
             
-            st.markdown(f"""
-                <div class="lean-auth-header">
-                    <h1>Welcome Back, {p_match[1]}</h1>
-                    <p>Enter your 4-digit security PIN to access portal</p>
-                </div>
-            """, unsafe_allow_html=True)
+            st.markdown(f"### 🔐 Sign In: {p_match[1]}")
+            st.caption("Enter your 4-digit security PIN to access portal.")
             
             with st.form("pin_login_form"):
                 pin_input = st.text_input("4-Digit PIN", type="password", max_chars=4, placeholder="••••")
@@ -484,12 +478,8 @@ if not st.session_state.logged_in:
                     st.rerun()
             
         else:
-            st.markdown(f"""
-                <div class="lean-auth-header">
-                    <h1>{APP_NAME}</h1>
-                    <p>Employee Registration & Verification Portal</p>
-                </div>
-            """, unsafe_allow_html=True)
+            st.markdown("### 📝 Employee Registration")
+            st.caption("Enter your credentials to create a secure corporate account.")
             
             with st.form("registration_form"):
                 reg_name = st.text_input("Full Name", placeholder="Alex Mercer")
@@ -748,7 +738,7 @@ with st.sidebar:
     st.markdown(f"""
         <div class="sidebar-brand-box">
             <h2>{APP_NAME}</h2>
-            <p>Enterprise v10.13</p>
+            <p>Enterprise v10.14</p>
         </div>
     """, unsafe_allow_html=True)
     st.markdown("---")
