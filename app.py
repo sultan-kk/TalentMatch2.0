@@ -1,8 +1,8 @@
 """
-HireMatrix Pro — Enterprise Edition v10.76 (Clean Excel & Removed Skills Column)
+HireMatrix Pro — Enterprise Edition v10.77 (NameError & Excel Fix)
 ========================================================================
-Features: Removed Extracted Skills column from Excel exports, forced text-wrap on Excel cells, 
-Robust CSV reader with auto-recovery, secure widget keys, and complete ATS workflow.
+Features: Fixed missing openpyxl module import inside Excel generation, removed Extracted Skills column, 
+Forced text-wrap on Excel cells, robust CSV reader with auto-recovery, and complete ATS workflow.
 """
 
 import io
@@ -267,10 +267,10 @@ def clear_candidate_database():
     load_database()
 
 def generate_repository_excel(df: pd.DataFrame) -> bytes:
+    import openpyxl
     buffer = io.BytesIO()
     export_df = df.copy()
     
-    # Remove Extracted Skills & Job Title columns to keep sheet clean
     cols_to_drop = ["Job Title", "Extracted Skills"]
     for c in cols_to_drop:
         if c in export_df.columns:
@@ -281,7 +281,6 @@ def generate_repository_excel(df: pd.DataFrame) -> bytes:
     with pd.ExcelWriter(buffer, engine="openpyxl") as writer:
         export_df.to_excel(writer, index=False, sheet_name="Talent_Repository")
         
-        # Apply Text Wrapping and column width styling
         worksheet = writer.sheets["Talent_Repository"]
         worksheet.freeze_panes = "A2"
         for col in worksheet.columns:
@@ -495,7 +494,7 @@ with st.sidebar:
     st.markdown(f"""
         <div class="sidebar-brand-box">
             <h2>{APP_NAME}</h2>
-            <p>Multi-Stage ATS v10.76</p>
+            <p>Multi-Stage ATS v10.77</p>
         </div>
     """, unsafe_allow_html=True)
     st.markdown("---")
