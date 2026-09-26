@@ -1,7 +1,7 @@
 """
-Super TalentMatch AI — Unified HR Screener & Extractor with Email OTP Auth
+Super TalentMatch AI — Unified HR Screener & Extractor with Real Email OTP
 ========================================================================
-Professional Edition: Secure HR Login/Signup with Email OTP Verification, 
+Professional Edition: Secure HR Login/Signup with Live Email OTP Verification, 
 Adaptive UI, Precise Data Extraction, Local Database, and Deep LLM Screening.
 """
 
@@ -28,7 +28,6 @@ ACCEPTED_TYPES = ["pdf", "docx", "png", "jpg", "jpeg"]
 DB_FILE = "master_candidates.csv"
 AUTH_DB_FILE = "hr_users.db"
 
-# Initialize Auth Database with OTP support
 def init_auth_db():
     conn = sqlite3.connect(AUTH_DB_FILE)
     cursor = conn.cursor()
@@ -49,25 +48,23 @@ init_auth_db()
 def hash_password(password):
     return hashlib.sha256(password.encode()).hexdigest()
 
-# Send Free OTP via Gmail SMTP
 def send_otp_email(receiver_email, otp_code):
-    # Aap yahan apni company ya personal Gmail credentials set kar sakte hain
-    sender_email = st.secrets.get("SMTP_EMAIL", "your_email@gmail.com")
-    sender_password = st.secrets.get("SMTP_PASSWORD", "your_app_password")
-    
-    if sender_email == "your_email@gmail.com":
-        return False, "SMTP credentials configured nahi hain. Streamlit secrets mein add karein."
+    try:
+        sender_email = st.secrets["SMTP_EMAIL"]
+        sender_password = st.secrets["SMTP_PASSWORD"]
+    except Exception:
+        return False, "SMTP credentials Streamlit secrets mein configure nahi hain."
 
     try:
         msg = MIMEMultipart()
         msg['From'] = sender_email
         msg['To'] = receiver_email
-        msg['Subject'] = "Super TalentMatch AI - Email Verification OTP"
+        msg['Subject'] = "Super TalentMatch AI - Verification OTP"
         
         body = f"""
         Hello,\n\n
         Aapka Super TalentMatch AI account verification code yeh hai:\n\n
-        OTP: {otp_code}\n\n
+        OTP Code: {otp_code}\n\n
         Yeh code kisi ke sath share mat karein.\n
         Regards,\nTeam TalentMatch
         """
@@ -78,9 +75,9 @@ def send_otp_email(receiver_email, otp_code):
         server.login(sender_email, sender_password)
         server.sendmail(sender_email, receiver_email, msg.as_string())
         server.quit()
-        return True, "OTP successfully bhej diya gaya hai!"
+        return True, "OTP successfully email par bhej diya gaya hai!"
     except Exception as e:
-        return False, f"Email bhejne mein masla aaya: {e}"
+        return False, f"Email bhejne mein error aaya: {e}"
 
 def register_user(name, email, password):
     clean_email = email.lower().strip()
@@ -104,12 +101,11 @@ def register_user(name, email, password):
         conn.commit()
         conn.close()
         
-        # Send Email OTP
         success, msg = send_otp_email(clean_email, otp)
         if success:
-            return True, "Account ban gaya hai! Aapki email par verification OTP bhej diya gaya hai."
+            return True, "Account ban gaya hai! Aapki email par OTP bhej diya gaya hai."
         else:
-            return True, f"Account ban gaya lekin email nahi gayi (OTP: {otp} - testing ke liye)."
+            return False, msg
     except Exception as e:
         return False, f"Error: {e}"
 
@@ -188,7 +184,7 @@ if not st.session_state.logged_in:
     st.markdown("""
         <div style="text-align: center; padding: 2rem 0 1rem 0;">
             <h1 style="color: #00e5ff; font-size: 2.2rem;">⚡ Super TalentMatch AI</h1>
-            <p style="color: #A0AEC0; font-size: 1.1rem;">HR Portal - Secure Login & OTP Sign Up</p>
+            <p style="color: #A0AEC0; font-size: 1.1rem;">HR Portal - Secure Login & Live Email OTP</p>
         </div>
     """, unsafe_allow_html=True)
     
@@ -234,7 +230,7 @@ if not st.session_state.logged_in:
                         
             with auth_tab2:
                 st.markdown("### Register New HR Account")
-                reg_name = st.text_input("Full Name", placeholder="Your Full Name", key="r_name")
+                reg_name = st.text_input("Full Name", placeholder="Muhammad Sultan", key="r_name")
                 reg_email = st.text_input("Work Email", placeholder="hr@company.com", key="r_email")
                 reg_pass = st.text_input("Create Password", type="password", key="r_pass")
                 
@@ -583,4 +579,4 @@ with tab2:
             st.dataframe(df_history, use_container_width=True)
     except Exception as e:
         st.error(f"Could not load history: {e}")
-    st.markdown("</div>", unsafe_code_container=True) if "unsafe_code_container" in globals() else st.markdown("</div>", unsafe_allow_html=True)
+    st.markdown("</div>", unsafe_allow_html=True)
