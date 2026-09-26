@@ -33,7 +33,6 @@ AUTH_DB_FILE = "hr_users.db"
 
 MEEZAN_TITLE = "Muhammad Sultan Sheraz"
 MEEZAN_IBAN = "PK24MEZN0098820105114718"
-SADAPAY_NUMBER = "0325-8641257"
 
 def init_auth_db():
     conn = sqlite3.connect(AUTH_DB_FILE)
