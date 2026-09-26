@@ -1,7 +1,7 @@
 """
-HireMatrix Pro — Enterprise Edition v9.0 (Automated Meezan/Sadapay Payment & License Gateway)
+HireMatrix Pro — Enterprise Edition v9.1 (Fixed License & Payment Gateway)
 ========================================================================
-Features: Multi-User Registry, Live SMTP OTP, Quick PIN Setup, 
+Features: Auto-created License Tables, Live SMTP OTP, Quick PIN Setup, 
 Automated Sadapay/Meezan Bank Payment Verification & Auto License Key Dispatch via Email, 
 AI Interview Q&A, Kanban Pipeline, Admin Controls, and Deep LLM Screening.
 """
@@ -21,7 +21,7 @@ import streamlit as st
 from groq import Groq
 
 # ===========================================================================
-# CONFIGURATION & AUTH DB (WITH PAYMENT & LICENSE TABLES)
+# CONFIGURATION & AUTH DB (WITH SECURE TABLE CREATION)
 # ===========================================================================
 APP_NAME = "HireMatrix Pro"
 APP_TAGLINE = "Autonomous HR Intelligence & Executive Recruitment Suite"
@@ -32,8 +32,8 @@ AUTH_DB_FILE = "hr_users.db"
 
 # Aapke official payment accounts
 MEEZAN_TITLE = "Muhammad Sultan Sheraz"
-MEEZAN_IBAN = "PK24MEZN0098820105114718" # Apna exact Meezan account number/IBAN yahan dein
-SADAPAY_NUMBER = "0325-8641257" # Apna Sadapay/JazzCash number yahan dein
+MEEZAN_IBAN = "PK24MEZN0098820105114718"
+SADAPAY_NUMBER = "0325-8641257"
 
 def init_auth_db():
     conn = sqlite3.connect(AUTH_DB_FILE)
@@ -57,6 +57,7 @@ def init_auth_db():
             is_used INTEGER DEFAULT 0
         )
     """)
+    # Check missing columns in hr_users
     cursor.execute("PRAGMA table_info(hr_users)")
     columns = [col[1] for col in cursor.fetchall()]
     if "pin" not in columns: cursor.execute("ALTER TABLE hr_users ADD COLUMN pin TEXT")
@@ -105,7 +106,7 @@ def generate_and_send_pro_license(email):
         
         body = f"""
         Hello,\n\n
-        Thank you for purchasing HireMatrix Pro Subscription (6,999 PKR).\n\n
+        Thank you for your interest in HireMatrix Pro Subscription (6,999 PKR).\n\n
         Your Exclusive Pro License Key is: {key}\n\n
         You can enter this key in your app sidebar under the Pro Subscription section to unlock all executive features instantly.\n\n
         Regards,\nTeam HireMatrix Pro Billing
@@ -622,7 +623,7 @@ with st.sidebar:
     st.markdown(f"""
         <div class="sidebar-brand">
             <h3>⚡ HireMatrix Pro</h3>
-            <span>Pro Edition v9.0</span>
+            <span>Pro Edition v9.1</span>
         </div>
     """, unsafe_allow_html=True)
     st.markdown("---")
