@@ -1,8 +1,8 @@
 """
-HireMatrix Pro — Enterprise Edition v10.67 (Ultimate Unique Widget ID Fix)
+HireMatrix Pro — Enterprise Edition v10.68 (Attribute Error & Clean Excel Fix)
 ========================================================================
-Features: Cryptographically secure unique keys for all dynamic Streamlit widgets in loops, 
-Persistent master file appends, clean numbered exports, individual candidate deletes, strict duplicate blocking, and complete ATS workflow.
+Features: Fixed Excel writer engine sheet attribute errors, persistent master file appends, 
+Clean numbered exports, individual candidate deletes, strict duplicate blocking, and complete ATS workflow.
 """
 
 import io
@@ -490,7 +490,7 @@ with st.sidebar:
     st.markdown(f"""
         <div class="sidebar-brand-box">
             <h2>{APP_NAME}</h2>
-            <p>Multi-Stage ATS v10.67</p>
+            <p>Multi-Stage ATS v10.68</p>
         </div>
     """, unsafe_allow_html=True)
     st.markdown("---")
@@ -587,7 +587,6 @@ with tab1:
             with c_d2: st.write(f"✉️ `{row['Email']}`")
             with c_d3: st.write(f"🎓 {row['Education']}")
             with c_d4:
-                # Cryptographically unique safe key
                 unique_hash = hashlib.md5(f"{idx}_{row['Email']}_{row['Candidate Name']}".encode()).hexdigest()[:8]
                 safe_key = f"del_repo_{idx}_{unique_hash}"
                 if st.button("🗑️ Delete", key=safe_key, use_container_width=True):
