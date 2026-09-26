@@ -1,8 +1,8 @@
 """
-HireMatrix Pro — Enterprise Edition v10.0 (Syntax Bug Fix & Next-Gen UI)
+HireMatrix Pro — Enterprise Edition v10.2 (Professional Corporate Theme)
 ========================================================================
-Features: Fixed Python syntax for exception handling, Native st.form integration 
-for instant 'Enter' key submission, Ultra-modern Cyber-Glass UI design, Score-based conditional email generation, 
+Features: Clean corporate slate UI (no neon/glow), Professional enterprise styling, 
+Instant Enter-Key form submission, Score-based conditional email generation, 
 Timestamped Master Excel Export, Admin Verification Dashboard, and Kanban Pipeline.
 """
 
@@ -34,6 +34,7 @@ AUTH_DB_FILE = "hr_users.db"
 MEEZAN_TITLE = "Muhammad Sultan Sheraz"
 MEEZAN_IBAN = "PK24MEZN0098820105114718"
 SADAPAY_NUMBER = "0325-8641257"
+
 def init_auth_db():
     conn = sqlite3.connect(AUTH_DB_FILE)
     cursor = conn.cursor()
@@ -244,102 +245,86 @@ def verify_employee_pin(email, entered_pin):
     return False, None, None, 0
 
 # ===========================================================================
-# PAGE CONFIG & ULTRA-MODERN CYBER STYLING
+# PAGE CONFIG & PROFESSIONAL CORPORATE STYLING (NO GLOW/NEON)
 # ===========================================================================
 st.set_page_config(
     page_title=f"{APP_NAME} | Executive Portal",
-    page_icon="⚡",
+    page_icon="💼",
     layout="wide",
     initial_sidebar_state="expanded",
 )
 
-ADVANCED_CSS = """
+CORPORATE_CSS = """
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
-html, body, [class*="css"] { font-family: 'Plus Jakarta Sans', sans-serif !important; }
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+html, body, [class*="css"] { font-family: 'Inter', sans-serif !important; }
 
-/* Stunning Cyber Hero Header with Neon Glow */
-.cyber-hero {
-    background: linear-gradient(135deg, rgba(0, 229, 255, 0.06) 0%, rgba(59, 130, 246, 0.06) 100%);
-    border: 1px solid rgba(0, 229, 255, 0.25);
-    border-radius: 24px;
-    padding: 2.5rem 3rem;
+/* Professional Corporate Header */
+.corp-hero {
+    background: #1E293B;
+    color: #F8FAFC;
+    border-radius: 14px;
+    padding: 2rem 2.5rem;
     margin-bottom: 2rem;
-    box-shadow: 0 15px 35px rgba(0, 229, 255, 0.04);
-    position: relative;
-    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    border-left: 5px solid #0EA5E9;
 }
-.cyber-hero::before {
-    content: ''; position: absolute; top: 0; left: 0; width: 6px; height: 100%;
-    background: linear-gradient(to bottom, #00e5ff, #3b82f6, #8b5cf6);
+.corp-badge {
+    display: inline-flex; align-items: center; gap: 6px; background: rgba(14, 165, 233, 0.15);
+    color: #38BDF8; padding: 4px 12px; border-radius: 6px;
+    font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 0.8rem;
 }
-.cyber-badge {
-    display: inline-flex; align-items: center; gap: 8px; background: rgba(0, 229, 255, 0.12);
-    border: 1px solid rgba(0, 229, 255, 0.4); color: #00838f; padding: 6px 16px; border-radius: 30px;
-    font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 1rem;
-    box-shadow: 0 0 15px rgba(0, 229, 255, 0.15);
-}
-.cyber-hero h1 { font-size: 2.5rem; font-weight: 800; letter-spacing: -1px; margin: 0; }
-.cyber-hero p { margin-top: 0.6rem; margin-bottom: 0; font-size: 1.1rem; opacity: 0.85; }
+.corp-hero h1 { font-size: 2.2rem; font-weight: 700; margin: 0; color: #FFFFFF; }
+.corp-hero p { margin-top: 0.4rem; margin-bottom: 0; font-size: 1rem; color: #94A3B8; }
 
-/* Ultra-Modern Glassmorphism Cards */
-.glass-card {
-    background: rgba(128, 128, 128, 0.03);
-    backdrop-filter: blur(12px);
-    border: 1px solid rgba(128, 128, 128, 0.15);
-    border-radius: 20px;
-    padding: 1.8rem;
+/* Clean Corporate Cards */
+.corp-card {
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 12px;
+    padding: 1.5rem;
     margin-bottom: 1.5rem;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.04);
-    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.02);
 }
-.glass-card:hover {
-    border-color: rgba(0, 229, 255, 0.3);
-    box-shadow: 0 12px 35px rgba(0, 229, 255, 0.07);
-}
-.glass-card h4 { font-size: 1.2rem; font-weight: 700; margin-bottom: 1.2rem; }
+.corp-card h4 { font-size: 1.1rem; font-weight: 600; color: #0F172A; margin-bottom: 1rem; }
 
-/* Futuristic Metric Pills */
-.metric-pill {
-    background: linear-gradient(135deg, rgba(128,128,128,0.05) 0%, rgba(128,128,128,0.02) 100%);
-    border: 1px solid rgba(128, 128, 128, 0.15);
-    border-radius: 16px;
-    padding: 1.2rem;
+/* Metrics */
+.metric-box {
+    background: #F8FAFC;
+    border: 1px solid #E2E8F0;
+    border-radius: 10px;
+    padding: 1rem;
     text-align: center;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.02);
 }
-.metric-pill .val { font-size: 1.8rem; font-weight: 800; color: #00838f; }
-.metric-pill .lbl { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1.5px; margin-top: 6px; font-weight: 700; opacity: 0.8; }
+.metric-box .val { font-size: 1.6rem; font-weight: 700; color: #0EA5E9; }
+.metric-box .lbl { font-size: 0.75rem; text-transform: uppercase; color: #64748B; letter-spacing: 0.8px; margin-top: 4px; font-weight: 600; }
 
-.score-high { color: #10B981 !important; text-shadow: 0 0 10px rgba(16,185,129,0.2); }
-.score-mid { color: #F59E0B !important; text-shadow: 0 0 10px rgba(245,158,11,0.2); }
-.score-low { color: #EF4444 !important; text-shadow: 0 0 10px rgba(239,68,68,0.2); }
+.score-high { color: #10B981 !important; font-weight: 700; }
+.score-mid { color: #D97706 !important; font-weight: 700; }
+.score-low { color: #DC2626 !important; font-weight: 700; }
 
-/* Glowing Action Buttons */
+/* Clean Professional Buttons */
 .stButton>button[kind="primary"] {
-    background: linear-gradient(135deg, #00e5ff 0%, #3b82f6 50%, #6366f1 100%);
-    color: #FFFFFF; font-weight: 800; border-radius: 14px; padding: 0.7rem 1.6rem; border: none;
-    box-shadow: 0 6px 20px rgba(0, 229, 255, 0.35);
-    transition: all 0.3s ease;
+    background: #0EA5E9;
+    color: #FFFFFF; font-weight: 600; border-radius: 8px; padding: 0.5rem 1.2rem; border: none;
+    box-shadow: 0 2px 4px rgba(14, 165, 233, 0.2);
+    transition: background 0.2s ease;
 }
 .stButton>button[kind="primary"]:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(0, 229, 255, 0.5);
+    background: #0284C7;
 }
 
-[data-testid="stSidebar"] { border-right: 1px solid rgba(128, 128, 128, 0.15); }
-.sidebar-card { background: rgba(128, 128, 128, 0.04); border: 1px solid rgba(128, 128, 128, 0.15); border-radius: 16px; padding: 1.3rem; margin-bottom: 1.2rem; }
+[data-testid="stSidebar"] { border-right: 1px solid #E2E8F0; background: #F8FAFC; }
+.sidebar-card { background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 10px; padding: 1rem; margin-bottom: 1rem; }
 .sidebar-brand {
-    background: linear-gradient(135deg, rgba(0, 229, 255, 0.1) 0%, rgba(59, 130, 246, 0.05) 100%);
-    border: 1px solid rgba(0, 229, 255, 0.3);
-    border-radius: 16px; padding: 1.4rem 1rem; text-align: center; margin-bottom: 1.2rem;
-    box-shadow: 0 0 20px rgba(0, 229, 255, 0.08);
+    background: #1E293B; color: #FFFFFF;
+    border-radius: 10px; padding: 1rem; text-align: center; margin-bottom: 1rem;
 }
-.sidebar-brand h3 { color: #00838f; font-size: 1.3rem; font-weight: 800; margin: 0; }
-.sidebar-brand span { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 2.5px; font-weight: 800; display: block; margin-top: 6px; }
+.sidebar-brand h3 { color: #FFFFFF; font-size: 1.1rem; font-weight: 700; margin: 0; }
+.sidebar-brand span { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 1.5px; color: #94A3B8; font-weight: 600; display: block; margin-top: 3px; }
 </style>
 """
-st.markdown(ADVANCED_CSS, unsafe_allow_html=True)
+st.markdown(CORPORATE_CSS, unsafe_allow_html=True)
 
 # ===========================================================================
 # SESSION STATE
@@ -359,12 +344,12 @@ if "results" not in st.session_state: st.session_state.results = []
 # ===========================================================================
 if not st.session_state.logged_in:
     st.markdown("""
-        <div style="text-align: center; padding: 2.5rem 0 1rem 0;">
-            <div style="display: inline-flex; align-items: center; gap: 8px; background: rgba(0,229,255,0.08); border: 1px solid rgba(0,229,255,0.3); padding: 6px 18px; border-radius: 30px; color: #00838f; font-size: 0.8rem; font-weight: 800; margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 1.5px;">
-                ⚡ Enterprise Next-Gen Secure Portal (6,999 PKR / mo)
+        <div style="text-align: center; padding: 2rem 0 1rem 0;">
+            <div style="display: inline-flex; align-items: center; gap: 6px; background: #E0F2FE; border: 1px solid #BAE6FD; padding: 4px 14px; border-radius: 20px; color: #0369A1; font-size: 0.75rem; font-weight: 700; margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 0.8px;">
+                💼 Enterprise Secure Portal (6,999 PKR / mo)
             </div>
-            <h1 style="font-size: 2.8rem; font-weight: 800; margin: 0; letter-spacing: -1px;">HireMatrix Pro</h1>
-            <p style="opacity: 0.8; font-size: 1.15rem; margin-top: 0.6rem;">Autonomous HR Intelligence & Executive Recruitment Suite</p>
+            <h1 style="font-size: 2.4rem; font-weight: 700; margin: 0; color: #0F172A;">HireMatrix Pro</h1>
+            <p style="color: #64748B; font-size: 1.05rem; margin-top: 0.4rem;">Autonomous HR Intelligence & Executive Recruitment Suite</p>
         </div>
     """, unsafe_allow_html=True)
     
@@ -373,7 +358,7 @@ if not st.session_state.logged_in:
         saved_profiles = get_all_verified_profiles()
         
         if st.session_state.pending_pin_email:
-            st.markdown('<div class="glass-card"><h4>🔐 Step 2: Create Your 4-Digit Quick PIN</h4>', unsafe_allow_html=True)
+            st.markdown('<div class="corp-card"><h4>🔐 Step 2: Create Your 4-Digit Quick PIN</h4>', unsafe_allow_html=True)
             st.info(f"Email verified for **{st.session_state.pending_pin_email}**. Secure your account with a 4-digit PIN.")
             
             with st.form("pin_setup_form"):
@@ -397,7 +382,7 @@ if not st.session_state.logged_in:
             st.markdown('</div>', unsafe_allow_html=True)
 
         elif st.session_state.pending_otp_email:
-            st.markdown('<div class="glass-card"><h4>📬 Email Verification (OTP)</h4>', unsafe_allow_html=True)
+            st.markdown('<div class="corp-card"><h4>📬 Email Verification (OTP)</h4>', unsafe_allow_html=True)
             st.info(f"A 6-digit verification code has been sent to **{st.session_state.pending_otp_email}**.")
             
             with st.form("otp_form"):
@@ -421,7 +406,7 @@ if not st.session_state.logged_in:
             st.markdown('</div>', unsafe_allow_html=True)
             
         elif saved_profiles and not st.session_state.selected_profile_email:
-            st.markdown('<div class="glass-card"><h4>👥 Saved Employee Profiles</h4>', unsafe_allow_html=True)
+            st.markdown('<div class="corp-card"><h4>👥 Saved Employee Profiles</h4>', unsafe_allow_html=True)
             st.caption("Select your profile card to sign in instantly:")
             
             for p_email, p_name, p_pin, p_role, p_pro in saved_profiles:
@@ -446,7 +431,7 @@ if not st.session_state.logged_in:
             target_email = st.session_state.selected_profile_email
             p_match = next((p for p in saved_profiles if p[0] == target_email), ("Employee", "", "", "Recruiter", 0))
             
-            st.markdown(f'<div class="glass-card"><h4>🔐 Enter 4-Digit PIN for {p_match[1]}</h4>', unsafe_allow_html=True)
+            st.markdown(f'<div class="corp-card"><h4>🔐 Enter 4-Digit PIN for {p_match[1]}</h4>', unsafe_allow_html=True)
             with st.form("pin_login_form"):
                 pin_input = st.text_input("4-Digit PIN", type="password", max_chars=4, placeholder="••••")
                 submit_login = st.form_submit_button("Sign In (Press Enter)", use_container_width=True)
@@ -471,9 +456,8 @@ if not st.session_state.logged_in:
             st.markdown('</div>', unsafe_allow_html=True)
             
         else:
-            st.markdown('<div class="glass-card"><h4>📝 Step 1: Employee Registration</h4>', unsafe_allow_html=True)
+            st.markdown('<div class="corp-card"><h4>📝 Step 1: Employee Registration</h4>', unsafe_allow_html=True)
             
-            # --- FORM WRAPPER FOR INSTANT ENTER KEY SUBMISSION ---
             with st.form("registration_form"):
                 reg_name = st.text_input("Full Name", placeholder="Alex Mercer")
                 reg_email = st.text_input("Company Email", placeholder="employee@company.com")
@@ -729,8 +713,8 @@ def dataframe_to_formatted_excel_bytes(df: pd.DataFrame) -> bytes:
 with st.sidebar:
     st.markdown(f"""
         <div class="sidebar-brand">
-            <h3>⚡ HireMatrix Pro</h3>
-            <span>Pro Edition v10.0</span>
+            <h3>HireMatrix Pro</h3>
+            <span>Enterprise v10.2</span>
         </div>
     """, unsafe_allow_html=True)
     st.markdown("---")
@@ -738,19 +722,19 @@ with st.sidebar:
     tier_badge = "🌟 PRO TIER (6,999 PKR/mo)" if st.session_state.is_pro == 1 else "🆓 FREE BASIC TIER"
     st.markdown(f"""
         <div class="sidebar-card">
-            <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; font-weight: 700; margin-bottom: 4px;">Active Employee</div>
-            <div style="font-size: 1rem; font-weight: 700;">👤 {st.session_state.hr_name}</div>
-            <div style="font-size: 0.8rem; color: #00838f; margin-top: 4px;">{tier_badge}</div>
+            <div style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.8px; font-weight: 700; color: #64748B; margin-bottom: 4px;">Active Employee</div>
+            <div style="font-size: 0.95rem; font-weight: 700; color: #0F172A;">👤 {st.session_state.hr_name}</div>
+            <div style="font-size: 0.75rem; color: #0EA5E9; margin-top: 4px; font-weight: 600;">{tier_badge}</div>
         </div>
     """, unsafe_allow_html=True)
     
     if st.session_state.is_pro == 0:
         st.markdown("### 🌟 Upgrade to PRO (6,999 PKR)")
-        st.info("Transfer to our Meezan/Sadapay account and submit your Transaction ID (TRX ID). Admin will verify and approve your license key.")
+        st.info("Transfer to our Meezan Bank or Sadapay account and submit your Transaction ID (TRX ID). Admin will verify and approve your license key.")
         
         with st.expander("💳 View Bank / Sadapay Details"):
             st.markdown(f"**Meezan Bank Account:**\n- Title: `{MEEZAN_TITLE}`\n- IBAN: `{MEEZAN_IBAN}`")
-            st.markdown(f"**Sadapay / JazzCash Wallet:**\n- Number: `{SADAPAY_NUMBER}`")
+            st.markdown(f"**Sadapay Mobile Wallet:**\n- Number: `{SADAPAY_NUMBER}`")
         
         trx_input = st.text_input("Enter Transaction ID (TRX ID)", placeholder="e.g. TRX98234105", key="trx_sub_in")
         if st.button("Submit Payment for Approval", use_container_width=True):
@@ -773,7 +757,7 @@ with st.sidebar:
 
     if "GROQ_API_KEY" in st.secrets:
         groq_api_key = st.secrets["GROQ_API_KEY"]
-        st.markdown('<div class="sidebar-card" style="border-color: rgba(16, 185, 129, 0.3); color: #10B981; font-size: 0.85rem; font-weight: 600;">✓ Groq API Secured</div>', unsafe_allow_html=True)
+        st.markdown('<div class="sidebar-card" style="border-color: #10B981; color: #059669; font-size: 0.8rem; font-weight: 600;">✓ Groq API Secured</div>', unsafe_allow_html=True)
     else:
         groq_api_key = st.text_input("Groq API Key", type="password", placeholder="gsk_...")
     
@@ -792,11 +776,11 @@ with st.sidebar:
         st.session_state.results = []
         st.rerun()
 
-# Cyber Hero Graphic Header
+# Corporate Hero Header
 st.markdown(f"""
-    <div class="cyber-hero">
-        <div class="cyber-badge">
-            <span>🟢 Secure Employee Session</span> &bull; <span>{st.session_state.hr_email} ({'PRO' if st.session_state.is_pro == 1 else 'FREE'})</span>
+    <div class="corp-hero">
+        <div class="corp-badge">
+            <span>Secure Enterprise Session</span> &bull; <span>{st.session_state.hr_email} ({'PRO' if st.session_state.is_pro == 1 else 'FREE'})</span>
         </div>
         <h1>{APP_NAME}</h1>
         <p>Welcome back, <b>{st.session_state.hr_name}</b> &mdash; {APP_TAGLINE}</p>
@@ -808,13 +792,13 @@ tab1, tab2, tab3 = st.tabs(["🚀 Screening Workspace", "🗄️ Candidate Datab
 with tab1:
     col1, col2 = st.columns(2, gap="large")
     with col1:
-        st.markdown('<div class="glass-card"><h4>📋 Job Specification</h4>', unsafe_allow_html=True)
+        st.markdown('<div class="corp-card"><h4>📋 Job Specification</h4>', unsafe_allow_html=True)
         job_title_input = st.text_input("Job Position Title", placeholder="e.g. Lead AI Engineer")
         jd_text = st.text_area("Job Description & Requirements", height=140, placeholder="Paste detailed job description here...")
         st.markdown('</div>', unsafe_allow_html=True)
         
     with col2:
-        st.markdown('<div class="glass-card"><h4>📥 Resume Dropzone</h4>', unsafe_allow_html=True)
+        st.markdown('<div class="corp-card"><h4>📥 Resume Dropzone</h4>', unsafe_allow_html=True)
         uploaded_files = st.file_uploader("Upload candidate resumes", type=ACCEPTED_TYPES, accept_multiple_files=True, label_visibility="collapsed")
         st.markdown('</div>', unsafe_allow_html=True)
 
@@ -841,16 +825,16 @@ with tab1:
     if st.session_state.results:
         results = st.session_state.results
         
-        st.markdown('<div class="glass-card"><h4>📊 Screening Metrics Overview</h4>', unsafe_allow_html=True)
+        st.markdown('<div class="corp-card"><h4>📊 Screening Metrics Overview</h4>', unsafe_allow_html=True)
         m1, m2 = st.columns(2)
         with m1:
-            st.markdown(f'<div class="metric-pill"><div class="val">{len(results)}</div><div class="lbl">Total Screened</div></div>', unsafe_allow_html=True)
+            st.markdown(f'<div class="metric-box"><div class="val">{len(results)}</div><div class="lbl">Total Screened</div></div>', unsafe_allow_html=True)
         with m2:
             avg_score = round(sum(r["match_score"] for r in results) / len(results), 1)
-            st.markdown(f'<div class="metric-pill"><div class="val">{avg_score}%</div><div class="lbl">Average Match Score</div></div>', unsafe_allow_html=True)
+            st.markdown(f'<div class="metric-box"><div class="val">{avg_score}%</div><div class="lbl">Average Match Score</div></div>', unsafe_allow_html=True)
         st.markdown("</div>", unsafe_allow_html=True)
 
-        st.markdown('<div class="glass-card"><h4>🧾 Ranked Candidate Insights & Pro Tools</h4>', unsafe_allow_html=True)
+        st.markdown('<div class="corp-card"><h4>🧾 Ranked Candidate Insights & Pro Tools</h4>', unsafe_allow_html=True)
         results = sorted(results, key=lambda x: x["match_score"], reverse=True)
         
         client = Groq(api_key=groq_api_key) if groq_api_key else None
@@ -870,7 +854,7 @@ with tab1:
                     st.markdown(f"**🔗 Reference:** {cand['reference']}")
                     st.markdown(f"**🛠️ Extracted Skills:** {cand['skills']}")
                     
-                    st.markdown(f'<div class="metric-pill" style="margin-top: 15px; width: 150px;"><div class="val {score_cls}">{cand["match_score"]}%</div><div class="lbl">Match Rating</div></div>', unsafe_allow_html=True)
+                    st.markdown(f'<div class="metric-box" style="margin-top: 15px; width: 150px;"><div class="val {score_cls}">{cand["match_score"]}%</div><div class="lbl">Match Rating</div></div>', unsafe_allow_html=True)
                 
                 with c2:
                     st.markdown("**❌ Skill Gaps / Missing vs. JD:**")
@@ -919,7 +903,7 @@ with tab1:
 
         st.markdown("</div>", unsafe_allow_html=True)
 
-        st.markdown('<div class="glass-card"><h4>⬇️ Download Final Timestamped Master Report</h4>', unsafe_allow_html=True)
+        st.markdown('<div class="corp-card"><h4>⬇️ Download Final Timestamped Master Report</h4>', unsafe_allow_html=True)
         df_export = load_database()
         st.download_button(
             "Download Final Master Report (.xlsx with Date & Time)",
@@ -932,7 +916,7 @@ with tab1:
         st.markdown("</div>", unsafe_allow_html=True)
 
 with tab2:
-    st.markdown('<div class="glass-card"><h4>🗄️ Candidate Kanban Pipeline & Database</h4>', unsafe_allow_html=True)
+    st.markdown('<div class="corp-card"><h4>🗄️ Candidate Kanban Pipeline & Database</h4>', unsafe_allow_html=True)
     
     if st.button("🗑️ Clear Entire Candidate Database", type="secondary"):
         clear_candidate_database()
@@ -971,7 +955,7 @@ with tab2:
     st.markdown("</div>", unsafe_allow_html=True)
 
 with tab3:
-    st.markdown('<div class="glass-card"><h4>🛡️ Admin Access & Employee & Payment Management</h4>', unsafe_allow_html=True)
+    st.markdown('<div class="corp-card"><h4>🛡️ Admin Access & Employee & Payment Management</h4>', unsafe_allow_html=True)
     if st.session_state.hr_role != "Admin":
         st.warning("⚠️ Access Restricted: Only users with **Admin** role can manage company employee profiles and payment requests.")
     else:
