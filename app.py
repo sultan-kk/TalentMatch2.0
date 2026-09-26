@@ -1,8 +1,8 @@
 """
-HireMatrix Pro — Enterprise Edition v10.69 (Clean Excel Engine Fix)
+HireMatrix Pro — Enterprise Edition v10.70 (Clean Cache & Stable Excel Master)
 ========================================================================
-Features: Completely resolved Excel writer engine and attribute errors, persistent master file appends, 
-Clean numbered exports, individual candidate deletes, strict duplicate blocking, and complete ATS workflow.
+Features: Completely independent Excel export buffers using openpyxl, unique cryptographic widget keys, 
+Persistent master file appends, individual candidate deletes, strict duplicate blocking, and complete ATS workflow.
 """
 
 import io
@@ -163,7 +163,7 @@ def verify_employee_pin(email, entered_pin):
     return False, None, None
 
 # ===========================================================================
-# DATABASE OPERATIONS & SAFE EXCEL EXPORTS
+# DATABASE OPERATIONS & PERSISTENT SAME-FILE EXPORT
 # ===========================================================================
 def load_database():
     if os.path.exists(DB_FILE):
@@ -460,7 +460,7 @@ with st.sidebar:
     st.markdown(f"""
         <div class="sidebar-brand-box">
             <h2>{APP_NAME}</h2>
-            <p>Multi-Stage ATS v10.69</p>
+            <p>Multi-Stage ATS v10.70</p>
         </div>
     """, unsafe_allow_html=True)
     st.markdown("---")
