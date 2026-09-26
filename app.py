@@ -1,8 +1,9 @@
 """
-HireMatrix Pro — Ultimate Enterprise Multi-User Edition (v6.1 Professional English)
+HireMatrix Pro — Enterprise Edition v8.0 (With Pro Subscription Tier)
 ========================================================================
-Designed with Live SMTP OTP Verification, Dedicated 2nd Page PIN Creation Step, 
-Saved Employee Profiles, Professional English UI, and Deep LLM Screening.
+Features: Multi-User Registry, Live SMTP OTP, Dedicated PIN Setup, 
+Pro Subscription Gate (6999 PKR/month), AI Interview Q&A, Kanban Pipeline, 
+Automated Invites, Admin Controls, and Deep LLM Screening.
 """
 
 import io
@@ -20,10 +21,10 @@ import streamlit as st
 from groq import Groq
 
 # ===========================================================================
-# CONFIGURATION & AUTH DB (MULTI-USER & MIGRATION)
+# CONFIGURATION & AUTH DB (WITH SUBSCRIPTION SUPPORT)
 # ===========================================================================
 APP_NAME = "HireMatrix Pro"
-APP_TAGLINE = "Autonomous HR Intelligence & Deep LLM Screening Suite"
+APP_TAGLINE = "Autonomous HR Intelligence & Executive Recruitment Suite"
 GROQ_MODEL = "openai/gpt-oss-120b"
 ACCEPTED_TYPES = ["pdf", "docx", "png", "jpg", "jpeg"]
 DB_FILE = "master_candidates.csv"
@@ -38,6 +39,8 @@ def init_auth_db():
             name TEXT,
             password TEXT,
             pin TEXT,
+            role TEXT DEFAULT 'Recruiter',
+            is_pro INTEGER DEFAULT 0,
             is_verified INTEGER DEFAULT 0,
             otp TEXT
         )
@@ -46,6 +49,10 @@ def init_auth_db():
     columns = [col[1] for col in cursor.fetchall()]
     if "pin" not in columns:
         cursor.execute("ALTER TABLE hr_users ADD COLUMN pin TEXT")
+    if "role" not in columns:
+        cursor.execute("ALTER TABLE hr_users ADD COLUMN role TEXT DEFAULT 'Recruiter'")
+    if "is_pro" not in columns:
+        cursor.execute("ALTER TABLE hr_users ADD COLUMN is_pro INTEGER DEFAULT 0")
     if "otp" not in columns:
         cursor.execute("ALTER TABLE hr_users ADD COLUMN otp TEXT")
     conn.commit()
@@ -56,7 +63,7 @@ init_auth_db()
 def hash_password(password):
     return hashlib.sha256(password.encode()).hexdigest()
 
-def send_otp_email(receiver_email, otp_code):
+def send_smtp_email(receiver_email, subject, body_text):
     try:
         sender_email = st.secrets["SMTP_EMAIL"]
         sender_password = st.secrets["SMTP_PASSWORD"]
@@ -65,32 +72,24 @@ def send_otp_email(receiver_email, otp_code):
 
     try:
         msg = MIMEMultipart()
-        msg['From'] = formataddr(("HireMatrix Pro Security", sender_email))
+        msg['From'] = formataddr(("HireMatrix Pro Executive", sender_email))
         msg['To'] = receiver_email
-        msg['Subject'] = "HireMatrix Pro - Verification OTP"
-        
-        body = f"""
-        Hello,\n\n
-        Your HireMatrix Pro verification code is:\n\n
-        OTP Code: {otp_code}\n\n
-        Please do not share this code with anyone.\n
-        Regards,\nTeam HireMatrix Pro
-        """
-        msg.attach(MIMEText(body, 'plain'))
+        msg['Subject'] = subject
+        msg.attach(MIMEText(body_text, 'plain'))
         
         server = smtplib.SMTP('smtp.gmail.com', 587)
         server.starttls()
         server.login(sender_email, sender_password)
         server.sendmail(sender_email, receiver_email, msg.as_string())
         server.quit()
-        return True, "OTP has been successfully dispatched to your email address."
+        return True, "Email dispatched successfully!"
     except Exception as e:
         return False, f"Failed to send email: {e}"
 
 def get_all_verified_profiles():
     conn = sqlite3.connect(AUTH_DB_FILE)
     cursor = conn.cursor()
-    cursor.execute("SELECT email, name, pin FROM hr_users WHERE is_verified = 1 AND pin IS NOT NULL")
+    cursor.execute("SELECT email, name, pin, role, is_pro FROM hr_users WHERE is_verified = 1 AND pin IS NOT NULL")
     rows = cursor.fetchall()
     conn.close()
     return rows
@@ -108,14 +107,19 @@ def register_initial_employee(name, email, password):
             conn.close()
             return False, "This email is already registered and active. Please sign in."
         
+        cursor.execute("SELECT COUNT(*) FROM hr_users")
+        count = cursor.fetchone()[0]
+        role = "Admin" if count == 0 else "Recruiter"
+        is_pro_val = 1 if count == 0 else 0  # First user gets free Pro for testing
+        
         cursor.execute("""
-            INSERT OR REPLACE INTO hr_users (email, name, password, pin, is_verified, otp) 
-            VALUES (?, ?, ?, NULL, 0, ?)
-        """, (clean_email, name, hash_password(password), otp))
+            INSERT OR REPLACE INTO hr_users (email, name, password, pin, role, is_pro, is_verified, otp) 
+            VALUES (?, ?, ?, NULL, ?, ?, 0, ?)
+        """, (clean_email, name, hash_password(password), role, is_pro_val, otp))
         conn.commit()
         conn.close()
         
-        success, msg = send_otp_email(clean_email, otp)
+        success, msg = send_smtp_email(clean_email, "HireMatrix Pro - Verification OTP", f"Your verification code is: {otp}")
         if success:
             return True, "Registration initiated! Please check your email for the verification OTP."
         else:
@@ -144,6 +148,17 @@ def save_employee_pin(email, pin):
     except Exception as e:
         return False, f"Error: {e}"
 
+def upgrade_to_pro_db(email):
+    try:
+        conn = sqlite3.connect(AUTH_DB_FILE)
+        cursor = conn.cursor()
+        cursor.execute("UPDATE hr_users SET is_pro = 1 WHERE email = ?", (email.lower().strip(),))
+        conn.commit()
+        conn.close()
+        return True
+    except Exception:
+        return False
+
 def delete_employee_profile(email):
     try:
         conn = sqlite3.connect(AUTH_DB_FILE)
@@ -158,12 +173,12 @@ def delete_employee_profile(email):
 def verify_employee_pin(email, entered_pin):
     conn = sqlite3.connect(AUTH_DB_FILE)
     cursor = conn.cursor()
-    cursor.execute("SELECT name, pin FROM hr_users WHERE email = ? AND is_verified = 1", (email.lower().strip(),))
+    cursor.execute("SELECT name, pin, role, is_pro FROM hr_users WHERE email = ? AND is_verified = 1", (email.lower().strip(),))
     row = cursor.fetchone()
     conn.close()
     if row and row[1] == entered_pin:
-        return True, row[0]
-    return False, None
+        return True, row[0], row[2], row[3]
+    return False, None, None, 0
 
 # ===========================================================================
 # PAGE CONFIG & ADVANCED CYBERPUNK STYLING
@@ -183,13 +198,11 @@ html, body, [class*="css"] {
     font-family: 'Plus Jakarta Sans', sans-serif !important;
 }
 
-/* Deep Space Luxury Background */
 .stApp {
     background: radial-gradient(circle at 10% 10%, rgba(10, 15, 25, 1) 0%, rgba(4, 7, 13, 1) 100%);
     color: #F8FAFC;
 }
 
-/* Cyber-Hero Header */
 .cyber-hero {
     background: linear-gradient(135deg, rgba(30, 41, 59, 0.5) 0%, rgba(15, 23, 42, 0.8) 100%);
     backdrop-filter: blur(20px);
@@ -197,7 +210,7 @@ html, body, [class*="css"] {
     border-radius: 20px;
     padding: 2.2rem 2.8rem;
     margin-bottom: 2rem;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7), 0 0 35px rgba(0, 229, 255, 0.04);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
     position: relative;
     overflow: hidden;
 }
@@ -223,24 +236,12 @@ html, body, [class*="css"] {
     margin-bottom: 0.8rem;
 }
 .cyber-hero h1 {
-    color: #FFFFFF;
-    font-size: 2.3rem;
-    font-weight: 800;
-    letter-spacing: -0.8px;
-    margin: 0;
+    color: #FFFFFF; font-size: 2.3rem; font-weight: 800; margin: 0;
     background: linear-gradient(to right, #FFFFFF, #94A3B8);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
 }
-.cyber-hero p {
-    color: #94A3B8;
-    margin-top: 0.5rem;
-    margin-bottom: 0;
-    font-size: 1.05rem;
-    font-weight: 400;
-}
+.cyber-hero p { color: #94A3B8; margin-top: 0.5rem; margin-bottom: 0; font-size: 1.05rem; }
 
-/* Glassmorphism Floating Cards */
 .glass-card {
     background: rgba(26, 35, 50, 0.4);
     backdrop-filter: blur(16px);
@@ -250,17 +251,8 @@ html, body, [class*="css"] {
     margin-bottom: 1.5rem;
     box-shadow: 0 12px 35px -10px rgba(0,0,0,0.5);
 }
-.glass-card h4 {
-    font-size: 1.15rem;
-    color: #F8FAFC;
-    font-weight: 700;
-    margin-bottom: 1rem;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
+.glass-card h4 { font-size: 1.15rem; color: #F8FAFC; font-weight: 700; margin-bottom: 1rem; }
 
-/* Glowing Metric Pill */
 .metric-pill {
     background: rgba(13, 20, 32, 0.8);
     border: 1px solid rgba(255, 255, 255, 0.08);
@@ -268,70 +260,34 @@ html, body, [class*="css"] {
     padding: 1.1rem;
     text-align: center;
 }
-.metric-pill .val {
-    font-size: 1.7rem;
-    font-weight: 800;
-    color: #00e5ff;
-}
-.metric-pill .lbl {
-    font-size: 0.75rem;
-    color: #94A3B8;
-    text-transform: uppercase;
-    letter-spacing: 1.2px;
-    margin-top: 4px;
-    font-weight: 600;
-}
+.metric-pill .val { font-size: 1.7rem; font-weight: 800; color: #00e5ff; }
+.metric-pill .lbl { font-size: 0.75rem; color: #94A3B8; text-transform: uppercase; letter-spacing: 1.2px; margin-top: 4px; font-weight: 600; }
 
 .score-high { color: #10B981 !important; }
 .score-mid { color: #F59E0B !important; }
 .score-low { color: #EF4444 !important; }
 
-/* Buttons */
 .stButton>button[kind="primary"] {
     background: linear-gradient(135deg, #00e5ff 0%, #3b82f6 50%, #6366f1 100%);
-    color: #04070D;
-    font-weight: 800;
-    border-radius: 12px;
-    padding: 0.65rem 1.4rem;
-    border: none;
+    color: #04070D; font-weight: 800; border-radius: 12px; padding: 0.65rem 1.4rem; border: none;
     box-shadow: 0 6px 20px rgba(0, 229, 255, 0.35);
 }
 
-/* Sidebar */
 [data-testid="stSidebar"] {
     background: linear-gradient(180deg, rgba(8, 12, 20, 0.95) 0%, rgba(4, 7, 13, 0.98) 100%);
     border-right: 1px solid rgba(0, 229, 255, 0.1);
 }
 .sidebar-card {
-    background: rgba(20, 30, 48, 0.5);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 14px;
-    padding: 1.2rem;
-    margin-bottom: 1.2rem;
+    background: rgba(20, 30, 48, 0.5); border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 14px; padding: 1.2rem; margin-bottom: 1.2rem;
 }
 .sidebar-brand {
     background: linear-gradient(135deg, rgba(0, 229, 255, 0.1) 0%, rgba(59, 130, 246, 0.1) 100%);
-    border: 1px solid rgba(0, 229, 255, 0.25);
-    border-radius: 14px;
-    padding: 1.2rem 1rem;
-    text-align: center;
-    margin-bottom: 1rem;
+    border: 1px solid rgba(0, 229, 255, 0.25); border-radius: 14px; padding: 1.2rem 1rem;
+    text-align: center; margin-bottom: 1rem;
 }
-.sidebar-brand h3 {
-    color: #00e5ff;
-    font-size: 1.25rem;
-    font-weight: 800;
-    margin: 0;
-}
-.sidebar-brand span {
-    font-size: 0.65rem;
-    color: #94A3B8;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    font-weight: 700;
-    display: block;
-    margin-top: 4px;
-}
+.sidebar-brand h3 { color: #00e5ff; font-size: 1.25rem; font-weight: 800; margin: 0; }
+.sidebar-brand span { font-size: 0.65rem; color: #94A3B8; text-transform: uppercase; letter-spacing: 2px; font-weight: 700; display: block; margin-top: 4px; }
 </style>
 """
 st.markdown(ADVANCED_CSS, unsafe_allow_html=True)
@@ -339,32 +295,27 @@ st.markdown(ADVANCED_CSS, unsafe_allow_html=True)
 # ===========================================================================
 # SESSION STATE MANAGEMENT
 # ===========================================================================
-if "logged_in" not in st.session_state:
-    st.session_state.logged_in = False
-if "hr_name" not in st.session_state:
-    st.session_state.hr_name = ""
-if "hr_email" not in st.session_state:
-    st.session_state.hr_email = ""
-if "selected_profile_email" not in st.session_state:
-    st.session_state.selected_profile_email = None
-if "pending_otp_email" not in st.session_state:
-    st.session_state.pending_otp_email = None
-if "pending_pin_email" not in st.session_state:
-    st.session_state.pending_pin_email = None
-if "results" not in st.session_state:
-    st.session_state.results = []
+if "logged_in" not in st.session_state: st.session_state.logged_in = False
+if "hr_name" not in st.session_state: st.session_state.hr_name = ""
+if "hr_email" not in st.session_state: st.session_state.hr_email = ""
+if "hr_role" not in st.session_state: st.session_state.hr_role = "Recruiter"
+if "is_pro" not in st.session_state: st.session_state.is_pro = 0
+if "selected_profile_email" not in st.session_state: st.session_state.selected_profile_email = None
+if "pending_otp_email" not in st.session_state: st.session_state.pending_otp_email = None
+if "pending_pin_email" not in st.session_state: st.session_state.pending_pin_email = None
+if "results" not in st.session_state: st.session_state.results = []
 
 # ===========================================================================
-# AUTHENTICATION & MULTI-STEP FLOW (REGISTRATION -> OTP -> PIN SETUP -> LOGIN)
+# AUTHENTICATION & MULTI-STEP FLOW
 # ===========================================================================
 if not st.session_state.logged_in:
     st.markdown("""
         <div style="text-align: center; padding: 2.5rem 0 1rem 0;">
             <div style="display: inline-flex; align-items: center; gap: 8px; background: rgba(0,229,255,0.08); border: 1px solid rgba(0,229,255,0.3); padding: 6px 16px; border-radius: 30px; color: #00e5ff; font-size: 0.8rem; font-weight: 700; margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 1px;">
-                ⚡ Secure Enterprise Access Portal
+                ⚡ Enterprise Subscription Portal (6,999 PKR / mo)
             </div>
             <h1 style="color: #FFFFFF; font-size: 2.5rem; font-weight: 800; margin: 0;">HireMatrix Pro</h1>
-            <p style="color: #94A3B8; font-size: 1.1rem; margin-top: 0.5rem;">Autonomous HR Intelligence & Deep LLM Screening Suite</p>
+            <p style="color: #94A3B8; font-size: 1.1rem; margin-top: 0.5rem;">Autonomous HR Intelligence & Executive Recruitment Suite</p>
         </div>
     """, unsafe_allow_html=True)
     
@@ -372,10 +323,9 @@ if not st.session_state.logged_in:
     with col2:
         saved_profiles = get_all_verified_profiles()
         
-        # STEP 3: Dedicated 2nd Page for PIN Setup (After OTP Verification)
         if st.session_state.pending_pin_email:
             st.markdown('<div class="glass-card"><h4>🔐 Step 2: Create Your 4-Digit Quick PIN</h4>', unsafe_allow_html=True)
-            st.info(f"Email verified for **{st.session_state.pending_pin_email}**. Now secure your account with a 4-digit PIN for instant future logins.")
+            st.info(f"Email verified for **{st.session_state.pending_pin_email}**. Secure your account with a 4-digit PIN.")
             
             new_pin = st.text_input("Enter 4-Digit PIN", type="password", max_chars=4, placeholder="••••", key="setup_pin_in")
             confirm_pin = st.text_input("Confirm 4-Digit PIN", type="password", max_chars=4, placeholder="••••", key="setup_pin_confirm")
@@ -384,7 +334,7 @@ if not st.session_state.logged_in:
                 if not new_pin or len(new_pin) != 4 or not new_pin.isdigit():
                     st.warning("Please enter an exact 4-digit numeric PIN.")
                 elif new_pin != confirm_pin:
-                    st.error("PINs do not match. Please verify and try again.")
+                    st.error("PINs do not match. Please try again.")
                 else:
                     success, msg = save_employee_pin(st.session_state.pending_pin_email, new_pin)
                     if success:
@@ -395,10 +345,9 @@ if not st.session_state.logged_in:
                         st.error(msg)
             st.markdown('</div>', unsafe_allow_html=True)
 
-        # STEP 2: Email OTP Verification Screen
         elif st.session_state.pending_otp_email:
             st.markdown('<div class="glass-card"><h4>📬 Email Verification (OTP)</h4>', unsafe_allow_html=True)
-            st.info(f"A 6-digit verification code has been dispatched to **{st.session_state.pending_otp_email}**.")
+            st.info(f"A 6-digit verification code has been sent to **{st.session_state.pending_otp_email}**.")
             otp_input = st.text_input("Enter 6-Digit OTP", placeholder="123456", key="reg_otp_in")
             
             col_o1, col_o2 = st.columns(2)
@@ -418,15 +367,15 @@ if not st.session_state.logged_in:
                     st.rerun()
             st.markdown('</div>', unsafe_allow_html=True)
             
-        # STEP 1A: Quick-PIN Login via Saved Profiles
         elif saved_profiles and not st.session_state.selected_profile_email:
             st.markdown('<div class="glass-card"><h4>👥 Saved Employee Profiles</h4>', unsafe_allow_html=True)
-            st.caption("Select your profile card to sign in instantly with your 4-digit PIN:")
+            st.caption("Select your profile card to sign in instantly:")
             
-            for p_email, p_name, p_pin in saved_profiles:
+            for p_email, p_name, p_pin, p_role, p_pro in saved_profiles:
+                pro_badge = " 🌟 [PRO]" if p_pro == 1 else " 🆓 [Free]"
                 c_p1, c_p2 = st.columns([3, 1])
                 with c_p1:
-                    if st.button(f"👤 {p_name} ({p_email})", use_container_width=True, key=f"sel_{p_email}"):
+                    if st.button(f"👤 {p_name} ({p_role}){pro_badge}", use_container_width=True, key=f"sel_{p_email}"):
                         st.session_state.selected_profile_email = p_email
                         st.rerun()
                 with c_p2:
@@ -440,33 +389,33 @@ if not st.session_state.logged_in:
                 st.rerun()
             st.markdown('</div>', unsafe_allow_html=True)
             
-        # STEP 1B: Enter PIN for Selected Profile
         elif st.session_state.selected_profile_email and st.session_state.selected_profile_email != "new":
             target_email = st.session_state.selected_profile_email
-            p_name = next((p[1] for p in saved_profiles if p[0] == target_email), "Employee")
+            p_match = next((p for p in saved_profiles if p[0] == target_email), ("Employee", "", "", "Recruiter", 0))
             
-            st.markdown(f'<div class="glass-card"><h4>🔐 Enter 4-Digit PIN for {p_name}</h4>', unsafe_allow_html=True)
+            st.markdown(f'<div class="glass-card"><h4>🔐 Enter 4-Digit PIN for {p_match[1]}</h4>', unsafe_allow_html=True)
             pin_input = st.text_input("4-Digit PIN", type="password", max_chars=4, placeholder="••••", key="quick_pin_in")
             
             col_b1, col_b2 = st.columns(2)
             with col_b1:
                 if st.button("Sign In", type="primary", use_container_width=True):
-                    success, name = verify_employee_pin(target_email, pin_input)
+                    success, name, role, pro_status = verify_employee_pin(target_email, pin_input)
                     if success:
                         st.session_state.logged_in = True
                         st.session_state.hr_name = name
                         st.session_state.hr_email = target_email
+                        st.session_state.hr_role = role
+                        st.session_state.is_pro = pro_status
                         st.success(f"Welcome back, {name}!")
                         st.rerun()
                     else:
-                        st.error("Incorrect 4-Digit PIN. Please verify and try again.")
+                        st.error("Incorrect 4-Digit PIN. Please verify.")
             with col_b2:
                 if st.button("Switch Profile", use_container_width=True):
                     st.session_state.selected_profile_email = None
                     st.rerun()
             st.markdown('</div>', unsafe_allow_html=True)
             
-        # STEP 1: Initial Registration Form (Name, Email, Password)
         else:
             st.markdown('<div class="glass-card"><h4>📝 Step 1: Employee Registration</h4>', unsafe_allow_html=True)
             reg_name = st.text_input("Full Name", placeholder="Alex Mercer", key="r_name")
@@ -495,13 +444,17 @@ if not st.session_state.logged_in:
     st.stop()
 
 # ===========================================================================
-# DATABASE OPERATIONS (Local CSV for Candidates)
+# DATABASE OPERATIONS WITH PIPELINE SUPPORT
 # ===========================================================================
 def load_database():
     if os.path.exists(DB_FILE):
-        return pd.read_csv(DB_FILE)
+        df = pd.read_csv(DB_FILE)
+        if "Pipeline Status" not in df.columns:
+            df["Pipeline Status"] = "Shortlisted"
+            df.to_csv(DB_FILE, index=False)
+        return df
     else:
-        return pd.DataFrame(columns=["Job Title", "Candidate Name", "Email", "Phone", "Match Score"])
+        return pd.DataFrame(columns=["Job Title", "Candidate Name", "Email", "Phone", "Match Score", "Pipeline Status"])
 
 def save_to_database(new_results):
     df = load_database()
@@ -512,12 +465,19 @@ def save_to_database(new_results):
             "Candidate Name": r["name"],
             "Email": r["email"],
             "Phone": r["phone"],
-            "Match Score": r["match_score"]
+            "Match Score": r["match_score"],
+            "Pipeline Status": "Shortlisted"
         })
     df_new = pd.DataFrame(new_data)
     df_combined = pd.concat([df, df_new], ignore_index=True)
     df_combined.drop_duplicates(subset=['Email', 'Job Title'], keep='last', inplace=True)
     df_combined.to_csv(DB_FILE, index=False)
+
+def update_candidate_status_in_db(email, job_title, new_status):
+    if os.path.exists(DB_FILE):
+        df = pd.read_csv(DB_FILE)
+        df.loc[(df["Email"].str.lower() == email.lower()) & (df["Job Title"] == job_title), "Pipeline Status"] = new_status
+        df.to_csv(DB_FILE, index=False)
 
 def check_if_exists_in_db(email):
     if not os.path.exists(DB_FILE) or email in ["Not Provided", "Not Found", ""] or not email:
@@ -583,7 +543,7 @@ def extract_resume_text(uploaded_file):
     return None
 
 # ===========================================================================
-# GROQ API INTEGRATION
+# GROQ AI INTEGRATION
 # ===========================================================================
 def build_unified_prompt(resume_text: str, jd_text: str) -> str:
     return f"""You are an expert HR AI assistant. Analyze the CANDIDATE RESUME against the JOB DESCRIPTION.
@@ -648,32 +608,21 @@ def analyze_and_extract_with_groq(client, resume_text: str, jd_text: str, job_ti
         st.error(f"⚠️ Groq analysis failed for **{file_name}**: {exc}")
         return None
 
+def generate_ai_interview_questions(client, resume_text: str, job_title: str) -> str:
+    try:
+        prompt = f"""Based on the candidate resume and the job title '{job_title}', generate 5 precise technical and behavioral interview questions along with ideal expected answers for the interviewer. Format clearly with Markdown."""
+        response = client.chat.completions.create(
+            model=GROQ_MODEL,
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.3,
+        )
+        return response.choices[0].message.content.strip()
+    except Exception as e:
+        return f"Could not generate interview questions: {e}"
+
 # ===========================================================================
 # EXCEL EXPORT
 # ===========================================================================
-def build_results_dataframe(results: list) -> pd.DataFrame:
-    rows = []
-    for r in results:
-        rows.append({
-            "Job Title": r["job_title"],
-            "Match Score (%)": r["match_score"],
-            "Candidate Name": r["name"],
-            "Father Name": r["father_name"],
-            "Email": r["email"],
-            "Phone": r["phone"],
-            "CGPA": r["cgpa"],
-            "Education": r["education"],
-            "University Name": r["university_name"],
-            "Experience Years": r["experience_years"],
-            "Latest Experience": r["latest_experience"],
-            "Extracted Skills": r["skills"],
-            "Reference": r["reference"],
-            "Missing Skills (vs JD)": "; ".join(r.get("missing_skills", [])) or "None",
-            "History Status": "Old Candidate (Already in DB)" if r["is_duplicate"] else "New Candidate",
-            "Source File": r["file_name"],
-        })
-    return pd.DataFrame(rows).sort_values("Match Score (%)", ascending=False).reset_index(drop=True)
-
 def dataframe_to_formatted_excel_bytes(df: pd.DataFrame) -> bytes:
     buffer = io.BytesIO()
     with pd.ExcelWriter(buffer, engine="xlsxwriter") as writer:
@@ -694,24 +643,40 @@ def dataframe_to_formatted_excel_bytes(df: pd.DataFrame) -> bytes:
     return buffer.getvalue()
 
 # ===========================================================================
-# ADVANCED GLASSMORPHIC SIDEBAR & DASHBOARD INTERFACE
+# SIDEBAR & DASHBOARD INTERFACE
 # ===========================================================================
 with st.sidebar:
-    st.markdown("""
+    st.markdown(f"""
         <div class="sidebar-brand">
             <h3>⚡ HireMatrix Pro</h3>
-            <span>Enterprise Edition v6.1</span>
+            <span>Pro Edition v8.0</span>
         </div>
     """, unsafe_allow_html=True)
     st.markdown("---")
     
+    tier_badge = "🌟 PRO TIER (6,999 PKR/mo)" if st.session_state.is_pro == 1 else "🆓 FREE BASIC TIER"
     st.markdown(f"""
         <div class="sidebar-card">
             <div style="font-size: 0.75rem; color: #94A3B8; text-transform: uppercase; letter-spacing: 1px; font-weight: 700; margin-bottom: 4px;">Active Employee</div>
             <div style="font-size: 1rem; font-weight: 700; color: #F8FAFC;">👤 {st.session_state.hr_name}</div>
+            <div style="font-size: 0.8rem; color: #00e5ff; margin-top: 4px;">{tier_badge}</div>
         </div>
     """, unsafe_allow_html=True)
     
+    if st.session_state.is_pro == 0:
+        st.markdown("### 🌟 Upgrade to PRO")
+        st.info("Unlock AI Interview Generator, Automated Invites & Kanban Pipeline for **6,999 PKR/mo**.")
+        license_input = st.text_input("Enter Pro License Key", type="password", placeholder="HM-PRO-XXXX")
+        if st.button("Activate Pro Subscription", use_container_width=True):
+            if license_input == "HM-PRO-2026" or license_input == "PRO6999":
+                upgrade_to_pro_db(st.session_state.hr_email)
+                st.session_state.is_pro = 1
+                st.success("Pro Subscription successfully activated!")
+                st.rerun()
+            else:
+                st.error("Invalid Pro License Key.")
+        st.markdown("---")
+
     if "GROQ_API_KEY" in st.secrets:
         groq_api_key = st.secrets["GROQ_API_KEY"]
         st.markdown('<div class="sidebar-card" style="border-color: rgba(16, 185, 129, 0.3); color: #10B981; font-size: 0.85rem; font-weight: 600;">✓ Groq API Secured</div>', unsafe_allow_html=True)
@@ -727,6 +692,8 @@ with st.sidebar:
         st.session_state.logged_in = False
         st.session_state.hr_name = ""
         st.session_state.hr_email = ""
+        st.session_state.hr_role = "Recruiter"
+        st.session_state.is_pro = 0
         st.session_state.selected_profile_email = None
         st.session_state.results = []
         st.rerun()
@@ -735,14 +702,14 @@ with st.sidebar:
 st.markdown(f"""
     <div class="cyber-hero">
         <div class="cyber-badge">
-            <span>🟢 Secure Employee Session</span> &bull; <span>{st.session_state.hr_email}</span>
+            <span>🟢 Secure Employee Session</span> &bull; <span>{st.session_state.hr_email} ({'PRO' if st.session_state.is_pro == 1 else 'FREE'})</span>
         </div>
         <h1>{APP_NAME}</h1>
         <p>Welcome back, <b>{st.session_state.hr_name}</b> &mdash; {APP_TAGLINE}</p>
     </div>
 """, unsafe_allow_html=True)
 
-tab1, tab2 = st.tabs(["🚀 Screening Workspace", "🗄️ Candidate Database"])
+tab1, tab2, tab3 = st.tabs(["🚀 Screening Workspace", "🗄️ Candidate Database", "🛡️ Admin Controls"])
 
 with tab1:
     col1, col2 = st.columns(2, gap="large")
@@ -789,9 +756,11 @@ with tab1:
             st.markdown(f'<div class="metric-pill"><div class="val">{avg_score}%</div><div class="lbl">Average Match Score</div></div>', unsafe_allow_html=True)
         st.markdown("</div>", unsafe_allow_html=True)
 
-        st.markdown('<div class="glass-card"><h4>🧾 Ranked Candidate Insights</h4>', unsafe_allow_html=True)
+        st.markdown('<div class="glass-card"><h4>🧾 Ranked Candidate Insights & Pro Tools</h4>', unsafe_allow_html=True)
         results = sorted(results, key=lambda x: x["match_score"], reverse=True)
         
+        client = Groq(api_key=groq_api_key) if groq_api_key else None
+
         for rank, cand in enumerate(results, start=1):
             history_badge = " ⚠️ [Previously in DB]" if cand["is_duplicate"] else " 🆕 [New Candidate]"
             score_cls = "score-high" if cand["match_score"] >= 75 else ("score-mid" if cand["match_score"] >= 50 else "score-low")
@@ -816,28 +785,97 @@ with tab1:
                             st.markdown(f"- {skill}")
                     else:
                         st.caption("No significant skill gaps identified.")
+
+                st.markdown("---")
+                if st.session_state.is_pro == 1:
+                    # PRO FEATURE: AI Interview Questions
+                    if st.button(f"💡 Generate AI Interview Q&A for {cand['name']}", key=f"gen_q_{rank}"):
+                        if client:
+                            with st.spinner("Generating tailored interview questions..."):
+                                q_text = generate_ai_interview_questions(client, cand['skills'], job_title_input)
+                                st.markdown("#### 🎯 AI Generated Interview Guide:")
+                                st.markdown(q_text)
+                        else:
+                            st.error("Groq API key required.")
+
+                    # PRO FEATURE: Automated Interview Invites
+                    if cand['email'] not in ["Not Provided", "Not Found", ""] and cand['email']:
+                        st.markdown("#### ✉️ Send Automated Interview Invite")
+                        invite_msg = st.text_area("Custom Message", value=f"Dear {cand['name']},\n\nWe were deeply impressed by your resume for the {job_title_input} position at HireMatrix Pro. We would love to invite you for an interview round.\n\nBest Regards,\nTalent Acquisition Team", key=f"inv_msg_{rank}")
+                        if st.button(f"📧 Send Invite Email", key=f"send_inv_{rank}"):
+                            ok, res_m = send_smtp_email(cand['email'], f"Interview Invitation - {job_title_input}", invite_msg)
+                            if ok:
+                                st.success(f"Interview invite sent successfully to {cand['email']}!")
+                                update_candidate_status_in_db(cand['email'], job_title_input, "Interview Scheduled")
+                            else:
+                                st.error(res_m)
+                else:
+                    st.warning("🔒 **Pro Feature Locked:** Upgrade to **PRO (6,999 PKR/mo)** from the sidebar to unlock AI Interview Q&A Generation and Automated Email Invites.")
+
         st.markdown("</div>", unsafe_allow_html=True)
 
         st.markdown('<div class="glass-card"><h4>⬇️ Master Data Export</h4>', unsafe_allow_html=True)
-        df = build_results_dataframe(results)
+        df_export = load_database()
         st.download_button(
             "Download Formatted Master Report (.xlsx)",
-            data=dataframe_to_formatted_excel_bytes(df),
+            data=dataframe_to_formatted_excel_bytes(df_export),
             file_name=f"{job_title_input.replace(' ', '_')}_Candidates.xlsx",
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             use_container_width=True,
         )
-        st.dataframe(df, use_container_width=True)
+        st.dataframe(df_export, use_container_width=True)
         st.markdown("</div>", unsafe_allow_html=True)
 
 with tab2:
-    st.markdown('<div class="glass-card"><h4>🗄️ Master Candidate Database Repository</h4>', unsafe_allow_html=True)
-    try:
+    st.markdown('<div class="glass-card"><h4>🗄️ Candidate Kanban Pipeline & Database</h4>', unsafe_allow_html=True)
+    if st.session_state.is_pro == 0:
+        st.warning("🔒 **Kanban Pipeline Locked:** Upgrade to **PRO (6,999 PKR/mo)** from the sidebar to manage candidate pipeline stages (Shortlisted, Interview Scheduled, Hired, Rejected).")
         df_history = load_database()
-        if df_history.empty:
-            st.info("Database is currently empty.")
-        else:
+        if not df_history.empty:
             st.dataframe(df_history, use_container_width=True)
-    except Exception as e:
-        st.error(f"Could not load database records: {e}")
+    else:
+        try:
+            df_history = load_database()
+            if df_history.empty:
+                st.info("Database is currently empty.")
+            else:
+                st.markdown("Update candidate pipeline stage below:")
+                for idx, row in df_history.iterrows():
+                    cols = st.columns([2, 2, 2, 2])
+                    with cols[0]: st.write(f"**{row['Candidate Name']}**")
+                    with cols[1]: st.write(f"*{row['Job Title']}*")
+                    with cols[2]: st.write(f"Score: {row['Match Score']}%")
+                    with cols[3]:
+                        current_status = row["Pipeline Status"] if "Pipeline Status" in df_history.columns else "Shortlisted"
+                        new_status = st.selectbox("Stage", ["Shortlisted", "Interview Scheduled", "Hired", "Rejected"], index=["Shortlisted", "Interview Scheduled", "Hired", "Rejected"].index(current_status) if current_status in ["Shortlisted", "Interview Scheduled", "Hired", "Rejected"] else 0, key=f"status_{idx}")
+                        if new_status != current_status:
+                            update_candidate_status_in_db(row['Email'], row['Job Title'], new_status)
+                            st.rerun()
+                st.markdown("---")
+                st.dataframe(df_history, use_container_width=True)
+        except Exception as e:
+            st.error(f"Could not load database records: {e}")
+    st.markdown("</div>", unsafe_allow_html=True)
+
+with tab3:
+    st.markdown('<div class="glass-card"><h4>🛡️ Admin Access & Employee Management</h4>', unsafe_allow_html=True)
+    if st.session_state.hr_role != "Admin":
+        st.warning("⚠️ Access Restricted: Only users with **Admin** role can manage company employee profiles.")
+    else:
+        st.success("✓ Admin privileges active.")
+        all_emps = get_all_verified_profiles()
+        st.markdown(f"**Total Active Registered Employees:** {len(all_emps)}")
+        for emp_email, emp_name, emp_pin, emp_role, emp_pro in all_emps:
+            pro_st = "🌟 PRO" if emp_pro == 1 else "🆓 Free"
+            col_a1, col_a2, col_a3 = st.columns([2, 1, 1])
+            with col_a1: st.write(f"👤 **{emp_name}** ({emp_email}) — *{emp_role}* [{pro_st}]")
+            with col_a2: st.write(f"PIN: `{emp_pin}`")
+            with col_a3:
+                if emp_email.lower() != st.session_state.hr_email.lower():
+                    if st.button("🗑️ Revoke", key=f"rev_{emp_email}", use_container_width=True):
+                        delete_employee_profile(emp_email)
+                        st.success(f"Access revoked for {emp_name}.")
+                        st.rerun()
+                else:
+                    st.caption("Current User")
     st.markdown("</div>", unsafe_allow_html=True)
