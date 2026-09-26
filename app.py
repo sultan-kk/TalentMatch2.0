@@ -448,8 +448,8 @@ if not st.session_state.logged_in:
                     st.session_state.pending_otp_email = None
                     st.rerun()
             
-        elif saved_profiles and not st.session_state.selected_profile_email:
-            # --- FULL HTML CONTAINER WITH DISTINCT BACKGROUND & PROFILES ---
+elif saved_profiles and not st.session_state.selected_profile_email:
+            # --- CLEAN SAVED PROFILES CONTAINER WITH DISTINCT BACKGROUND ---
             st.markdown("""
                 <div style="background: rgba(200, 200, 200, 0.18); border: 1.5px solid #0EA5E9; border-radius: 16px; padding: 1.8rem; margin-bottom: 1.5rem; box-shadow: 0 8px 25px rgba(0,0,0,0.06);">
                     <h3 style="margin-top: 0; margin-bottom: 0.3rem; font-size: 1.25rem; font-weight: 700;">👥 Saved Employee Profiles</h3>
@@ -472,14 +472,7 @@ if not st.session_state.logged_in:
             st.markdown("</div>", unsafe_allow_html=True)
             
             st.markdown("")
-            if st.button("➕ Register New Employee Profile", use_container_width=True):
-                st.session_state.selected_profile_email = "new"
-                st.rerun()
-            
-            st.markdown("</div>", unsafe_allow_html=True)
-            
-            st.markdown("")
-            if st.button("➕ Register New Employee Profile", use_container_width=True):
+            if st.button("➕ Register New Employee Profile", use_container_width=True, key="reg_new_emp_btn"):
                 st.session_state.selected_profile_email = "new"
                 st.rerun()
             
@@ -508,7 +501,7 @@ if not st.session_state.logged_in:
                 else:
                     st.error("Incorrect 4-Digit PIN. Please verify.")
             with col_b2:
-                if st.button("Switch Profile", use_container_width=True):
+                if st.button("Switch Profile", use_container_width=True, key="switch_prof_btn"):
                     st.session_state.selected_profile_email = None
                     st.rerun()
             
@@ -535,7 +528,7 @@ if not st.session_state.logged_in:
                     else:
                         st.error(msg)
             with col_r2:
-                if saved_profiles and st.button("Back to Profiles", use_container_width=True):
+                if saved_profiles and st.button("Back to Profiles", use_container_width=True, key="back_to_prof_btn"):
                     st.session_state.selected_profile_email = None
                     st.rerun()
                     
