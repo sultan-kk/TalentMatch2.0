@@ -290,13 +290,13 @@ html, body, [class*="css"] { font-family: 'Inter', sans-serif !important; }
 .auth-brand-side h1 { font-size: 2.6rem; font-weight: 800; margin-bottom: 1rem; color: #FFFFFF; letter-spacing: -0.5px; }
 .auth-brand-side p { font-size: 1.05rem; opacity: 0.9; line-height: 1.6; }
 
-/* Custom Login Form Card Container with Balanced Contrast */
+/* Custom Login Form Card Container with Adaptive Soft Contrast */
 .auth-form-card {
-    background: var(--background-color);
-    border: 1px solid rgba(14, 165, 233, 0.3);
+    background: var(--secondary-background-color);
+    border: 1.5px solid rgba(14, 165, 233, 0.35);
     border-radius: 18px;
     padding: 2.5rem;
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.07);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
 }
 
 /* Corporate Hero Header & Cards */
