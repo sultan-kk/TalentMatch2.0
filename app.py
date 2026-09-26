@@ -1,8 +1,8 @@
 """
-HireMatrix Pro — Enterprise Edition v10.22 (Integrated Header & Balanced Contrast)
+HireMatrix Pro — Enterprise Edition v10.21 (Unified Master Container & Balanced Contrast)
 ========================================================================
-Features: Integrated heading inside the single master profile container, 
-Eliminated blank header boxes, Flawless light/dark theme contrast harmony, and Master Excel Export.
+Features: All saved employee profiles wrapped in a single integrated master container box, 
+Flawless light/dark theme contrast harmony, Executive split-screen login, and Master Excel Export.
 """
 
 import io
@@ -295,7 +295,7 @@ html, body, [class*="css"] { font-family: 'Inter', sans-serif !important; }
     background: var(--background-color);
     border: 1px solid rgba(14, 165, 233, 0.3);
     border-radius: 18px;
-    padding: 2.2rem;
+    padding: 2.5rem;
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.07);
 }
 
@@ -362,7 +362,7 @@ if "pending_pin_email" not in st.session_state: st.session_state.pending_pin_ema
 if "results" not in st.session_state: st.session_state.results = []
 
 # ===========================================================================
-# AUTHENTICATION SCREEN (INTEGRATED MASTER PROFILE CONTAINER)
+# AUTHENTICATION SCREEN (SINGLE INTEGRATED MASTER PROFILE CONTAINER)
 # ===========================================================================
 if not st.session_state.logged_in:
     saved_profiles = get_all_verified_profiles()
@@ -429,28 +429,25 @@ if not st.session_state.logged_in:
                     st.rerun()
             
         elif saved_profiles and not st.session_state.selected_profile_email:
-            # --- CLEAN INTEGRATED MASTER CONTAINER ---
-            st.markdown("""
-                <div style="margin-bottom: 1rem;">
-                    <h3 style="margin-top:0; margin-bottom: 0.2rem; font-size: 1.25rem; font-weight: 700;">👥 Saved Employee Profiles</h3>
-                    <p style="font-size: 0.85rem; opacity: 0.75; margin-bottom: 1rem;">Select your secure profile card below to sign in instantly:</p>
-                </div>
-            """, unsafe_allow_html=True)
+            # --- USING STREAMLIT BORDERED CONTAINER FOR PERFECT NATIVE THEME CONTRAST ---
+            with st.container(border=True):
+                st.markdown("### 👥 Saved Employee Profiles")
+                st.caption("Select your secure profile card below to sign in instantly:")
+                
+                for p_email, p_name, p_pin, p_role, p_pro in saved_profiles:
+                    pro_badge = " 🌟 [PRO]" if p_pro == 1 else " 🆓 [Free]"
+                    c_p1, c_p2 = st.columns([3, 1])
+                    with c_p1:
+                        if st.button(f"👤 {p_name} ({p_role}){pro_badge}", use_container_width=True, key=f"sel_{p_email}"):
+                            st.session_state.selected_profile_email = p_email
+                            st.rerun()
+                    with c_p2:
+                        if st.button("🗑️ Delete", key=f"del_{p_email}", use_container_width=True):
+                            delete_employee_profile(p_email)
+                            st.success(f"Profile for {p_name} has been removed.")
+                            st.rerun()
             
-            for p_email, p_name, p_pin, p_role, p_pro in saved_profiles:
-                pro_badge = " 🌟 [PRO]" if p_pro == 1 else " 🆓 [Free]"
-                c_p1, c_p2 = st.columns([3, 1])
-                with c_p1:
-                    if st.button(f"👤 {p_name} ({p_role}){pro_badge}", use_container_width=True, key=f"sel_{p_email}"):
-                        st.session_state.selected_profile_email = p_email
-                        st.rerun()
-                with c_p2:
-                    if st.button("🗑️ Delete", key=f"del_{p_email}", use_container_width=True):
-                        delete_employee_profile(p_email)
-                        st.success(f"Profile for {p_name} has been removed.")
-                        st.rerun()
-            
-            st.markdown("---")
+            st.markdown("")
             if st.button("➕ Register New Employee Profile", use_container_width=True):
                 st.session_state.selected_profile_email = "new"
                 st.rerun()
@@ -745,7 +742,7 @@ with st.sidebar:
     st.markdown(f"""
         <div class="sidebar-brand-box">
             <h2>{APP_NAME}</h2>
-            <p>Enterprise v10.22</p>
+            <p>Enterprise v10.21</p>
         </div>
     """, unsafe_allow_html=True)
     st.markdown("---")
