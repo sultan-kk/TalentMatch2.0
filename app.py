@@ -1,7 +1,7 @@
 """
-HireMatrix Pro — Enterprise Edition v10.64 (Duplicate Widget ID Fix)
+HireMatrix Pro — Enterprise Edition v10.65 (Unique Sheet Name Fix)
 ========================================================================
-Features: Fixed duplicate widget key errors in loops, persistent same-file master Excel appends, 
+Features: Fixed duplicate worksheet name errors in Excel exports, persistent same-file master Excel appends, 
 Clean numbered exports, individual candidate deletes, strict duplicate blocking, and complete ATS workflow.
 """
 
@@ -163,7 +163,7 @@ def verify_employee_pin(email, entered_pin):
     return False, None, None
 
 # ===========================================================================
-# DATABASE OPERATIONS & PERSISTENT SAME-FILE EXPORT
+# DATABASE OPERATIONS & SAFE EXCEL EXPORTS
 # ===========================================================================
 def load_database():
     if os.path.exists(DB_FILE):
@@ -265,11 +265,9 @@ def generate_repository_excel(df: pd.DataFrame) -> bytes:
             export_df = export_df.drop(columns=["Job Title"])
         export_df.insert(0, "Sr. No.", range(1, len(export_df) + 1))
         
-        export_df.to_excel(writer, index=False, sheet_name="Talent Repository")
+        export_df.to_excel(writer, index=False, sheet_name="Talent_Repository")
         workbook = writer.book
-        worksheet = workbook.add_worksheet("Talent Repository")
-        # Use existing sheet if already present
-        worksheet = writer.sheets["Talent Repository"]
+        worksheet = writer.sheets["Talent_Repository"]
         
         header_format = workbook.add_format({
             "bold": True, "bg_color": "#1E293B", "font_color": "#FFFFFF", "border": 1, "align": "center", "valign": "vcenter",
@@ -306,9 +304,9 @@ def generate_screening_excel(results_list) -> bytes:
                 "Pipeline Status": r["pipeline_status"]
             })
         export_df = pd.DataFrame(data)
-        export_df.to_excel(writer, index=False, sheet_name="Screened Results")
+        export_df.to_excel(writer, index=False, sheet_name="Screened_Results")
         workbook = writer.book
-        worksheet = writer.sheets["Screened Results"]
+        worksheet = writer.sheets["Screened_Results"]
         
         header_format = workbook.add_format({
             "bold": True, "bg_color": "#0EA5E9", "font_color": "#FFFFFF", "border": 1, "align": "center", "valign": "vcenter",
@@ -490,7 +488,7 @@ with st.sidebar:
     st.markdown(f"""
         <div class="sidebar-brand-box">
             <h2>{APP_NAME}</h2>
-            <p>Multi-Stage ATS v10.64</p>
+            <p>Multi-Stage ATS v10.65</p>
         </div>
     """, unsafe_allow_html=True)
     st.markdown("---")
@@ -587,7 +585,6 @@ with tab1:
             with c_d2: st.write(f"✉️ `{row['Email']}`")
             with c_d3: st.write(f"🎓 {row['Education']}")
             with c_d4:
-                # Unique safe key using email and index combination
                 safe_key = f"del_repo_{idx}_{str(row['Email']).replace('@', '_').replace('.', '_')}"
                 if st.button("🗑️ Delete", key=safe_key, use_container_width=True):
                     delete_single_candidate_from_db(row['Email'] if row['Email'] not in ["Not Provided", "Not Found", ""] else row['Candidate Name'])
@@ -702,7 +699,6 @@ with tab2:
                 current_stage = cand["pipeline_status"]
                 stage_idx = stage_options.index(current_stage) if current_stage in stage_options else 0
                 
-                # Unique safe key for stage selector
                 stage_key = f"stage_sel_{rank}_{str(cand['email']).replace('@', '_').replace('.', '_')}"
                 new_stage = st.selectbox(
                     "Update Stage", 
