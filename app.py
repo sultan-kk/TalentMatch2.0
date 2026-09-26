@@ -298,7 +298,7 @@ html, body, [class*="css"] { font-family: 'Inter', sans-serif !important; }
 
 /* Explicit Distinct Background Color Override for Profile Box */
 div[data-testid="stVerticalBlock"] div[data-testid="stContainer"] {
-    background: rgba(14, 170, 233, 0.10) !important;
+    background: rgba(200, 200, 200, 0.15) !important;
     border: 1.5px solid #0EA5E9 !important;
     border-radius: 16px !important;
     padding: 1.5rem !important;
