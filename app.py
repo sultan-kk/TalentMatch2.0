@@ -1,7 +1,7 @@
 """
-HireMatrix Pro — Enterprise Edition v10.71 (Session State Safe Guard Fix)
+HireMatrix Pro — Enterprise Edition v10.72 (Permanent Auto-Recovery & Persistent DB)
 ========================================================================
-Features: Fixed session state attribute errors during startup/login, secure database appends, 
+Features: Automatic fallback Admin recovery if DB resets, persistent stateful storage, 
 Clean numbered exports, individual candidate deletes, strict duplicate blocking, and complete ATS workflow.
 """
 
@@ -21,7 +21,7 @@ import streamlit as st
 from groq import Groq
 
 # ===========================================================================
-# CONFIGURATION & AUTO-MIGRATION AUTH DB
+# CONFIGURATION & AUTO-MIGRATION AUTH DB (WITH FALLBACK RECOVERY)
 # ===========================================================================
 APP_NAME = "HireMatrix Pro"
 APP_TAGLINE = "Autonomous HR Intelligence & Executive Recruitment Suite"
@@ -49,6 +49,15 @@ def init_auth_db():
     if "pin" not in columns: cursor.execute("ALTER TABLE hr_users ADD COLUMN pin TEXT")
     if "role" not in columns: cursor.execute("ALTER TABLE hr_users ADD COLUMN role TEXT DEFAULT 'Recruiter'")
     if "otp" not in columns: cursor.execute("ALTER TABLE hr_users ADD COLUMN otp TEXT")
+    
+    # Ensure at least one default Admin account always exists so profiles never get permanently locked out
+    cursor.execute("SELECT COUNT(*) FROM hr_users WHERE is_verified = 1")
+    if cursor.fetchone()[0] == 0:
+        cursor.execute("""
+            INSERT OR REPLACE INTO hr_users (email, name, password, pin, role, is_verified, otp) 
+            VALUES (?, ?, ?, ?, ?, 1, NULL)
+        """, ("admin@company.com", "System Admin", hashlib.sha256("admin123".encode()).hexdigest(), "1234", "Admin"))
+        
     conn.commit()
     conn.close()
 
@@ -103,7 +112,7 @@ def register_initial_employee(name, email, password):
         
         cursor.execute("SELECT COUNT(*) FROM hr_users")
         count = cursor.fetchone()[0]
-        role = "Admin" if count == 0 else "Recruiter"
+        role = "Admin" if count <= 1 else "Recruiter"
         
         cursor.execute("""
             INSERT OR REPLACE INTO hr_users (email, name, password, pin, role, is_verified, otp) 
@@ -310,6 +319,14 @@ if not st.session_state.logged_in:
     with col_right:
         st.markdown('<div class="auth-form-card">', unsafe_allow_html=True)
         
+        # Quick Default Admin Notice if profiles got reset
+        st.markdown("""
+            <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid #10B981; border-radius: 10px; padding: 10px 15px; margin-bottom: 15px; font-size: 0.85rem;">
+                💡 <b>Default Admin Credentials (if needed):</b><br>
+                Email: <code>admin@company.com</code> | PIN: <code>1234</code>
+            </div>
+        """, unsafe_allow_html=True)
+        
         if st.session_state.pending_pin_email:
             st.markdown("### 🔐 Security Setup")
             st.info(f"Email verified for **{st.session_state.pending_pin_email}**.")
@@ -371,10 +388,13 @@ if not st.session_state.logged_in:
                         st.session_state.selected_profile_email = p_email
                         st.rerun()
                 with c_p2:
-                    if st.button("🗑️ Delete", key=f"del_{p_email}", use_container_width=True):
-                        delete_employee_profile(p_email)
-                        st.success(f"Profile for {p_name} has been removed.")
-                        st.rerun()
+                    if p_email != "admin@company.com":
+                        if st.button("🗑️ Delete", key=f"del_{p_email}", use_container_width=True):
+                            delete_employee_profile(p_email)
+                            st.success(f"Profile for {p_name} has been removed.")
+                            st.rerun()
+                    else:
+                        st.caption("Protected")
             
             st.markdown("")
             if st.button("➕ Register New Employee Profile", use_container_width=True, key="reg_new_emp_auth_btn"):
@@ -403,7 +423,7 @@ if not st.session_state.logged_in:
                     st.success(f"Welcome back, {name}!")
                     st.rerun()
                 else:
-                    st.error("Incorrect 4-Digit PIN. Please verify.")
+                    st.error("Incorrect 4-Digit PIN. (Default Admin PIN is 1234).")
             with col_b2:
                 if st.button("Switch Profile", use_container_width=True, key="switch_prof_auth_btn"):
                     st.session_state.selected_profile_email = None
@@ -738,7 +758,7 @@ with st.sidebar:
     st.markdown(f"""
         <div class="sidebar-brand-box">
             <h2>{APP_NAME}</h2>
-            <p>Multi-Stage ATS v10.71</p>
+            <p>Multi-Stage ATS v10.72</p>
         </div>
     """, unsafe_allow_html=True)
     st.markdown("---")
