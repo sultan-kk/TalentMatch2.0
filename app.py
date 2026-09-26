@@ -758,13 +758,16 @@ def analyze_and_extract_with_groq(client, resume_text: str, jd_text: str, job_ti
 
 def generate_ai_interview_questions(client, resume_text: str, job_title: str) -> str:
     try:
-        prompt = f"""Based on the candidate resume and the job title '{job_title}', generate 5 precise technical and behavioral interview questions along with ideal expected answers for the interviewer. Format clearly with Markdown."""
+        prompt = f"""Based on the candidate resume and the job title '{job_title}', generate 5 precise technical and behavioral interview questions along with ideal expected answers for the interviewer. Format clearly with Markdown bullet points and headings. Do not include raw HTML tags."""
         response = client.chat.completions.create(
             model=GROQ_MODEL,
             messages=[{"role": "user", "content": prompt}],
             temperature=0.3,
         )
-        return response.choices[0].message.content.strip()
+        # Clean up any raw HTML break tags if AI includes them
+        raw_output = response.choices[0].message.content.strip()
+        cleaned_output = raw_output.replace("<br>", "\n").replace("<br/>", "\n").replace("<BR>", "\n")
+        return cleaned_output
     except Exception as e:
         return f"Could not generate interview questions: {e}"
 
