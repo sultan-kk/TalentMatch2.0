@@ -449,23 +449,27 @@ if not st.session_state.logged_in:
                     st.rerun()
             
         elif saved_profiles and not st.session_state.selected_profile_email:
-            # --- SAVED PROFILES CONTAINER WITH STYLING ---
-            with st.container(border=True):
-                st.markdown("### 👥 Saved Employee Profiles")
-                st.caption("Select your secure profile card below to sign in instantly:")
-                
-                for p_email, p_name, p_pin, p_role, p_pro in saved_profiles:
-                    pro_badge = " 🌟 [PRO]" if p_pro == 1 else " 🆓 [Free]"
-                    c_p1, c_p2 = st.columns([3, 1])
-                    with c_p1:
-                        if st.button(f"👤 {p_name} ({p_role}){pro_badge}", use_container_width=True, key=f"sel_{p_email}"):
-                            st.session_state.selected_profile_email = p_email
-                            st.rerun()
-                    with c_p2:
-                        if st.button("🗑️ Delete", key=f"del_{p_email}", use_container_width=True):
-                            delete_employee_profile(p_email)
-                            st.success(f"Profile for {p_name} has been removed.")
-                            st.rerun()
+            # --- STYLISH CUSTOM HTML CONTAINER FOR PROFILES ---
+            st.markdown("""
+                <div style="background: rgba(200, 200, 200, 0.18); border: 1.5px solid #0EA5E9; border-radius: 16px; padding: 1.8rem; margin-bottom: 1.5rem; box-shadow: 0 8px 25px rgba(0,0,0,0.06);">
+                    <h3 style="margin-top: 0; margin-bottom: 0.3rem; font-size: 1.25rem; font-weight: 700;">👥 Saved Employee Profiles</h3>
+                    <p style="font-size: 0.85rem; opacity: 0.85; margin-bottom: 1.2rem;">Select your secure profile card below to sign in instantly:</p>
+            """, unsafe_allow_html=True)
+            
+            for p_email, p_name, p_pin, p_role, p_pro in saved_profiles:
+                pro_badge = " 🌟 [PRO]" if p_pro == 1 else " 🆓 [Free]"
+                c_p1, c_p2 = st.columns([3, 1])
+                with c_p1:
+                    if st.button(f"👤 {p_name} ({p_role}){pro_badge}", use_container_width=True, key=f"sel_{p_email}"):
+                        st.session_state.selected_profile_email = p_email
+                        st.rerun()
+                with c_p2:
+                    if st.button("🗑️ Delete", key=f"del_{p_email}", use_container_width=True):
+                        delete_employee_profile(p_email)
+                        st.success(f"Profile for {p_name} has been removed.")
+                        st.rerun()
+            
+            st.markdown("</div>", unsafe_allow_html=True)
             
             st.markdown("")
             if st.button("➕ Register New Employee Profile", use_container_width=True):
