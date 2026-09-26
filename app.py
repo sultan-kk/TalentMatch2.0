@@ -1,5 +1,5 @@
 """
-Super TalentMatch AI — Ultimate Advanced Creative Edition (v2.6)
+HireMatrix Pro — Ultimate Advanced Creative Edition (v3.0)
 ========================================================================
 Designed with Fully Immersive Glassmorphic Sidebar, Glowing Holographic Title, 
 Advanced Card Layouts, Secure HR Login/Signup with OTP, and Deep LLM Screening.
@@ -21,8 +21,8 @@ from groq import Groq
 # ===========================================================================
 # CONFIGURATION & AUTH DB
 # ===========================================================================
-APP_NAME = "Super TalentMatch AI"
-APP_TAGLINE = "Unified Resume Extraction & Deep LLM Screening"
+APP_NAME = "HireMatrix Pro"
+APP_TAGLINE = "Autonomous HR Intelligence & Deep LLM Screening Suite"
 GROQ_MODEL = "openai/gpt-oss-120b"
 ACCEPTED_TYPES = ["pdf", "docx", "png", "jpg", "jpeg"]
 DB_FILE = "master_candidates.csv"
@@ -59,14 +59,14 @@ def send_otp_email(receiver_email, otp_code):
         msg = MIMEMultipart()
         msg['From'] = sender_email
         msg['To'] = receiver_email
-        msg['Subject'] = "Super TalentMatch AI - Verification OTP"
+        msg['Subject'] = "HireMatrix Pro - Verification OTP"
         
         body = f"""
         Hello,\n\n
-        Aapka Super TalentMatch AI account verification code yeh hai:\n\n
+        Aapka HireMatrix Pro account verification code yeh hai:\n\n
         OTP Code: {otp_code}\n\n
         Yeh code kisi ke sath share mat karein.\n
-        Regards,\nTeam TalentMatch
+        Regards,\nTeam HireMatrix
         """
         msg.attach(MIMEText(body, 'plain'))
         
@@ -348,7 +348,7 @@ if not st.session_state.logged_in:
             <div style="display: inline-flex; align-items: center; gap: 8px; background: rgba(0,229,255,0.08); border: 1px solid rgba(0,229,255,0.3); padding: 6px 16px; border-radius: 30px; color: #00e5ff; font-size: 0.8rem; font-weight: 700; margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 1px;">
                 ⚡ Autonomous Executive HR Suite
             </div>
-            <h1 style="color: #FFFFFF; font-size: 2.6rem; font-weight: 800; letter-spacing: -1px; margin: 0;">Super TalentMatch AI</h1>
+            <h1 style="color: #FFFFFF; font-size: 2.6rem; font-weight: 800; letter-spacing: -1px; margin: 0;">HireMatrix Pro</h1>
             <p style="color: #94A3B8; font-size: 1.15rem; margin-top: 0.6rem;">Next-Generation Deep LLM Resume Screening & Extraction Engine</p>
         </div>
     """, unsafe_allow_html=True)
@@ -619,8 +619,8 @@ def dataframe_to_formatted_excel_bytes(df: pd.DataFrame) -> bytes:
 with st.sidebar:
     st.markdown("""
         <div class="sidebar-brand">
-            <h3>⚡ TalentMatch AI</h3>
-            <span>Executive HR Suite v2.6</span>
+            <h3>⚡ HireMatrix Pro</h3>
+            <span>Executive HR Suite v3.0</span>
         </div>
     """, unsafe_allow_html=True)
     st.markdown("---")
