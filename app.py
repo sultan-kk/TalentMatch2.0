@@ -1,8 +1,8 @@
 """
-HireMatrix Pro — Enterprise Edition v10.28 (Dynamic Score Threshold in Screening)
+HireMatrix Pro — Enterprise Edition v10.29 (Smart Duplicate Merge & Prevention)
 ========================================================================
-Features: Custom match score threshold slider in Screening Workspace, 
-Executive formatted report export, unified profile card login, and balanced theme contrast.
+Features: Automatic duplicate prevention based on candidate email, 
+Dynamic score threshold slider, Executive formatted report export, and theme harmony.
 """
 
 import io
@@ -553,8 +553,16 @@ def save_to_database(new_results, default_status="Shortlisted"):
             "Screened At": current_timestamp
         })
     df_new = pd.DataFrame(new_data)
+    
+    # --- SMART DUPLICATE MERGE & PREVENTION BASED ON EMAIL & JOB TITLE ---
+    if not df.empty and not df_new.empty:
+        # Remove existing records in DB if email matches the incoming candidate
+        for _, new_row in df_new.iterrows():
+            incoming_email = str(new_row["Email"]).lower().strip()
+            if incoming_email not in ["not provided", "not found", "", "nan"]:
+                df = df[~(df["Email"].str.lower().str.strip() == incoming_email)]
+    
     df_combined = pd.concat([df, df_new], ignore_index=True)
-    df_combined.drop_duplicates(subset=['Email', 'Job Title'], keep='last', inplace=True)
     df_combined.to_csv(DB_FILE, index=False)
 
 def update_candidate_status_in_db(email, job_title, new_status):
@@ -749,7 +757,7 @@ with st.sidebar:
     st.markdown(f"""
         <div class="sidebar-brand-box">
             <h2>{APP_NAME}</h2>
-            <p>Enterprise v10.28</p>
+            <p>Enterprise v10.29</p>
         </div>
     """, unsafe_allow_html=True)
     st.markdown("---")
@@ -868,38 +876,11 @@ with tab1:
         progress.empty()
         st.session_state.results = results
         if results:
-            # Apply dynamic threshold for initial pipeline status
             for r in results:
                 r["initial_status"] = "Shortlisted" if r["match_score"] >= custom_threshold else "Rejected"
             
-            # Save to database using the dynamic threshold statuses
-            df = load_database()
-            current_timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            new_data = []
-            for r in results:
-                new_data.append({
-                    "Job Title": r["job_title"],
-                    "Candidate Name": r["name"],
-                    "Father Name": r.get("father_name", "Not Provided"),
-                    "Email": r["email"],
-                    "Phone": r["phone"],
-                    "CGPA": r.get("cgpa", "Not Provided"),
-                    "Education": r.get("education", "Not Provided"),
-                    "University Name": r.get("university_name", "Not Provided"),
-                    "Experience Years": r.get("experience_years", "0"),
-                    "Latest Experience": r.get("latest_experience", "Not Provided"),
-                    "Extracted Skills": r.get("skills", "Not Provided"),
-                    "Reference": r.get("reference", "Not Provided"),
-                    "Match Score": r["match_score"],
-                    "Pipeline Status": r["initial_status"],
-                    "Screened At": current_timestamp
-                })
-            df_new = pd.DataFrame(new_data)
-            df_combined = pd.concat([df, df_new], ignore_index=True)
-            df_combined.drop_duplicates(subset=['Email', 'Job Title'], keep='last', inplace=True)
-            df_combined.to_csv(DB_FILE, index=False)
-            
-            st.success(f"Successfully processed {len(results)} candidate resumes! Threshold applied: {custom_threshold}%")
+            save_to_database(results, default_status="Shortlisted")
+            st.success(f"Successfully processed {len(results)} candidate resumes! Duplicates merged/prevented.")
             st.rerun()
 
     # --- RESULTS DISPLAY ---
