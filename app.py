@@ -298,29 +298,29 @@ html, body, [class*="css"] { font-family: 'Inter', sans-serif !important; }
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.06);
 }
 
-/* Custom Profile Master Box Styling with Distinct Background Color */
-.profile-master-box {
-    background: rgba(14, 165, 233, 0.05) !important;
-    border: 1.5px solid rgba(14, 165, 233, 0.35) !important;
-    border-radius: 14px !important;
-    padding: 1.5rem !important;
-    margin-bottom: 1rem !important;
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.04);
+/* Custom HTML Card Wrapper with Distinct Background Color */
+.custom-profile-card {
+    background: rgba(14, 165, 233, 0.07) !important;
+    border: 1.5px solid rgba(14, 165, 233, 0.4) !important;
+    border-radius: 16px !important;
+    padding: 1.8rem !important;
+    margin-bottom: 1.2rem !important;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.05);
 }
 
 /* Custom Distinct Background Color for Profile & Action Buttons */
 .stButton > button {
-    background: rgba(14, 165, 233, 0.08) !important;
+    background: rgba(14, 165, 233, 0.12) !important;
     color: inherit !important;
-    border: 1.5px solid rgba(14, 165, 233, 0.4) !important;
+    border: 1.5px solid rgba(14, 165, 233, 0.45) !important;
     border-radius: 10px !important;
     font-weight: 600 !important;
     transition: all 0.2s ease-in-out;
 }
 .stButton > button:hover {
-    background: rgba(14, 165, 233, 0.18) !important;
+    background: rgba(14, 165, 233, 0.22) !important;
     border-color: #0EA5E9 !important;
-    box-shadow: 0 4px 12px rgba(14, 165, 233, 0.15);
+    box-shadow: 0 4px 12px rgba(14, 165, 233, 0.18);
 }
 
 .corp-hero {
