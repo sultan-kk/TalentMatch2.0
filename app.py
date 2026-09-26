@@ -1,9 +1,9 @@
 """
-HireMatrix Pro — Enterprise Edition v9.5 (Admin Verification & Approval Gateway)
+HireMatrix Pro — Enterprise Edition v9.8 (Final Complete Edition)
 ========================================================================
-Features: Admin Payment Verification Dashboard, Manual TRX ID submission, 
-Admin Approval to Dispatch Pro License Key, Live SMTP OTP, Pro Subscription Gate, 
-AI Interview Q&A, and Kanban Pipeline.
+Features: Score-based conditional email generation (Interview vs Apology), 
+Master Excel Report with exact Timestamp, Admin Verification Dashboard, 
+Manual TRX ID submission, Live SMTP OTP, Pro Subscription Gate, AI Interview Q&A, and Kanban Pipeline.
 """
 
 import io
@@ -13,6 +13,7 @@ import sqlite3
 import hashlib
 import random
 import smtplib
+from datetime import datetime
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.utils import formataddr
@@ -21,7 +22,7 @@ import streamlit as st
 from groq import Groq
 
 # ===========================================================================
-# CONFIGURATION & AUTH DB
+# CONFIGURATION & AUTO-MIGRATION AUTH DB
 # ===========================================================================
 APP_NAME = "HireMatrix Pro"
 APP_TAGLINE = "Autonomous HR Intelligence & Executive Recruitment Suite"
@@ -461,7 +462,7 @@ if not st.session_state.logged_in:
     st.stop()
 
 # ===========================================================================
-# DATABASE OPERATIONS
+# DATABASE OPERATIONS (WITH TIMESTAMP)
 # ===========================================================================
 def load_database():
     if os.path.exists(DB_FILE):
@@ -469,7 +470,7 @@ def load_database():
         expected_cols = [
             "Job Title", "Candidate Name", "Father Name", "Email", "Phone", 
             "CGPA", "Education", "University Name", "Experience Years", 
-            "Latest Experience", "Extracted Skills", "Reference", "Match Score", "Pipeline Status"
+            "Latest Experience", "Extracted Skills", "Reference", "Match Score", "Pipeline Status", "Screened At"
         ]
         for col in expected_cols:
             if col not in df.columns:
@@ -480,11 +481,12 @@ def load_database():
         return pd.DataFrame(columns=[
             "Job Title", "Candidate Name", "Father Name", "Email", "Phone", 
             "CGPA", "Education", "University Name", "Experience Years", 
-            "Latest Experience", "Extracted Skills", "Reference", "Match Score", "Pipeline Status"
+            "Latest Experience", "Extracted Skills", "Reference", "Match Score", "Pipeline Status", "Screened At"
         ])
 
 def save_to_database(new_results):
     df = load_database()
+    current_timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     new_data = []
     for r in new_results:
         new_data.append({
@@ -501,7 +503,8 @@ def save_to_database(new_results):
             "Extracted Skills": r.get("skills", "Not Provided"),
             "Reference": r.get("reference", "Not Provided"),
             "Match Score": r["match_score"],
-            "Pipeline Status": "Shortlisted"
+            "Pipeline Status": "Shortlisted",
+            "Screened At": current_timestamp
         })
     df_new = pd.DataFrame(new_data)
     df_combined = pd.concat([df, df_new], ignore_index=True)
@@ -660,14 +663,14 @@ def generate_ai_interview_questions(client, resume_text: str, job_title: str) ->
         return f"Could not generate interview questions: {e}"
 
 # ===========================================================================
-# EXCEL EXPORT
+# EXCEL EXPORT (FINAL REPORT WITH TIMESTAMP)
 # ===========================================================================
 def dataframe_to_formatted_excel_bytes(df: pd.DataFrame) -> bytes:
     buffer = io.BytesIO()
     with pd.ExcelWriter(buffer, engine="xlsxwriter") as writer:
-        df.to_excel(writer, index=False, sheet_name="Candidates")
+        df.to_excel(writer, index=False, sheet_name="Final Recruitment Report")
         workbook = writer.book
-        worksheet = writer.sheets["Candidates"]
+        worksheet = writer.sheets["Final Recruitment Report"]
         header_format = workbook.add_format({
             "bold": True, "bg_color": "#1E293B", "font_color": "#FFFFFF", 
             "border": 1, "align": "center", "valign": "vcenter",
@@ -688,7 +691,7 @@ with st.sidebar:
     st.markdown(f"""
         <div class="sidebar-brand">
             <h3>⚡ HireMatrix Pro</h3>
-            <span>Pro Edition v9.5</span>
+            <span>Pro Edition v9.8</span>
         </div>
     """, unsafe_allow_html=True)
     st.markdown("---")
@@ -850,13 +853,26 @@ with tab1:
                             st.error("Groq API key required.")
 
                     if cand['email'] not in ["Not Provided", "Not Found", ""] and cand['email']:
-                        st.markdown("#### ✉️ Send Automated Interview Invite")
-                        invite_msg = st.text_area("Custom Message", value=f"Dear {cand['name']},\n\nWe were deeply impressed by your resume for the {job_title_input} position at HireMatrix Pro. We would love to invite you for an interview round.\n\nBest Regards,\nTeam HireMatrix Pro", key=f"inv_msg_{rank}")
-                        if st.button(f"📧 Send Invite Email", key=f"send_inv_{rank}"):
-                            ok, res_m = send_smtp_email(cand['email'], f"Interview Invitation - {job_title_input}", invite_msg)
+                        st.markdown("#### ✉️ Conditional Email Dispatcher (Score-Based)")
+                        
+                        # --- SCORE-BASED IF-ELSE EMAIL TEMPLATES ---
+                        if cand['match_score'] >= 50:
+                            default_msg = f"Dear {cand['name']},\n\nWe were deeply impressed by your credentials and match score ({cand['match_score']}%) for the {job_title_input} position at HireMatrix Pro. We would love to invite you for an interview round.\n\nBest Regards,\nTeam HireMatrix Pro"
+                            email_subject = f"Interview Invitation - {job_title_input}"
+                            st.info("✓ Score >= 50%: **Interview Invitation Template loaded.**")
+                        else:
+                            default_msg = f"Dear {cand['name']},\n\nThank you for your interest in the {job_title_input} position at HireMatrix Pro. Although your background is notable, your match score ({cand['match_score']}%) does not meet our current threshold for this role. We wish you the best in your career pursuits.\n\nBest Regards,\nTeam HireMatrix Pro"
+                            email_subject = f"Application Status Update - {job_title_input}"
+                            st.warning("⚠️ Score < 50%: **Apology / Rejection Template loaded.**")
+
+                        invite_msg = st.text_area("Email Message", value=default_msg, key=f"inv_msg_{rank}")
+                        
+                        if st.button(f"📧 Send Email", key=f"send_inv_{rank}"):
+                            ok, res_m = send_smtp_email(cand['email'], email_subject, invite_msg)
                             if ok:
-                                st.success(f"Interview invite sent successfully to {cand['email']}!")
-                                update_candidate_status_in_db(cand['email'], job_title_input, "Interview Scheduled")
+                                st.success(f"Email sent successfully to {cand['email']}!")
+                                new_status = "Interview Scheduled" if cand['match_score'] >= 50 else "Rejected"
+                                update_candidate_status_in_db(cand['email'], job_title_input, new_status)
                             else:
                                 st.error(res_m)
                 else:
@@ -864,12 +880,12 @@ with tab1:
 
         st.markdown("</div>", unsafe_allow_html=True)
 
-        st.markdown('<div class="glass-card"><h4>⬇️ Master Data Export</h4>', unsafe_allow_html=True)
+        st.markdown('<div class="glass-card"><h4>⬇️ Download Final Timestamped Master Report</h4>', unsafe_allow_html=True)
         df_export = load_database()
         st.download_button(
-            "Download Formatted Master Report (.xlsx)",
+            "Download Final Master Report (.xlsx with Date & Time)",
             data=dataframe_to_formatted_excel_bytes(df_export),
-            file_name=f"{job_title_input.replace(' ', '_')}_Candidates.xlsx",
+            file_name=f"Final_Recruitment_Report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx",
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             use_container_width=True,
         )
