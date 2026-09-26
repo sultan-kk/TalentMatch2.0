@@ -1,8 +1,8 @@
 """
-HireMatrix Pro — Enterprise Edition v10.40 (Isolated Box Styling)
+HireMatrix Pro — Enterprise Edition v10.41 (Polished Isolated UI)
 ========================================================================
-Features: Completely isolated inline card styling so boxes never interfere with each other, 
-Restored visible distinct profile box, pristine auth card, Dynamic Threshold, and Excel Report.
+Features: Dedicated container for Saved Profiles, uniform corporate hero card styling, 
+Dynamic Passing Score Threshold, Smart Duplicate Prevention, and Executive Excel Report.
 """
 
 import io
@@ -244,7 +244,7 @@ def verify_employee_pin(email, entered_pin):
     return False, None, None, 0
 
 # ===========================================================================
-# PAGE CONFIG & EXECUTIVE STYLING (ISOLATED)
+# PAGE CONFIG & EXECUTIVE STYLING (MATCHED UI)
 # ===========================================================================
 st.set_page_config(
     page_title=f"{APP_NAME} | Executive Portal",
@@ -312,17 +312,17 @@ html, body, [class*="css"] { font-family: 'Inter', sans-serif !important; }
 }
 
 .corp-hero {
-    background: var(--background-color);
-    border: 1px solid var(--secondary-background-color);
+    background: linear-gradient(135deg, rgba(14, 165, 233, 0.10) 0%, rgba(30, 41, 59, 0.06) 100%);
+    border: 1.5px solid rgba(14, 165, 233, 0.35);
     border-radius: 14px;
     padding: 2rem 2.5rem;
     margin-bottom: 2rem;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04);
+    box-shadow: 0 6px 20px rgba(14, 165, 233, 0.08);
     border-left: 6px solid #0EA5E9;
 }
 .corp-badge {
     display: inline-flex; align-items: center; gap: 8px; 
-    background: rgba(14, 165, 233, 0.12); color: #0EA5E9; 
+    background: rgba(14, 165, 233, 0.15); color: #0EA5E9; 
     padding: 5px 14px; border-radius: 8px;
     font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.8rem;
 }
@@ -440,9 +440,9 @@ if not st.session_state.logged_in:
                     st.rerun()
             
         elif saved_profiles and not st.session_state.selected_profile_email:
-            # --- ISOLATED DISTINCT BACKGROUND CARD FOR PROFILES ---
+            # --- STANDALONE SEPARATE BOX FOR SAVED PROFILES ---
             st.markdown("""
-                <div style="background: rgba(200, 200, 200, 0.16); border: 1.5px solid #0EA5E9; border-radius: 14px; padding: 1.6rem; margin-bottom: 1.2rem; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
+                <div style="background: rgba(14, 165, 233, 0.08); border: 1.5px solid #0EA5E9; border-radius: 14px; padding: 1.6rem; margin-bottom: 1.5rem; box-shadow: 0 4px 15px rgba(0,0,0,0.04);">
                     <h3 style="margin-top: 0; margin-bottom: 0.3rem; font-size: 1.2rem; font-weight: 700;">👥 Saved Employee Profiles</h3>
                     <p style="font-size: 0.85rem; opacity: 0.8; margin-bottom: 0;">Select your secure profile card below to sign in instantly:</p>
                 </div>
@@ -775,7 +775,7 @@ with st.sidebar:
     st.markdown(f"""
         <div class="sidebar-brand-box">
             <h2>{APP_NAME}</h2>
-            <p>Enterprise v10.40</p>
+            <p>Enterprise v10.41</p>
         </div>
     """, unsafe_allow_html=True)
     st.markdown("---")
