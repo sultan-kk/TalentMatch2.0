@@ -968,7 +968,7 @@ with tab2:
                             st.rerun()
                 st.markdown("---")
                 st.dataframe(df_history, use_container_width=True)
-        exceptException as e:
+            except Exception as e:
             st.error(f"Could not load database records: {e}")
     st.markdown("</div>", unsafe_allow_html=True)
 
