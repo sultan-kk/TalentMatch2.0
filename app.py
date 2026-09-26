@@ -1,32 +1,77 @@
 """
-Super TalentMatch AI — Unified HR Screener & Extractor
-======================================================
-Professional Edition: Adaptive UI, Precise Data Extraction, Job Roles Management, 
-Local Database for Duplicate Checking, and Deep LLM Screening.
+Super TalentMatch AI — Unified HR Screener & Extractor with Authentication
+========================================================================
+Professional Edition: Secure HR Login/Signup, Adaptive UI, Precise Data Extraction, 
+Local Database for Candidates & Users, and Deep LLM Screening.
 """
 
 import io
 import json
 import os
-import re
+import sqlite3
+import hashlib
 import pandas as pd
 import streamlit as st
 from groq import Groq
 
 # ===========================================================================
-# CONFIGURATION
+# CONFIGURATION & AUTH DB
 # ===========================================================================
 APP_NAME = "Super TalentMatch AI"
 APP_TAGLINE = "Unified Resume Extraction & Deep LLM Screening"
 GROQ_MODEL = "openai/gpt-oss-120b"
 ACCEPTED_TYPES = ["pdf", "docx", "png", "jpg", "jpeg"]
-DB_FILE = "master_candidates.csv" # Local Database to track previous candidates
+DB_FILE = "master_candidates.csv"
+AUTH_DB_FILE = "hr_users.db"
+
+# Initialize Auth Database
+def init_auth_db():
+    conn = sqlite3.connect(AUTH_DB_FILE)
+    cursor = conn.cursor()
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS hr_users (
+            email TEXT PRIMARY KEY,
+            name TEXT,
+            password TEXT
+        )
+    """)
+    conn.commit()
+    conn.close()
+
+init_auth_db()
+
+def hash_password(password):
+    return hashlib.sha256(password.encode()).hexdigest()
+
+def register_user(name, email, password):
+    try:
+        conn = sqlite3.connect(AUTH_DB_FILE)
+        cursor = conn.cursor()
+        cursor.execute("INSERT INTO hr_users (email, name, password) VALUES (?, ?, ?)", 
+                       (email.lower().strip(), name, hash_password(password)))
+        conn.commit()
+        conn.close()
+        return True, "Account successfully ban gaya hai! Ab aap login kar sakte hain."
+    except sqlite3.IntegrityError:
+        return False, "Yeh email pehle se registered hai. Baraye meherbani login karein."
+    except Exception as e:
+        return False, f"Error: {e}"
+
+def verify_user(email, password):
+    conn = sqlite3.connect(AUTH_DB_FILE)
+    cursor = conn.cursor()
+    cursor.execute("SELECT name, password FROM hr_users WHERE email = ?", (email.lower().strip(),))
+    row = cursor.fetchone()
+    conn.close()
+    if row and row[1] == hash_password(password):
+        return True, row[0]
+    return False, None
 
 # ===========================================================================
 # PAGE CONFIG & CSS
 # ===========================================================================
 st.set_page_config(
-    page_title=f"{APP_NAME} | HR Dashboard",
+    page_title=f"{APP_NAME} | HR Portal",
     page_icon="⚡",
     layout="wide",
     initial_sidebar_state="expanded",
@@ -34,26 +79,83 @@ st.set_page_config(
 
 CUSTOM_CSS = """
 <style>
-html, body, [class*="css"] {font-family: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; font-size: 15px;}
+html, body, [class*="css"] {font-family: "Segoe UI", Roboto, sans-serif; font-size: 15px;}
 .tm-header {padding: 1.5rem 2rem; border-radius: 8px; margin-bottom: 1.5rem; background: #1A202C; border-left: 6px solid #3182CE;}
-.tm-header h1 { color: #FFFFFF; font-size: 1.7rem; font-weight: 600; margin: 0; padding: 0;}
+.tm-header h1 { color: #FFFFFF; font-size: 1.7rem; font-weight: 600; margin: 0;}
 .tm-header p { color: #A0AEC0; margin-top: 0.3rem; margin-bottom: 0; font-size: 0.95rem;}
 .tm-card {background: var(--background-color); border: 1px solid var(--faded-text-20); border-radius: 8px; padding: 1.2rem 1.5rem; margin-bottom: 1rem; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);}
 .tm-card h4 { font-size: 1.1rem; color: var(--text-color); font-weight: 600; margin-bottom: 1rem;}
 .tm-metric-box {background: var(--secondary-background-color); border-radius: 6px; padding: 0.8rem; text-align: center; border: 1px solid var(--faded-text-20);}
 .tm-metric-box .tm-value { font-size: 1.4rem; font-weight: 700; color: var(--text-color);}
-.tm-metric-box .tm-label { font-size: 0.75rem; color: var(--text-color); text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.8;}
+.tm-metric-box .tm-label { font-size: 0.75rem; color: var(--text-color); text-transform: uppercase; opacity: 0.8;}
 .tm-score-high { color: #38A169; }
 .tm-score-mid { color: #DD6B20; }
 .tm-score-low { color: #E53E3E; }
 .stButton>button[kind="primary"] {background: #3182CE; color: #fff; font-weight: 600; border-radius: 6px; padding: 0.5rem 1rem;}
-.stButton>button[kind="primary"]:hover { background: #2B6CB0; border-color: #2B6CB0; color: white;}
+.stButton>button[kind="primary"]:hover { background: #2B6CB0; color: white;}
 </style>
 """
 st.markdown(CUSTOM_CSS, unsafe_allow_html=True)
 
 # ===========================================================================
-# DATABASE OPERATIONS (Local CSV for History)
+# SESSION STATE MANAGEMENT
+# ===========================================================================
+if "logged_in" not in st.session_state:
+    st.session_state.logged_in = False
+if "hr_name" not in st.session_state:
+    st.session_state.hr_name = ""
+if "results" not in st.session_state:
+    st.session_state.results = []
+
+# ===========================================================================
+# AUTHENTICATION SCREEN (IF NOT LOGGED IN)
+# ===========================================================================
+if not st.session_state.logged_in:
+    st.markdown("""
+        <div style="text-align: center; padding: 2rem 0 1rem 0;">
+            <h1 style="color: #00e5ff; font-size: 2.2rem;">⚡ Super TalentMatch AI</h1>
+            <p style="color: #A0AEC0; font-size: 1.1rem;">HR Portal - Secure Login & Sign Up</p>
+        </div>
+    """, unsafe_allow_html=True)
+    
+    col1, col2, col3 = st.columns([1, 1.2, 1])
+    with col2:
+        auth_tab1, auth_tab2 = st.tabs(["🔑 HR Login", "📝 Create Account (Sign Up)"])
+        
+        with auth_tab1:
+            st.markdown("### Login to Dashboard")
+            login_email = st.text_input("Work Email", placeholder="hr@company.com", key="l_email")
+            login_pass = st.text_input("Password", type="password", key="l_pass")
+            
+            if st.button("Login", type="primary", use_container_width=True):
+                success, name_or_msg = verify_user(login_email, login_pass)
+                if success:
+                    st.session_state.logged_in = True
+                    st.session_state.hr_name = name_or_msg
+                    st.success(f" خوش آمدید, {name_or_msg}!")
+                    st.rerun()
+                else:
+                    st.error("Ghalat Email ya Password! Baraye meherbani dobara koshish karein.")
+                    
+        with auth_tab2:
+            st.markdown("### Register New HR Account")
+            reg_name = st.text_input("Full Name", placeholder="Muhammad Sultan", key="r_name")
+            reg_email = st.text_input("Work Email", placeholder="hr@company.com", key="r_email")
+            reg_pass = st.text_input("Create Password", type="password", key="r_pass")
+            
+            if st.button("Sign Up", type="primary", use_container_width=True):
+                if not reg_name.strip() or not reg_email.strip() or not reg_pass.strip():
+                    st.warning("Baraye meherbani tamam fields pur karein.")
+                else:
+                    success, msg = register_user(reg_name, reg_email, reg_pass)
+                    if success:
+                        st.success(msg)
+                    else:
+                        st.error(msg)
+    st.stop()
+
+# ===========================================================================
+# DATABASE OPERATIONS (Local CSV for Candidates)
 # ===========================================================================
 def load_database():
     if os.path.exists(DB_FILE):
@@ -258,11 +360,8 @@ def dataframe_to_formatted_excel_bytes(df: pd.DataFrame) -> bytes:
     return buffer.getvalue()
 
 # ===========================================================================
-# UI & APP FLOW
+# DASHBOARD INTERFACE (IF LOGGED IN)
 # ===========================================================================
-if "results" not in st.session_state:
-    st.session_state.results = []
-
 with st.sidebar:
     st.markdown("""
         <div style="text-align: center; padding: 10px;">
@@ -272,18 +371,26 @@ with st.sidebar:
     """, unsafe_allow_html=True)
     st.markdown("---")
     
+    st.info(👤 **HR Manager:** {st.session_state.hr_name})
+    
     if "GROQ_API_KEY" in st.secrets:
         groq_api_key = st.secrets["GROQ_API_KEY"]
-        st.success("✓ Groq API key loaded from secrets.")
+        st.success("✓ Groq API key loaded.")
     else:
         groq_api_key = st.text_input("Groq API Key", type="password", placeholder="gsk_...")
     
     st.markdown("---")
-    if st.button("🗑️ Clear Current Session Results", use_container_width=True):
+    if st.button("🗑️ Clear Session Results", use_container_width=True):
+        st.session_state.results = []
+        st.rerun()
+        
+    if st.button("🚪 Logout", use_container_width=True):
+        st.session_state.logged_in = False
+        st.session_state.hr_name = ""
         st.session_state.results = []
         st.rerun()
 
-st.markdown(f'<div class="tm-header"><h1>{APP_NAME}</h1><p>{APP_TAGLINE}</p></div>', unsafe_allow_html=True)
+st.markdown(f'<div class="tm-header"><h1>{APP_NAME}</h1><p>Welcome back, {st.session_state.hr_name} | {APP_TAGLINE}</p></div>', unsafe_allow_html=True)
 
 tab1, tab2 = st.tabs(["🚀 New Processing", "🗄️ Database Records"])
 
@@ -317,7 +424,7 @@ with tab1:
         st.session_state.results = results
         if results:
             save_to_database(results)
-            st.success(f"Successfully processed {len(results)} candidates and updated records!")
+            st.success(f"Successfully processed {len(results)} candidates and saved records!")
 
     # --- DISPLAY RESULTS ---
     if st.session_state.results:
@@ -333,7 +440,7 @@ with tab1:
         results = sorted(results, key=lambda x: x["match_score"], reverse=True)
         
         for rank, cand in enumerate(results, start=1):
-            history_badge = " ⚠️ (Previously Saved in DB)" if cand["is_duplicate"] else " 🆕 (New Candidate)"
+            history_badge = " ⚠️ (Previously Saved)" if cand["is_duplicate"] else " 🆕 (New Candidate)"
             with st.expander(f"#{rank} — {cand['name']} | Score: {cand['match_score']}%{history_badge}", expanded=(rank == 1)):
                 c1, c2 = st.columns([1.2, 1])
                 with c1:
