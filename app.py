@@ -1,8 +1,8 @@
 """
-HireMatrix Pro — Enterprise Edition v10.30 (Custom HTML Profile Card & Colors)
+HireMatrix Pro — Enterprise Edition v10.31 (Fixed Visible Profile Card & Colors)
 ========================================================================
-Features: Dedicated HTML profile container with custom distinct background color, 
-Styled profile and action buttons, dynamic threshold slider, and duplicate prevention.
+Features: Restored and styled HTML profile container with distinct background color, 
+Styled buttons, dynamic threshold slider, and duplicate email prevention.
 """
 
 import io
@@ -298,12 +298,12 @@ html, body, [class*="css"] { font-family: 'Inter', sans-serif !important; }
 
 /* Custom HTML Profile Card Wrapper with Distinct Background Color */
 .custom-profile-card {
-    background: rgba(14, 165, 233, 0.07) !important;
-    border: 1.5px solid rgba(14, 165, 233, 0.4) !important;
+    background: rgba(14, 165, 233, 0.08) !important;
+    border: 1.5px solid rgba(14, 165, 233, 0.45) !important;
     border-radius: 16px !important;
-    padding: 1.8rem !important;
-    margin-bottom: 1.2rem !important;
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.05);
+    padding: 2rem !important;
+    margin-bottom: 1.5rem !important;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
 }
 
 /* Custom Distinct Background Color for Profile & Action Buttons */
@@ -450,7 +450,7 @@ if not st.session_state.logged_in:
                     st.rerun()
             
         elif saved_profiles and not st.session_state.selected_profile_email:
-            # --- CUSTOM HTML PROFILE CARD WRAPPER WITH DISTINCT BACKGROUND ---
+            # --- CUSTOM HTML PROFILE CARD WRAPPER ---
             st.markdown('<div class="custom-profile-card">', unsafe_allow_html=True)
             st.markdown("### 👥 Saved Employee Profiles")
             st.caption("Select your secure profile card below to sign in instantly:")
@@ -783,7 +783,7 @@ with st.sidebar:
     st.markdown(f"""
         <div class="sidebar-brand-box">
             <h2>{APP_NAME}</h2>
-            <p>Enterprise v10.30</p>
+            <p>Enterprise v10.31</p>
         </div>
     """, unsafe_allow_html=True)
     st.markdown("---")
