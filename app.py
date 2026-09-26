@@ -1,8 +1,8 @@
 """
-HireMatrix Pro — Enterprise Edition v10.19 (Perfect Visual Balance & Contrast Fix)
+HireMatrix Pro — Enterprise Edition v10.20 (Single Integrated Master Profile Card)
 ========================================================================
-Features: Flawless light/dark theme contrast harmony, refined container padding, 
-Unified master profile card, Executive split-screen login, and Master Excel Export.
+Features: Single unified container wrapping the heading and all saved profiles together, 
+Flawless light/dark theme balanced contrast harmony, Executive split-screen login, and Master Excel Export.
 """
 
 import io
@@ -244,7 +244,7 @@ def verify_employee_pin(email, entered_pin):
     return False, None, None, 0
 
 # ===========================================================================
-# PAGE CONFIG & EXECUTIVE STYLING (PERFECT CONTRAST HARMONY)
+# PAGE CONFIG & EXECUTIVE STYLING (OPTIMIZED CONTRAST HARMONY)
 # ===========================================================================
 st.set_page_config(
     page_title=f"{APP_NAME} | Executive Portal",
@@ -293,20 +293,21 @@ html, body, [class*="css"] { font-family: 'Inter', sans-serif !important; }
 /* Custom Login Form Card Container with Balanced Contrast */
 .auth-form-card {
     background: var(--background-color);
-    border: 1px solid rgba(14, 165, 233, 0.3);
+    border: 1px solid rgba(14, 165, 233, 0.25);
     border-radius: 18px;
     padding: 2.5rem;
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
 }
 
-/* Profiles Master Inner Wrapper */
-.profiles-inner-box {
-    background: rgba(14, 165, 233, 0.03);
-    border: 1px solid rgba(14, 165, 233, 0.15);
-    border-radius: 12px;
-    padding: 1.2rem;
-    margin-top: 0.8rem;
+/* Integrated Master Profiles Container (Single Box with Soft Border) */
+.master-profile-box {
+    background: var(--secondary-background-color);
+    border: 1px solid rgba(14, 165, 233, 0.2);
+    border-radius: 14px;
+    padding: 1.5rem;
+    margin-top: 1rem;
     margin-bottom: 1rem;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
 }
 
 /* Corporate Hero Header & Cards */
@@ -372,7 +373,7 @@ if "pending_pin_email" not in st.session_state: st.session_state.pending_pin_ema
 if "results" not in st.session_state: st.session_state.results = []
 
 # ===========================================================================
-# AUTHENTICATION SCREEN (PERFECT VISUAL BALANCE & CONTRAST)
+# AUTHENTICATION SCREEN (SINGLE INTEGRATED MASTER PROFILE CONTAINER)
 # ===========================================================================
 if not st.session_state.logged_in:
     saved_profiles = get_all_verified_profiles()
@@ -439,11 +440,13 @@ if not st.session_state.logged_in:
                     st.rerun()
             
         elif saved_profiles and not st.session_state.selected_profile_email:
-            st.markdown("### 👥 Saved Employee Profiles")
-            st.caption("Select your secure profile card below to sign in instantly:")
+            # --- SINGLE INTEGRATED MASTER CONTAINER (HEADING + PROFILES) ---
+            st.markdown("""
+                <div class="master-profile-box">
+                    <h3 style="margin-top:0; margin-bottom: 0.2rem; font-size: 1.2rem; font-weight: 700;">👥 Saved Employee Profiles</h3>
+                    <p style="font-size: 0.85rem; opacity: 0.75; margin-bottom: 0.8rem;">Select your secure profile card below to sign in instantly:</p>
+            """, unsafe_allow_html=True)
             
-            # --- UNIFIED MASTER CONTAINER FOR PROFILES ---
-            st.markdown('<div class="profiles-inner-box">', unsafe_allow_html=True)
             for p_email, p_name, p_pin, p_role, p_pro in saved_profiles:
                 pro_badge = " 🌟 [PRO]" if p_pro == 1 else " 🆓 [Free]"
                 c_p1, c_p2 = st.columns([3, 1])
@@ -752,7 +755,7 @@ with st.sidebar:
     st.markdown(f"""
         <div class="sidebar-brand-box">
             <h2>{APP_NAME}</h2>
-            <p>Enterprise v10.19</p>
+            <p>Enterprise v10.20</p>
         </div>
     """, unsafe_allow_html=True)
     st.markdown("---")
