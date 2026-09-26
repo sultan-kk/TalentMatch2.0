@@ -1,5 +1,5 @@
 """
-HireMatrix Pro — Ultimate Advanced Creative Edition (v4.0 with Quick PIN Auth)
+HireMatrix Pro — Ultimate Advanced Creative Edition (v4.1 Fixed DB)
 ========================================================================
 Designed with Saved Employee Profiles, 4-Digit Quick PIN Login, Profile Deletion,
 Glassmorphic Sidebar, Advanced Card Layouts, and Deep LLM Screening.
@@ -19,7 +19,7 @@ import streamlit as st
 from groq import Groq
 
 # ===========================================================================
-# CONFIGURATION & AUTH DB
+# CONFIGURATION & AUTH DB (AUTO MIGRATION)
 # ===========================================================================
 APP_NAME = "HireMatrix Pro"
 APP_TAGLINE = "Autonomous HR Intelligence & Deep LLM Screening Suite"
@@ -41,6 +41,11 @@ def init_auth_db():
             otp TEXT
         )
     """)
+    # Check if 'pin' column exists in case table was created previously without it
+    cursor.execute("PRAGMA table_info(hr_users)")
+    columns = [col[1] for col in cursor.fetchall()]
+    if "pin" not in columns:
+        cursor.execute("ALTER TABLE hr_users ADD COLUMN pin TEXT")
     conn.commit()
     conn.close()
 
@@ -201,21 +206,6 @@ html, body, [class*="css"] {
     gap: 8px;
 }
 
-/* Profile Selector Card */
-.profile-pill {
-    background: rgba(15, 23, 42, 0.6);
-    border: 1px solid rgba(0, 229, 255, 0.2);
-    border-radius: 12px;
-    padding: 1rem;
-    text-align: center;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-.profile-pill:hover {
-    border-color: #00e5ff;
-    background: rgba(0, 229, 255, 0.05);
-}
-
 /* Glowing Metric Pill */
 .metric-pill {
     background: rgba(13, 20, 32, 0.8);
@@ -347,7 +337,6 @@ if not st.session_state.logged_in:
             
         elif st.session_state.selected_profile_email and st.session_state.selected_profile_email != "new":
             target_email = st.session_state.selected_profile_email
-            # Find name
             p_name = next((p[1] for p in saved_profiles if p[0] == target_email), "Employee")
             
             st.markdown(f'<div class="glass-card"><h4>🔐 Enter 4-Digit PIN for {p_name}</h4>', unsafe_allow_html=True)
@@ -372,7 +361,6 @@ if not st.session_state.logged_in:
             st.markdown('</div>', unsafe_allow_html=True)
             
         else:
-            # Registration Tab or First time setup
             st.markdown('<div class="glass-card"><h4>📝 Register Employee Profile</h4>', unsafe_allow_html=True)
             reg_name = st.text_input("Full Name", placeholder="Ahsan Khan", key="r_name")
             reg_email = st.text_input("Company Email", placeholder="employee@company.com", key="r_email")
@@ -606,7 +594,7 @@ with st.sidebar:
     st.markdown("""
         <div class="sidebar-brand">
             <h3>⚡ HireMatrix Pro</h3>
-            <span>Enterprise Edition v4.0</span>
+            <span>Enterprise Edition v4.1</span>
         </div>
     """, unsafe_allow_html=True)
     st.markdown("---")
@@ -729,7 +717,7 @@ with tab1:
         st.download_button(
             "Download Formatted Master Report (.xlsx)",
             data=dataframe_to_formatted_excel_bytes(df),
-            file_name=f"{job_title_input.replace(' ','_')}_Candidates.xlsx",
+            file_name=f"{job_title_input.replace(' ', '_')}_Candidates.xlsx",
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             use_container_width=True,
         )
