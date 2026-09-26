@@ -1,8 +1,8 @@
 """
-HireMatrix Pro — Ultimate Advanced Creative Edition (v4.1 Fixed DB)
+HireMatrix Pro — Ultimate Enterprise Multi-User Edition (v6.0 with Live OTP & Dedicated PIN Setup)
 ========================================================================
-Designed with Saved Employee Profiles, 4-Digit Quick PIN Login, Profile Deletion,
-Glassmorphic Sidebar, Advanced Card Layouts, and Deep LLM Screening.
+Designed with Live SMTP OTP Verification, Dedicated 2nd Page PIN Creation Step, 
+Saved Employee Profiles, Glassmorphic UI, and Deep LLM Screening.
 """
 
 import io
@@ -19,7 +19,7 @@ import streamlit as st
 from groq import Groq
 
 # ===========================================================================
-# CONFIGURATION & AUTH DB (AUTO MIGRATION)
+# CONFIGURATION & AUTH DB (MULTI-USER & MIGRATION)
 # ===========================================================================
 APP_NAME = "HireMatrix Pro"
 APP_TAGLINE = "Autonomous HR Intelligence & Deep LLM Screening Suite"
@@ -37,15 +37,16 @@ def init_auth_db():
             name TEXT,
             password TEXT,
             pin TEXT,
-            is_verified INTEGER DEFAULT 1,
+            is_verified INTEGER DEFAULT 0,
             otp TEXT
         )
     """)
-    # Check if 'pin' column exists in case table was created previously without it
     cursor.execute("PRAGMA table_info(hr_users)")
     columns = [col[1] for col in cursor.fetchall()]
     if "pin" not in columns:
         cursor.execute("ALTER TABLE hr_users ADD COLUMN pin TEXT")
+    if "otp" not in columns:
+        cursor.execute("ALTER TABLE hr_users ADD COLUMN otp TEXT")
     conn.commit()
     conn.close()
 
@@ -54,29 +55,91 @@ init_auth_db()
 def hash_password(password):
     return hashlib.sha256(password.encode()).hexdigest()
 
-def get_all_saved_profiles():
+def send_otp_email(receiver_email, otp_code):
+    try:
+        sender_email = st.secrets["SMTP_EMAIL"]
+        sender_password = st.secrets["SMTP_PASSWORD"]
+    except Exception:
+        return False, "SMTP credentials Streamlit secrets mein configure nahi hain."
+
+    try:
+        msg = MIMEMultipart()
+        msg['From'] = sender_email
+        msg['To'] = receiver_email
+        msg['Subject'] = "HireMatrix Pro - Verification OTP"
+        
+        body = f"""
+        Hello,\n\n
+        Aapka HireMatrix Pro verification code yeh hai:\n\n
+        OTP Code: {otp_code}\n\n
+        Yeh code kisi ke sath share mat karein.\n
+        Regards,\nTeam HireMatrix Pro
+        """
+        msg.attach(MIMEText(body, 'plain'))
+        
+        server = smtplib.SMTP('smtp.gmail.com', 587)
+        server.starttls()
+        server.login(sender_email, sender_password)
+        server.sendmail(sender_email, receiver_email, msg.as_string())
+        server.quit()
+        return True, "OTP successfully aapki email par bhej diya gaya hai!"
+    except Exception as e:
+        return False, f"Email bhejne mein error aaya: {e}"
+
+def get_all_verified_profiles():
     conn = sqlite3.connect(AUTH_DB_FILE)
     cursor = conn.cursor()
-    cursor.execute("SELECT email, name, pin FROM hr_users")
+    cursor.execute("SELECT email, name, pin FROM hr_users WHERE is_verified = 1 AND pin IS NOT NULL")
     rows = cursor.fetchall()
     conn.close()
     return rows
 
-def register_employee(name, email, password, pin):
+def register_initial_employee(name, email, password):
     clean_email = email.lower().strip()
+    otp = str(random.randint(100000, 999999))
     try:
         conn = sqlite3.connect(AUTH_DB_FILE)
         cursor = conn.cursor()
-        cursor.execute("SELECT email FROM hr_users WHERE email = ?", (clean_email,))
-        if cursor.fetchone():
-            conn.close()
-            return False, "Yeh email pehle se registered hai."
+        cursor.execute("SELECT is_verified, pin FROM hr_users WHERE email = ?", (clean_email,))
+        row = cursor.fetchone()
         
-        cursor.execute("INSERT INTO hr_users (email, name, password, pin, is_verified) VALUES (?, ?, ?, ?, 1)", 
-                       (clean_email, name, hash_password(password), pin))
+        if row and row[0] == 1 and row[1]:
+            conn.close()
+            return False, "Yeh email pehle se registered aur active hai. Baraye meherbani login karein."
+        
+        cursor.execute("""
+            INSERT OR REPLACE INTO hr_users (email, name, password, pin, is_verified, otp) 
+            VALUES (?, ?, ?, NULL, 0, ?)
+        """, (clean_email, name, hash_password(password), otp))
         conn.commit()
         conn.close()
-        return True, "Employee profile successfully save ho gayi hai!"
+        
+        success, msg = send_otp_email(clean_email, otp)
+        if success:
+            return True, "Registration ho gayi! Aapki email par OTP bhej diya gaya hai."
+        else:
+            return False, msg
+    except Exception as e:
+        return False, f"Error: {e}"
+
+def verify_otp_code(email, entered_otp):
+    conn = sqlite3.connect(AUTH_DB_FILE)
+    cursor = conn.cursor()
+    cursor.execute("SELECT otp FROM hr_users WHERE email = ?", (email.lower().strip(),))
+    row = cursor.fetchone()
+    conn.close()
+    if row and row[0] == entered_otp:
+        return True, "OTP successfully verified!"
+    return False, "Ghalat OTP code! Dobara check karein."
+
+def save_employee_pin(email, pin):
+    try:
+        conn = sqlite3.connect(AUTH_DB_FILE)
+        cursor = conn.cursor()
+        cursor.execute("UPDATE hr_users SET pin = ?, is_verified = 1 WHERE email = ?", (pin, email.lower().strip()))
+        conn.commit()
+        conn.close()
+        return True, "PIN successfully set ho gaya hai!"
     except Exception as e:
         return False, f"Error: {e}"
 
@@ -94,20 +157,10 @@ def delete_employee_profile(email):
 def verify_employee_pin(email, entered_pin):
     conn = sqlite3.connect(AUTH_DB_FILE)
     cursor = conn.cursor()
-    cursor.execute("SELECT name, pin FROM hr_users WHERE email = ?", (email.lower().strip(),))
+    cursor.execute("SELECT name, pin FROM hr_users WHERE email = ? AND is_verified = 1", (email.lower().strip(),))
     row = cursor.fetchone()
     conn.close()
     if row and row[1] == entered_pin:
-        return True, row[0]
-    return False, None
-
-def verify_user_credentials(email, password):
-    conn = sqlite3.connect(AUTH_DB_FILE)
-    cursor = conn.cursor()
-    cursor.execute("SELECT name, password FROM hr_users WHERE email = ?", (email.lower().strip(),))
-    row = cursor.fetchone()
-    conn.close()
-    if row and row[1] == hash_password(password):
         return True, row[0]
     return False, None
 
@@ -293,30 +346,82 @@ if "hr_email" not in st.session_state:
     st.session_state.hr_email = ""
 if "selected_profile_email" not in st.session_state:
     st.session_state.selected_profile_email = None
+if "pending_otp_email" not in st.session_state:
+    st.session_state.pending_otp_email = None
+if "pending_pin_email" not in st.session_state:
+    st.session_state.pending_pin_email = None
 if "results" not in st.session_state:
     st.session_state.results = []
 
 # ===========================================================================
-# AUTHENTICATION SCREEN (QUICK PIN LOGIN & EMPLOYEE MANAGEMENT)
+# AUTHENTICATION & MULTI-STEP FLOW (REGISTRATION -> OTP -> PIN SETUP -> LOGIN)
 # ===========================================================================
 if not st.session_state.logged_in:
     st.markdown("""
         <div style="text-align: center; padding: 2.5rem 0 1rem 0;">
             <div style="display: inline-flex; align-items: center; gap: 8px; background: rgba(0,229,255,0.08); border: 1px solid rgba(0,229,255,0.3); padding: 6px 16px; border-radius: 30px; color: #00e5ff; font-size: 0.8rem; font-weight: 700; margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 1px;">
-                ⚡ Enterprise Quick-PIN Portal
+                ⚡ Secure Enterprise Access Portal
             </div>
             <h1 style="color: #FFFFFF; font-size: 2.5rem; font-weight: 800; margin: 0;">HireMatrix Pro</h1>
-            <p style="color: #94A3B8; font-size: 1.1rem; margin-top: 0.5rem;">Select your saved profile or register new employee</p>
+            <p style="color: #94A3B8; font-size: 1.1rem; margin-top: 0.5rem;">Autonomous HR Intelligence & Deep LLM Screening Suite</p>
         </div>
     """, unsafe_allow_html=True)
     
     col1, col2, col3 = st.columns([1, 1.4, 1])
     with col2:
-        saved_profiles = get_all_saved_profiles()
+        saved_profiles = get_all_verified_profiles()
         
-        if saved_profiles and not st.session_state.selected_profile_email:
+        # STEP 3: Dedicated 2nd Page for PIN Setup (After OTP Verification)
+        if st.session_state.pending_pin_email:
+            st.markdown('<div class="glass-card"><h4>🔐 Step 2: Create Your 4-Digit Quick PIN</h4>', unsafe_allow_html=True)
+            st.info(f"Email verified for **{st.session_state.pending_pin_email}**. Now secure your account with a 4-digit PIN for instant future logins.")
+            
+            new_pin = st.text_input("Enter 4-Digit PIN", type="password", max_chars=4, placeholder="••••", key="setup_pin_in")
+            confirm_pin = st.text_input("Confirm 4-Digit PIN", type="password", max_chars=4, placeholder="••••", key="setup_pin_confirm")
+            
+            if st.button("Save PIN & Enter Portal", type="primary", use_container_width=True):
+                if not new_pin or len(new_pin) != 4 or not new_pin.isdigit():
+                    st.warning("Baraye meherbani exact 4-digit numeric PIN enter karein.")
+                elif new_pin != confirm_pin:
+                    st.error("Donon PINs match nahi kar rahe. Dobara check karein.")
+                else:
+                    success, msg = save_employee_pin(st.session_state.pending_pin_email, new_pin)
+                    if success:
+                        st.success(msg)
+                        st.session_state.pending_pin_email = None
+                        st.rerun()
+                    else:
+                        st.error(msg)
+            st.markdown('</div>', unsafe_allow_html=True)
+
+        # STEP 2: Email OTP Verification Screen
+        elif st.session_state.pending_otp_email:
+            st.markdown('<div class="glass-card"><h4>📬 Email Verification (OTP)</h4>', unsafe_allow_html=True)
+            st.info(f"6-digit verification code aapki email **{st.session_state.pending_otp_email}** par bhej diya gaya hai.")
+            otp_input = st.text_input("Enter 6-Digit OTP", placeholder="123456", key="reg_otp_in")
+            
+            col_o1, col_o2 = st.columns(2)
+            with col_o1:
+                if st.button("Verify OTP", type="primary", use_container_width=True):
+                    success, msg = verify_otp_code(st.session_state.pending_otp_email, otp_input)
+                    if success:
+                        st.success(msg)
+                        # Move to PIN creation step (2nd Page)
+                        st.session_state.pending_pin_email = st.session_state.pending_otp_email
+                        st.session_state.pending_otp_email = None
+                        st.rerun()
+                    else:
+                        st.error(msg)
+            with col_o2:
+                if st.button("Cancel", use_container_width=True):
+                    st.session_state.pending_otp_email = None
+                    st.rerun()
+            st.markdown('</div>', unsafe_allow_html=True)
+            
+        # STEP 1A: Quick-PIN Login via Saved Profiles
+        elif saved_profiles and not st.session_state.selected_profile_email:
             st.markdown('<div class="glass-card"><h4>👥 Saved Employee Profiles</h4>', unsafe_allow_html=True)
-            st.caption("Click your profile to login with your 4-digit PIN:")
+            st.caption("Click your profile card to login instantly with your 4-digit PIN:")
             
             for p_email, p_name, p_pin in saved_profiles:
                 c_p1, c_p2 = st.columns([3, 1])
@@ -330,11 +435,12 @@ if not st.session_state.logged_in:
                         st.success(f"{p_name} profile removed.")
                         st.rerun()
             st.markdown("---")
-            if st.button("➕ Register New Employee / Admin", use_container_width=True):
+            if st.button("➕ Register New Employee Profile", use_container_width=True):
                 st.session_state.selected_profile_email = "new"
                 st.rerun()
             st.markdown('</div>', unsafe_allow_html=True)
             
+        # STEP 1B: Enter PIN for Selected Profile
         elif st.session_state.selected_profile_email and st.session_state.selected_profile_email != "new":
             target_email = st.session_state.selected_profile_email
             p_name = next((p[1] for p in saved_profiles if p[0] == target_email), "Employee")
@@ -360,23 +466,23 @@ if not st.session_state.logged_in:
                     st.rerun()
             st.markdown('</div>', unsafe_allow_html=True)
             
+        # STEP 1: Initial Registration Form (Name, Email, Password)
         else:
-            st.markdown('<div class="glass-card"><h4>📝 Register Employee Profile</h4>', unsafe_allow_html=True)
+            st.markdown('<div class="glass-card"><h4>📝 Step 1: Employee Registration</h4>', unsafe_allow_html=True)
             reg_name = st.text_input("Full Name", placeholder="Ahsan Khan", key="r_name")
             reg_email = st.text_input("Company Email", placeholder="employee@company.com", key="r_email")
             reg_pass = st.text_input("Master Password", type="password", key="r_pass")
-            reg_pin = st.text_input("Create 4-Digit Quick PIN", type="password", max_chars=4, placeholder="1234", key="r_pin")
             
             col_r1, col_r2 = st.columns(2)
             with col_r1:
-                if st.button("Save Profile", type="primary", use_container_width=True):
-                    if not reg_name.strip() or not reg_email.strip() or not reg_pin.strip() or len(reg_pin) != 4:
-                        st.warning("Baraye meherbani saari fields pur karein aur exact 4-digit PIN dein.")
+                if st.button("Send Verification OTP", type="primary", use_container_width=True):
+                    if not reg_name.strip() or not reg_email.strip() or not reg_pass.strip():
+                        st.warning("Baraye meherbani saari fields pur karein.")
                     else:
-                        success, msg = register_employee(reg_name, reg_email, reg_pass, reg_pin)
+                        success, msg = register_initial_employee(reg_name, reg_email, reg_pass)
                         if success:
                             st.success(msg)
-                            st.session_state.selected_profile_email = None
+                            st.session_state.pending_otp_email = reg_email.lower().strip()
                             st.rerun()
                         else:
                             st.error(msg)
@@ -594,7 +700,7 @@ with st.sidebar:
     st.markdown("""
         <div class="sidebar-brand">
             <h3>⚡ HireMatrix Pro</h3>
-            <span>Enterprise Edition v4.1</span>
+            <span>Enterprise Edition v6.0</span>
         </div>
     """, unsafe_allow_html=True)
     st.markdown("---")
