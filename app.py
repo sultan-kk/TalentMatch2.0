@@ -1,8 +1,8 @@
 """
-HireMatrix Pro — Enterprise Edition v10.75 (Empty Data Error Safe Fix)
+HireMatrix Pro — Enterprise Edition v10.76 (Clean Excel & Removed Skills Column)
 ========================================================================
-Features: Robust CSV reader with automatic recovery for empty/missing databases, secure widget keys, 
-Persistent master file appends, individual candidate deletes, strict duplicate blocking, and complete ATS workflow.
+Features: Removed Extracted Skills column from Excel exports, forced text-wrap on Excel cells, 
+Robust CSV reader with auto-recovery, secure widget keys, and complete ATS workflow.
 """
 
 import io
@@ -171,7 +171,7 @@ def verify_employee_pin(email, entered_pin):
     return False, None, None
 
 # ===========================================================================
-# DATABASE OPERATIONS & SAFE EMPTY ERROR RECOVERY
+# DATABASE OPERATIONS & EXCEL FORMATTING WITH TEXT WRAP
 # ===========================================================================
 def load_database():
     expected_cols = [
@@ -197,7 +197,6 @@ def load_database():
         except Exception:
             pass
             
-    # Fallback to empty DataFrame if file is missing, corrupted, or empty
     empty_df = pd.DataFrame(columns=expected_cols)
     empty_df.to_csv(DB_FILE, index=False)
     return empty_df
@@ -270,16 +269,33 @@ def clear_candidate_database():
 def generate_repository_excel(df: pd.DataFrame) -> bytes:
     buffer = io.BytesIO()
     export_df = df.copy()
-    if "Job Title" in export_df.columns:
-        export_df = export_df.drop(columns=["Job Title"])
+    
+    # Remove Extracted Skills & Job Title columns to keep sheet clean
+    cols_to_drop = ["Job Title", "Extracted Skills"]
+    for c in cols_to_drop:
+        if c in export_df.columns:
+            export_df = export_df.drop(columns=[c])
+            
     export_df.insert(0, "Sr. No.", range(1, len(export_df) + 1))
     
     with pd.ExcelWriter(buffer, engine="openpyxl") as writer:
         export_df.to_excel(writer, index=False, sheet_name="Talent_Repository")
+        
+        # Apply Text Wrapping and column width styling
+        worksheet = writer.sheets["Talent_Repository"]
+        worksheet.freeze_panes = "A2"
+        for col in worksheet.columns:
+            max_len = max(len(str(cell.value or '')) for cell in col)
+            col_letter = col[0].column_letter
+            worksheet.column_dimensions[col_letter].width = min(max(max_len + 3, 15), 40)
+            for cell in col:
+                cell.alignment = openpyxl.styles.Alignment(wrap_text=True, vertical="top")
+                
     buffer.seek(0)
     return buffer.getvalue()
 
 def generate_screening_excel(results_list) -> bytes:
+    import openpyxl
     buffer = io.BytesIO()
     data = []
     for idx, r in enumerate(results_list, start=1):
@@ -294,13 +310,22 @@ def generate_screening_excel(results_list) -> bytes:
             "University Name": r["university_name"],
             "Experience Years": r["experience_years"],
             "Latest Experience": r["latest_experience"],
-            "Extracted Skills": r["skills"],
             "Match Score (%)": r["match_score"],
             "Pipeline Status": r["pipeline_status"]
         })
     export_df = pd.DataFrame(data)
     with pd.ExcelWriter(buffer, engine="openpyxl") as writer:
         export_df.to_excel(writer, index=False, sheet_name="Screened_Results")
+        
+        worksheet = writer.sheets["Screened_Results"]
+        worksheet.freeze_panes = "A2"
+        for col in worksheet.columns:
+            max_len = max(len(str(cell.value or '')) for cell in col)
+            col_letter = col[0].column_letter
+            worksheet.column_dimensions[col_letter].width = min(max(max_len + 3, 15), 40)
+            for cell in col:
+                cell.alignment = openpyxl.styles.Alignment(wrap_text=True, vertical="top")
+                
     buffer.seek(0)
     return buffer.getvalue()
 
@@ -436,7 +461,7 @@ def extract_candidate_for_repo(client, resume_text: str, file_name: str):
 
 def evaluate_candidate_against_jd(client, candidate_row, jd_text: str):
     try:
-        summary = f"Name: {candidate_row['Candidate Name']}, Education: {candidate_row['Education']}, University: {candidate_row['University Name']}, Experience: {candidate_row['Experience Years']}, Latest Role: {candidate_row['Latest Experience']}, Skills: {candidate_row['Extracted Skills']}"
+        summary = f"Name: {candidate_row['Candidate Name']}, Education: {candidate_row['Education']}, University: {candidate_row['University Name']}, Experience: {candidate_row['Experience Years']}, Latest Role: {candidate_row['Latest Experience']}"
         prompt = build_jd_matching_prompt(summary, jd_text)
         response = client.chat.completions.create(
             model=GROQ_MODEL,
@@ -470,7 +495,7 @@ with st.sidebar:
     st.markdown(f"""
         <div class="sidebar-brand-box">
             <h2>{APP_NAME}</h2>
-            <p>Multi-Stage ATS v10.75</p>
+            <p>Multi-Stage ATS v10.76</p>
         </div>
     """, unsafe_allow_html=True)
     st.markdown("---")
