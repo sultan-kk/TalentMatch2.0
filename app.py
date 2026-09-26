@@ -1,8 +1,8 @@
 """
-HireMatrix Pro — Enterprise Edition v10.6 (Full Analytics, Filters & PDF Reports)
+HireMatrix Pro — Enterprise Edition v10.11 (Advanced UI & Premium Styling)
 ========================================================================
-Features: Plotly Match Score Distribution & Skills Gap Charts, Advanced Candidate Search & Score Filter, 
-Individual Candidate PDF Report Card Download, Live Dashboard Activity Feed, Adaptive Light/Dark Theme, 
+Features: Redesigned premium sidebar branding, Gorgeous glassmorphism login & profile selection screens, 
+Advanced Search & Min Score Filter, Live Dashboard Activity Feed, Adaptive Light/Dark Theme, 
 Instant Enter-Key form submission, Score-based conditional email generation, and Master Excel Export.
 """
 
@@ -20,11 +20,6 @@ from email.utils import formataddr
 import pandas as pd
 import streamlit as st
 from groq import Groq
-import plotly.express as px
-from reportlab.lib.pagesizes import letter
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.lib import colors
 
 # ===========================================================================
 # CONFIGURATION & AUTO-MIGRATION AUTH DB
@@ -250,7 +245,7 @@ def verify_employee_pin(email, entered_pin):
     return False, None, None, 0
 
 # ===========================================================================
-# PAGE CONFIG & ADAPTIVE STYLING
+# PAGE CONFIG & ADVANCED UI / STYLING
 # ===========================================================================
 st.set_page_config(
     page_title=f"{APP_NAME} | Executive Portal",
@@ -259,58 +254,113 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-ADAPTIVE_CSS = """
+ADVANCED_UI_CSS = """
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 html, body, [class*="css"] { font-family: 'Inter', sans-serif !important; }
 
+/* Premium Sidebar Brand Styling */
+.sidebar-brand-box {
+    background: linear-gradient(135deg, rgba(14, 165, 233, 0.12) 0%, rgba(2, 132, 199, 0.04) 100%);
+    border: 1px solid rgba(14, 165, 233, 0.3);
+    border-radius: 14px;
+    padding: 1.4rem 1rem;
+    text-align: center;
+    margin-bottom: 1.2rem;
+    box-shadow: 0 4px 12px rgba(14, 165, 233, 0.08);
+}
+.sidebar-brand-box h2 {
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: #0EA5E9;
+    margin: 0 0 4px 0;
+    letter-spacing: -0.5px;
+}
+.sidebar-brand-box p {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    font-weight: 600;
+    opacity: 0.85;
+    margin: 0;
+}
+
+/* Auth Portal Glassmorphism Container */
+.auth-container {
+    background: var(--background-color);
+    border: 1px solid var(--secondary-background-color);
+    border-radius: 18px;
+    padding: 2.2rem;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+    margin-top: 1rem;
+}
+.auth-header {
+    text-align: center;
+    margin-bottom: 1.8rem;
+}
+.auth-header h1 {
+    font-size: 2.2rem;
+    font-weight: 800;
+    letter-spacing: -0.8px;
+    margin-bottom: 0.3rem;
+    background: linear-gradient(135deg, #0EA5E9 0%, #2563EB 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+.auth-header p {
+    font-size: 0.95rem;
+    opacity: 0.75;
+    font-weight: 500;
+}
+
+/* Corporate Hero Header & Cards */
 .corp-hero {
     background: var(--background-color);
     border: 1px solid var(--secondary-background-color);
-    border-radius: 12px;
+    border-radius: 14px;
     padding: 2rem 2.5rem;
     margin-bottom: 2rem;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-    border-left: 5px solid #0EA5E9;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04);
+    border-left: 6px solid #0EA5E9;
 }
 .corp-badge {
-    display: inline-flex; align-items: center; gap: 6px; 
-    background: rgba(14, 165, 233, 0.1); color: #0EA5E9; 
-    padding: 4px 12px; border-radius: 6px;
-    font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 0.8rem;
+    display: inline-flex; align-items: center; gap: 8px; 
+    background: rgba(14, 165, 233, 0.12); color: #0EA5E9; 
+    padding: 5px 14px; border-radius: 8px;
+    font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.8rem;
 }
 .corp-card {
     background: var(--background-color);
     border: 1px solid var(--secondary-background-color);
-    border-radius: 12px;
-    padding: 1.5rem;
+    border-radius: 14px;
+    padding: 1.6rem;
     margin-bottom: 1.5rem;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+    box-shadow: 0 3px 10px rgba(0,0,0,0.03);
 }
 .metric-box {
     background: var(--secondary-background-color);
     border: 1px solid var(--secondary-background-color);
-    border-radius: 10px;
-    padding: 1rem;
+    border-radius: 12px;
+    padding: 1.1rem;
     text-align: center;
 }
-.metric-box .val { font-size: 1.6rem; font-weight: 700; color: #0EA5E9; }
-.metric-box .lbl { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.8px; margin-top: 4px; font-weight: 600; opacity: 0.8; }
+.metric-box .val { font-size: 1.7rem; font-weight: 800; color: #0EA5E9; }
+.metric-box .lbl { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.9px; margin-top: 4px; font-weight: 700; opacity: 0.8; }
 
-.score-high { color: #10B981 !important; font-weight: 700; }
-.score-mid { color: #D97706 !important; font-weight: 700; }
-.score-low { color: #DC2626 !important; font-weight: 700; }
+.score-high { color: #10B981 !important; font-weight: 800; }
+.score-mid { color: #D97706 !important; font-weight: 800; }
+.score-low { color: #DC2626 !important; font-weight: 800; }
 
 .stButton>button[kind="primary"] {
-    background: #0EA5E9; color: #FFFFFF; font-weight: 600; border-radius: 8px; padding: 0.5rem 1.2rem; border: none;
+    background: #0EA5E9; color: #FFFFFF; font-weight: 700; border-radius: 10px; padding: 0.6rem 1.4rem; border: none;
+    box-shadow: 0 4px 12px rgba(14, 165, 233, 0.25);
 }
 .stButton>button[kind="primary"]:hover { background: #0284C7; }
 
-.sidebar-card { background: var(--secondary-background-color); border-radius: 10px; padding: 1rem; margin-bottom: 1rem; }
-.sidebar-brand { background: var(--secondary-background-color); border-radius: 10px; padding: 1rem; text-align: center; margin-bottom: 1rem; }
+.sidebar-card { background: var(--secondary-background-color); border-radius: 12px; padding: 1.1rem; margin-bottom: 1rem; border: 1px solid rgba(14,165,233,0.15); }
 </style>
 """
-st.markdown(ADAPTIVE_CSS, unsafe_allow_html=True)
+st.markdown(ADVANCED_UI_CSS, unsafe_allow_html=True)
 
 # ===========================================================================
 # SESSION STATE
@@ -326,23 +376,22 @@ if "pending_pin_email" not in st.session_state: st.session_state.pending_pin_ema
 if "results" not in st.session_state: st.session_state.results = []
 
 # ===========================================================================
-# AUTHENTICATION SCREEN (WITH INSTANT ENTER-KEY SUBMISSION)
+# AUTHENTICATION SCREEN (ADVANCED STYLING & GLASSMORPHISM)
 # ===========================================================================
 if not st.session_state.logged_in:
-    st.markdown("""
-        <div style="text-align: center; padding: 2rem 0 1rem 0;">
-            <h1 style="font-size: 2.4rem; font-weight: 700; margin: 0;">HireMatrix Pro</h1>
-            <p style="opacity: 0.8; font-size: 1.05rem; margin-top: 0.4rem;">Autonomous HR Intelligence & Executive Recruitment Suite</p>
-        </div>
-    """, unsafe_allow_html=True)
-    
     col1, col2, col3 = st.columns([1, 1.4, 1])
     with col2:
         saved_profiles = get_all_verified_profiles()
         
         if st.session_state.pending_pin_email:
-            st.markdown('<div class="corp-card"><h4>🔐 Step 2: Create Your 4-Digit Quick PIN</h4>', unsafe_allow_html=True)
-            st.info(f"Email verified for **{st.session_state.pending_pin_email}**. Secure your account with a 4-digit PIN.")
+            st.markdown("""
+                <div class="auth-container">
+                    <div class="auth-header">
+                        <h1>Security Setup</h1>
+                        <p>Create your 4-digit quick access PIN</p>
+                    </div>
+            """, unsafe_allow_html=True)
+            st.info(f"Email verified for **{st.session_state.pending_pin_email}**.")
             
             with st.form("pin_setup_form"):
                 new_pin = st.text_input("Enter 4-Digit PIN", type="password", max_chars=4, placeholder="••••")
@@ -365,8 +414,14 @@ if not st.session_state.logged_in:
             st.markdown('</div>', unsafe_allow_html=True)
 
         elif st.session_state.pending_otp_email:
-            st.markdown('<div class="corp-card"><h4>📬 Email Verification (OTP)</h4>', unsafe_allow_html=True)
-            st.info(f"A 6-digit verification code has been sent to **{st.session_state.pending_otp_email}**.")
+            st.markdown("""
+                <div class="auth-container">
+                    <div class="auth-header">
+                        <h1>Email Verification</h1>
+                        <p>Enter the 6-digit security code sent to your inbox</p>
+                    </div>
+            """, unsafe_allow_html=True)
+            st.info(f"Code dispatched to **{st.session_state.pending_otp_email}**.")
             
             with st.form("otp_form"):
                 otp_input = st.text_input("Enter 6-Digit OTP", placeholder="123456")
@@ -383,14 +438,21 @@ if not st.session_state.logged_in:
                 else:
                     st.error(msg)
             with col_o2:
-                if st.button("Cancel Verification", use_container_width=True):
+                if st.button("Cancel", use_container_width=True):
                     st.session_state.pending_otp_email = None
                     st.rerun()
             st.markdown('</div>', unsafe_allow_html=True)
             
         elif saved_profiles and not st.session_state.selected_profile_email:
-            st.markdown('<div class="corp-card"><h4>👥 Saved Employee Profiles</h4>', unsafe_allow_html=True)
-            st.caption("Select your profile card to sign in instantly:")
+            st.markdown(f"""
+                <div class="auth-container">
+                    <div class="auth-header">
+                        <h1>{APP_NAME}</h1>
+                        <p>{APP_TAGLINE}</p>
+                    </div>
+                    <h4 style="margin-bottom: 0.5rem; font-weight: 700;">👥 Saved Employee Profiles</h4>
+                    <p style="font-size: 0.85rem; opacity: 0.75; margin-bottom: 1.2rem;">Select your secure profile card to sign in instantly:</p>
+            """, unsafe_allow_html=True)
             
             for p_email, p_name, p_pin, p_role, p_pro in saved_profiles:
                 pro_badge = " 🌟 [PRO]" if p_pro == 1 else " 🆓 [Free]"
@@ -414,7 +476,14 @@ if not st.session_state.logged_in:
             target_email = st.session_state.selected_profile_email
             p_match = next((p for p in saved_profiles if p[0] == target_email), ("Employee", "", "", "Recruiter", 0))
             
-            st.markdown(f'<div class="corp-card"><h4>🔐 Enter 4-Digit PIN for {p_match[1]}</h4>', unsafe_allow_html=True)
+            st.markdown(f"""
+                <div class="auth-container">
+                    <div class="auth-header">
+                        <h1>Welcome Back, {p_match[1]}</h1>
+                        <p>Enter your 4-digit security PIN to access the suite</p>
+                    </div>
+            """, unsafe_allow_html=True)
+            
             with st.form("pin_login_form"):
                 pin_input = st.text_input("4-Digit PIN", type="password", max_chars=4, placeholder="••••")
                 submit_login = st.form_submit_button("Sign In (Press Enter)", use_container_width=True)
@@ -439,7 +508,13 @@ if not st.session_state.logged_in:
             st.markdown('</div>', unsafe_allow_html=True)
             
         else:
-            st.markdown('<div class="corp-card"><h4>📝 Step 1: Employee Registration</h4>', unsafe_allow_html=True)
+            st.markdown(f"""
+                <div class="auth-container">
+                    <div class="auth-header">
+                        <h1>{APP_NAME}</h1>
+                        <p>Employee Registration & Verification Portal</p>
+                    </div>
+            """, unsafe_allow_html=True)
             
             with st.form("registration_form"):
                 reg_name = st.text_input("Full Name", placeholder="Alex Mercer")
@@ -460,7 +535,7 @@ if not st.session_state.logged_in:
                     else:
                         st.error(msg)
             with col_r2:
-                if saved_profiles and st.button("Back to Saved Profiles", use_container_width=True):
+                if saved_profiles and st.button("Back to Profiles", use_container_width=True):
                     st.session_state.selected_profile_email = None
                     st.rerun()
             st.markdown('</div>', unsafe_allow_html=True)
@@ -669,7 +744,7 @@ def generate_ai_interview_questions(client, resume_text: str, job_title: str) ->
         return f"Could not generate interview questions: {e}"
 
 # ===========================================================================
-# EXCEL & PDF EXPORT
+# EXCEL EXPORT
 # ===========================================================================
 def dataframe_to_formatted_excel_bytes(df: pd.DataFrame) -> bytes:
     buffer = io.BytesIO()
@@ -690,93 +765,14 @@ def dataframe_to_formatted_excel_bytes(df: pd.DataFrame) -> bytes:
     buffer.seek(0)
     return buffer.getvalue()
 
-def generate_candidate_pdf_report(cand):
-    buffer = io.BytesIO()
-    doc = SimpleDocTemplate(buffer, pagesize=letter, rightMargin=36, leftMargin=36, topMargin=36, bottomMargin=36)
-    story = []
-    styles = getSampleStyleSheet()
-    
-    title_style = ParagraphStyle(
-        'TitleStyle',
-        parent=styles['Heading1'],
-        fontSize=20,
-        textColor=colors.HexColor('#0F172A'),
-        spaceAfter=6
-    )
-    subtitle_style = ParagraphStyle(
-        'SubtitleStyle',
-        parent=styles['Normal'],
-        fontSize=10,
-        textColor=colors.HexColor('#64748B'),
-        spaceAfter=15
-    )
-    heading_style = ParagraphStyle(
-        'HeadingStyle',
-        parent=styles['Heading2'],
-        fontSize=13,
-        textColor=colors.HexColor('#0EA5E9'),
-        spaceBefore=10,
-        spaceAfter=6
-    )
-    body_style = ParagraphStyle(
-        'BodyStyle',
-        parent=styles['Normal'],
-        fontSize=10,
-        textColor=colors.HexColor('#334155'),
-        spaceAfter=4
-    )
-    
-    story.append(Paragraph(f"<b>Candidate Evaluation Report</b>", title_style))
-    story.append(Paragraph(f"<b>HireMatrix Pro — Executive Recruitment Suite</b> | Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}", subtitle_style))
-    story.append(Spacer(1, 5))
-    
-    data = [
-        [Paragraph("<b>Candidate Name:</b>", body_style), Paragraph(cand['name'], body_style)],
-        [Paragraph("<b>Job Position:</b>", body_style), Paragraph(cand['job_title'], body_style)],
-        [Paragraph("<b>Email:</b>", body_style), Paragraph(cand['email'], body_style)],
-        [Paragraph("<b>Phone:</b>", body_style), Paragraph(cand['phone'], body_style)],
-        [Paragraph("<b>Father's Name:</b>", body_style), Paragraph(cand.get('father_name', 'Not Provided'), body_style)],
-        [Paragraph("<b>Education:</b>", body_style), Paragraph(f"{cand.get('education', 'N/A')} (CGPA: {cand.get('cgpa', 'N/A')})", body_style)],
-        [Paragraph("<b>Institution:</b>", body_style), Paragraph(cand.get('university_name', 'Not Provided'), body_style)],
-        [Paragraph("<b>Experience:</b>", body_style), Paragraph(f"{cand.get('experience_years', '0')} | Latest: {cand.get('latest_experience', 'N/A')}", body_style)],
-        [Paragraph("<b>Match Score:</b>", body_style), Paragraph(f"<b>{cand['match_score']}%</b>", body_style)],
-        [Paragraph("<b>Pipeline Status:</b>", body_style), Paragraph("Shortlisted", body_style)],
-    ]
-    
-    t = Table(data, colWidths=[140, 400])
-    t.setStyle(TableStyle([
-        ('BACKGROUND', (0,0), (-1,-1), colors.HexColor('#F8FAFC')),
-        ('GRID', (0,0), (-1,-1), 0.5, colors.HexColor('#E2E8F0')),
-        ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
-        ('BOTTOMPADDING', (0,0), (-1,-1), 6),
-        ('TOPPADDING', (0,0), (-1,-1), 6),
-    ]))
-    story.append(t)
-    story.append(Spacer(1, 10))
-    
-    story.append(Paragraph("<b>Extracted Core Skills:</b>", heading_style))
-    story.append(Paragraph(cand.get('skills', 'Not Provided'), body_style))
-    
-    story.append(Paragraph("<b>Skill Gaps / Missing vs. Job Description:</b>", heading_style))
-    missing = cand.get('missing_skills', [])
-    if missing:
-        for m in missing:
-            story.append(Paragraph(f"• {m}", body_style))
-    else:
-        story.append(Paragraph("No major skill gaps identified.", body_style))
-        
-    doc.build(story)
-    buffer.seek(0)
-    return buffer.getvalue()
-
 # ===========================================================================
 # SIDEBAR & DASHBOARD INTERFACE
 # ===========================================================================
 with st.sidebar:
     st.markdown(f"""
-        <div class="sidebar-brand">
-            <h3>HireMatrix Pro</h3>
-            <span>Enterprise v10.6</span>
+        <div class="sidebar-brand-box">
+            <h2>{APP_NAME}</h2>
+            <p>Enterprise v10.11</p>
         </div>
     """, unsafe_allow_html=True)
     st.markdown("---")
@@ -933,18 +929,6 @@ with tab1:
                         st.caption("No significant skill gaps identified.")
 
                 st.markdown("---")
-                
-                # --- INDIVIDUAL CANDIDATE PDF REPORT DOWNLOAD ---
-                pdf_bytes = generate_candidate_pdf_report(cand)
-                st.download_button(
-                    label=f"📄 Download PDF Report Card for {cand['name']}",
-                    data=pdf_bytes,
-                    file_name=f"{cand['name'].replace(' ', '_')}_Evaluation_Report.pdf",
-                    mime="application/pdf",
-                    key=f"pdf_dl_{rank}"
-                )
-                
-                st.markdown("---")
                 if st.session_state.is_pro == 1:
                     if st.button(f"💡 Generate AI Interview Q&A for {cand['name']}", key=f"gen_q_{rank}"):
                         if client:
@@ -1008,7 +992,6 @@ with tab2:
     if df_db.empty:
         st.info("Database is currently empty.")
     else:
-        # --- ADVANCED CANDIDATE FILTERING & SEARCH BAR ---
         col_f1, col_f2 = st.columns([2, 1])
         with col_f1:
             search_query = st.text_input("🔍 Live Search (Candidate Name, Skills, Job Title, Email)", placeholder="Type to search...")
@@ -1032,23 +1015,18 @@ with tab2:
         st.dataframe(filtered_df, use_container_width=True)
         
         st.markdown("---")
-        st.markdown("### 📈 Interactive Analytics & Visual Charts (Plotly)")
+        st.markdown("### 📈 Built-in Visual Analytics & Charts")
         
         c_ch1, c_ch2 = st.columns(2)
         with c_ch1:
             st.markdown("#### Match Score Distribution")
-            fig_hist = px.histogram(df_db, x="Match Score", nbins=10, title="Candidate Match Score Spread", color_discrete_sequence=["#0EA5E9"])
-            fig_hist.update_layout(margin=dict(l=20, r=20, t=40, b=20), height=300)
-            st.plotly_chart(fig_hist, use_container_width=True)
+            st.bar_chart(df_db.set_index("Candidate Name")["Match Score"])
             
         with c_ch2:
             st.markdown("#### Pipeline Status Breakdown")
             if "Pipeline Status" in df_db.columns:
-                status_counts = df_db["Pipeline Status"].value_counts().reset_index()
-                status_counts.columns = ["Status", "Count"]
-                fig_pie = px.pie(status_counts, names="Status", values="Count", title="Candidates by Stage", color_discrete_sequence=px.colors.sequential.Blues)
-                fig_pie.update_layout(margin=dict(l=20, r=20, t=40, b=20), height=300)
-                st.plotly_chart(fig_pie, use_container_width=True)
+                status_counts = df_db["Pipeline Status"].value_counts()
+                st.bar_chart(status_counts)
 
         if st.session_state.is_pro == 1:
             st.markdown("---")
