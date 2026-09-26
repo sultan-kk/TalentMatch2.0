@@ -1,9 +1,9 @@
 """
-HireMatrix Pro — Enterprise Edition v10.2 (Professional Corporate Theme)
+HireMatrix Pro — Enterprise Edition v10.4 (Adaptive Theme & Enterprise Stability)
 ========================================================================
-Features: Clean corporate slate UI (no neon/glow), Professional enterprise styling, 
-Instant Enter-Key form submission, Score-based conditional email generation, 
-Timestamped Master Excel Export, Admin Verification Dashboard, and Kanban Pipeline.
+Features: Adaptive Light/Dark Theme matching Streamlit settings cleanly, 
+Instant Enter-Key form submission, Clean professional corporate styling, 
+Score-based conditional email generation, Timestamped Master Excel Export, and Admin Verification Dashboard.
 """
 
 import io
@@ -245,7 +245,7 @@ def verify_employee_pin(email, entered_pin):
     return False, None, None, 0
 
 # ===========================================================================
-# PAGE CONFIG & PROFESSIONAL CORPORATE STYLING (NO GLOW/NEON)
+# PAGE CONFIG & ADAPTIVE STYLING (THEME FIX)
 # ===========================================================================
 st.set_page_config(
     page_title=f"{APP_NAME} | Executive Portal",
@@ -254,77 +254,58 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-CORPORATE_CSS = """
+ADAPTIVE_CSS = """
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 html, body, [class*="css"] { font-family: 'Inter', sans-serif !important; }
 
-/* Professional Corporate Header */
 .corp-hero {
-    background: #1E293B;
-    color: #F8FAFC;
-    border-radius: 14px;
+    background: var(--background-color);
+    border: 1px solid var(--secondary-background-color);
+    border-radius: 12px;
     padding: 2rem 2.5rem;
     margin-bottom: 2rem;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
     border-left: 5px solid #0EA5E9;
 }
 .corp-badge {
-    display: inline-flex; align-items: center; gap: 6px; background: rgba(14, 165, 233, 0.15);
-    color: #38BDF8; padding: 4px 12px; border-radius: 6px;
+    display: inline-flex; align-items: center; gap: 6px; 
+    background: rgba(14, 165, 233, 0.1); color: #0EA5E9; 
+    padding: 4px 12px; border-radius: 6px;
     font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 0.8rem;
 }
-.corp-hero h1 { font-size: 2.2rem; font-weight: 700; margin: 0; color: #FFFFFF; }
-.corp-hero p { margin-top: 0.4rem; margin-bottom: 0; font-size: 1rem; color: #94A3B8; }
-
-/* Clean Corporate Cards */
 .corp-card {
-    background: #FFFFFF;
-    border: 1px solid #E2E8F0;
+    background: var(--background-color);
+    border: 1px solid var(--secondary-background-color);
     border-radius: 12px;
     padding: 1.5rem;
     margin-bottom: 1.5rem;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.02);
 }
-.corp-card h4 { font-size: 1.1rem; font-weight: 600; color: #0F172A; margin-bottom: 1rem; }
-
-/* Metrics */
 .metric-box {
-    background: #F8FAFC;
-    border: 1px solid #E2E8F0;
+    background: var(--secondary-background-color);
+    border: 1px solid var(--secondary-background-color);
     border-radius: 10px;
     padding: 1rem;
     text-align: center;
 }
 .metric-box .val { font-size: 1.6rem; font-weight: 700; color: #0EA5E9; }
-.metric-box .lbl { font-size: 0.75rem; text-transform: uppercase; color: #64748B; letter-spacing: 0.8px; margin-top: 4px; font-weight: 600; }
+.metric-box .lbl { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.8px; margin-top: 4px; font-weight: 600; opacity: 0.8; }
 
 .score-high { color: #10B981 !important; font-weight: 700; }
 .score-mid { color: #D97706 !important; font-weight: 700; }
 .score-low { color: #DC2626 !important; font-weight: 700; }
 
-/* Clean Professional Buttons */
 .stButton>button[kind="primary"] {
-    background: #0EA5E9;
-    color: #FFFFFF; font-weight: 600; border-radius: 8px; padding: 0.5rem 1.2rem; border: none;
-    box-shadow: 0 2px 4px rgba(14, 165, 233, 0.2);
-    transition: background 0.2s ease;
+    background: #0EA5E9; color: #FFFFFF; font-weight: 600; border-radius: 8px; padding: 0.5rem 1.2rem; border: none;
 }
-.stButton>button[kind="primary"]:hover {
-    background: #0284C7;
-}
+.stButton>button[kind="primary"]:hover { background: #0284C7; }
 
-[data-testid="stSidebar"] { border-right: 1px solid #E2E8F0; background: #F8FAFC; }
-.sidebar-card { background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 10px; padding: 1rem; margin-bottom: 1rem; }
-.sidebar-brand {
-    background: #1E293B; color: #FFFFFF;
-    border-radius: 10px; padding: 1rem; text-align: center; margin-bottom: 1rem;
-}
-.sidebar-brand h3 { color: #FFFFFF; font-size: 1.1rem; font-weight: 700; margin: 0; }
-.sidebar-brand span { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 1.5px; color: #94A3B8; font-weight: 600; display: block; margin-top: 3px; }
+.sidebar-card { background: var(--secondary-background-color); border-radius: 10px; padding: 1rem; margin-bottom: 1rem; }
+.sidebar-brand { background: var(--secondary-background-color); border-radius: 10px; padding: 1rem; text-align: center; margin-bottom: 1rem; }
 </style>
 """
-st.markdown(CORPORATE_CSS, unsafe_allow_html=True)
+st.markdown(ADAPTIVE_CSS, unsafe_allow_html=True)
 
 # ===========================================================================
 # SESSION STATE
@@ -345,11 +326,8 @@ if "results" not in st.session_state: st.session_state.results = []
 if not st.session_state.logged_in:
     st.markdown("""
         <div style="text-align: center; padding: 2rem 0 1rem 0;">
-            <div style="display: inline-flex; align-items: center; gap: 6px; background: #E0F2FE; border: 1px solid #BAE6FD; padding: 4px 14px; border-radius: 20px; color: #0369A1; font-size: 0.75rem; font-weight: 700; margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 0.8px;">
-                💼 Enterprise Secure Portal (6,999 PKR / mo)
-            </div>
-            <h1 style="font-size: 2.4rem; font-weight: 700; margin: 0; color: #0F172A;">HireMatrix Pro</h1>
-            <p style="color: #64748B; font-size: 1.05rem; margin-top: 0.4rem;">Autonomous HR Intelligence & Executive Recruitment Suite</p>
+            <h1 style="font-size: 2.4rem; font-weight: 700; margin: 0;">HireMatrix Pro</h1>
+            <p style="opacity: 0.8; font-size: 1.05rem; margin-top: 0.4rem;">Autonomous HR Intelligence & Executive Recruitment Suite</p>
         </div>
     """, unsafe_allow_html=True)
     
@@ -714,7 +692,7 @@ with st.sidebar:
     st.markdown(f"""
         <div class="sidebar-brand">
             <h3>HireMatrix Pro</h3>
-            <span>Enterprise v10.2</span>
+            <span>Enterprise v10.4</span>
         </div>
     """, unsafe_allow_html=True)
     st.markdown("---")
@@ -722,8 +700,8 @@ with st.sidebar:
     tier_badge = "🌟 PRO TIER (6,999 PKR/mo)" if st.session_state.is_pro == 1 else "🆓 FREE BASIC TIER"
     st.markdown(f"""
         <div class="sidebar-card">
-            <div style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.8px; font-weight: 700; color: #64748B; margin-bottom: 4px;">Active Employee</div>
-            <div style="font-size: 0.95rem; font-weight: 700; color: #0F172A;">👤 {st.session_state.hr_name}</div>
+            <div style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.8px; font-weight: 700; margin-bottom: 4px;">Active Employee</div>
+            <div style="font-size: 0.95rem; font-weight: 700;">👤 {st.session_state.hr_name}</div>
             <div style="font-size: 0.75rem; color: #0EA5E9; margin-top: 4px; font-weight: 600;">{tier_badge}</div>
         </div>
     """, unsafe_allow_html=True)
