@@ -1,8 +1,8 @@
 """
-HireMatrix Pro — Enterprise Edition v10.52 (Pipeline & Email Flow Fix)
+HireMatrix Pro — Enterprise Edition v10.57 (Strict JD-Relevance Filtering)
 ========================================================================
-Features: Restored pipeline stage selector and conditional email dispatchers in Step 2 screening results, 
-Talent Pool repository ingestion, dynamic threshold, and Executive Excel Report.
+Features: Strict filtering in Step 2 so only candidates relevant to the entered Job Description are displayed, 
+Clean database with zero duplicates, manual pipeline staging, and conditional email dispatchers.
 """
 
 import io
@@ -163,285 +163,7 @@ def verify_employee_pin(email, entered_pin):
     return False, None, None
 
 # ===========================================================================
-# PAGE CONFIG & EXECUTIVE STYLING
-# ===========================================================================
-st.set_page_config(
-    page_title=f"{APP_NAME} | Executive Portal",
-    page_icon="💼",
-    layout="wide",
-    initial_sidebar_state="expanded",
-)
-
-EXECUTIVE_UI_CSS = """
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-html, body, [class*="css"] { font-family: 'Inter', sans-serif !important; }
-
-.sidebar-brand-box {
-    background: linear-gradient(135deg, rgba(14, 165, 233, 0.12) 0%, rgba(2, 132, 199, 0.04) 100%);
-    border: 1px solid rgba(14, 165, 233, 0.3);
-    border-radius: 14px;
-    padding: 1.4rem 1rem;
-    text-align: center;
-    margin-bottom: 1.2rem;
-    box-shadow: 0 4px 12px rgba(14, 165, 233, 0.08);
-}
-.sidebar-brand-box h2 {
-    font-size: 1.35rem; font-weight: 800; color: #0EA5E9; margin: 0 0 4px 0; letter-spacing: -0.5px;
-}
-.sidebar-brand-box p {
-    font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1.2px; font-weight: 600; opacity: 0.85; margin: 0;
-}
-
-.auth-brand-side {
-    background: linear-gradient(135deg, #0EA5E9 0%, #1E293B 100%);
-    border-radius: 18px;
-    padding: 3.5rem 2.5rem;
-    color: #FFFFFF;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    box-shadow: 0 10px 30px rgba(14, 165, 233, 0.15);
-}
-.auth-brand-side h1 { font-size: 2.6rem; font-weight: 800; margin-bottom: 1rem; color: #FFFFFF; letter-spacing: -0.5px; }
-.auth-brand-side p { font-size: 1.05rem; opacity: 0.9; line-height: 1.6; }
-
-.auth-form-card {
-    background: var(--background-color);
-    border: 1.5px solid rgba(14, 165, 233, 0.3);
-    border-radius: 18px;
-    padding: 2.5rem;
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.06);
-}
-
-.stButton > button {
-    background: rgba(14, 165, 233, 0.14) !important;
-    color: inherit !important;
-    border: 1.5px solid rgba(14, 165, 233, 0.45) !important;
-    border-radius: 10px !important;
-    font-weight: 600 !important;
-    transition: all 0.2s ease-in-out;
-}
-.stButton > button:hover {
-    background: rgba(14, 165, 233, 0.25) !important;
-    border-color: #0EA5E9 !important;
-    box-shadow: 0 4px 12px rgba(14, 165, 233, 0.18);
-}
-
-.corp-hero {
-    background: linear-gradient(135deg, rgba(14, 165, 233, 0.10) 0%, rgba(30, 41, 59, 0.06) 100%);
-    border: 1.5px solid rgba(14, 165, 233, 0.35);
-    border-radius: 14px;
-    padding: 2rem 2.5rem;
-    margin-bottom: 2rem;
-    box-shadow: 0 6px 20px rgba(14, 165, 233, 0.08);
-    border-left: 6px solid #0EA5E9;
-}
-.corp-badge {
-    display: inline-flex; align-items: center; gap: 8px; 
-    background: rgba(14, 165, 233, 0.15); color: #0EA5E9; 
-    padding: 5px 14px; border-radius: 8px;
-    font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.8rem;
-}
-.corp-card {
-    background: var(--background-color);
-    border: 1px solid var(--secondary-background-color);
-    border-radius: 14px;
-    padding: 1.6rem;
-    margin-bottom: 1.5rem;
-    box-shadow: 0 3px 10px rgba(0,0,0,0.03);
-}
-.metric-box {
-    background: var(--secondary-background-color);
-    border: 1px solid var(--secondary-background-color);
-    border-radius: 12px;
-    padding: 1.1rem;
-    text-align: center;
-}
-.metric-box .val { font-size: 1.7rem; font-weight: 800; color: #0EA5E9; }
-.metric-box .lbl { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.9px; margin-top: 4px; font-weight: 700; opacity: 0.8; }
-
-.score-high { color: #10B981 !important; font-weight: 800; }
-.score-mid { color: #D97706 !important; font-weight: 800; }
-.score-low { color: #DC2626 !important; font-weight: 800; }
-
-.stButton>button[kind="primary"] {
-    background: #0EA5E9 !important; color: #FFFFFF !important; font-weight: 700; border-radius: 10px; padding: 0.6rem 1.4rem; border: none !important;
-    box-shadow: 0 4px 12px rgba(14, 165, 233, 0.25);
-}
-.stButton>button[kind="primary"]:hover { background: #0284C7 !important; }
-
-.sidebar-card { background: var(--secondary-background-color); border-radius: 12px; padding: 1.1rem; margin-bottom: 1rem; border: 1px solid rgba(14,165,233,0.15); }
-</style>
-"""
-st.markdown(EXECUTIVE_UI_CSS, unsafe_allow_html=True)
-
-# ===========================================================================
-# SESSION STATE
-# ===========================================================================
-if "logged_in" not in st.session_state: st.session_state.logged_in = False
-if "hr_name" not in st.session_state: st.session_state.hr_name = ""
-if "hr_email" not in st.session_state: st.session_state.hr_email = ""
-if "hr_role" not in st.session_state: st.session_state.hr_role = "Recruiter"
-if "selected_profile_email" not in st.session_state: st.session_state.selected_profile_email = None
-if "pending_otp_email" not in st.session_state: st.session_state.pending_otp_email = None
-if "pending_pin_email" not in st.session_state: st.session_state.pending_pin_email = None
-if "screening_results" not in st.session_state: st.session_state.screening_results = []
-
-# ===========================================================================
-# AUTHENTICATION SCREEN
-# ===========================================================================
-if not st.session_state.logged_in:
-    saved_profiles = get_all_verified_profiles()
-    
-    col_left, col_right = st.columns([1.1, 1.4], gap="large")
-    
-    with col_left:
-        st.markdown(f"""
-            <div class="auth-brand-side">
-                <h1>{APP_NAME}</h1>
-                <p>{APP_TAGLINE}</p>
-                <hr style="border-color: rgba(255,255,255,0.2); margin: 1.8rem 0;">
-                <p style="font-size: 0.95rem; opacity: 0.9;">Empowering modern corporate enterprises with multi-stage ATS workflow, intelligent talent repository, automated candidate scoring, and secure role management.</p>
-            </div>
-        """, unsafe_allow_html=True)
-        
-    with col_right:
-        st.markdown('<div class="auth-form-card">', unsafe_allow_html=True)
-        
-        if st.session_state.pending_pin_email:
-            st.markdown("### 🔐 Security Setup")
-            st.info(f"Email verified for **{st.session_state.pending_pin_email}**.")
-            
-            with st.form("pin_setup_form"):
-                new_pin = st.text_input("Enter 4-Digit PIN", type="password", max_chars=4, placeholder="••••")
-                confirm_pin = st.text_input("Confirm 4-Digit PIN", type="password", max_chars=4, placeholder="••••")
-                submit_pin = st.form_submit_button("Save PIN & Enter Portal", use_container_width=True)
-                
-            if submit_pin:
-                if not new_pin or len(new_pin) != 4 or not new_pin.isdigit():
-                    st.warning("Please enter an exact 4-digit numeric PIN.")
-                elif new_pin != confirm_pin:
-                    st.error("PINs do not match. Please try again.")
-                else:
-                    success, msg = save_employee_pin(st.session_state.pending_pin_email, new_pin)
-                    if success:
-                        st.success(msg)
-                        st.session_state.pending_pin_email = None
-                        st.rerun()
-                    else:
-                        st.error(msg)
-
-        elif st.session_state.pending_otp_email:
-            st.markdown("### 📬 Email Verification")
-            st.info(f"Enter the 6-digit security code sent to **{st.session_state.pending_otp_email}**.")
-            
-            with st.form("otp_form"):
-                otp_input = st.text_input("Enter 6-Digit OTP", placeholder="123456")
-                submit_otp = st.form_submit_button("Verify OTP", use_container_width=True)
-                
-            col_o1, col_o2 = st.columns(2)
-            if submit_otp:
-                success, msg = verify_otp_code(st.session_state.pending_otp_email, otp_input)
-                if success:
-                    st.success(msg)
-                    st.session_state.pending_pin_email = st.session_state.pending_otp_email
-                    st.session_state.pending_otp_email = None
-                    st.rerun()
-                else:
-                    st.error(msg)
-            with col_o2:
-                if st.button("Cancel", use_container_width=True, key="cancel_otp_btn"):
-                    st.session_state.pending_otp_email = None
-                    st.rerun()
-            
-        elif saved_profiles and not st.session_state.selected_profile_email:
-            st.markdown("""
-                <div style="background: rgba(14, 165, 233, 0.08); border: 1.5px solid #0EA5E9; border-radius: 14px; padding: 1.6rem; margin-bottom: 1.5rem; box-shadow: 0 4px 15px rgba(0,0,0,0.04);">
-                    <h3 style="margin-top: 0; margin-bottom: 0.3rem; font-size: 1.2rem; font-weight: 700;">👥 Saved Employee Profiles</h3>
-                    <p style="font-size: 0.85rem; opacity: 0.8; margin-bottom: 0;">Select your secure profile card below to sign in instantly:</p>
-                </div>
-            """, unsafe_allow_html=True)
-            
-            for p_email, p_name, p_pin, p_role in saved_profiles:
-                c_p1, c_p2 = st.columns([3, 1])
-                with c_p1:
-                    if st.button(f"👤 {p_name} ({p_role})", use_container_width=True, key=f"sel_{p_email}"):
-                        st.session_state.selected_profile_email = p_email
-                        st.rerun()
-                with c_p2:
-                    if st.button("🗑️ Delete", key=f"del_{p_email}", use_container_width=True):
-                        delete_employee_profile(p_email)
-                        st.success(f"Profile for {p_name} has been removed.")
-                        st.rerun()
-            
-            st.markdown("")
-            if st.button("➕ Register New Employee Profile", use_container_width=True, key="reg_new_emp_auth_btn"):
-                st.session_state.selected_profile_email = "new"
-                st.rerun()
-            
-        elif st.session_state.selected_profile_email and st.session_state.selected_profile_email != "new":
-            target_email = st.session_state.selected_profile_email
-            p_match = next((p for p in saved_profiles if p[0] == target_email), ("Employee", "", "", "Recruiter"))
-            
-            st.markdown(f"### 🔐 Sign In: {p_match[1]}")
-            st.caption("Enter your 4-digit security PIN to access portal.")
-            
-            with st.form("pin_login_form"):
-                pin_input = st.text_input("4-Digit PIN", type="password", max_chars=4, placeholder="••••")
-                submit_login = st.form_submit_button("Sign In (Press Enter)", use_container_width=True)
-                
-            col_b1, col_b2 = st.columns(2)
-            if submit_login:
-                success, name, role = verify_employee_pin(target_email, pin_input)
-                if success:
-                    st.session_state.logged_in = True
-                    st.session_state.hr_name = name
-                    st.session_state.hr_email = target_email
-                    st.session_state.hr_role = role
-                    st.success(f"Welcome back, {name}!")
-                    st.rerun()
-                else:
-                    st.error("Incorrect 4-Digit PIN. Please verify.")
-            with col_b2:
-                if st.button("Switch Profile", use_container_width=True, key="switch_prof_auth_btn"):
-                    st.session_state.selected_profile_email = None
-                    st.rerun()
-            
-        else:
-            st.markdown("### 📝 Employee Registration")
-            st.caption("Enter your credentials to create a secure corporate account.")
-            
-            with st.form("registration_form"):
-                reg_name = st.text_input("Full Name", placeholder="Alex Mercer")
-                reg_email = st.text_input("Company Email", placeholder="employee@company.com")
-                reg_pass = st.text_input("Master Password", type="password")
-                submit_reg = st.form_submit_button("Send Verification OTP (Press Enter)", use_container_width=True)
-                
-            col_r1, col_r2 = st.columns(2)
-            if submit_reg:
-                if not reg_name.strip() or not reg_email.strip() or not reg_pass.strip():
-                    st.warning("Please fill in all required fields.")
-                else:
-                    success, msg = register_initial_employee(reg_name, reg_email, reg_pass)
-                    if success:
-                        st.success(msg)
-                        st.session_state.pending_otp_email = reg_email.lower().strip()
-                        st.rerun()
-                    else:
-                        st.error(msg)
-            with col_r2:
-                if saved_profiles and st.button("Back to Profiles", use_container_width=True, key="back_to_prof_auth_btn"):
-                    st.session_state.selected_profile_email = None
-                    st.rerun()
-                    
-        st.markdown('</div>', unsafe_allow_html=True)
-            
-    st.stop()
-
-# ===========================================================================
-# DATABASE OPERATIONS & FORMATTED EXCEL EXPORT
+# DATABASE OPERATIONS & DUPLICATE CLEANING
 # ===========================================================================
 def load_database():
     if os.path.exists(DB_FILE):
@@ -454,7 +176,16 @@ def load_database():
         for col in expected_cols:
             if col not in df.columns:
                 df[col] = "Not Provided"
-        df.to_csv(DB_FILE, index=False)
+        
+        # --- AUTOMATIC DUPLICATE REMOVAL BASED ON EMAIL ---
+        if not df.empty and "Email" in df.columns:
+            df["CleanEmail"] = df["Email"].astype(str).str.lower().str.strip()
+            valid_mask = ~df["CleanEmail"].isin(["not provided", "not found", "nan", ""])
+            df_valid = df[valid_mask].drop_duplicates(subset=["CleanEmail"], keep="first")
+            df_invalid = df[~valid_mask]
+            df = pd.concat([df_valid, df_invalid], ignore_index=True).drop(columns=["CleanEmail"])
+            df.to_csv(DB_FILE, index=False)
+            
         return df
     else:
         return pd.DataFrame(columns=[
@@ -492,6 +223,13 @@ def save_candidates_to_repository(new_candidates):
                 df = df[~(df["Email"].str.lower().str.strip() == incoming_email)]
                 
     df_combined = pd.concat([df, df_new], ignore_index=True)
+    if "Email" in df_combined.columns:
+        df_combined["CleanEmail"] = df_combined["Email"].astype(str).str.lower().str.strip()
+        valid_mask = ~df_combined["CleanEmail"].isin(["not provided", "not found", "nan", ""])
+        df_v = df_combined[valid_mask].drop_duplicates(subset=["CleanEmail"], keep="first")
+        df_inv = df_combined[~valid_mask]
+        df_combined = pd.concat([df_v, df_inv], ignore_index=True).drop(columns=["CleanEmail"])
+        
     df_combined.to_csv(DB_FILE, index=False)
 
 def update_candidate_pipeline_status(email, new_status):
@@ -627,6 +365,7 @@ Return ONLY a valid JSON object with exactly the following keys. Extract the inf
 
 def build_jd_matching_prompt(candidate_text_summary: str, jd_text: str) -> str:
     return f"""You are an expert HR recruiter AI. Evaluate the CANDIDATE PROFILE against the JOB DESCRIPTION.
+Determine if the candidate is relevant to the job description (e.g. matching domain, background, or skills).
 
 CANDIDATE PROFILE SUMMARY:
 {candidate_text_summary}
@@ -637,6 +376,7 @@ JOB DESCRIPTION:
 Return ONLY a valid JSON object with exactly the following keys. Do not include markdown fences.
 {{
   "match_score": A number between 0 and 100 representing how well the candidate matches the JD,
+  "is_relevant": true if the candidate has at least basic or moderate relevance to the job domain/requirements, otherwise false,
   "missing_skills": ["List", "of", "key JD skills", "missing from candidate profile"]
 }}
 """
@@ -686,9 +426,9 @@ def evaluate_candidate_against_jd(client, candidate_row, jd_text: str):
         )
         raw_content = response.choices[0].message.content.strip()
         result = json.loads(raw_content)
-        return float(result.get("match_score", 0)), result.get("missing_skills", [])
+        return float(result.get("match_score", 0)), bool(result.get("is_relevant", True)), result.get("missing_skills", [])
     except Exception:
-        return 0.0, []
+        return 0.0, True, []
 
 def generate_ai_interview_questions(client, skills_text: str, job_title: str) -> str:
     try:
@@ -710,7 +450,7 @@ with st.sidebar:
     st.markdown(f"""
         <div class="sidebar-brand-box">
             <h2>{APP_NAME}</h2>
-            <p>Multi-Stage ATS v10.52</p>
+            <p>Multi-Stage ATS v10.57</p>
         </div>
     """, unsafe_allow_html=True)
     st.markdown("---")
@@ -796,20 +536,20 @@ with tab1:
 
 with tab2:
     st.markdown('<div class="corp-card"><h4>🎯 Step 2: Job Description Screening & Smart Matching</h4>', unsafe_allow_html=True)
-    st.caption("Enter a Job Description below. AI will scan your stored Talent Pool repository, evaluate candidates against the JD, and rank them instantly.")
+    st.caption("Enter a Job Description below. AI will scan your stored Talent Pool repository, filter strictly for candidates relevant to this JD, and display them.")
     
-    jd_title_input = st.text_input("Job Position Title", placeholder="e.g. Senior AI Engineer")
+    jd_title_input = st.text_input("Job Position Title", placeholder="e.g. Senior Human Resources Manager")
     jd_desc_text = st.text_area("Job Description & Requirements", height=120, placeholder="Paste detailed job description here...")
     
     st.markdown("---")
     st.markdown("**🎯 Select Minimum Passing Score Threshold (%)**")
     screening_threshold = st.slider(
-        "Candidates scoring above this will be Shortlisted; others will be marked as Rejected.",
+        "Candidates scoring above this will be highlighted; all JD-relevant candidates remain reviewable.",
         min_value=0, max_value=100, value=50, step=5,
         label_visibility="collapsed",
         key="screening_threshold_slider"
     )
-    st.caption(f"Current Selected Threshold: **{screening_threshold}%**")
+    st.caption(f"Current Highlight Threshold: **{screening_threshold}%**")
     
     df_pool = load_database()
     
@@ -820,31 +560,33 @@ with tab2:
         
         for idx, row in df_pool.iterrows():
             progress.progress((idx + 1) / (len(df_pool) + 1), text=f"Evaluating {row['Candidate Name']}...")
-            score, missing = evaluate_candidate_against_jd(client, row, jd_desc_text)
+            score, is_relevant, missing = evaluate_candidate_against_jd(client, row, jd_desc_text)
             
-            initial_status = "Shortlisted" if score >= screening_threshold else "Rejected"
-            
-            screened_results.append({
-                "job_title": jd_title_input,
-                "name": row["Candidate Name"],
-                "father_name": row["Father Name"],
-                "email": row["Email"],
-                "phone": row["Phone"],
-                "cgpa": row["CGPA"],
-                "education": row["Education"],
-                "university_name": row["University Name"],
-                "experience_years": row["Experience Years"],
-                "latest_experience": row["Latest Experience"],
-                "skills": row["Extracted Skills"],
-                "reference": row["Reference"],
-                "match_score": score,
-                "missing_skills": missing,
-                "pipeline_status": initial_status
-            })
+            # STRICT RELEVANCE FILTER: Only include candidates deemed relevant by AI to the JD
+            if is_relevant:
+                initial_status = "Shortlisted" if score >= screening_threshold else row.get("Pipeline Status", "Talent Pool")
+                
+                screened_results.append({
+                    "job_title": jd_title_input,
+                    "name": row["Candidate Name"],
+                    "father_name": row["Father Name"],
+                    "email": row["Email"],
+                    "phone": row["Phone"],
+                    "cgpa": row["CGPA"],
+                    "education": row["Education"],
+                    "university_name": row["University Name"],
+                    "experience_years": row["Experience Years"],
+                    "latest_experience": row["Latest Experience"],
+                    "skills": row["Extracted Skills"],
+                    "reference": row["Reference"],
+                    "match_score": score,
+                    "missing_skills": missing,
+                    "pipeline_status": initial_status
+                })
             
         progress.empty()
         st.session_state.screening_results = screened_results
-        st.success(f"Successfully evaluated {len(df_pool)} candidates from repository!")
+        st.success(f"Screening complete! Found {len(screened_results)} JD-relevant candidates (filtered out unrelated profiles).")
         st.rerun()
         
     if df_pool.empty:
@@ -853,13 +595,16 @@ with tab2:
     st.markdown('</div>', unsafe_allow_html=True)
 
     if st.session_state.screening_results:
-        st.markdown('<div class="corp-card"><h4>📊 Ranked Screening Results & Conditional Action Pipeline</h4>', unsafe_allow_html=True)
+        st.markdown('<div class="corp-card"><h4>📊 JD-Relevant Candidates & Recruiter Decision Pipeline</h4>', unsafe_allow_html=True)
         results = sorted(st.session_state.screening_results, key=lambda x: x["match_score"], reverse=True)
+        
+        if not results:
+            st.warning("⚠️ No candidates in the repository matched the requirements of this Job Description.")
         
         client = Groq(api_key=groq_api_key) if groq_api_key else None
 
         for rank, cand in enumerate(results, start=1):
-            score_cls = "score-high" if cand["match_score"] >= 75 else ("score-mid" if cand["match_score"] >= 50 else "score-low")
+            score_cls = "score-high" if cand["match_score"] >= 75 else ("score-mid" if cand["match_score"] >= 40 else "score-low")
             
             with st.expander(f"#{rank} — {cand['name']} | Match Score: {cand['match_score']}% | Stage: {cand['pipeline_status']}", expanded=(rank == 1)):
                 c1, c2 = st.columns([1.3, 1])
@@ -883,7 +628,7 @@ with tab2:
                         st.caption("No significant skill gaps identified.")
 
                 st.markdown("---")
-                st.markdown("#### 🔄 Candidate Pipeline Stage")
+                st.markdown("#### 🔄 Recruiter Decision & Pipeline Stage")
                 stage_options = ["Shortlisted", "Interview Scheduled", "Hired", "Rejected"]
                 current_stage = cand["pipeline_status"]
                 stage_idx = stage_options.index(current_stage) if current_stage in stage_options else 0
