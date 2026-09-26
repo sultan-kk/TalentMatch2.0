@@ -1,8 +1,8 @@
 """
-HireMatrix Pro — Enterprise Edition v10.39 (Unified Clean UI)
+HireMatrix Pro — Enterprise Edition v10.40 (Isolated Box Styling)
 ========================================================================
-Features: Unified enterprise UI styling, restored clean authentication card background, 
-Dynamic Passing Score Threshold, Smart Duplicate Prevention, and Executive Excel Report.
+Features: Completely isolated inline card styling so boxes never interfere with each other, 
+Restored visible distinct profile box, pristine auth card, Dynamic Threshold, and Excel Report.
 """
 
 import io
@@ -244,7 +244,7 @@ def verify_employee_pin(email, entered_pin):
     return False, None, None, 0
 
 # ===========================================================================
-# PAGE CONFIG & EXECUTIVE STYLING
+# PAGE CONFIG & EXECUTIVE STYLING (ISOLATED)
 # ===========================================================================
 st.set_page_config(
     page_title=f"{APP_NAME} | Executive Portal",
@@ -440,8 +440,13 @@ if not st.session_state.logged_in:
                     st.rerun()
             
         elif saved_profiles and not st.session_state.selected_profile_email:
-            st.markdown("### 👥 Saved Employee Profiles")
-            st.caption("Select your secure profile card below to sign in instantly:")
+            # --- ISOLATED DISTINCT BACKGROUND CARD FOR PROFILES ---
+            st.markdown("""
+                <div style="background: rgba(200, 200, 200, 0.16); border: 1.5px solid #0EA5E9; border-radius: 14px; padding: 1.6rem; margin-bottom: 1.2rem; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
+                    <h3 style="margin-top: 0; margin-bottom: 0.3rem; font-size: 1.2rem; font-weight: 700;">👥 Saved Employee Profiles</h3>
+                    <p style="font-size: 0.85rem; opacity: 0.8; margin-bottom: 0;">Select your secure profile card below to sign in instantly:</p>
+                </div>
+            """, unsafe_allow_html=True)
             
             for p_email, p_name, p_pin, p_role, p_pro in saved_profiles:
                 pro_badge = " 🌟 [PRO]" if p_pro == 1 else " 🆓 [Free]"
@@ -770,7 +775,7 @@ with st.sidebar:
     st.markdown(f"""
         <div class="sidebar-brand-box">
             <h2>{APP_NAME}</h2>
-            <p>Enterprise v10.39</p>
+            <p>Enterprise v10.40</p>
         </div>
     """, unsafe_allow_html=True)
     st.markdown("---")
