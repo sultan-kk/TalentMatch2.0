@@ -1,8 +1,8 @@
 """
-HireMatrix Pro — Enterprise Edition v10.60 (Individual Candidate Delete)
+HireMatrix Pro — Enterprise Edition v10.61 (Clean Numbered Excel Export)
 ========================================================================
-Features: Added individual delete buttons for each candidate in the Talent Repository table, 
-Strict single-candidate duplicate email blocking, JD-relevance filtering, manual pipeline staging, and email dispatchers.
+Features: Removed Job Title from Excel report, added clean 1-based numbering (Sr. No.), 
+Permanent duplicate cleaning, individual candidate delete in repository, and complete ATS workflow.
 """
 
 import io
@@ -163,7 +163,7 @@ def verify_employee_pin(email, entered_pin):
     return False, None, None
 
 # ===========================================================================
-# DATABASE OPERATIONS & INDIVIDUAL DELETE FUNCTION
+# DATABASE OPERATIONS & CLEAN NUMBERED EXPORT
 # ===========================================================================
 def load_database():
     if os.path.exists(DB_FILE):
@@ -243,7 +243,6 @@ def save_candidates_to_repository(new_candidates):
 def delete_single_candidate_from_db(email_or_name):
     if os.path.exists(DB_FILE):
         df = pd.read_csv(DB_FILE)
-        # Delete matching by email or candidate name
         df = df[~(df["Email"].astype(str).str.lower().str.strip() == str(email_or_name).lower().strip()) & 
                 ~(df["Candidate Name"].astype(str).str.lower().str.strip() == str(email_or_name).lower().strip())]
         df.to_csv(DB_FILE, index=False)
@@ -261,7 +260,15 @@ def clear_candidate_database():
 def dataframe_to_formatted_executive_report(df: pd.DataFrame) -> bytes:
     buffer = io.BytesIO()
     with pd.ExcelWriter(buffer, engine="xlsxwriter") as writer:
-        df.to_excel(writer, index=False, sheet_name="Talent Repository Report")
+        # Prepare export dataframe (Drop Job Title if present, add clean Sr. No. 1-based numbering)
+        export_df = df.copy()
+        if "Job Title" in export_df.columns:
+            export_df = export_df.drop(columns=["Job Title"])
+            
+        # Insert Sr. No. at the very beginning starting from 1
+        export_df.insert(0, "Sr. No.", range(1, len(export_df) + 1))
+        
+        export_df.to_excel(writer, index=False, sheet_name="Talent Repository Report")
         workbook = writer.book
         worksheet = writer.sheets["Talent Repository Report"]
         
@@ -280,9 +287,11 @@ def dataframe_to_formatted_executive_report(df: pd.DataFrame) -> bytes:
             "border": 1
         })
         
-        for col_idx, col_name in enumerate(df.columns):
+        for col_idx, col_name in enumerate(export_df.columns):
             worksheet.write(0, col_idx, col_name, header_format)
-            if col_name in ["Extracted Skills", "Latest Experience", "University Name"]:
+            if col_name == "Sr. No.":
+                worksheet.set_column(col_idx, col_idx, 10, wrap_format)
+            elif col_name in ["Extracted Skills", "Latest Experience", "University Name"]:
                 worksheet.set_column(col_idx, col_idx, 30, wrap_format)
             else:
                 worksheet.set_column(col_idx, col_idx, 18, wrap_format)
@@ -457,7 +466,7 @@ with st.sidebar:
     st.markdown(f"""
         <div class="sidebar-brand-box">
             <h2>{APP_NAME}</h2>
-            <p>Multi-Stage ATS v10.60</p>
+            <p>Multi-Stage ATS v10.61</p>
         </div>
     """, unsafe_allow_html=True)
     st.markdown("---")
