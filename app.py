@@ -1,8 +1,8 @@
 """
-HireMatrix Pro — Enterprise Edition v10.17 (Balanced Card Contrast & Clean Aesthetics)
+HireMatrix Pro — Enterprise Edition v10.19 (Perfect Visual Balance & Contrast Fix)
 ========================================================================
-Features: Enhanced box border contrast and subtle shadow depth for light/dark themes, 
-Unified master profile container, Executive split-screen login, and Master Excel Export.
+Features: Flawless light/dark theme contrast harmony, refined container padding, 
+Unified master profile card, Executive split-screen login, and Master Excel Export.
 """
 
 import io
@@ -244,7 +244,7 @@ def verify_employee_pin(email, entered_pin):
     return False, None, None, 0
 
 # ===========================================================================
-# PAGE CONFIG & EXECUTIVE STYLING (ENHANCED CONTRAST)
+# PAGE CONFIG & EXECUTIVE STYLING (PERFECT CONTRAST HARMONY)
 # ===========================================================================
 st.set_page_config(
     page_title=f"{APP_NAME} | Executive Portal",
@@ -275,7 +275,7 @@ html, body, [class*="css"] { font-family: 'Inter', sans-serif !important; }
     font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1.2px; font-weight: 600; opacity: 0.85; margin: 0;
 }
 
-/* Executive Split Auth Layout Containers with Enhanced Contrast */
+/* Executive Split Auth Layout Containers */
 .auth-brand-side {
     background: linear-gradient(135deg, #0EA5E9 0%, #1E293B 100%);
     border-radius: 18px;
@@ -290,13 +290,23 @@ html, body, [class*="css"] { font-family: 'Inter', sans-serif !important; }
 .auth-brand-side h1 { font-size: 2.6rem; font-weight: 800; margin-bottom: 1rem; color: #FFFFFF; letter-spacing: -0.5px; }
 .auth-brand-side p { font-size: 1.05rem; opacity: 0.9; line-height: 1.6; }
 
-/* Custom Login Form Card Container with Defined Border & Shadow */
+/* Custom Login Form Card Container with Balanced Contrast */
 .auth-form-card {
     background: var(--background-color);
-    border: 2px solid rgba(14, 165, 233, 0.25);
+    border: 1px solid rgba(14, 165, 233, 0.3);
     border-radius: 18px;
     padding: 2.5rem;
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
+}
+
+/* Profiles Master Inner Wrapper */
+.profiles-inner-box {
+    background: rgba(14, 165, 233, 0.03);
+    border: 1px solid rgba(14, 165, 233, 0.15);
+    border-radius: 12px;
+    padding: 1.2rem;
+    margin-top: 0.8rem;
+    margin-bottom: 1rem;
 }
 
 /* Corporate Hero Header & Cards */
@@ -362,7 +372,7 @@ if "pending_pin_email" not in st.session_state: st.session_state.pending_pin_ema
 if "results" not in st.session_state: st.session_state.results = []
 
 # ===========================================================================
-# AUTHENTICATION SCREEN (ENHANCED CARD CONTRAST)
+# AUTHENTICATION SCREEN (PERFECT VISUAL BALANCE & CONTRAST)
 # ===========================================================================
 if not st.session_state.logged_in:
     saved_profiles = get_all_verified_profiles()
@@ -432,6 +442,8 @@ if not st.session_state.logged_in:
             st.markdown("### 👥 Saved Employee Profiles")
             st.caption("Select your secure profile card below to sign in instantly:")
             
+            # --- UNIFIED MASTER CONTAINER FOR PROFILES ---
+            st.markdown('<div class="profiles-inner-box">', unsafe_allow_html=True)
             for p_email, p_name, p_pin, p_role, p_pro in saved_profiles:
                 pro_badge = " 🌟 [PRO]" if p_pro == 1 else " 🆓 [Free]"
                 c_p1, c_p2 = st.columns([3, 1])
@@ -444,7 +456,8 @@ if not st.session_state.logged_in:
                         delete_employee_profile(p_email)
                         st.success(f"Profile for {p_name} has been removed.")
                         st.rerun()
-            st.markdown("---")
+            st.markdown('</div>', unsafe_allow_html=True)
+            
             if st.button("➕ Register New Employee Profile", use_container_width=True):
                 st.session_state.selected_profile_email = "new"
                 st.rerun()
@@ -739,7 +752,7 @@ with st.sidebar:
     st.markdown(f"""
         <div class="sidebar-brand-box">
             <h2>{APP_NAME}</h2>
-            <p>Enterprise v10.17</p>
+            <p>Enterprise v10.19</p>
         </div>
     """, unsafe_allow_html=True)
     st.markdown("---")
