@@ -1,8 +1,8 @@
 """
-HireMatrix Pro — Enterprise Edition v10.41 (Polished Isolated UI)
+HireMatrix Pro — Enterprise Free Edition v10.42 (All Pro Features Unlocked)
 ========================================================================
-Features: Dedicated container for Saved Profiles, uniform corporate hero card styling, 
-Dynamic Passing Score Threshold, Smart Duplicate Prevention, and Executive Excel Report.
+Features: Completely removed subscription & payment walls, all features open & free, 
+Distinct profile box, dynamic passing score threshold, and Executive Excel Report.
 """
 
 import io
@@ -30,10 +30,6 @@ ACCEPTED_TYPES = ["pdf", "docx", "png", "jpg", "jpeg"]
 DB_FILE = "master_candidates.csv"
 AUTH_DB_FILE = "hr_users.db"
 
-MEEZAN_TITLE = "Muhammad Sultan Sheraz"
-MEEZAN_IBAN = "PK24MEZN0098820105114718"
-SADAPAY_NUMBER = "0325-8641257"
-
 def init_auth_db():
     conn = sqlite3.connect(AUTH_DB_FILE)
     cursor = conn.cursor()
@@ -44,31 +40,14 @@ def init_auth_db():
             password TEXT,
             pin TEXT,
             role TEXT DEFAULT 'Recruiter',
-            is_pro INTEGER DEFAULT 0,
             is_verified INTEGER DEFAULT 0,
             otp TEXT
-        )
-    """)
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS license_keys (
-            license_key TEXT PRIMARY KEY,
-            email TEXT,
-            is_used INTEGER DEFAULT 0
-        )
-    """)
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS payment_requests (
-            trx_id TEXT PRIMARY KEY,
-            email TEXT,
-            name TEXT,
-            status TEXT DEFAULT 'Pending'
         )
     """)
     cursor.execute("PRAGMA table_info(hr_users)")
     columns = [col[1] for col in cursor.fetchall()]
     if "pin" not in columns: cursor.execute("ALTER TABLE hr_users ADD COLUMN pin TEXT")
     if "role" not in columns: cursor.execute("ALTER TABLE hr_users ADD COLUMN role TEXT DEFAULT 'Recruiter'")
-    if "is_pro" not in columns: cursor.execute("ALTER TABLE hr_users ADD COLUMN is_pro INTEGER DEFAULT 0")
     if "otp" not in columns: cursor.execute("ALTER TABLE hr_users ADD COLUMN otp TEXT")
     conn.commit()
     conn.close()
@@ -87,7 +66,7 @@ def send_smtp_email(receiver_email, subject, body_text):
 
     try:
         msg = MIMEMultipart()
-        msg['From'] = formataddr(("HireMatrix Pro Billing", sender_email))
+        msg['From'] = formataddr(("HireMatrix Pro Notifications", sender_email))
         msg['To'] = receiver_email
         msg['Subject'] = subject
         msg.attach(MIMEText(body_text, 'plain'))
@@ -101,52 +80,10 @@ def send_smtp_email(receiver_email, subject, body_text):
     except Exception as e:
         return False, f"Failed to send email: {e}"
 
-def submit_payment_request(email, name, trx_id):
-    clean_trx = trx_id.strip()
-    if len(clean_trx) < 5:
-        return False, "Please enter a valid Transaction ID."
-    try:
-        conn = sqlite3.connect(AUTH_DB_FILE)
-        cursor = conn.cursor()
-        cursor.execute("SELECT status FROM payment_requests WHERE trx_id = ?", (clean_trx,))
-        if cursor.fetchone():
-            conn.close()
-            return False, "This Transaction ID has already been submitted."
-        
-        cursor.execute("INSERT INTO payment_requests (trx_id, email, name, status) VALUES (?, ?, ?, 'Pending')", (clean_trx, email, name))
-        conn.commit()
-        conn.close()
-        return True, "Payment request submitted! Admin will verify and approve your license key shortly."
-    except Exception as e:
-        return False, str(e)
-
-def admin_approve_payment(trx_id, email):
-    key = f"HMPRO-{random.randint(1000, 9999)}-{random.randint(1000, 9999)}"
-    try:
-        conn = sqlite3.connect(AUTH_DB_FILE)
-        cursor = conn.cursor()
-        cursor.execute("UPDATE payment_requests SET status = 'Approved' WHERE trx_id = ?", (trx_id,))
-        cursor.execute("INSERT OR REPLACE INTO license_keys (license_key, email, is_used) VALUES (?, ?, 0)", (key, email))
-        cursor.execute("UPDATE hr_users SET is_pro = 1 WHERE email = ?", (email,))
-        conn.commit()
-        conn.close()
-        
-        body = f"""
-        Hello,\n\n
-        Your payment for HireMatrix Pro (6,999 PKR) has been verified and approved by Admin!\n\n
-        Your Exclusive Pro License Key is: {key}\n\n
-        Your account has been automatically upgraded to PRO Tier.\n\n
-        Regards,\nTeam HireMatrix Pro Billing
-        """
-        send_smtp_email(email, "Your Approved HireMatrix Pro License Key", body)
-        return True, "Payment approved & license dispatched!"
-    except Exception as e:
-        return False, str(e)
-
 def get_all_verified_profiles():
     conn = sqlite3.connect(AUTH_DB_FILE)
     cursor = conn.cursor()
-    cursor.execute("SELECT email, name, pin, role, is_pro FROM hr_users WHERE is_verified = 1 AND pin IS NOT NULL")
+    cursor.execute("SELECT email, name, pin, role FROM hr_users WHERE is_verified = 1 AND pin IS NOT NULL")
     rows = cursor.fetchall()
     conn.close()
     return rows
@@ -167,12 +104,11 @@ def register_initial_employee(name, email, password):
         cursor.execute("SELECT COUNT(*) FROM hr_users")
         count = cursor.fetchone()[0]
         role = "Admin" if count == 0 else "Recruiter"
-        is_pro_val = 1 if count == 0 else 0
         
         cursor.execute("""
-            INSERT OR REPLACE INTO hr_users (email, name, password, pin, role, is_pro, is_verified, otp) 
-            VALUES (?, ?, ?, NULL, ?, ?, 0, ?)
-        """, (clean_email, name, hash_password(password), role, is_pro_val, otp))
+            INSERT OR REPLACE INTO hr_users (email, name, password, pin, role, is_verified, otp) 
+            VALUES (?, ?, ?, NULL, ?, 0, ?)
+        """, (clean_email, name, hash_password(password), role, otp))
         conn.commit()
         conn.close()
         
@@ -205,23 +141,6 @@ def save_employee_pin(email, pin):
     except Exception as e:
         return False, f"Error: {e}"
 
-def activate_license_key(email, key):
-    conn = sqlite3.connect(AUTH_DB_FILE)
-    cursor = conn.cursor()
-    cursor.execute("SELECT is_used FROM license_keys WHERE license_key = ? AND email = ?", (key, email))
-    row = cursor.fetchone()
-    if row:
-        if row[0] == 1:
-            conn.close()
-            return False, "This license key has already been used."
-        cursor.execute("UPDATE license_keys SET is_used = 1 WHERE license_key = ?", (key,))
-        cursor.execute("UPDATE hr_users SET is_pro = 1 WHERE email = ?", (email,))
-        conn.commit()
-        conn.close()
-        return True, "Pro Subscription successfully activated!"
-    conn.close()
-    return False, "Invalid license key for this email address."
-
 def delete_employee_profile(email):
     try:
         conn = sqlite3.connect(AUTH_DB_FILE)
@@ -236,15 +155,15 @@ def delete_employee_profile(email):
 def verify_employee_pin(email, entered_pin):
     conn = sqlite3.connect(AUTH_DB_FILE)
     cursor = conn.cursor()
-    cursor.execute("SELECT name, pin, role, is_pro FROM hr_users WHERE email = ? AND is_verified = 1", (email.lower().strip(),))
+    cursor.execute("SELECT name, pin, role FROM hr_users WHERE email = ? AND is_verified = 1", (email.lower().strip(),))
     row = cursor.fetchone()
     conn.close()
     if row and row[1] == entered_pin:
-        return True, row[0], row[2], row[3]
-    return False, None, None, 0
+        return True, row[0], row[2]
+    return False, None, None
 
 # ===========================================================================
-# PAGE CONFIG & EXECUTIVE STYLING (MATCHED UI)
+# PAGE CONFIG & EXECUTIVE STYLING
 # ===========================================================================
 st.set_page_config(
     page_title=f"{APP_NAME} | Executive Portal",
@@ -296,7 +215,6 @@ html, body, [class*="css"] { font-family: 'Inter', sans-serif !important; }
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.06);
 }
 
-/* Custom Clean Button Styling */
 .stButton > button {
     background: rgba(14, 165, 233, 0.14) !important;
     color: inherit !important;
@@ -366,7 +284,6 @@ if "logged_in" not in st.session_state: st.session_state.logged_in = False
 if "hr_name" not in st.session_state: st.session_state.hr_name = ""
 if "hr_email" not in st.session_state: st.session_state.hr_email = ""
 if "hr_role" not in st.session_state: st.session_state.hr_role = "Recruiter"
-if "is_pro" not in st.session_state: st.session_state.is_pro = 0
 if "selected_profile_email" not in st.session_state: st.session_state.selected_profile_email = None
 if "pending_otp_email" not in st.session_state: st.session_state.pending_otp_email = None
 if "pending_pin_email" not in st.session_state: st.session_state.pending_pin_email = None
@@ -440,7 +357,6 @@ if not st.session_state.logged_in:
                     st.rerun()
             
         elif saved_profiles and not st.session_state.selected_profile_email:
-            # --- STANDALONE SEPARATE BOX FOR SAVED PROFILES ---
             st.markdown("""
                 <div style="background: rgba(14, 165, 233, 0.08); border: 1.5px solid #0EA5E9; border-radius: 14px; padding: 1.6rem; margin-bottom: 1.5rem; box-shadow: 0 4px 15px rgba(0,0,0,0.04);">
                     <h3 style="margin-top: 0; margin-bottom: 0.3rem; font-size: 1.2rem; font-weight: 700;">👥 Saved Employee Profiles</h3>
@@ -448,11 +364,10 @@ if not st.session_state.logged_in:
                 </div>
             """, unsafe_allow_html=True)
             
-            for p_email, p_name, p_pin, p_role, p_pro in saved_profiles:
-                pro_badge = " 🌟 [PRO]" if p_pro == 1 else " 🆓 [Free]"
+            for p_email, p_name, p_pin, p_role in saved_profiles:
                 c_p1, c_p2 = st.columns([3, 1])
                 with c_p1:
-                    if st.button(f"👤 {p_name} ({p_role}){pro_badge}", use_container_width=True, key=f"sel_{p_email}"):
+                    if st.button(f"👤 {p_name} ({p_role})", use_container_width=True, key=f"sel_{p_email}"):
                         st.session_state.selected_profile_email = p_email
                         st.rerun()
                 with c_p2:
@@ -468,7 +383,7 @@ if not st.session_state.logged_in:
             
         elif st.session_state.selected_profile_email and st.session_state.selected_profile_email != "new":
             target_email = st.session_state.selected_profile_email
-            p_match = next((p for p in saved_profiles if p[0] == target_email), ("Employee", "", "", "Recruiter", 0))
+            p_match = next((p for p in saved_profiles if p[0] == target_email), ("Employee", "", "", "Recruiter"))
             
             st.markdown(f"### 🔐 Sign In: {p_match[1]}")
             st.caption("Enter your 4-digit security PIN to access portal.")
@@ -479,13 +394,12 @@ if not st.session_state.logged_in:
                 
             col_b1, col_b2 = st.columns(2)
             if submit_login:
-                success, name, role, pro_status = verify_employee_pin(target_email, pin_input)
+                success, name, role = verify_employee_pin(target_email, pin_input)
                 if success:
                     st.session_state.logged_in = True
                     st.session_state.hr_name = name
                     st.session_state.hr_email = target_email
                     st.session_state.hr_role = role
-                    st.session_state.is_pro = pro_status
                     st.success(f"Welcome back, {name}!")
                     st.rerun()
                 else:
@@ -573,7 +487,6 @@ def save_to_database(new_results, default_status="Shortlisted"):
         })
     df_new = pd.DataFrame(new_data)
     
-    # --- SMART DUPLICATE MERGE & PREVENTION BASED ON EMAIL ---
     if not df.empty and not df_new.empty:
         for _, new_row in df_new.iterrows():
             incoming_email = str(new_row["Email"]).lower().strip()
@@ -599,7 +512,6 @@ def check_if_exists_in_db(email):
     df = load_database()
     return email.lower().strip() in df["Email"].str.lower().str.strip().values
 
-# --- FORMATTED EXECUTIVE RECRUITMENT REPORT EXPORTER ---
 def dataframe_to_formatted_executive_report(df: pd.DataFrame) -> bytes:
     buffer = io.BytesIO()
     with pd.ExcelWriter(buffer, engine="xlsxwriter") as writer:
@@ -764,7 +676,6 @@ def generate_ai_interview_questions(client, resume_text: str, job_title: str) ->
             messages=[{"role": "user", "content": prompt}],
             temperature=0.3,
         )
-        # Clean up any raw HTML break tags if AI includes them
         raw_output = response.choices[0].message.content.strip()
         cleaned_output = raw_output.replace("<br>", "\n").replace("<br/>", "\n").replace("<BR>", "\n")
         return cleaned_output
@@ -778,47 +689,20 @@ with st.sidebar:
     st.markdown(f"""
         <div class="sidebar-brand-box">
             <h2>{APP_NAME}</h2>
-            <p>Enterprise v10.41</p>
+            <p>Enterprise Free Edition</p>
         </div>
     """, unsafe_allow_html=True)
     st.markdown("---")
     
-    tier_badge = "🌟 PRO TIER (6,999 PKR/mo)" if st.session_state.is_pro == 1 else "🆓 FREE BASIC TIER"
     st.markdown(f"""
         <div class="sidebar-card">
             <div style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.8px; font-weight: 700; margin-bottom: 4px;">Active Employee</div>
             <div style="font-size: 0.95rem; font-weight: 700;">👤 {st.session_state.hr_name}</div>
-            <div style="font-size: 0.75rem; color: #0EA5E9; margin-top: 4px; font-weight: 600;">{tier_badge}</div>
+            <div style="font-size: 0.75rem; color: #10B981; margin-top: 4px; font-weight: 600;">🌟 FULL ACCESS UNLOCKED</div>
         </div>
     """, unsafe_allow_html=True)
     
-    if st.session_state.is_pro == 0:
-        st.markdown("### 🌟 Upgrade to PRO (6,999 PKR)")
-        st.info("Transfer to our Meezan Bank or Sadapay account and submit your Transaction ID (TRX ID). Admin will verify and approve your license key.")
-        
-        with st.expander("💳 View Bank / Sadapay Details"):
-            st.markdown(f"**Meezan Bank Account:**\n- Title: `{MEEZAN_TITLE}`\n- IBAN: `{MEEZAN_IBAN}`")
-            st.markdown(f"**Sadapay Mobile Wallet:**\n- Number: `{SADAPAY_NUMBER}`")
-        
-        trx_input = st.text_input("Enter Transaction ID (TRX ID)", placeholder="e.g. TRX98234105", key="trx_sub_in")
-        if st.button("Submit Payment for Approval", use_container_width=True, key="sub_pay_btn"):
-            ok, msg = submit_payment_request(st.session_state.hr_email, st.session_state.hr_name, trx_input)
-            if ok:
-                st.success(msg)
-            else:
-                st.error(msg)
-
-        license_input = st.text_input("Enter Pro License Key", type="password", placeholder="HMPRO-XXXX-XXXX", key="lic_act_in")
-        if st.button("Activate Pro Subscription", use_container_width=True, key="act_lic_btn"):
-            ok, msg = activate_license_key(st.session_state.hr_email, license_input)
-            if ok:
-                st.session_state.is_pro = 1
-                st.success(msg)
-                st.rerun()
-            else:
-                st.error(msg)
-        st.markdown("---")
-
+    st.markdown("---")
     if "GROQ_API_KEY" in st.secrets:
         groq_api_key = st.secrets["GROQ_API_KEY"]
         st.markdown('<div class="sidebar-card" style="border-color: #10B981; color: #059669; font-size: 0.8rem; font-weight: 600;">✓ Groq API Secured</div>', unsafe_allow_html=True)
@@ -835,7 +719,6 @@ with st.sidebar:
         st.session_state.hr_name = ""
         st.session_state.hr_email = ""
         st.session_state.hr_role = "Recruiter"
-        st.session_state.is_pro = 0
         st.session_state.selected_profile_email = None
         st.session_state.results = []
         st.rerun()
@@ -849,7 +732,7 @@ latest_job = df_all.iloc[-1]["Job Title"] if not df_all.empty else "N/A"
 st.markdown(f"""
     <div class="corp-hero">
         <div class="corp-badge">
-            <span>🟢 Live Employee Session</span> &bull; <span>{st.session_state.hr_email} ({'PRO' if st.session_state.is_pro == 1 else 'FREE'})</span>
+            <span>🟢 Live Employee Session</span> &bull; <span>{st.session_state.hr_email} (UNLOCKED)</span>
         </div>
         <h1>{APP_NAME}</h1>
         <p>Welcome back, <b>{st.session_state.hr_name}</b> &mdash; Total Screened Profiles in System: <b>{total_screened_db}</b> | Latest Screening: <b>{latest_candidate} ({latest_job})</b></p>
@@ -917,7 +800,7 @@ with tab1:
             st.markdown(f'<div class="metric-box"><div class="val">{avg_score}%</div><div class="lbl">Average Match Score</div></div>', unsafe_allow_html=True)
         st.markdown("</div>", unsafe_allow_html=True)
 
-        st.markdown('<div class="corp-card"><h4>🧾 Ranked Candidate Insights & Pro Tools</h4>', unsafe_allow_html=True)
+        st.markdown('<div class="corp-card"><h4>🧾 Ranked Candidate Insights & Unlocked AI Tools</h4>', unsafe_allow_html=True)
         results = sorted(results, key=lambda x: x["match_score"], reverse=True)
         
         client = Groq(api_key=groq_api_key) if groq_api_key else None
@@ -948,47 +831,43 @@ with tab1:
                         st.caption("No significant skill gaps identified.")
 
                 st.markdown("---")
-                if st.session_state.is_pro == 1:
-                    if st.button(f"💡 Generate AI Interview Q&A for {cand['name']}", key=f"gen_q_{rank}"):
-                        if client:
-                            with st.spinner("Generating tailored interview questions..."):
-                                q_text = generate_ai_interview_questions(client, cand['skills'], job_title_input)
-                                st.markdown("#### 🎯 AI Generated Interview Guide:")
-                                st.markdown(q_text)
-                        else:
-                            st.error("Groq API key required.")
+                if st.button(f"💡 Generate AI Interview Q&A for {cand['name']}", key=f"gen_q_{rank}"):
+                    if client:
+                        with st.spinner("Generating tailored interview questions..."):
+                            q_text = generate_ai_interview_questions(client, cand['skills'], job_title_input)
+                            st.markdown("#### 🎯 AI Generated Interview Guide:")
+                            st.markdown(q_text)
+                    else:
+                        st.error("Groq API key required.")
 
-                    if cand['email'] not in ["Not Provided", "Not Found", ""] and cand['email']:
-                        st.markdown("#### ✉️ Conditional Email Dispatcher (Score-Based)")
-                        
-                        if cand['match_score'] >= 50:
-                            default_msg = f"Dear {cand['name']},\n\nWe were deeply impressed by your credentials and match score ({cand['match_score']}%) for the {job_title_input} position at HireMatrix Pro. We would love to invite you for an interview round.\n\nBest Regards,\nTeam HireMatrix Pro"
-                            email_subject = f"Interview Invitation - {job_title_input}"
-                            st.info("✓ Score >= 50%: **Interview Invitation Template loaded.**")
-                        else:
-                            default_msg = f"Dear {cand['name']},\n\nThank you for your interest in the {job_title_input} position at HireMatrix Pro. Although your background is notable, your match score ({cand['match_score']}%) does not meet our current threshold for this role. We wish you the best in your career pursuits.\n\nBest Regards,\nTeam HireMatrix Pro"
-                            email_subject = f"Application Status Update - {job_title_input}"
-                            st.warning("⚠️ Score < 50%: **Apology / Rejection Template loaded.**")
+                if cand['email'] not in ["Not Provided", "Not Found", ""] and cand['email']:
+                    st.markdown("#### ✉️ Conditional Email Dispatcher (Score-Based)")
+                    
+                    if cand['match_score'] >= 50:
+                        default_msg = f"Dear {cand['name']},\n\nWe were deeply impressed by your credentials and match score ({cand['match_score']}%) for the {job_title_input} position at HireMatrix Pro. We would love to invite you for an interview round.\n\nBest Regards,\nTeam HireMatrix Pro"
+                        email_subject = f"Interview Invitation - {job_title_input}"
+                        st.info("✓ Score >= 50%: **Interview Invitation Template loaded.**")
+                    else:
+                        default_msg = f"Dear {cand['name']},\n\nThank you for your interest in the {job_title_input} position at HireMatrix Pro. Although your background is notable, your match score ({cand['match_score']}%) does not meet our current threshold for this role. We wish you the best in your career pursuits.\n\nBest Regards,\nTeam HireMatrix Pro"
+                        email_subject = f"Application Status Update - {job_title_input}"
+                        st.warning("⚠️ Score < 50%: **Apology / Rejection Template loaded.**")
 
-                        invite_msg = st.text_area("Email Message", value=default_msg, key=f"inv_msg_{rank}")
-                        
-                        if st.button(f"📧 Send Email", key=f"send_inv_{rank}"):
-                            ok, res_m = send_smtp_email(cand['email'], email_subject, invite_msg)
-                            if ok:
-                                st.success(f"Email sent successfully to {cand['email']}!")
-                                new_status = "Interview Scheduled" if cand['match_score'] >= 50 else "Rejected"
-                                update_candidate_status_in_db(cand['email'], job_title_input, new_status)
-                            else:
-                                st.error(res_m)
-                else:
-                    st.warning("🔒 **Pro Feature Locked:** Upgrade to **PRO (6,999 PKR/mo)** from the sidebar to unlock AI Interview Q&A Generation and Automated Email Invites.")
+                    invite_msg = st.text_area("Email Message", value=default_msg, key=f"inv_msg_{rank}")
+                    
+                    if st.button(f"📧 Send Email", key=f"send_inv_{rank}"):
+                        ok, res_m = send_smtp_email(cand['email'], email_subject, invite_msg)
+                        if ok:
+                            st.success(f"Email sent successfully to {cand['email']}!")
+                            new_status = "Interview Scheduled" if cand['match_score'] >= 50 else "Rejected"
+                            update_candidate_status_in_db(cand['email'], job_title_input, new_status)
+                        else:
+                            st.error(res_m)
 
         st.markdown("</div>", unsafe_allow_html=True)
 
 with tab2:
     st.markdown('<div class="corp-card"><h4>🗄️ Candidate Database, Search Filters & Analytics Charts</h4>', unsafe_allow_html=True)
     
-    # --- DOWNLOAD EXECUTIVE FORMATTED REPORT BUTTON ---
     df_export = load_database()
     st.download_button(
         "📊 Download Executive Formatted Report (.xlsx)",
@@ -1046,64 +925,35 @@ with tab2:
                 status_counts = df_db["Pipeline Status"].value_counts()
                 st.bar_chart(status_counts)
 
-        if st.session_state.is_pro == 1:
-            st.markdown("---")
-            st.markdown("Update candidate pipeline stage below:")
-            for idx, row in df_db.iterrows():
-                cols = st.columns([2, 2, 2, 2])
-                with cols[0]: st.write(f"**{row['Candidate Name']}**")
-                with cols[1]: st.write(f"*{row['Job Title']}*")
-                with cols[2]: st.write(f"Score: {row['Match Score']}%")
-                with cols[3]:
-                    current_status = row["Pipeline Status"] if "Pipeline Status" in df_db.columns else "Shortlisted"
-                    new_status = st.selectbox("Stage", ["Shortlisted", "Interview Scheduled", "Hired", "Rejected"], index=["Shortlisted", "Interview Scheduled", "Hired", "Rejected"].index(current_status) if current_status in ["Shortlisted", "Interview Scheduled", "Hired", "Rejected"] else 0, key=f"status_{idx}")
-                    if new_status != current_status:
-                        update_candidate_status_in_db(row['Email'], row['Job Title'], new_status)
-                        st.rerun()
+        st.markdown("---")
+        st.markdown("Update candidate pipeline stage below:")
+        for idx, row in df_db.iterrows():
+            cols = st.columns([2, 2, 2, 2])
+            with cols[0]: st.write(f"**{row['Candidate Name']}**")
+            with cols[1]: st.write(f"*{row['Job Title']}*")
+            with cols[2]: st.write(f"Score: {row['Match Score']}%")
+            with cols[3]:
+                current_status = row["Pipeline Status"] if "Pipeline Status" in df_db.columns else "Shortlisted"
+                new_status = st.selectbox("Stage", ["Shortlisted", "Interview Scheduled", "Hired", "Rejected"], index=["Shortlisted", "Interview Scheduled", "Hired", "Rejected"].index(current_status) if current_status in ["Shortlisted", "Interview Scheduled", "Hired", "Rejected"] else 0, key=f"status_{idx}")
+                if new_status != current_status:
+                    update_candidate_status_in_db(row['Email'], row['Job Title'], new_status)
+                    st.rerun()
                         
     st.markdown("</div>", unsafe_allow_html=True)
 
 with tab3:
-    st.markdown('<div class="corp-card"><h4>🛡️ Admin Access & Employee & Payment Management</h4>', unsafe_allow_html=True)
+    st.markdown('<div class="corp-card"><h4>🛡️ Admin Access & Employee Management</h4>', unsafe_allow_html=True)
     if st.session_state.hr_role != "Admin":
-        st.warning("⚠️ Access Restricted: Only users with **Admin** role can manage company employee profiles and payment requests.")
+        st.warning("⚠️ Access Restricted: Only users with **Admin** role can manage company employee profiles.")
     else:
         st.success("✓ Admin privileges active.")
         
-        st.markdown("### 💳 Pending Subscription Payment Requests")
-        try:
-            conn_p = sqlite3.connect(AUTH_DB_FILE)
-            cur_p = conn_p.cursor()
-            cur_p.execute("SELECT trx_id, email, name, status FROM payment_requests WHERE status = 'Pending'")
-            pendings = cur_p.fetchall()
-            conn_p.close()
-            
-            if not pendings:
-                st.info("No pending payment requests found.")
-            else:
-                for trx, p_email, p_name, status in pendings:
-                    c_pr1, c_pr2 = st.columns([3, 1])
-                    with c_pr1:
-                        st.write(f"👤 **{p_name}** (`{p_email}`) — TRX ID: **`{trx}`**")
-                    with c_pr2:
-                        if st.button("✅ Approve & Send Key", key=f"app_{trx}", use_container_width=True):
-                            ok_a, msg_a = admin_approve_payment(trx, p_email)
-                            if ok_a:
-                                st.success(msg_a)
-                                st.rerun()
-                            else:
-                                st.error(msg_a)
-        except Exception as e:
-            st.error(f"Error loading payments: {e}")
-            
-        st.markdown("---")
         st.markdown("### 👥 Active Employee Profiles")
         all_emps = get_all_verified_profiles()
         st.markdown(f"**Total Active Registered Employees:** {len(all_emps)}")
-        for emp_email, emp_name, emp_pin, emp_role, emp_pro in all_emps:
-            pro_st = "🌟 PRO" if emp_pro == 1 else "🆓 Free"
+        for emp_email, emp_name, emp_pin, emp_role in all_emps:
             col_a1, col_a2, col_a3 = st.columns([2, 1, 1])
-            with col_a1: st.write(f"👤 **{emp_name}** ({emp_email}) — *{emp_role}* [{pro_st}]")
+            with col_a1: st.write(f"👤 **{emp_name}** ({emp_email}) — *{emp_role}*")
             with col_a2: st.write(f"PIN: `{emp_pin}`")
             with col_a3:
                 if emp_email.lower() != st.session_state.hr_email.lower():
