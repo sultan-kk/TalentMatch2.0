@@ -1,9 +1,9 @@
 """
-HireMatrix Pro — Enterprise Edition v9.1 (Fixed License & Payment Gateway)
+HireMatrix Pro — Enterprise Edition v9.2 (Complete Excel Fields Fix)
 ========================================================================
-Features: Auto-created License Tables, Live SMTP OTP, Quick PIN Setup, 
-Automated Sadapay/Meezan Bank Payment Verification & Auto License Key Dispatch via Email, 
-AI Interview Q&A, Kanban Pipeline, Admin Controls, and Deep LLM Screening.
+Features: All extracted resume fields (Father Name, CGPA, Education, University, 
+Experience, Reference, Skills) fully saved in Database & Master Excel Export, 
+Live SMTP OTP, Pro Subscription Gate, AI Interview Q&A, and Kanban Pipeline.
 """
 
 import io
@@ -21,7 +21,7 @@ import streamlit as st
 from groq import Groq
 
 # ===========================================================================
-# CONFIGURATION & AUTH DB (WITH SECURE TABLE CREATION)
+# CONFIGURATION & AUTH DB
 # ===========================================================================
 APP_NAME = "HireMatrix Pro"
 APP_TAGLINE = "Autonomous HR Intelligence & Executive Recruitment Suite"
@@ -30,7 +30,6 @@ ACCEPTED_TYPES = ["pdf", "docx", "png", "jpg", "jpeg"]
 DB_FILE = "master_candidates.csv"
 AUTH_DB_FILE = "hr_users.db"
 
-# Aapke official payment accounts
 MEEZAN_TITLE = "Muhammad Sultan Sheraz"
 MEEZAN_IBAN = "PK24MEZN0098820105114718"
 SADAPAY_NUMBER = "0325-8641257"
@@ -57,7 +56,6 @@ def init_auth_db():
             is_used INTEGER DEFAULT 0
         )
     """)
-    # Check missing columns in hr_users
     cursor.execute("PRAGMA table_info(hr_users)")
     columns = [col[1] for col in cursor.fetchall()]
     if "pin" not in columns: cursor.execute("ALTER TABLE hr_users ADD COLUMN pin TEXT")
@@ -217,7 +215,7 @@ def verify_employee_pin(email, entered_pin):
     return False, None, None, 0
 
 # ===========================================================================
-# PAGE CONFIG & STYLING
+# PAGE CONFIG & ADAPTIVE STYLING
 # ===========================================================================
 st.set_page_config(
     page_title=f"{APP_NAME} | Executive Portal",
@@ -229,105 +227,55 @@ st.set_page_config(
 ADVANCED_CSS = """
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+html, body, [class*="css"] { font-family: 'Plus Jakarta Sans', sans-serif !important; }
 
-html, body, [class*="css"] {
-    font-family: 'Plus Jakarta Sans', sans-serif !important;
-}
-
-/* Stunning Adaptive Header */
 .cyber-hero {
-    background: rgba(0, 229, 255, 0.04);
-    border: 1px solid rgba(0, 229, 255, 0.2);
-    border-radius: 20px;
-    padding: 2.2rem 2.8rem;
-    margin-bottom: 2rem;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
-    position: relative;
-    overflow: hidden;
+    background: rgba(0, 229, 255, 0.04); border: 1px solid rgba(0, 229, 255, 0.2);
+    border-radius: 20px; padding: 2.2rem 2.8rem; margin-bottom: 2rem;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05); position: relative; overflow: hidden;
 }
 .cyber-hero::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; width: 6px; height: 100%;
+    content: ''; position: absolute; top: 0; left: 0; width: 6px; height: 100%;
     background: linear-gradient(to bottom, #00e5ff, #3b82f6, #8b5cf6);
 }
 .cyber-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    background: rgba(0, 229, 255, 0.1);
-    border: 1px solid rgba(0, 229, 255, 0.3);
-    color: #00838f;
-    padding: 5px 14px;
-    border-radius: 25px;
-    font-size: 0.75rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 1.2px;
-    margin-bottom: 0.8rem;
+    display: inline-flex; align-items: center; gap: 8px; background: rgba(0, 229, 255, 0.1);
+    border: 1px solid rgba(0, 229, 255, 0.3); color: #00838f; padding: 5px 14px; border-radius: 25px;
+    font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 0.8rem;
 }
-.cyber-hero h1 {
-    font-size: 2.3rem;
-    font-weight: 800;
-    letter-spacing: -0.8px;
-    margin: 0;
-}
-.cyber-hero p {
-    margin-top: 0.5rem;
-    margin-bottom: 0;
-    font-size: 1.05rem;
-}
+.cyber-hero h1 { font-size: 2.3rem; font-weight: 800; letter-spacing: -0.8px; margin: 0; }
+.cyber-hero p { margin-top: 0.5rem; margin-bottom: 0; font-size: 1.05rem; }
 
-/* Glassmorphism Cards that adapt to Light/Dark */
 .glass-card {
-    background: rgba(128, 128, 128, 0.04);
-    border: 1px solid rgba(128, 128, 128, 0.15);
-    border-radius: 16px;
-    padding: 1.6rem;
-    margin-bottom: 1.5rem;
-    box-shadow: 0 8px 25px rgba(0,0,0,0.03);
+    background: rgba(128, 128, 128, 0.04); border: 1px solid rgba(128, 128, 128, 0.15);
+    border-radius: 16px; padding: 1.6rem; margin-bottom: 1.5rem; box-shadow: 0 8px 25px rgba(0,0,0,0.03);
 }
-.glass-card h4 {
-    font-size: 1.15rem;
-    font-weight: 700;
-    margin-bottom: 1rem;
-}
+.glass-card h4 { font-size: 1.15rem; font-weight: 700; margin-bottom: 1rem; }
 
-/* Metric Pills */
 .metric-pill {
-    background: rgba(128, 128, 128, 0.06);
-    border: 1px solid rgba(128, 128, 128, 0.12);
-    border-radius: 14px;
-    padding: 1.1rem;
-    text-align: center;
+    background: rgba(128, 128, 128, 0.06); border: 1px solid rgba(128, 128, 128, 0.12);
+    border-radius: 14px; padding: 1.1rem; text-align: center;
 }
-.metric-pill .val {
-    font-size: 1.7rem;
-    font-weight: 800;
-    color: #00838f;
-}
-.metric-pill .lbl {
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    letter-spacing: 1.2px;
-    margin-top: 4px;
-    font-weight: 600;
-}
+.metric-pill .val { font-size: 1.7rem; font-weight: 800; color: #00838f; }
+.metric-pill .lbl { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1.2px; margin-top: 4px; font-weight: 600; }
 
 .score-high { color: #10B981 !important; }
 .score-mid { color: #F59E0B !important; }
 .score-low { color: #EF4444 !important; }
 
-/* Buttons */
 .stButton>button[kind="primary"] {
     background: linear-gradient(135deg, #00e5ff 0%, #3b82f6 50%, #6366f1 100%);
-    color: #FFFFFF;
-    font-weight: 800;
-    border-radius: 12px;
-    padding: 0.65rem 1.4rem;
-    border: none;
+    color: #FFFFFF; font-weight: 800; border-radius: 12px; padding: 0.65rem 1.4rem; border: none;
     box-shadow: 0 4px 15px rgba(0, 229, 255, 0.3);
 }
+[data-testid="stSidebar"] { border-right: 1px solid rgba(128, 128, 128, 0.15); }
+.sidebar-card { background: rgba(128, 128, 128, 0.05); border: 1px solid rgba(128, 128, 128, 0.15); border-radius: 14px; padding: 1.2rem; margin-bottom: 1.2rem; }
+.sidebar-brand {
+    background: rgba(0, 229, 255, 0.08); border: 1px solid rgba(0, 229, 255, 0.25);
+    border-radius: 14px; padding: 1.2rem 1rem; text-align: center; margin-bottom: 1rem;
+}
+.sidebar-brand h3 { color: #00838f; font-size: 1.25rem; font-weight: 800; margin: 0; }
+.sidebar-brand span { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 2px; font-weight: 700; display: block; margin-top: 4px; }
 </style>
 """
 st.markdown(ADVANCED_CSS, unsafe_allow_html=True)
@@ -351,11 +299,11 @@ if "results" not in st.session_state: st.session_state.results = []
 if not st.session_state.logged_in:
     st.markdown("""
         <div style="text-align: center; padding: 2.5rem 0 1rem 0;">
-            <div style="display: inline-flex; align-items: center; gap: 8px; background: rgba(0,229,255,0.08); border: 1px solid rgba(0,229,255,0.3); padding: 6px 16px; border-radius: 30px; color: #00e5ff; font-size: 0.8rem; font-weight: 700; margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 1px;">
+            <div style="display: inline-flex; align-items: center; gap: 8px; background: rgba(0,229,255,0.08); border: 1px solid rgba(0,229,255,0.3); padding: 6px 16px; border-radius: 30px; color: #00838f; font-size: 0.8rem; font-weight: 700; margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 1px;">
                 ⚡ Enterprise Automated Payment Portal (6,999 PKR / mo)
             </div>
-            <h1 style="color: #FFFFFF; font-size: 2.5rem; font-weight: 800; margin: 0;">HireMatrix Pro</h1>
-            <p style="color: #94A3B8; font-size: 1.1rem; margin-top: 0.5rem;">Autonomous HR Intelligence & Executive Recruitment Suite</p>
+            <h1 style="font-size: 2.5rem; font-weight: 800; margin: 0;">HireMatrix Pro</h1>
+            <p style="opacity: 0.8; font-size: 1.1rem; margin-top: 0.5rem;">Autonomous HR Intelligence & Executive Recruitment Suite</p>
         </div>
     """, unsafe_allow_html=True)
     
@@ -484,17 +432,27 @@ if not st.session_state.logged_in:
     st.stop()
 
 # ===========================================================================
-# DATABASE OPERATIONS
+# DATABASE OPERATIONS WITH ALL DETAILED FIELDS SAVED
 # ===========================================================================
 def load_database():
     if os.path.exists(DB_FILE):
         df = pd.read_csv(DB_FILE)
-        if "Pipeline Status" not in df.columns:
-            df["Pipeline Status"] = "Shortlisted"
-            df.to_csv(DB_FILE, index=False)
+        expected_cols = [
+            "Job Title", "Candidate Name", "Father Name", "Email", "Phone", 
+            "CGPA", "Education", "University Name", "Experience Years", 
+            "Latest Experience", "Extracted Skills", "Reference", "Match Score", "Pipeline Status"
+        ]
+        for col in expected_cols:
+            if col not in df.columns:
+                df[col] = "Not Provided"
+        df.to_csv(DB_FILE, index=False)
         return df
     else:
-        return pd.DataFrame(columns=["Job Title", "Candidate Name", "Email", "Phone", "Match Score", "Pipeline Status"])
+        return pd.DataFrame(columns=[
+            "Job Title", "Candidate Name", "Father Name", "Email", "Phone", 
+            "CGPA", "Education", "University Name", "Experience Years", 
+            "Latest Experience", "Extracted Skills", "Reference", "Match Score", "Pipeline Status"
+        ])
 
 def save_to_database(new_results):
     df = load_database()
@@ -503,8 +461,16 @@ def save_to_database(new_results):
         new_data.append({
             "Job Title": r["job_title"],
             "Candidate Name": r["name"],
+            "Father Name": r.get("father_name", "Not Provided"),
             "Email": r["email"],
             "Phone": r["phone"],
+            "CGPA": r.get("cgpa", "Not Provided"),
+            "Education": r.get("education", "Not Provided"),
+            "University Name": r.get("university_name", "Not Provided"),
+            "Experience Years": r.get("experience_years", "0"),
+            "Latest Experience": r.get("latest_experience", "Not Provided"),
+            "Extracted Skills": r.get("skills", "Not Provided"),
+            "Reference": r.get("reference", "Not Provided"),
             "Match Score": r["match_score"],
             "Pipeline Status": "Shortlisted"
         })
@@ -661,7 +627,7 @@ def generate_ai_interview_questions(client, resume_text: str, job_title: str) ->
         return f"Could not generate interview questions: {e}"
 
 # ===========================================================================
-# EXCEL EXPORT
+# EXCEL EXPORT (ALL FIELDS INCLUDED)
 # ===========================================================================
 def dataframe_to_formatted_excel_bytes(df: pd.DataFrame) -> bytes:
     buffer = io.BytesIO()
@@ -676,7 +642,7 @@ def dataframe_to_formatted_excel_bytes(df: pd.DataFrame) -> bytes:
         wrap_format = workbook.add_format({"text_wrap": True, "valign": "top"})
         for col_idx, col_name in enumerate(df.columns):
             worksheet.write(0, col_idx, col_name, header_format)
-            width = 25 if col_name in ["Missing Skills (vs JD)", "Extracted Skills", "Latest Experience"] else 18
+            width = 25 if col_name in ["Missing Skills (vs JD)", "Extracted Skills", "Latest Experience", "University Name"] else 18
             worksheet.set_column(col_idx, col_idx, width, wrap_format)
         worksheet.freeze_panes(1, 0)
     buffer.seek(0)
@@ -689,7 +655,7 @@ with st.sidebar:
     st.markdown(f"""
         <div class="sidebar-brand">
             <h3>⚡ HireMatrix Pro</h3>
-            <span>Pro Edition v9.1</span>
+            <span>Pro Edition v9.2</span>
         </div>
     """, unsafe_allow_html=True)
     st.markdown("---")
@@ -697,15 +663,15 @@ with st.sidebar:
     tier_badge = "🌟 PRO TIER (6,999 PKR/mo)" if st.session_state.is_pro == 1 else "🆓 FREE BASIC TIER"
     st.markdown(f"""
         <div class="sidebar-card">
-            <div style="font-size: 0.75rem; color: #94A3B8; text-transform: uppercase; letter-spacing: 1px; font-weight: 700; margin-bottom: 4px;">Active Employee</div>
-            <div style="font-size: 1rem; font-weight: 700; color: #F8FAFC;">👤 {st.session_state.hr_name}</div>
-            <div style="font-size: 0.8rem; color: #00e5ff; margin-top: 4px;">{tier_badge}</div>
+            <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; font-weight: 700; margin-bottom: 4px;">Active Employee</div>
+            <div style="font-size: 1rem; font-weight: 700;">👤 {st.session_state.hr_name}</div>
+            <div style="font-size: 0.8rem; color: #00838f; margin-top: 4px;">{tier_badge}</div>
         </div>
     """, unsafe_allow_html=True)
     
     if st.session_state.is_pro == 0:
         st.markdown("### 🌟 Upgrade to PRO (6,999 PKR)")
-        st.info(f"Pay to our Meezan Bank / Sadapay account and get your automated Pro License Key via email instantly.")
+        st.info("Pay to our Meezan Bank / Sadapay account and get your automated Pro License Key via email instantly.")
         
         with st.expander("💳 View Bank / Sadapay Details"):
             st.markdown(f"**Meezan Bank Account:**\n- Title: `{MEEZAN_TITLE}`\n- IBAN: `{MEEZAN_IBAN}`")
@@ -864,7 +830,7 @@ with tab1:
 
         st.markdown("</div>", unsafe_allow_html=True)
 
-        st.markdown('<div class="glass-card"><h4>⬇️ Master Data Export</h4>', unsafe_allow_html=True)
+        st.markdown('<div class="glass-card"><h4>⬇️ Master Data Export (All Fields)</h4>', unsafe_allow_html=True)
         df_export = load_database()
         st.download_button(
             "Download Formatted Master Report (.xlsx)",
