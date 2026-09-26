@@ -1,8 +1,8 @@
 """
-HireMatrix Pro — Enterprise Edition v10.23 (Clean Master Profiles & Syntax Fix)
+HireMatrix Pro — Enterprise Edition v10.27 (Polished Executive Report Exporter)
 ========================================================================
-Features: Fixed Python syntax error, single unified master container box for saved profiles, 
-Integrated clean header, and balanced light/dark theme contrast harmony.
+Features: Tailored executive spreadsheet export with professional table headers, 
+Automatic text wrapping, clean column widths, and timestamped tracking.
 """
 
 import io
@@ -358,7 +358,7 @@ if "pending_pin_email" not in st.session_state: st.session_state.pending_pin_ema
 if "results" not in st.session_state: st.session_state.results = []
 
 # ===========================================================================
-# AUTHENTICATION SCREEN (CLEAN MASTER PROFILES CONTAINER)
+# AUTHENTICATION SCREEN
 # ===========================================================================
 if not st.session_state.logged_in:
     saved_profiles = get_all_verified_profiles()
@@ -425,7 +425,6 @@ if not st.session_state.logged_in:
                     st.rerun()
             
         elif saved_profiles and not st.session_state.selected_profile_email:
-            # --- SINGLE INTEGRATED MASTER CONTAINER BOX FOR PROFILES ---
             with st.container(border=True):
                 st.markdown("### 👥 Saved Employee Profiles")
                 st.caption("Select your secure profile card below to sign in instantly:")
@@ -509,7 +508,7 @@ if not st.session_state.logged_in:
     st.stop()
 
 # ===========================================================================
-# DATABASE OPERATIONS (WITH TIMESTAMP)
+# DATABASE OPERATIONS & FORMATTED EXCEL EXPORT
 # ===========================================================================
 def load_database():
     if os.path.exists(DB_FILE):
@@ -573,6 +572,44 @@ def check_if_exists_in_db(email):
         return False
     df = load_database()
     return email.lower().strip() in df["Email"].str.lower().str.strip().values
+
+# --- FORMATTED EXECUTIVE RECRUITMENT REPORT EXPORTER ---
+def dataframe_to_formatted_executive_report(df: pd.DataFrame) -> bytes:
+    buffer = io.BytesIO()
+    with pd.ExcelWriter(buffer, engine="xlsxwriter") as writer:
+        df.to_excel(writer, index=False, sheet_name="Recruitment Master Report")
+        workbook = writer.book
+        worksheet = writer.sheets["Recruitment Master Report"]
+        
+        # Professional Corporate Header Formatting
+        header_format = workbook.add_format({
+            "bold": True,
+            "bg_color": "#1E293B",
+            "font_color": "#FFFFFF",
+            "border": 1,
+            "align": "center",
+            "valign": "vcenter",
+        })
+        
+        # Text Wrap & Alignment for Data Rows
+        wrap_format = workbook.add_format({
+            "text_wrap": True,
+            "valign": "top",
+            "border": 1
+        })
+        
+        # Apply header formatting and column widths
+        for col_idx, col_name in enumerate(df.columns):
+            worksheet.write(0, col_idx, col_name, header_format)
+            # Give wider width to specific analysis columns
+            if col_name in ["Extracted Skills", "Latest Experience", "University Name", "Job Title"]:
+                worksheet.set_column(col_idx, col_idx, 30, wrap_format)
+            else:
+                worksheet.set_column(col_idx, col_idx, 18, wrap_format)
+                
+        worksheet.freeze_panes(1, 0)
+    buffer.seek(0)
+    return buffer.getvalue()
 
 # ===========================================================================
 # TEXT EXTRACTION & OCR
@@ -710,35 +747,13 @@ def generate_ai_interview_questions(client, resume_text: str, job_title: str) ->
         return f"Could not generate interview questions: {e}"
 
 # ===========================================================================
-# EXCEL EXPORT
-# ===========================================================================
-def dataframe_to_formatted_excel_bytes(df: pd.DataFrame) -> bytes:
-    buffer = io.BytesIO()
-    with pd.ExcelWriter(buffer, engine="xlsxwriter") as writer:
-        df.to_excel(writer, index=False, sheet_name="Final Recruitment Report")
-        workbook = writer.book
-        worksheet = writer.sheets["Final Recruitment Report"]
-        header_format = workbook.add_format({
-            "bold": True, "bg_color": "#1E293B", "font_color": "#FFFFFF", 
-            "border": 1, "align": "center", "valign": "vcenter",
-        })
-        wrap_format = workbook.add_format({"text_wrap": True, "valign": "top"})
-        for col_idx, col_name in enumerate(df.columns):
-            worksheet.write(0, col_idx, col_name, header_format)
-            width = 25 if col_name in ["Missing Skills (vs JD)", "Extracted Skills", "Latest Experience", "University Name"] else 18
-            worksheet.set_column(col_idx, col_idx, width, wrap_format)
-        worksheet.freeze_panes(1, 0)
-    buffer.seek(0)
-    return buffer.getvalue()
-
-# ===========================================================================
 # SIDEBAR & DASHBOARD INTERFACE
 # ===========================================================================
 with st.sidebar:
     st.markdown(f"""
         <div class="sidebar-brand-box">
             <h2>{APP_NAME}</h2>
-            <p>Enterprise v10.23</p>
+            <p>Enterprise v10.27</p>
         </div>
     """, unsafe_allow_html=True)
     st.markdown("---")
@@ -932,20 +947,19 @@ with tab1:
 
         st.markdown("</div>", unsafe_allow_html=True)
 
-        st.markdown('<div class="corp-card"><h4>⬇️ Download Final Timestamped Master Report</h4>', unsafe_allow_html=True)
-        df_export = load_database()
-        st.download_button(
-            "Download Final Master Report (.xlsx with Date & Time)",
-            data=dataframe_to_formatted_excel_bytes(df_export),
-            file_name=f"Final_Recruitment_Report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx",
-            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            use_container_width=True,
-        )
-        st.dataframe(df_export, use_container_width=True)
-        st.markdown("</div>", unsafe_allow_html=True)
-
 with tab2:
     st.markdown('<div class="corp-card"><h4>🗄️ Candidate Database, Search Filters & Analytics Charts</h4>', unsafe_allow_html=True)
+    
+    # --- DOWLOAD EXECUTIVE FORMATTED REPORT BUTTON ---
+    df_export = load_database()
+    st.download_button(
+        "📊 Download Executive Formatted Report (.xlsx)",
+        data=dataframe_to_formatted_executive_report(df_export),
+        file_name=f"Executive_Recruitment_Report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx",
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        use_container_width=True,
+    )
+    st.markdown("---")
     
     if st.button("🗑️ Clear Entire Candidate Database", type="secondary"):
         clear_candidate_database()
