@@ -1,8 +1,8 @@
 """
-HireMatrix Pro — Enterprise Edition v10.29 (Smart Duplicate Merge & Prevention)
+HireMatrix Pro — Enterprise Edition v10.30 (Custom HTML Profile Card & Colors)
 ========================================================================
-Features: Automatic duplicate prevention based on candidate email, 
-Dynamic score threshold slider, Executive formatted report export, and theme harmony.
+Features: Dedicated HTML profile container with custom distinct background color, 
+Styled profile and action buttons, dynamic threshold slider, and duplicate prevention.
 """
 
 import io
@@ -258,7 +258,6 @@ EXECUTIVE_UI_CSS = """
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 html, body, [class*="css"] { font-family: 'Inter', sans-serif !important; }
 
-/* Premium Sidebar Brand Styling */
 .sidebar-brand-box {
     background: linear-gradient(135deg, rgba(14, 165, 233, 0.12) 0%, rgba(2, 132, 199, 0.04) 100%);
     border: 1px solid rgba(14, 165, 233, 0.3);
@@ -275,7 +274,6 @@ html, body, [class*="css"] { font-family: 'Inter', sans-serif !important; }
     font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1.2px; font-weight: 600; opacity: 0.85; margin: 0;
 }
 
-/* Executive Split Auth Layout Containers */
 .auth-brand-side {
     background: linear-gradient(135deg, #0EA5E9 0%, #1E293B 100%);
     border-radius: 18px;
@@ -298,7 +296,7 @@ html, body, [class*="css"] { font-family: 'Inter', sans-serif !important; }
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.06);
 }
 
-/* Custom HTML Card Wrapper with Distinct Background Color */
+/* Custom HTML Profile Card Wrapper with Distinct Background Color */
 .custom-profile-card {
     background: rgba(14, 165, 233, 0.07) !important;
     border: 1.5px solid rgba(14, 165, 233, 0.4) !important;
@@ -452,22 +450,24 @@ if not st.session_state.logged_in:
                     st.rerun()
             
         elif saved_profiles and not st.session_state.selected_profile_email:
-            with st.container(border=True):
-                st.markdown("### 👥 Saved Employee Profiles")
-                st.caption("Select your secure profile card below to sign in instantly:")
-                
-                for p_email, p_name, p_pin, p_role, p_pro in saved_profiles:
-                    pro_badge = " 🌟 [PRO]" if p_pro == 1 else " 🆓 [Free]"
-                    c_p1, c_p2 = st.columns([3, 1])
-                    with c_p1:
-                        if st.button(f"👤 {p_name} ({p_role}){pro_badge}", use_container_width=True, key=f"sel_{p_email}"):
-                            st.session_state.selected_profile_email = p_email
-                            st.rerun()
-                    with c_p2:
-                        if st.button("🗑️ Delete", key=f"del_{p_email}", use_container_width=True):
-                            delete_employee_profile(p_email)
-                            st.success(f"Profile for {p_name} has been removed.")
-                            st.rerun()
+            # --- CUSTOM HTML PROFILE CARD WRAPPER WITH DISTINCT BACKGROUND ---
+            st.markdown('<div class="custom-profile-card">', unsafe_allow_html=True)
+            st.markdown("### 👥 Saved Employee Profiles")
+            st.caption("Select your secure profile card below to sign in instantly:")
+            
+            for p_email, p_name, p_pin, p_role, p_pro in saved_profiles:
+                pro_badge = " 🌟 [PRO]" if p_pro == 1 else " 🆓 [Free]"
+                c_p1, c_p2 = st.columns([3, 1])
+                with c_p1:
+                    if st.button(f"👤 {p_name} ({p_role}){pro_badge}", use_container_width=True, key=f"sel_{p_email}"):
+                        st.session_state.selected_profile_email = p_email
+                        st.rerun()
+                with c_p2:
+                    if st.button("🗑️ Delete", key=f"del_{p_email}", use_container_width=True):
+                        delete_employee_profile(p_email)
+                        st.success(f"Profile for {p_name} has been removed.")
+                        st.rerun()
+            st.markdown('</div>', unsafe_allow_html=True)
             
             st.markdown("")
             if st.button("➕ Register New Employee Profile", use_container_width=True):
@@ -583,7 +583,6 @@ def save_to_database(new_results, default_status="Shortlisted"):
     
     # --- SMART DUPLICATE MERGE & PREVENTION BASED ON EMAIL & JOB TITLE ---
     if not df.empty and not df_new.empty:
-        # Remove existing records in DB if email matches the incoming candidate
         for _, new_row in df_new.iterrows():
             incoming_email = str(new_row["Email"]).lower().strip()
             if incoming_email not in ["not provided", "not found", "", "nan"]:
@@ -784,7 +783,7 @@ with st.sidebar:
     st.markdown(f"""
         <div class="sidebar-brand-box">
             <h2>{APP_NAME}</h2>
-            <p>Enterprise v10.29</p>
+            <p>Enterprise v10.30</p>
         </div>
     """, unsafe_allow_html=True)
     st.markdown("---")
