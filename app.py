@@ -234,20 +234,14 @@ html, body, [class*="css"] {
     font-family: 'Plus Jakarta Sans', sans-serif !important;
 }
 
-/* Adaptive App Background & Text */
-.stApp {
-    color: inherit !important;
-}
-
-/* Cyber-Hero Header with Adaptive Glassmorphism */
+/* Stunning Adaptive Header */
 .cyber-hero {
-    background: linear-gradient(135deg, rgba(30, 41, 59, 0.4) 0%, rgba(15, 23, 42, 0.6) 100%);
-    backdrop-filter: blur(20px);
+    background: rgba(0, 229, 255, 0.04);
     border: 1px solid rgba(0, 229, 255, 0.2);
     border-radius: 20px;
     padding: 2.2rem 2.8rem;
     margin-bottom: 2rem;
-    box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
     position: relative;
     overflow: hidden;
 }
@@ -284,15 +278,14 @@ html, body, [class*="css"] {
     font-size: 1.05rem;
 }
 
-/* Glassmorphism Floating Cards */
+/* Glassmorphism Cards that adapt to Light/Dark */
 .glass-card {
-    background: rgba(128, 128, 128, 0.05);
-    backdrop-filter: blur(16px);
+    background: rgba(128, 128, 128, 0.04);
     border: 1px solid rgba(128, 128, 128, 0.15);
     border-radius: 16px;
     padding: 1.6rem;
     margin-bottom: 1.5rem;
-    box-shadow: 0 10px 30px -10px rgba(0,0,0,0.1);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.03);
 }
 .glass-card h4 {
     font-size: 1.15rem;
@@ -300,10 +293,10 @@ html, body, [class*="css"] {
     margin-bottom: 1rem;
 }
 
-/* Glowing Metric Pill */
+/* Metric Pills */
 .metric-pill {
-    background: rgba(128, 128, 128, 0.08);
-    border: 1px solid rgba(128, 128, 128, 0.15);
+    background: rgba(128, 128, 128, 0.06);
+    border: 1px solid rgba(128, 128, 128, 0.12);
     border-radius: 14px;
     padding: 1.1rem;
     text-align: center;
@@ -333,7 +326,7 @@ html, body, [class*="css"] {
     border-radius: 12px;
     padding: 0.65rem 1.4rem;
     border: none;
-    box-shadow: 0 6px 20px rgba(0, 229, 255, 0.35);
+    box-shadow: 0 4px 15px rgba(0, 229, 255, 0.3);
 }
 </style>
 """
