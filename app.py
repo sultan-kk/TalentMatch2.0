@@ -64,7 +64,8 @@ def send_otp_email(receiver_email, otp_code):
 
     try:
         msg = MIMEMultipart()
-        msg['From'] = sender_email
+        from email.utils import formataddr
+        msg['From'] = formataddr(("HireMatrix Pro", sender_email))
         msg['To'] = receiver_email
         msg['Subject'] = "HireMatrix Pro - Verification OTP"
         
