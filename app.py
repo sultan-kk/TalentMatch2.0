@@ -1,9 +1,8 @@
 """
-HireMatrix Pro — Enterprise Edition v9.2 (Complete Excel Fields Fix)
+HireMatrix Pro — Enterprise Edition v9.3 (Database Clear Feature Added)
 ========================================================================
-Features: All extracted resume fields (Father Name, CGPA, Education, University, 
-Experience, Reference, Skills) fully saved in Database & Master Excel Export, 
-Live SMTP OTP, Pro Subscription Gate, AI Interview Q&A, and Kanban Pipeline.
+Features: Database Clear Option in Database Tab, All extracted resume fields 
+saved in Database & Master Excel, Live SMTP OTP, Pro Subscription Gate, AI Interview Q&A, and Kanban Pipeline.
 """
 
 import io
@@ -432,7 +431,7 @@ if not st.session_state.logged_in:
     st.stop()
 
 # ===========================================================================
-# DATABASE OPERATIONS WITH ALL DETAILED FIELDS SAVED
+# DATABASE OPERATIONS
 # ===========================================================================
 def load_database():
     if os.path.exists(DB_FILE):
@@ -484,6 +483,10 @@ def update_candidate_status_in_db(email, job_title, new_status):
         df = pd.read_csv(DB_FILE)
         df.loc[(df["Email"].str.lower() == email.lower()) & (df["Job Title"] == job_title), "Pipeline Status"] = new_status
         df.to_csv(DB_FILE, index=False)
+
+def clear_candidate_database():
+    if os.path.exists(DB_FILE):
+        os.remove(DB_FILE)
 
 def check_if_exists_in_db(email):
     if not os.path.exists(DB_FILE) or email in ["Not Provided", "Not Found", ""] or not email:
@@ -627,7 +630,7 @@ def generate_ai_interview_questions(client, resume_text: str, job_title: str) ->
         return f"Could not generate interview questions: {e}"
 
 # ===========================================================================
-# EXCEL EXPORT (ALL FIELDS INCLUDED)
+# EXCEL EXPORT
 # ===========================================================================
 def dataframe_to_formatted_excel_bytes(df: pd.DataFrame) -> bytes:
     buffer = io.BytesIO()
@@ -655,7 +658,7 @@ with st.sidebar:
     st.markdown(f"""
         <div class="sidebar-brand">
             <h3>⚡ HireMatrix Pro</h3>
-            <span>Pro Edition v9.2</span>
+            <span>Pro Edition v9.3</span>
         </div>
     """, unsafe_allow_html=True)
     st.markdown("---")
@@ -817,7 +820,7 @@ with tab1:
 
                     if cand['email'] not in ["Not Provided", "Not Found", ""] and cand['email']:
                         st.markdown("#### ✉️ Send Automated Interview Invite")
-                        invite_msg = st.text_area("Custom Message", value=f"Dear {cand['name']},\n\nWe were deeply impressed by your resume for the {job_title_input} position at HireMatrix Pro. We would love to invite you for an interview round.\n\nBest Regards,\nTalent Acquisition Team", key=f"inv_msg_{rank}")
+                        invite_msg = st.text_area("Custom Message", value=f"Dear {cand['name']},\n\nWe were deeply impressed by your resume for the {job_title_input} position at HireMatrix Pro. We would love to invite you for an interview round.\n\nBest Regards,\nTeam HireMatrix Pro", key=f"inv_msg_{rank}")
                         if st.button(f"📧 Send Invite Email", key=f"send_inv_{rank}"):
                             ok, res_m = send_smtp_email(cand['email'], f"Interview Invitation - {job_title_input}", invite_msg)
                             if ok:
@@ -830,7 +833,7 @@ with tab1:
 
         st.markdown("</div>", unsafe_allow_html=True)
 
-        st.markdown('<div class="glass-card"><h4>⬇️ Master Data Export (All Fields)</h4>', unsafe_allow_html=True)
+        st.markdown('<div class="glass-card"><h4>⬇️ Master Data Export</h4>', unsafe_allow_html=True)
         df_export = load_database()
         st.download_button(
             "Download Formatted Master Report (.xlsx)",
@@ -844,8 +847,17 @@ with tab1:
 
 with tab2:
     st.markdown('<div class="glass-card"><h4>🗄️ Candidate Kanban Pipeline & Database</h4>', unsafe_allow_html=True)
+    
+    # Database Clear Button
+    if st.button("🗑️ Clear Entire Candidate Database", type="secondary"):
+        clear_candidate_database()
+        st.success("Candidate database has been successfully cleared!")
+        st.rerun()
+        
+    st.markdown("---")
+    
     if st.session_state.is_pro == 0:
-        st.warning("🔒 **Kanban Pipeline Locked:** Upgrade to **PRO (6,999 PKR/mo)** from the sidebar to manage candidate pipeline stages (Shortlisted, Interview Scheduled, Hired, Rejected).")
+        st.warning("🔒 **Kanban Pipeline Locked:** Upgrade to **PRO (6,999 PKR/mo)** from the sidebar to manage candidate pipeline stages.")
         df_history = load_database()
         if not df_history.empty:
             st.dataframe(df_history, use_container_width=True)
