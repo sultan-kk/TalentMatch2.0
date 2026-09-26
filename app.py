@@ -1,7 +1,7 @@
 """
-HireMatrix Pro — Enterprise Edition v10.38 (Unique Widget Keys Fix)
+HireMatrix Pro — Enterprise Edition v10.39 (Unified Clean UI)
 ========================================================================
-Features: Fixed duplicate widget IDs with unique keys, styled distinct profile box, 
+Features: Unified enterprise UI styling, restored clean authentication card background, 
 Dynamic Passing Score Threshold, Smart Duplicate Prevention, and Executive Excel Report.
 """
 
@@ -296,16 +296,7 @@ html, body, [class*="css"] { font-family: 'Inter', sans-serif !important; }
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.06);
 }
 
-/* Explicit Distinct Background Color Override for Profile Box */
-div[data-testid="stVerticalBlock"] div[data-testid="stContainer"] {
-    background: rgba(200, 200, 200, 0.15) !important;
-    border: 1.5px solid #0EA5E9 !important;
-    border-radius: 16px !important;
-    padding: 1.5rem !important;
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.06) !important;
-}
-
-/* Custom Distinct Background Color for Profile & Action Buttons */
+/* Custom Clean Button Styling */
 .stButton > button {
     background: rgba(14, 165, 233, 0.14) !important;
     color: inherit !important;
@@ -449,22 +440,21 @@ if not st.session_state.logged_in:
                     st.rerun()
             
         elif saved_profiles and not st.session_state.selected_profile_email:
-            with st.container(border=True):
-                st.markdown("### 👥 Saved Employee Profiles")
-                st.caption("Select your secure profile card below to sign in instantly:")
-                
-                for p_email, p_name, p_pin, p_role, p_pro in saved_profiles:
-                    pro_badge = " 🌟 [PRO]" if p_pro == 1 else " 🆓 [Free]"
-                    c_p1, c_p2 = st.columns([3, 1])
-                    with c_p1:
-                        if st.button(f"👤 {p_name} ({p_role}){pro_badge}", use_container_width=True, key=f"sel_{p_email}"):
-                            st.session_state.selected_profile_email = p_email
-                            st.rerun()
-                    with c_p2:
-                        if st.button("🗑️ Delete", key=f"del_{p_email}", use_container_width=True):
-                            delete_employee_profile(p_email)
-                            st.success(f"Profile for {p_name} has been removed.")
-                            st.rerun()
+            st.markdown("### 👥 Saved Employee Profiles")
+            st.caption("Select your secure profile card below to sign in instantly:")
+            
+            for p_email, p_name, p_pin, p_role, p_pro in saved_profiles:
+                pro_badge = " 🌟 [PRO]" if p_pro == 1 else " 🆓 [Free]"
+                c_p1, c_p2 = st.columns([3, 1])
+                with c_p1:
+                    if st.button(f"👤 {p_name} ({p_role}){pro_badge}", use_container_width=True, key=f"sel_{p_email}"):
+                        st.session_state.selected_profile_email = p_email
+                        st.rerun()
+                with c_p2:
+                    if st.button("🗑️ Delete", key=f"del_{p_email}", use_container_width=True):
+                        delete_employee_profile(p_email)
+                        st.success(f"Profile for {p_name} has been removed.")
+                        st.rerun()
             
             st.markdown("")
             if st.button("➕ Register New Employee Profile", use_container_width=True, key="reg_new_emp_auth_btn"):
@@ -780,7 +770,7 @@ with st.sidebar:
     st.markdown(f"""
         <div class="sidebar-brand-box">
             <h2>{APP_NAME}</h2>
-            <p>Enterprise v10.38</p>
+            <p>Enterprise v10.39</p>
         </div>
     """, unsafe_allow_html=True)
     st.markdown("---")
