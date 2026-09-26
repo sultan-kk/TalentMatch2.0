@@ -1,7 +1,7 @@
 """
-HireMatrix Pro — Enterprise Edition v10.36 (Error-Free Master Code)
+HireMatrix Pro — Enterprise Edition v10.38 (Unique Widget Keys Fix)
 ========================================================================
-Features: Fixed syntax errors, fully intact brand card on left, distinct profile box on right, 
+Features: Fixed duplicate widget IDs with unique keys, styled distinct profile box, 
 Dynamic Passing Score Threshold, Smart Duplicate Prevention, and Executive Excel Report.
 """
 
@@ -444,35 +444,30 @@ if not st.session_state.logged_in:
                 else:
                     st.error(msg)
             with col_o2:
-                if st.button("Cancel", use_container_width=True):
+                if st.button("Cancel", use_container_width=True, key="cancel_otp_btn"):
                     st.session_state.pending_otp_email = None
                     st.rerun()
             
-elif saved_profiles and not st.session_state.selected_profile_email:
-            # --- CLEAN SAVED PROFILES CONTAINER WITH DISTINCT BACKGROUND ---
-            st.markdown("""
-                <div style="background: rgba(200, 200, 200, 0.18); border: 1.5px solid #0EA5E9; border-radius: 16px; padding: 1.8rem; margin-bottom: 1.5rem; box-shadow: 0 8px 25px rgba(0,0,0,0.06);">
-                    <h3 style="margin-top: 0; margin-bottom: 0.3rem; font-size: 1.25rem; font-weight: 700;">👥 Saved Employee Profiles</h3>
-                    <p style="font-size: 0.85rem; opacity: 0.85; margin-bottom: 1.2rem;">Select your secure profile card below to sign in instantly:</p>
-            """, unsafe_allow_html=True)
-            
-            for p_email, p_name, p_pin, p_role, p_pro in saved_profiles:
-                pro_badge = " 🌟 [PRO]" if p_pro == 1 else " 🆓 [Free]"
-                c_p1, c_p2 = st.columns([3, 1])
-                with c_p1:
-                    if st.button(f"👤 {p_name} ({p_role}){pro_badge}", use_container_width=True, key=f"sel_{p_email}"):
-                        st.session_state.selected_profile_email = p_email
-                        st.rerun()
-                with c_p2:
-                    if st.button("🗑️ Delete", key=f"del_{p_email}", use_container_width=True):
-                        delete_employee_profile(p_email)
-                        st.success(f"Profile for {p_name} has been removed.")
-                        st.rerun()
-            
-            st.markdown("</div>", unsafe_allow_html=True)
+        elif saved_profiles and not st.session_state.selected_profile_email:
+            with st.container(border=True):
+                st.markdown("### 👥 Saved Employee Profiles")
+                st.caption("Select your secure profile card below to sign in instantly:")
+                
+                for p_email, p_name, p_pin, p_role, p_pro in saved_profiles:
+                    pro_badge = " 🌟 [PRO]" if p_pro == 1 else " 🆓 [Free]"
+                    c_p1, c_p2 = st.columns([3, 1])
+                    with c_p1:
+                        if st.button(f"👤 {p_name} ({p_role}){pro_badge}", use_container_width=True, key=f"sel_{p_email}"):
+                            st.session_state.selected_profile_email = p_email
+                            st.rerun()
+                    with c_p2:
+                        if st.button("🗑️ Delete", key=f"del_{p_email}", use_container_width=True):
+                            delete_employee_profile(p_email)
+                            st.success(f"Profile for {p_name} has been removed.")
+                            st.rerun()
             
             st.markdown("")
-            if st.button("➕ Register New Employee Profile", use_container_width=True, key="reg_new_emp_btn"):
+            if st.button("➕ Register New Employee Profile", use_container_width=True, key="reg_new_emp_auth_btn"):
                 st.session_state.selected_profile_email = "new"
                 st.rerun()
             
@@ -501,7 +496,7 @@ elif saved_profiles and not st.session_state.selected_profile_email:
                 else:
                     st.error("Incorrect 4-Digit PIN. Please verify.")
             with col_b2:
-                if st.button("Switch Profile", use_container_width=True, key="switch_prof_btn"):
+                if st.button("Switch Profile", use_container_width=True, key="switch_prof_auth_btn"):
                     st.session_state.selected_profile_email = None
                     st.rerun()
             
@@ -528,7 +523,7 @@ elif saved_profiles and not st.session_state.selected_profile_email:
                     else:
                         st.error(msg)
             with col_r2:
-                if saved_profiles and st.button("Back to Profiles", use_container_width=True, key="back_to_prof_btn"):
+                if saved_profiles and st.button("Back to Profiles", use_container_width=True, key="back_to_prof_auth_btn"):
                     st.session_state.selected_profile_email = None
                     st.rerun()
                     
@@ -785,7 +780,7 @@ with st.sidebar:
     st.markdown(f"""
         <div class="sidebar-brand-box">
             <h2>{APP_NAME}</h2>
-            <p>Enterprise v10.36</p>
+            <p>Enterprise v10.38</p>
         </div>
     """, unsafe_allow_html=True)
     st.markdown("---")
@@ -808,7 +803,7 @@ with st.sidebar:
             st.markdown(f"**Sadapay Mobile Wallet:**\n- Number: `{SADAPAY_NUMBER}`")
         
         trx_input = st.text_input("Enter Transaction ID (TRX ID)", placeholder="e.g. TRX98234105", key="trx_sub_in")
-        if st.button("Submit Payment for Approval", use_container_width=True):
+        if st.button("Submit Payment for Approval", use_container_width=True, key="sub_pay_btn"):
             ok, msg = submit_payment_request(st.session_state.hr_email, st.session_state.hr_name, trx_input)
             if ok:
                 st.success(msg)
@@ -816,7 +811,7 @@ with st.sidebar:
                 st.error(msg)
 
         license_input = st.text_input("Enter Pro License Key", type="password", placeholder="HMPRO-XXXX-XXXX", key="lic_act_in")
-        if st.button("Activate Pro Subscription", use_container_width=True):
+        if st.button("Activate Pro Subscription", use_container_width=True, key="act_lic_btn"):
             ok, msg = activate_license_key(st.session_state.hr_email, license_input)
             if ok:
                 st.session_state.is_pro = 1
@@ -833,11 +828,11 @@ with st.sidebar:
         groq_api_key = st.text_input("Groq API Key", type="password", placeholder="gsk_...")
     
     st.markdown("---")
-    if st.button("🗑️ Clear Session Cache", use_container_width=True):
+    if st.button("🗑️ Clear Session Cache", use_container_width=True, key="clear_cache_btn"):
         st.session_state.results = []
         st.rerun()
         
-    if st.button("🚪 Lock & Switch Profile", use_container_width=True):
+    if st.button("🚪 Lock & Switch Profile", use_container_width=True, key="lock_switch_btn"):
         st.session_state.logged_in = False
         st.session_state.hr_name = ""
         st.session_state.hr_email = ""
@@ -1006,7 +1001,7 @@ with tab2:
     )
     st.markdown("---")
     
-    if st.button("🗑️ Clear Entire Candidate Database", type="secondary"):
+    if st.button("🗑️ Clear Entire Candidate Database", type="secondary", key="clear_db_btn"):
         clear_candidate_database()
         st.success("Candidate database has been successfully cleared!")
         st.rerun()
@@ -1091,7 +1086,7 @@ with tab3:
                 for trx, p_email, p_name, status in pendings:
                     c_pr1, c_pr2 = st.columns([3, 1])
                     with c_pr1:
-                        st.write(f"👤 **{p_name}** (`{p_email}`) — TRX ID: **`{trx}`**")
+                        st.write(f>👤 **{p_name}** (`{p_email}`) — TRX ID: **`{trx}`**")
                     with c_pr2:
                         if st.button("✅ Approve & Send Key", key=f"app_{trx}", use_container_width=True):
                             ok_a, msg_a = admin_approve_payment(trx, p_email)
