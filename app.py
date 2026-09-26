@@ -253,6 +253,9 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
+/* =========================================================================== */
+/* EXECUTIVE UI STYLING & PERFECT CONTRAST HARMONY                              */
+/* =========================================================================== */
 EXECUTIVE_UI_CSS = """
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
@@ -290,14 +293,47 @@ html, body, [class*="css"] { font-family: 'Inter', sans-serif !important; }
 .auth-brand-side h1 { font-size: 2.6rem; font-weight: 800; margin-bottom: 1rem; color: #FFFFFF; letter-spacing: -0.5px; }
 .auth-brand-side p { font-size: 1.05rem; opacity: 0.9; line-height: 1.6; }
 
-/* Custom Login Form Card Container with Adaptive Soft Contrast */
+/* Custom Login Form Card Container with Balanced Contrast */
 .auth-form-card {
-    background: var(--secondary-background-color);
-    border: 1.5px solid rgba(14, 165, 233, 0.35);
+    background: var(--background-color);
+    border: 1.5px solid rgba(14, 165, 233, 0.3);
     border-radius: 18px;
     padding: 2.5rem;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
 }
+
+/* Profiles Master Container Styling */
+div[data-testid="stVerticalBlock"] div[data-testid="stVerticalBlock"] div[data-testid="stContainer"] {
+    background-color: var(--secondary-background-color) !important;
+    border: 1px solid rgba(14, 165, 233, 0.25) !important;
+    border-radius: 14px !important;
+    padding: 1.5rem !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04);
+}
+
+/* Standard Buttons Styling for Clean Contrast */
+.stButton>button {
+    background: var(--background-color);
+    color: inherit;
+    font-weight: 600;
+    border-radius: 8px;
+    border: 1px solid rgba(14, 165, 233, 0.3);
+    transition: all 0.2s ease;
+}
+.stButton>button:hover {
+    border-color: #0EA5E9;
+    box-shadow: 0 2px 8px rgba(14, 165, 233, 0.15);
+}
+
+/* Primary Action Buttons */
+.stButton>button[kind="primary"] {
+    background: #0EA5E9 !important;
+    color: #FFFFFF !important;
+    font-weight: 700;
+    border: none;
+    box-shadow: 0 4px 12px rgba(14, 165, 233, 0.25);
+}
+.stButton>button[kind="primary"]:hover { background: #0284C7 !important; }
 
 /* Corporate Hero Header & Cards */
 .corp-hero {
@@ -336,12 +372,6 @@ html, body, [class*="css"] { font-family: 'Inter', sans-serif !important; }
 .score-high { color: #10B981 !important; font-weight: 800; }
 .score-mid { color: #D97706 !important; font-weight: 800; }
 .score-low { color: #DC2626 !important; font-weight: 800; }
-
-.stButton>button[kind="primary"] {
-    background: #0EA5E9; color: #FFFFFF; font-weight: 700; border-radius: 10px; padding: 0.6rem 1.4rem; border: none;
-    box-shadow: 0 4px 12px rgba(14, 165, 233, 0.25);
-}
-.stButton>button[kind="primary"]:hover { background: #0284C7; }
 
 .sidebar-card { background: var(--secondary-background-color); border-radius: 12px; padding: 1.1rem; margin-bottom: 1rem; border: 1px solid rgba(14,165,233,0.15); }
 </style>
