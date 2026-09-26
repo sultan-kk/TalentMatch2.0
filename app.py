@@ -32,8 +32,8 @@ AUTH_DB_FILE = "hr_users.db"
 
 # Aapke official payment accounts
 MEEZAN_TITLE = "Muhammad Sultan Sheraz"
-MEEZAN_IBAN = "PK68MEZN0000000000000000" # Apna exact Meezan account number/IBAN yahan dein
-SADAPAY_NUMBER = "0300-1234567" # Apna Sadapay/JazzCash number yahan dein
+MEEZAN_IBAN = "PK24MEZN0098820105114718" # Apna exact Meezan account number/IBAN yahan dein
+SADAPAY_NUMBER = "0325-8641257" # Apna Sadapay/JazzCash number yahan dein
 
 def init_auth_db():
     conn = sqlite3.connect(AUTH_DB_FILE)
