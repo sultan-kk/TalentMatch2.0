@@ -1,8 +1,8 @@
 """
-HireMatrix Pro — Enterprise Edition v9.9 (Enter-Key Submission & Next-Gen UI)
+HireMatrix Pro — Enterprise Edition v10.0 (Syntax Bug Fix & Next-Gen UI)
 ========================================================================
-Features: Native st.form integration for instant 'Enter' key submission, 
-Ultra-modern Cyber-Glass UI design, Score-based conditional email generation, 
+Features: Fixed Python syntax for exception handling, Native st.form integration 
+for instant 'Enter' key submission, Ultra-modern Cyber-Glass UI design, Score-based conditional email generation, 
 Timestamped Master Excel Export, Admin Verification Dashboard, and Kanban Pipeline.
 """
 
@@ -448,7 +448,6 @@ if not st.session_state.logged_in:
             p_match = next((p for p in saved_profiles if p[0] == target_email), ("Employee", "", "", "Recruiter", 0))
             
             st.markdown(f'<div class="glass-card"><h4>🔐 Enter 4-Digit PIN for {p_match[1]}</h4>', unsafe_allow_html=True)
-            
             with st.form("pin_login_form"):
                 pin_input = st.text_input("4-Digit PIN", type="password", max_chars=4, placeholder="••••")
                 submit_login = st.form_submit_button("Sign In (Press Enter)", use_container_width=True)
@@ -732,7 +731,7 @@ with st.sidebar:
     st.markdown(f"""
         <div class="sidebar-brand">
             <h3>⚡ HireMatrix Pro</h3>
-            <span>Pro Edition v9.9</span>
+            <span>Pro Edition v10.0</span>
         </div>
     """, unsafe_allow_html=True)
     st.markdown("---")
@@ -968,7 +967,7 @@ with tab2:
                             st.rerun()
                 st.markdown("---")
                 st.dataframe(df_history, use_container_width=True)
-            except Exception as e:
+        except Exception as e:
             st.error(f"Could not load database records: {e}")
     st.markdown("</div>", unsafe_allow_html=True)
 
