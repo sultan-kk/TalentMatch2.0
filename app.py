@@ -1,9 +1,9 @@
 """
-HireMatrix Pro — Enterprise Edition v10.4 (Adaptive Theme & Enterprise Stability)
+HireMatrix Pro — Enterprise Edition v10.6 (Full Analytics, Filters & PDF Reports)
 ========================================================================
-Features: Adaptive Light/Dark Theme matching Streamlit settings cleanly, 
-Instant Enter-Key form submission, Clean professional corporate styling, 
-Score-based conditional email generation, Timestamped Master Excel Export, and Admin Verification Dashboard.
+Features: Plotly Match Score Distribution & Skills Gap Charts, Advanced Candidate Search & Score Filter, 
+Individual Candidate PDF Report Card Download, Live Dashboard Activity Feed, Adaptive Light/Dark Theme, 
+Instant Enter-Key form submission, Score-based conditional email generation, and Master Excel Export.
 """
 
 import io
@@ -20,6 +20,11 @@ from email.utils import formataddr
 import pandas as pd
 import streamlit as st
 from groq import Groq
+import plotly.express as px
+from reportlab.lib.pagesizes import letter
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib import colors
 
 # ===========================================================================
 # CONFIGURATION & AUTO-MIGRATION AUTH DB
@@ -245,7 +250,7 @@ def verify_employee_pin(email, entered_pin):
     return False, None, None, 0
 
 # ===========================================================================
-# PAGE CONFIG & ADAPTIVE STYLING (THEME FIX)
+# PAGE CONFIG & ADAPTIVE STYLING
 # ===========================================================================
 st.set_page_config(
     page_title=f"{APP_NAME} | Executive Portal",
@@ -664,7 +669,7 @@ def generate_ai_interview_questions(client, resume_text: str, job_title: str) ->
         return f"Could not generate interview questions: {e}"
 
 # ===========================================================================
-# EXCEL EXPORT (TIMESTAMPED MASTER REPORT)
+# EXCEL & PDF EXPORT
 # ===========================================================================
 def dataframe_to_formatted_excel_bytes(df: pd.DataFrame) -> bytes:
     buffer = io.BytesIO()
@@ -685,6 +690,85 @@ def dataframe_to_formatted_excel_bytes(df: pd.DataFrame) -> bytes:
     buffer.seek(0)
     return buffer.getvalue()
 
+def generate_candidate_pdf_report(cand):
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=letter, rightMargin=36, leftMargin=36, topMargin=36, bottomMargin=36)
+    story = []
+    styles = getSampleStyleSheet()
+    
+    title_style = ParagraphStyle(
+        'TitleStyle',
+        parent=styles['Heading1'],
+        fontSize=20,
+        textColor=colors.HexColor('#0F172A'),
+        spaceAfter=6
+    )
+    subtitle_style = ParagraphStyle(
+        'SubtitleStyle',
+        parent=styles['Normal'],
+        fontSize=10,
+        textColor=colors.HexColor('#64748B'),
+        spaceAfter=15
+    )
+    heading_style = ParagraphStyle(
+        'HeadingStyle',
+        parent=styles['Heading2'],
+        fontSize=13,
+        textColor=colors.HexColor('#0EA5E9'),
+        spaceBefore=10,
+        spaceAfter=6
+    )
+    body_style = ParagraphStyle(
+        'BodyStyle',
+        parent=styles['Normal'],
+        fontSize=10,
+        textColor=colors.HexColor('#334155'),
+        spaceAfter=4
+    )
+    
+    story.append(Paragraph(f"<b>Candidate Evaluation Report</b>", title_style))
+    story.append(Paragraph(f"<b>HireMatrix Pro — Executive Recruitment Suite</b> | Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}", subtitle_style))
+    story.append(Spacer(1, 5))
+    
+    data = [
+        [Paragraph("<b>Candidate Name:</b>", body_style), Paragraph(cand['name'], body_style)],
+        [Paragraph("<b>Job Position:</b>", body_style), Paragraph(cand['job_title'], body_style)],
+        [Paragraph("<b>Email:</b>", body_style), Paragraph(cand['email'], body_style)],
+        [Paragraph("<b>Phone:</b>", body_style), Paragraph(cand['phone'], body_style)],
+        [Paragraph("<b>Father's Name:</b>", body_style), Paragraph(cand.get('father_name', 'Not Provided'), body_style)],
+        [Paragraph("<b>Education:</b>", body_style), Paragraph(f"{cand.get('education', 'N/A')} (CGPA: {cand.get('cgpa', 'N/A')})", body_style)],
+        [Paragraph("<b>Institution:</b>", body_style), Paragraph(cand.get('university_name', 'Not Provided'), body_style)],
+        [Paragraph("<b>Experience:</b>", body_style), Paragraph(f"{cand.get('experience_years', '0')} | Latest: {cand.get('latest_experience', 'N/A')}", body_style)],
+        [Paragraph("<b>Match Score:</b>", body_style), Paragraph(f"<b>{cand['match_score']}%</b>", body_style)],
+        [Paragraph("<b>Pipeline Status:</b>", body_style), Paragraph("Shortlisted", body_style)],
+    ]
+    
+    t = Table(data, colWidths=[140, 400])
+    t.setStyle(TableStyle([
+        ('BACKGROUND', (0,0), (-1,-1), colors.HexColor('#F8FAFC')),
+        ('GRID', (0,0), (-1,-1), 0.5, colors.HexColor('#E2E8F0')),
+        ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 6),
+        ('TOPPADDING', (0,0), (-1,-1), 6),
+    ]))
+    story.append(t)
+    story.append(Spacer(1, 10))
+    
+    story.append(Paragraph("<b>Extracted Core Skills:</b>", heading_style))
+    story.append(Paragraph(cand.get('skills', 'Not Provided'), body_style))
+    
+    story.append(Paragraph("<b>Skill Gaps / Missing vs. Job Description:</b>", heading_style))
+    missing = cand.get('missing_skills', [])
+    if missing:
+        for m in missing:
+            story.append(Paragraph(f"• {m}", body_style))
+    else:
+        story.append(Paragraph("No major skill gaps identified.", body_style))
+        
+    doc.build(story)
+    buffer.seek(0)
+    return buffer.getvalue()
+
 # ===========================================================================
 # SIDEBAR & DASHBOARD INTERFACE
 # ===========================================================================
@@ -692,7 +776,7 @@ with st.sidebar:
     st.markdown(f"""
         <div class="sidebar-brand">
             <h3>HireMatrix Pro</h3>
-            <span>Enterprise v10.4</span>
+            <span>Enterprise v10.6</span>
         </div>
     """, unsafe_allow_html=True)
     st.markdown("---")
@@ -754,18 +838,23 @@ with st.sidebar:
         st.session_state.results = []
         st.rerun()
 
-# Corporate Hero Header
+# --- TOP LIVE MENU ACTIVITY FEED ---
+df_all = load_database()
+total_screened_db = len(df_all)
+latest_candidate = df_all.iloc[-1]["Candidate Name"] if not df_all.empty else "None"
+latest_job = df_all.iloc[-1]["Job Title"] if not df_all.empty else "N/A"
+
 st.markdown(f"""
     <div class="corp-hero">
         <div class="corp-badge">
-            <span>Secure Enterprise Session</span> &bull; <span>{st.session_state.hr_email} ({'PRO' if st.session_state.is_pro == 1 else 'FREE'})</span>
+            <span>🟢 Live Employee Session</span> &bull; <span>{st.session_state.hr_email} ({'PRO' if st.session_state.is_pro == 1 else 'FREE'})</span>
         </div>
         <h1>{APP_NAME}</h1>
-        <p>Welcome back, <b>{st.session_state.hr_name}</b> &mdash; {APP_TAGLINE}</p>
+        <p>Welcome back, <b>{st.session_state.hr_name}</b> &mdash; Total Screened Profiles in System: <b>{total_screened_db}</b> | Latest Screening: <b>{latest_candidate} ({latest_job})</b></p>
     </div>
 """, unsafe_allow_html=True)
 
-tab1, tab2, tab3 = st.tabs(["🚀 Screening Workspace", "🗄️ Candidate Database", "🛡️ Admin Controls"])
+tab1, tab2, tab3 = st.tabs(["🚀 Screening Workspace", "🗄️ Candidate Database & Analytics", "🛡️ Admin Controls"])
 
 with tab1:
     col1, col2 = st.columns(2, gap="large")
@@ -798,6 +887,7 @@ with tab1:
         if results:
             save_to_database(results)
             st.success(f"Successfully processed {len(results)} candidate resumes!")
+            st.rerun()
 
     # --- RESULTS DISPLAY ---
     if st.session_state.results:
@@ -806,7 +896,7 @@ with tab1:
         st.markdown('<div class="corp-card"><h4>📊 Screening Metrics Overview</h4>', unsafe_allow_html=True)
         m1, m2 = st.columns(2)
         with m1:
-            st.markdown(f'<div class="metric-box"><div class="val">{len(results)}</div><div class="lbl">Total Screened</div></div>', unsafe_allow_html=True)
+            st.markdown(f'<div class="metric-box"><div class="val">{len(results)}</div><div class="lbl">Total Screened (Batch)</div></div>', unsafe_allow_html=True)
         with m2:
             avg_score = round(sum(r["match_score"] for r in results) / len(results), 1)
             st.markdown(f'<div class="metric-box"><div class="val">{avg_score}%</div><div class="lbl">Average Match Score</div></div>', unsafe_allow_html=True)
@@ -843,6 +933,18 @@ with tab1:
                         st.caption("No significant skill gaps identified.")
 
                 st.markdown("---")
+                
+                # --- INDIVIDUAL CANDIDATE PDF REPORT DOWNLOAD ---
+                pdf_bytes = generate_candidate_pdf_report(cand)
+                st.download_button(
+                    label=f"📄 Download PDF Report Card for {cand['name']}",
+                    data=pdf_bytes,
+                    file_name=f"{cand['name'].replace(' ', '_')}_Evaluation_Report.pdf",
+                    mime="application/pdf",
+                    key=f"pdf_dl_{rank}"
+                )
+                
+                st.markdown("---")
                 if st.session_state.is_pro == 1:
                     if st.button(f"💡 Generate AI Interview Q&A for {cand['name']}", key=f"gen_q_{rank}"):
                         if client:
@@ -856,7 +958,6 @@ with tab1:
                     if cand['email'] not in ["Not Provided", "Not Found", ""] and cand['email']:
                         st.markdown("#### ✉️ Conditional Email Dispatcher (Score-Based)")
                         
-                        # --- SCORE-BASED IF-ELSE EMAIL TEMPLATES ---
                         if cand['match_score'] >= 50:
                             default_msg = f"Dear {cand['name']},\n\nWe were deeply impressed by your credentials and match score ({cand['match_score']}%) for the {job_title_input} position at HireMatrix Pro. We would love to invite you for an interview round.\n\nBest Regards,\nTeam HireMatrix Pro"
                             email_subject = f"Interview Invitation - {job_title_input}"
@@ -894,7 +995,7 @@ with tab1:
         st.markdown("</div>", unsafe_allow_html=True)
 
 with tab2:
-    st.markdown('<div class="corp-card"><h4>🗄️ Candidate Kanban Pipeline & Database</h4>', unsafe_allow_html=True)
+    st.markdown('<div class="corp-card"><h4>🗄️ Candidate Database, Search Filters & Analytics Charts</h4>', unsafe_allow_html=True)
     
     if st.button("🗑️ Clear Entire Candidate Database", type="secondary"):
         clear_candidate_database()
@@ -903,33 +1004,67 @@ with tab2:
         
     st.markdown("---")
     
-    if st.session_state.is_pro == 0:
-        st.warning("🔒 **Kanban Pipeline Locked:** Upgrade to **PRO (6,999 PKR/mo)** from the sidebar to manage candidate pipeline stages.")
-        df_history = load_database()
-        if not df_history.empty:
-            st.dataframe(df_history, use_container_width=True)
+    df_db = load_database()
+    if df_db.empty:
+        st.info("Database is currently empty.")
     else:
-        try:
-            df_history = load_database()
-            if df_history.empty:
-                st.info("Database is currently empty.")
-            else:
-                st.markdown("Update candidate pipeline stage below:")
-                for idx, row in df_history.iterrows():
-                    cols = st.columns([2, 2, 2, 2])
-                    with cols[0]: st.write(f"**{row['Candidate Name']}**")
-                    with cols[1]: st.write(f"*{row['Job Title']}*")
-                    with cols[2]: st.write(f"Score: {row['Match Score']}%")
-                    with cols[3]:
-                        current_status = row["Pipeline Status"] if "Pipeline Status" in df_history.columns else "Shortlisted"
-                        new_status = st.selectbox("Stage", ["Shortlisted", "Interview Scheduled", "Hired", "Rejected"], index=["Shortlisted", "Interview Scheduled", "Hired", "Rejected"].index(current_status) if current_status in ["Shortlisted", "Interview Scheduled", "Hired", "Rejected"] else 0, key=f"status_{idx}")
-                        if new_status != current_status:
-                            update_candidate_status_in_db(row['Email'], row['Job Title'], new_status)
-                            st.rerun()
-                st.markdown("---")
-                st.dataframe(df_history, use_container_width=True)
-        except Exception as e:
-            st.error(f"Could not load database records: {e}")
+        # --- ADVANCED CANDIDATE FILTERING & SEARCH BAR ---
+        col_f1, col_f2 = st.columns([2, 1])
+        with col_f1:
+            search_query = st.text_input("🔍 Live Search (Candidate Name, Skills, Job Title, Email)", placeholder="Type to search...")
+        with col_f2:
+            min_score_filter = st.slider("Minimum Match Score (%)", 0, 100, 0)
+            
+        filtered_df = df_db.copy()
+        if min_score_filter > 0:
+            filtered_df = filtered_df[filtered_df["Match Score"] >= min_score_filter]
+            
+        if search_query.strip():
+            q = search_query.lower()
+            filtered_df = filtered_df[
+                filtered_df["Candidate Name"].str.lower().str.contains(q, na=False) |
+                filtered_df["Job Title"].str.lower().str.contains(q, na=False) |
+                filtered_df["Extracted Skills"].str.lower().str.contains(q, na=False) |
+                filtered_df["Email"].str.lower().str.contains(q, na=False)
+            ]
+            
+        st.markdown(f"**Showing {len(filtered_df)} of {len(df_db)} candidates matching criteria:**")
+        st.dataframe(filtered_df, use_container_width=True)
+        
+        st.markdown("---")
+        st.markdown("### 📈 Interactive Analytics & Visual Charts (Plotly)")
+        
+        c_ch1, c_ch2 = st.columns(2)
+        with c_ch1:
+            st.markdown("#### Match Score Distribution")
+            fig_hist = px.histogram(df_db, x="Match Score", nbins=10, title="Candidate Match Score Spread", color_discrete_sequence=["#0EA5E9"])
+            fig_hist.update_layout(margin=dict(l=20, r=20, t=40, b=20), height=300)
+            st.plotly_chart(fig_hist, use_container_width=True)
+            
+        with c_ch2:
+            st.markdown("#### Pipeline Status Breakdown")
+            if "Pipeline Status" in df_db.columns:
+                status_counts = df_db["Pipeline Status"].value_counts().reset_index()
+                status_counts.columns = ["Status", "Count"]
+                fig_pie = px.pie(status_counts, names="Status", values="Count", title="Candidates by Stage", color_discrete_sequence=px.colors.sequential.Blues)
+                fig_pie.update_layout(margin=dict(l=20, r=20, t=40, b=20), height=300)
+                st.plotly_chart(fig_pie, use_container_width=True)
+
+        if st.session_state.is_pro == 1:
+            st.markdown("---")
+            st.markdown("Update candidate pipeline stage below:")
+            for idx, row in df_db.iterrows():
+                cols = st.columns([2, 2, 2, 2])
+                with cols[0]: st.write(f"**{row['Candidate Name']}**")
+                with cols[1]: st.write(f"*{row['Job Title']}*")
+                with cols[2]: st.write(f"Score: {row['Match Score']}%")
+                with cols[3]:
+                    current_status = row["Pipeline Status"] if "Pipeline Status" in df_db.columns else "Shortlisted"
+                    new_status = st.selectbox("Stage", ["Shortlisted", "Interview Scheduled", "Hired", "Rejected"], index=["Shortlisted", "Interview Scheduled", "Hired", "Rejected"].index(current_status) if current_status in ["Shortlisted", "Interview Scheduled", "Hired", "Rejected"] else 0, key=f"status_{idx}")
+                    if new_status != current_status:
+                        update_candidate_status_in_db(row['Email'], row['Job Title'], new_status)
+                        st.rerun()
+                        
     st.markdown("</div>", unsafe_allow_html=True)
 
 with tab3:
