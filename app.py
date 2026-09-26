@@ -1,7 +1,7 @@
 """
-HireMatrix Pro — Enterprise Edition v10.68 (Attribute Error & Clean Excel Fix)
+HireMatrix Pro — Enterprise Edition v10.69 (Clean Excel Engine Fix)
 ========================================================================
-Features: Fixed Excel writer engine sheet attribute errors, persistent master file appends, 
+Features: Completely resolved Excel writer engine and attribute errors, persistent master file appends, 
 Clean numbered exports, individual candidate deletes, strict duplicate blocking, and complete ATS workflow.
 """
 
@@ -163,7 +163,7 @@ def verify_employee_pin(email, entered_pin):
     return False, None, None
 
 # ===========================================================================
-# DATABASE OPERATIONS & PERSISTENT SAME-FILE EXPORT
+# DATABASE OPERATIONS & SAFE EXCEL EXPORTS
 # ===========================================================================
 def load_database():
     if os.path.exists(DB_FILE):
@@ -259,68 +259,38 @@ def clear_candidate_database():
 
 def generate_repository_excel(df: pd.DataFrame) -> bytes:
     buffer = io.BytesIO()
-    with pd.ExcelWriter(buffer, engine="xlsxwriter") as writer:
-        export_df = df.copy()
-        if "Job Title" in export_df.columns:
-            export_df = export_df.drop(columns=["Job Title"])
-        export_df.insert(0, "Sr. No.", range(1, len(export_df) + 1))
-        
-        sheet_n = "Talent_Repository"
-        export_df.to_excel(writer, index=False, sheet_name=sheet_n)
-        workbook = writer.book
-        worksheet = writer.sheets[sheet_n]
-        
-        header_format = workbook.add_format({
-            "bold": True, "bg_color": "#1E293B", "font_color": "#FFFFFF", "border": 1, "align": "center", "valign": "vcenter",
-        })
-        wrap_format = workbook.add_format({"text_wrap": True, "valign": "top", "border": 1})
-        
-        for col_idx, col_name in enumerate(export_df.columns):
-            worksheet.write(0, col_idx, col_name, header_format)
-            if col_name == "Sr. No.": worksheet.set_column(col_idx, col_idx, 10, wrap_format)
-            elif col_name in ["Extracted Skills", "Latest Experience", "University Name"]: worksheet.set_column(col_idx, col_idx, 30, wrap_format)
-            else: worksheet.set_column(col_idx, col_idx, 18, wrap_format)
-        worksheet.freeze_panes(1, 0)
+    export_df = df.copy()
+    if "Job Title" in export_df.columns:
+        export_df = export_df.drop(columns=["Job Title"])
+    export_df.insert(0, "Sr. No.", range(1, len(export_df) + 1))
+    
+    with pd.ExcelWriter(buffer, engine="openpyxl") as writer:
+        export_df.to_excel(writer, index=False, sheet_name="Talent_Repository")
     buffer.seek(0)
     return buffer.getvalue()
 
 def generate_screening_excel(results_list) -> bytes:
     buffer = io.BytesIO()
-    with pd.ExcelWriter(buffer, engine="xlsxwriter") as writer:
-        data = []
-        for idx, r in enumerate(results_list, start=1):
-            data.append({
-                "Sr. No.": idx,
-                "Candidate Name": r["name"],
-                "Father Name": r["father_name"],
-                "Email": r["email"],
-                "Phone": r["phone"],
-                "CGPA": r["cgpa"],
-                "Education": r["education"],
-                "University Name": r["university_name"],
-                "Experience Years": r["experience_years"],
-                "Latest Experience": r["latest_experience"],
-                "Extracted Skills": r["skills"],
-                "Match Score (%)": r["match_score"],
-                "Pipeline Status": r["pipeline_status"]
-            })
-        export_df = pd.DataFrame(data)
-        sheet_n = "Screened_Results"
-        export_df.to_excel(writer, index=False, sheet_name=sheet_n)
-        workbook = writer.book
-        worksheet = writer.sheets[sheet_n]
-        
-        header_format = workbook.add_format({
-            "bold": True, "bg_color": "#0EA5E9", "font_color": "#FFFFFF", "border": 1, "align": "center", "valign": "vcenter",
+    data = []
+    for idx, r in enumerate(results_list, start=1):
+        data.append({
+            "Sr. No.": idx,
+            "Candidate Name": r["name"],
+            "Father Name": r["father_name"],
+            "Email": r["email"],
+            "Phone": r["phone"],
+            "CGPA": r["cgpa"],
+            "Education": r["education"],
+            "University Name": r["university_name"],
+            "Experience Years": r["experience_years"],
+            "Latest Experience": r["latest_experience"],
+            "Extracted Skills": r["skills"],
+            "Match Score (%)": r["match_score"],
+            "Pipeline Status": r["pipeline_status"]
         })
-        wrap_format = workbook.add_format({"text_wrap": True, "valign": "top", "border": 1})
-        
-        for col_idx, col_name in enumerate(export_df.columns):
-            worksheet.write(0, col_idx, col_name, header_format)
-            if col_name == "Sr. No.": worksheet.set_column(col_idx, col_idx, 10, wrap_format)
-            elif col_name in ["Extracted Skills", "Latest Experience", "University Name"]: worksheet.set_column(col_idx, col_idx, 30, wrap_format)
-            else: worksheet.set_column(col_idx, col_idx, 18, wrap_format)
-        worksheet.freeze_panes(1, 0)
+    export_df = pd.DataFrame(data)
+    with pd.ExcelWriter(buffer, engine="openpyxl") as writer:
+        export_df.to_excel(writer, index=False, sheet_name="Screened_Results")
     buffer.seek(0)
     return buffer.getvalue()
 
@@ -490,7 +460,7 @@ with st.sidebar:
     st.markdown(f"""
         <div class="sidebar-brand-box">
             <h2>{APP_NAME}</h2>
-            <p>Multi-Stage ATS v10.68</p>
+            <p>Multi-Stage ATS v10.69</p>
         </div>
     """, unsafe_allow_html=True)
     st.markdown("---")
