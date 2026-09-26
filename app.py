@@ -1086,7 +1086,7 @@ with tab3:
                 for trx, p_email, p_name, status in pendings:
                     c_pr1, c_pr2 = st.columns([3, 1])
                     with c_pr1:
-                        st.write(f>👤 **{p_name}** (`{p_email}`) — TRX ID: **`{trx}`**")
+                        st.write(f"👤 **{p_name}** (`{p_email}`) — TRX ID: **`{trx}`**")
                     with c_pr2:
                         if st.button("✅ Approve & Send Key", key=f"app_{trx}", use_container_width=True):
                             ok_a, msg_a = admin_approve_payment(trx, p_email)
