@@ -1,8 +1,8 @@
 """
-HireMatrix Pro — Enterprise Edition v10.16 (Flawless Master Profile Container)
+HireMatrix Pro — Enterprise Edition v10.17 (Balanced Card Contrast & Clean Aesthetics)
 ========================================================================
-Features: Flawlessly unified single master container for saved employee profiles, 
-Eliminated empty placeholder boxes, Executive split-screen login, and Master Excel Export.
+Features: Enhanced box border contrast and subtle shadow depth for light/dark themes, 
+Unified master profile container, Executive split-screen login, and Master Excel Export.
 """
 
 import io
@@ -244,7 +244,7 @@ def verify_employee_pin(email, entered_pin):
     return False, None, None, 0
 
 # ===========================================================================
-# PAGE CONFIG & EXECUTIVE STYLING
+# PAGE CONFIG & EXECUTIVE STYLING (ENHANCED CONTRAST)
 # ===========================================================================
 st.set_page_config(
     page_title=f"{APP_NAME} | Executive Portal",
@@ -275,7 +275,7 @@ html, body, [class*="css"] { font-family: 'Inter', sans-serif !important; }
     font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1.2px; font-weight: 600; opacity: 0.85; margin: 0;
 }
 
-/* Executive Split Auth Layout Containers */
+/* Executive Split Auth Layout Containers with Enhanced Contrast */
 .auth-brand-side {
     background: linear-gradient(135deg, #0EA5E9 0%, #1E293B 100%);
     border-radius: 18px;
@@ -290,12 +290,13 @@ html, body, [class*="css"] { font-family: 'Inter', sans-serif !important; }
 .auth-brand-side h1 { font-size: 2.6rem; font-weight: 800; margin-bottom: 1rem; color: #FFFFFF; letter-spacing: -0.5px; }
 .auth-brand-side p { font-size: 1.05rem; opacity: 0.9; line-height: 1.6; }
 
-.auth-form-side {
+/* Custom Login Form Card Container with Defined Border & Shadow */
+.auth-form-card {
     background: var(--background-color);
-    border: 1px solid rgba(14, 165, 233, 0.25);
+    border: 2px solid rgba(14, 165, 233, 0.25);
     border-radius: 18px;
     padding: 2.5rem;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
 }
 
 /* Corporate Hero Header & Cards */
@@ -361,7 +362,7 @@ if "pending_pin_email" not in st.session_state: st.session_state.pending_pin_ema
 if "results" not in st.session_state: st.session_state.results = []
 
 # ===========================================================================
-# AUTHENTICATION SCREEN (FLAWLESS MASTER PROFILE CONTAINER)
+# AUTHENTICATION SCREEN (ENHANCED CARD CONTRAST)
 # ===========================================================================
 if not st.session_state.logged_in:
     saved_profiles = get_all_verified_profiles()
@@ -379,131 +380,134 @@ if not st.session_state.logged_in:
         """, unsafe_allow_html=True)
         
     with col_right:
-        with st.container(border=True):
-            if st.session_state.pending_pin_email:
-                st.markdown("### 🔐 Security Setup")
-                st.info(f"Email verified for **{st.session_state.pending_pin_email}**.")
+        st.markdown('<div class="auth-form-card">', unsafe_allow_html=True)
+        
+        if st.session_state.pending_pin_email:
+            st.markdown("### 🔐 Security Setup")
+            st.info(f"Email verified for **{st.session_state.pending_pin_email}**.")
+            
+            with st.form("pin_setup_form"):
+                new_pin = st.text_input("Enter 4-Digit PIN", type="password", max_chars=4, placeholder="••••")
+                confirm_pin = st.text_input("Confirm 4-Digit PIN", type="password", max_chars=4, placeholder="••••")
+                submit_pin = st.form_submit_button("Save PIN & Enter Portal", use_container_width=True)
                 
-                with st.form("pin_setup_form"):
-                    new_pin = st.text_input("Enter 4-Digit PIN", type="password", max_chars=4, placeholder="••••")
-                    confirm_pin = st.text_input("Confirm 4-Digit PIN", type="password", max_chars=4, placeholder="••••")
-                    submit_pin = st.form_submit_button("Save PIN & Enter Portal", use_container_width=True)
-                    
-                if submit_pin:
-                    if not new_pin or len(new_pin) != 4 or not new_pin.isdigit():
-                        st.warning("Please enter an exact 4-digit numeric PIN.")
-                    elif new_pin != confirm_pin:
-                        st.error("PINs do not match. Please try again.")
-                    else:
-                        success, msg = save_employee_pin(st.session_state.pending_pin_email, new_pin)
-                        if success:
-                            st.success(msg)
-                            st.session_state.pending_pin_email = None
-                            st.rerun()
-                        else:
-                            st.error(msg)
-
-            elif st.session_state.pending_otp_email:
-                st.markdown("### 📬 Email Verification")
-                st.info(f"Enter the 6-digit security code sent to **{st.session_state.pending_otp_email}**.")
-                
-                with st.form("otp_form"):
-                    otp_input = st.text_input("Enter 6-Digit OTP", placeholder="123456")
-                    submit_otp = st.form_submit_button("Verify OTP", use_container_width=True)
-                    
-                col_o1, col_o2 = st.columns(2)
-                if submit_otp:
-                    success, msg = verify_otp_code(st.session_state.pending_otp_email, otp_input)
+            if submit_pin:
+                if not new_pin or len(new_pin) != 4 or not new_pin.isdigit():
+                    st.warning("Please enter an exact 4-digit numeric PIN.")
+                elif new_pin != confirm_pin:
+                    st.error("PINs do not match. Please try again.")
+                else:
+                    success, msg = save_employee_pin(st.session_state.pending_pin_email, new_pin)
                     if success:
                         st.success(msg)
-                        st.session_state.pending_pin_email = st.session_state.pending_otp_email
-                        st.session_state.pending_otp_email = None
+                        st.session_state.pending_pin_email = None
                         st.rerun()
                     else:
                         st.error(msg)
-                with col_o2:
-                    if st.button("Cancel", use_container_width=True):
-                        st.session_state.pending_otp_email = None
-                        st.rerun()
+
+        elif st.session_state.pending_otp_email:
+            st.markdown("### 📬 Email Verification")
+            st.info(f"Enter the 6-digit security code sent to **{st.session_state.pending_otp_email}**.")
+            
+            with st.form("otp_form"):
+                otp_input = st.text_input("Enter 6-Digit OTP", placeholder="123456")
+                submit_otp = st.form_submit_button("Verify OTP", use_container_width=True)
                 
-            elif saved_profiles and not st.session_state.selected_profile_email:
-                st.markdown("### 👥 Saved Employee Profiles")
-                st.caption("Select your secure profile card below to sign in instantly:")
-                
-                for p_email, p_name, p_pin, p_role, p_pro in saved_profiles:
-                    pro_badge = " 🌟 [PRO]" if p_pro == 1 else " 🆓 [Free]"
-                    c_p1, c_p2 = st.columns([3, 1])
-                    with c_p1:
-                        if st.button(f"👤 {p_name} ({p_role}){pro_badge}", use_container_width=True, key=f"sel_{p_email}"):
-                            st.session_state.selected_profile_email = p_email
-                            st.rerun()
-                    with c_p2:
-                        if st.button("🗑️ Delete", key=f"del_{p_email}", use_container_width=True):
-                            delete_employee_profile(p_email)
-                            st.success(f"Profile for {p_name} has been removed.")
-                            st.rerun()
-                st.markdown("---")
-                if st.button("➕ Register New Employee Profile", use_container_width=True):
-                    st.session_state.selected_profile_email = "new"
+            col_o1, col_o2 = st.columns(2)
+            if submit_otp:
+                success, msg = verify_otp_code(st.session_state.pending_otp_email, otp_input)
+                if success:
+                    st.success(msg)
+                    st.session_state.pending_pin_email = st.session_state.pending_otp_email
+                    st.session_state.pending_otp_email = None
                     st.rerun()
+                else:
+                    st.error(msg)
+            with col_o2:
+                if st.button("Cancel", use_container_width=True):
+                    st.session_state.pending_otp_email = None
+                    st.rerun()
+            
+        elif saved_profiles and not st.session_state.selected_profile_email:
+            st.markdown("### 👥 Saved Employee Profiles")
+            st.caption("Select your secure profile card below to sign in instantly:")
+            
+            for p_email, p_name, p_pin, p_role, p_pro in saved_profiles:
+                pro_badge = " 🌟 [PRO]" if p_pro == 1 else " 🆓 [Free]"
+                c_p1, c_p2 = st.columns([3, 1])
+                with c_p1:
+                    if st.button(f"👤 {p_name} ({p_role}){pro_badge}", use_container_width=True, key=f"sel_{p_email}"):
+                        st.session_state.selected_profile_email = p_email
+                        st.rerun()
+                with c_p2:
+                    if st.button("🗑️ Delete", key=f"del_{p_email}", use_container_width=True):
+                        delete_employee_profile(p_email)
+                        st.success(f"Profile for {p_name} has been removed.")
+                        st.rerun()
+            st.markdown("---")
+            if st.button("➕ Register New Employee Profile", use_container_width=True):
+                st.session_state.selected_profile_email = "new"
+                st.rerun()
+            
+        elif st.session_state.selected_profile_email and st.session_state.selected_profile_email != "new":
+            target_email = st.session_state.selected_profile_email
+            p_match = next((p for p in saved_profiles if p[0] == target_email), ("Employee", "", "", "Recruiter", 0))
+            
+            st.markdown(f"### 🔐 Sign In: {p_match[1]}")
+            st.caption("Enter your 4-digit security PIN to access portal.")
+            
+            with st.form("pin_login_form"):
+                pin_input = st.text_input("4-Digit PIN", type="password", max_chars=4, placeholder="••••")
+                submit_login = st.form_submit_button("Sign In (Press Enter)", use_container_width=True)
                 
-            elif st.session_state.selected_profile_email and st.session_state.selected_profile_email != "new":
-                target_email = st.session_state.selected_profile_email
-                p_match = next((p for p in saved_profiles if p[0] == target_email), ("Employee", "", "", "Recruiter", 0))
+            col_b1, col_b2 = st.columns(2)
+            if submit_login:
+                success, name, role, pro_status = verify_employee_pin(target_email, pin_input)
+                if success:
+                    st.session_state.logged_in = True
+                    st.session_state.hr_name = name
+                    st.session_state.hr_email = target_email
+                    st.session_state.hr_role = role
+                    st.session_state.is_pro = pro_status
+                    st.success(f"Welcome back, {name}!")
+                    st.rerun()
+                else:
+                    st.error("Incorrect 4-Digit PIN. Please verify.")
+            with col_b2:
+                if st.button("Switch Profile", use_container_width=True):
+                    st.session_state.selected_profile_email = None
+                    st.rerun()
+            
+        else:
+            st.markdown("### 📝 Employee Registration")
+            st.caption("Enter your credentials to create a secure corporate account.")
+            
+            with st.form("registration_form"):
+                reg_name = st.text_input("Full Name", placeholder="Alex Mercer")
+                reg_email = st.text_input("Company Email", placeholder="employee@company.com")
+                reg_pass = st.text_input("Master Password", type="password")
+                submit_reg = st.form_submit_button("Send Verification OTP (Press Enter)", use_container_width=True)
                 
-                st.markdown(f"### 🔐 Sign In: {p_match[1]}")
-                st.caption("Enter your 4-digit security PIN to access portal.")
-                
-                with st.form("pin_login_form"):
-                    pin_input = st.text_input("4-Digit PIN", type="password", max_chars=4, placeholder="••••")
-                    submit_login = st.form_submit_button("Sign In (Press Enter)", use_container_width=True)
-                    
-                col_b1, col_b2 = st.columns(2)
-                if submit_login:
-                    success, name, role, pro_status = verify_employee_pin(target_email, pin_input)
+            col_r1, col_r2 = st.columns(2)
+            if submit_reg:
+                if not reg_name.strip() or not reg_email.strip() or not reg_pass.strip():
+                    st.warning("Please fill in all required fields.")
+                else:
+                    success, msg = register_initial_employee(reg_name, reg_email, reg_pass)
                     if success:
-                        st.session_state.logged_in = True
-                        st.session_state.hr_name = name
-                        st.session_state.hr_email = target_email
-                        st.session_state.hr_role = role
-                        st.session_state.is_pro = pro_status
-                        st.success(f"Welcome back, {name}!")
+                        st.success(msg)
+                        st.session_state.pending_otp_email = reg_email.lower().strip()
                         st.rerun()
                     else:
-                        st.error("Incorrect 4-Digit PIN. Please verify.")
-                with col_b2:
-                    if st.button("Switch Profile", use_container_width=True):
-                        st.session_state.selected_profile_email = None
-                        st.rerun()
-                
-            else:
-                st.markdown("### 📝 Employee Registration")
-                st.caption("Enter your credentials to create a secure corporate account.")
-                
-                with st.form("registration_form"):
-                    reg_name = st.text_input("Full Name", placeholder="Alex Mercer")
-                    reg_email = st.text_input("Company Email", placeholder="employee@company.com")
-                    reg_pass = st.text_input("Master Password", type="password")
-                    submit_reg = st.form_submit_button("Send Verification OTP (Press Enter)", use_container_width=True)
+                        st.error(msg)
+            with col_r2:
+                if saved_profiles and st.button("Back to Profiles", use_container_width=True):
+                    st.session_state.selected_profile_email = None
+                    st.rerun()
                     
-                col_r1, col_r2 = st.columns(2)
-                if submit_reg:
-                    if not reg_name.strip() or not reg_email.strip() or not reg_pass.strip():
-                        st.warning("Please fill in all required fields.")
-                    else:
-                        success, msg = register_initial_employee(reg_name, reg_email, reg_pass)
-                        if success:
-                            st.success(msg)
-                            st.session_state.pending_otp_email = reg_email.lower().strip()
-                            st.rerun()
-                        else:
-                            st.error(msg)
-                with col_r2:
-                    if saved_profiles and st.button("Back to Profiles", use_container_width=True):
-                        st.session_state.selected_profile_email = None
-                        st.rerun()
-                        
-        st.stop()
+        st.markdown('</div>', unsafe_allow_html=True)
+            
+    st.stop()
 
 # ===========================================================================
 # DATABASE OPERATIONS (WITH TIMESTAMP)
@@ -735,7 +739,7 @@ with st.sidebar:
     st.markdown(f"""
         <div class="sidebar-brand-box">
             <h2>{APP_NAME}</h2>
-            <p>Enterprise v10.16</p>
+            <p>Enterprise v10.17</p>
         </div>
     """, unsafe_allow_html=True)
     st.markdown("---")
