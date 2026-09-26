@@ -1,8 +1,8 @@
 """
-HireMatrix Pro — Ultimate Advanced Creative Edition (v3.0)
+HireMatrix Pro — Ultimate Advanced Creative Edition (v4.0 with Quick PIN Auth)
 ========================================================================
-Designed with Fully Immersive Glassmorphic Sidebar, Glowing Holographic Title, 
-Advanced Card Layouts, Secure HR Login/Signup with OTP, and Deep LLM Screening.
+Designed with Saved Employee Profiles, 4-Digit Quick PIN Login, Profile Deletion,
+Glassmorphic Sidebar, Advanced Card Layouts, and Deep LLM Screening.
 """
 
 import io
@@ -36,7 +36,8 @@ def init_auth_db():
             email TEXT PRIMARY KEY,
             name TEXT,
             password TEXT,
-            is_verified INTEGER DEFAULT 0,
+            pin TEXT,
+            is_verified INTEGER DEFAULT 1,
             otp TEXT
         )
     """)
@@ -48,92 +49,62 @@ init_auth_db()
 def hash_password(password):
     return hashlib.sha256(password.encode()).hexdigest()
 
-def send_otp_email(receiver_email, otp_code):
-    try:
-        sender_email = st.secrets["SMTP_EMAIL"]
-        sender_password = st.secrets["SMTP_PASSWORD"]
-    except Exception:
-        return False, "SMTP credentials Streamlit secrets mein configure nahi hain."
+def get_all_saved_profiles():
+    conn = sqlite3.connect(AUTH_DB_FILE)
+    cursor = conn.cursor()
+    cursor.execute("SELECT email, name, pin FROM hr_users")
+    rows = cursor.fetchall()
+    conn.close()
+    return rows
 
-    try:
-        msg = MIMEMultipart()
-        msg['From'] = sender_email
-        msg['To'] = receiver_email
-        msg['Subject'] = "HireMatrix Pro - Verification OTP"
-        
-        body = f"""
-        Hello,\n\n
-        Aapka HireMatrix Pro account verification code yeh hai:\n\n
-        OTP Code: {otp_code}\n\n
-        Yeh code kisi ke sath share mat karein.\n
-        Regards,\nTeam HireMatrix
-        """
-        msg.attach(MIMEText(body, 'plain'))
-        
-        server = smtplib.SMTP('smtp.gmail.com', 587)
-        server.starttls()
-        server.login(sender_email, sender_password)
-        server.sendmail(sender_email, receiver_email, msg.as_string())
-        server.quit()
-        return True, "OTP successfully email par bhej diya gaya hai!"
-    except Exception as e:
-        return False, f"Email bhejne mein error aaya: {e}"
-
-def register_user(name, email, password):
+def register_employee(name, email, password, pin):
     clean_email = email.lower().strip()
-    otp = str(random.randint(100000, 999999))
     try:
         conn = sqlite3.connect(AUTH_DB_FILE)
         cursor = conn.cursor()
-        cursor.execute("SELECT is_verified FROM hr_users WHERE email = ?", (clean_email,))
-        row = cursor.fetchone()
+        cursor.execute("SELECT email FROM hr_users WHERE email = ?", (clean_email,))
+        if cursor.fetchone():
+            conn.close()
+            return False, "Yeh email pehle se registered hai."
         
-        if row:
-            if row[0] == 1:
-                conn.close()
-                return False, "Yeh email pehle se registered aur verified hai. Baraye meherbani login karein."
-            else:
-                cursor.execute("UPDATE hr_users SET name = ?, password = ?, otp = ? WHERE email = ?", 
-                               (name, hash_password(password), otp, clean_email))
-        else:
-            cursor.execute("INSERT INTO hr_users (email, name, password, is_verified, otp) VALUES (?, ?, ?, 0, ?)", 
-                           (clean_email, name, hash_password(password), otp))
+        cursor.execute("INSERT INTO hr_users (email, name, password, pin, is_verified) VALUES (?, ?, ?, ?, 1)", 
+                       (clean_email, name, hash_password(password), pin))
         conn.commit()
         conn.close()
-        
-        success, msg = send_otp_email(clean_email, otp)
-        if success:
-            return True, "Account ban gaya hai! Aapki email par OTP bhej diya gaya hai."
-        else:
-            return False, msg
+        return True, "Employee profile successfully save ho gayi hai!"
     except Exception as e:
         return False, f"Error: {e}"
 
-def verify_otp_code(email, entered_otp):
-    conn = sqlite3.connect(AUTH_DB_FILE)
-    cursor = conn.cursor()
-    cursor.execute("SELECT otp FROM hr_users WHERE email = ?", (email.lower().strip(),))
-    row = cursor.fetchone()
-    if row and row[0] == entered_otp:
-        cursor.execute("UPDATE hr_users SET is_verified = 1 WHERE email = ?", (email.lower().strip(),))
+def delete_employee_profile(email):
+    try:
+        conn = sqlite3.connect(AUTH_DB_FILE)
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM hr_users WHERE email = ?", (email.lower().strip(),))
         conn.commit()
         conn.close()
-        return True, "Account successfully verify ho gaya hai!"
-    conn.close()
-    return False, "Ghalat OTP code! Dobara check karein."
+        return True, "Profile delete ho gayi hai."
+    except Exception as e:
+        return False, f"Error: {e}"
 
-def verify_user(email, password):
+def verify_employee_pin(email, entered_pin):
     conn = sqlite3.connect(AUTH_DB_FILE)
     cursor = conn.cursor()
-    cursor.execute("SELECT name, password, is_verified FROM hr_users WHERE email = ?", (email.lower().strip(),))
+    cursor.execute("SELECT name, pin FROM hr_users WHERE email = ?", (email.lower().strip(),))
     row = cursor.fetchone()
     conn.close()
-    if row:
-        if row[2] == 0:
-            return False, "Not Verified"
-        if row[1] == hash_password(password):
-            return True, row[0]
-    return False, "Invalid"
+    if row and row[1] == entered_pin:
+        return True, row[0]
+    return False, None
+
+def verify_user_credentials(email, password):
+    conn = sqlite3.connect(AUTH_DB_FILE)
+    cursor = conn.cursor()
+    cursor.execute("SELECT name, password FROM hr_users WHERE email = ?", (email.lower().strip(),))
+    row = cursor.fetchone()
+    conn.close()
+    if row and row[1] == hash_password(password):
+        return True, row[0]
+    return False, None
 
 # ===========================================================================
 # PAGE CONFIG & ADVANCED CYBERPUNK STYLING
@@ -159,7 +130,7 @@ html, body, [class*="css"] {
     color: #F8FAFC;
 }
 
-/* Stunning Cyber-Hero Header */
+/* Cyber-Hero Header */
 .cyber-hero {
     background: linear-gradient(135deg, rgba(30, 41, 59, 0.5) 0%, rgba(15, 23, 42, 0.8) 100%);
     backdrop-filter: blur(20px);
@@ -218,12 +189,7 @@ html, body, [class*="css"] {
     border-radius: 16px;
     padding: 1.6rem;
     margin-bottom: 1.5rem;
-    transition: all 0.3s ease;
     box-shadow: 0 12px 35px -10px rgba(0,0,0,0.5);
-}
-.glass-card:hover {
-    border-color: rgba(0, 229, 255, 0.25);
-    box-shadow: 0 20px 45px -12px rgba(0, 229, 255, 0.1);
 }
 .glass-card h4 {
     font-size: 1.15rem;
@@ -235,6 +201,21 @@ html, body, [class*="css"] {
     gap: 8px;
 }
 
+/* Profile Selector Card */
+.profile-pill {
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid rgba(0, 229, 255, 0.2);
+    border-radius: 12px;
+    padding: 1rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.profile-pill:hover {
+    border-color: #00e5ff;
+    background: rgba(0, 229, 255, 0.05);
+}
+
 /* Glowing Metric Pill */
 .metric-pill {
     background: rgba(13, 20, 32, 0.8);
@@ -242,7 +223,6 @@ html, body, [class*="css"] {
     border-radius: 14px;
     padding: 1.1rem;
     text-align: center;
-    box-shadow: inset 0 2px 4px rgba(255,255,255,0.02);
 }
 .metric-pill .val {
     font-size: 1.7rem;
@@ -258,12 +238,11 @@ html, body, [class*="css"] {
     font-weight: 600;
 }
 
-/* Score Colors */
-.score-high { color: #10B981 !important; text-shadow: 0 0 15px rgba(16, 185, 129, 0.3); }
-.score-mid { color: #F59E0B !important; text-shadow: 0 0 15px rgba(245, 158, 11, 0.3); }
-.score-low { color: #EF4444 !important; text-shadow: 0 0 15px rgba(239, 68, 68, 0.3); }
+.score-high { color: #10B981 !important; }
+.score-mid { color: #F59E0B !important; }
+.score-low { color: #EF4444 !important; }
 
-/* Futuristic Gradient Buttons */
+/* Buttons */
 .stButton>button[kind="primary"] {
     background: linear-gradient(135deg, #00e5ff 0%, #3b82f6 50%, #6366f1 100%);
     color: #04070D;
@@ -272,21 +251,12 @@ html, body, [class*="css"] {
     padding: 0.65rem 1.4rem;
     border: none;
     box-shadow: 0 6px 20px rgba(0, 229, 255, 0.35);
-    transition: all 0.25s ease;
-}
-.stButton>button[kind="primary"]:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 10px 30px rgba(0, 229, 255, 0.55);
-    color: #04070D;
 }
 
-/* Advanced Glassmorphic Sidebar Styling */
+/* Sidebar */
 [data-testid="stSidebar"] {
     background: linear-gradient(180deg, rgba(8, 12, 20, 0.95) 0%, rgba(4, 7, 13, 0.98) 100%);
     border-right: 1px solid rgba(0, 229, 255, 0.1);
-}
-[data-testid="stSidebar"] .stMarkdown {
-    color: #CBD5E1;
 }
 .sidebar-card {
     background: rgba(20, 30, 48, 0.5);
@@ -294,9 +264,7 @@ html, body, [class*="css"] {
     border-radius: 14px;
     padding: 1.2rem;
     margin-bottom: 1.2rem;
-    backdrop-filter: blur(10px);
 }
-/* Holographic Sidebar Brand Header */
 .sidebar-brand {
     background: linear-gradient(135deg, rgba(0, 229, 255, 0.1) 0%, rgba(59, 130, 246, 0.1) 100%);
     border: 1px solid rgba(0, 229, 255, 0.25);
@@ -304,15 +272,12 @@ html, body, [class*="css"] {
     padding: 1.2rem 1rem;
     text-align: center;
     margin-bottom: 1rem;
-    box-shadow: 0 0 20px rgba(0, 229, 255, 0.05);
 }
 .sidebar-brand h3 {
     color: #00e5ff;
     font-size: 1.25rem;
     font-weight: 800;
     margin: 0;
-    letter-spacing: -0.5px;
-    text-shadow: 0 0 10px rgba(0, 229, 255, 0.4);
 }
 .sidebar-brand span {
     font-size: 0.65rem;
@@ -334,84 +299,105 @@ if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 if "hr_name" not in st.session_state:
     st.session_state.hr_name = ""
-if "pending_verification_email" not in st.session_state:
-    st.session_state.pending_verification_email = None
+if "hr_email" not in st.session_state:
+    st.session_state.hr_email = ""
+if "selected_profile_email" not in st.session_state:
+    st.session_state.selected_profile_email = None
 if "results" not in st.session_state:
     st.session_state.results = []
 
 # ===========================================================================
-# AUTHENTICATION SCREEN
+# AUTHENTICATION SCREEN (QUICK PIN LOGIN & EMPLOYEE MANAGEMENT)
 # ===========================================================================
 if not st.session_state.logged_in:
     st.markdown("""
-        <div style="text-align: center; padding: 3.5rem 0 1.5rem 0;">
+        <div style="text-align: center; padding: 2.5rem 0 1rem 0;">
             <div style="display: inline-flex; align-items: center; gap: 8px; background: rgba(0,229,255,0.08); border: 1px solid rgba(0,229,255,0.3); padding: 6px 16px; border-radius: 30px; color: #00e5ff; font-size: 0.8rem; font-weight: 700; margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 1px;">
-                ⚡ Autonomous Executive HR Suite
+                ⚡ Enterprise Quick-PIN Portal
             </div>
-            <h1 style="color: #FFFFFF; font-size: 2.6rem; font-weight: 800; letter-spacing: -1px; margin: 0;">HireMatrix Pro</h1>
-            <p style="color: #94A3B8; font-size: 1.15rem; margin-top: 0.6rem;">Next-Generation Deep LLM Resume Screening & Extraction Engine</p>
+            <h1 style="color: #FFFFFF; font-size: 2.5rem; font-weight: 800; margin: 0;">HireMatrix Pro</h1>
+            <p style="color: #94A3B8; font-size: 1.1rem; margin-top: 0.5rem;">Select your saved profile or register new employee</p>
         </div>
     """, unsafe_allow_html=True)
     
-    col1, col2, col3 = st.columns([1, 1.35, 1])
+    col1, col2, col3 = st.columns([1, 1.4, 1])
     with col2:
-        st.markdown('<div class="glass-card">', unsafe_allow_html=True)
-        if st.session_state.pending_verification_email:
-            st.markdown("### 🔐 Verify Email OTP")
-            st.info(f"Verification code has been sent to **{st.session_state.pending_verification_email}**")
-            otp_input = st.text_input("Enter 6-Digit OTP", placeholder="123456", key="otp_code_in")
+        saved_profiles = get_all_saved_profiles()
+        
+        if saved_profiles and not st.session_state.selected_profile_email:
+            st.markdown('<div class="glass-card"><h4>👥 Saved Employee Profiles</h4>', unsafe_allow_html=True)
+            st.caption("Click your profile to login with your 4-digit PIN:")
             
-            if st.button("Verify & Enter Portal", type="primary", use_container_width=True):
-                success, msg = verify_otp_code(st.session_state.pending_verification_email, otp_input)
-                if success:
-                    st.success(msg)
-                    st.session_state.pending_verification_email = None
-                    st.rerun()
-                else:
-                    st.error(msg)
-            if st.button("Cancel & Go Back", use_container_width=True):
-                st.session_state.pending_verification_email = None
+            for p_email, p_name, p_pin in saved_profiles:
+                c_p1, c_p2 = st.columns([3, 1])
+                with c_p1:
+                    if st.button(f"👤 {p_name} ({p_email})", use_container_width=True, key=f"sel_{p_email}"):
+                        st.session_state.selected_profile_email = p_email
+                        st.rerun()
+                with c_p2:
+                    if st.button("🗑️ Delete", key=f"del_{p_email}", use_container_width=True):
+                        delete_employee_profile(p_email)
+                        st.success(f"{p_name} profile removed.")
+                        st.rerun()
+            st.markdown("---")
+            if st.button("➕ Register New Employee / Admin", use_container_width=True):
+                st.session_state.selected_profile_email = "new"
                 st.rerun()
-        else:
-            auth_tab1, auth_tab2 = st.tabs(["✨ HR Login", "🚀 Create Account"])
+            st.markdown('</div>', unsafe_allow_html=True)
             
-            with auth_tab1:
-                st.markdown("#### Manager Sign In")
-                login_email = st.text_input("Work Email", placeholder="alex@company.com", key="l_email")
-                login_pass = st.text_input("Password", type="password", key="l_pass")
-                
-                if st.button("Access Portal", type="primary", use_container_width=True):
-                    success, res_val = verify_user(login_email, login_pass)
+        elif st.session_state.selected_profile_email and st.session_state.selected_profile_email != "new":
+            target_email = st.session_state.selected_profile_email
+            # Find name
+            p_name = next((p[1] for p in saved_profiles if p[0] == target_email), "Employee")
+            
+            st.markdown(f'<div class="glass-card"><h4>🔐 Enter 4-Digit PIN for {p_name}</h4>', unsafe_allow_html=True)
+            pin_input = st.text_input("4-Digit PIN", type="password", max_chars=4, placeholder="••••", key="quick_pin_in")
+            
+            col_b1, col_b2 = st.columns(2)
+            with col_b1:
+                if st.button("Login", type="primary", use_container_width=True):
+                    success, name = verify_employee_pin(target_email, pin_input)
                     if success:
                         st.session_state.logged_in = True
-                        st.session_state.hr_name = res_val
-                        st.success(f"Welcome back, {res_val}!")
-                        st.rerun()
-                    elif res_val == "Not Verified":
-                        st.warning("Account pending verification. Enter OTP.")
-                        st.session_state.pending_verification_email = login_email
+                        st.session_state.hr_name = name
+                        st.session_state.hr_email = target_email
+                        st.success(f"Welcome back, {name}!")
                         st.rerun()
                     else:
-                        st.error("Invalid credentials. Please check email/password.")
-                        
-            with auth_tab2:
-                st.markdown("#### New HR Registration")
-                reg_name = st.text_input("Full Name", placeholder="Alex Mercer", key="r_name")
-                reg_email = st.text_input("Work Email", placeholder="alex@company.com", key="r_email")
-                reg_pass = st.text_input("Create Password", type="password", key="r_pass")
-                
-                if st.button("Register & Send OTP", type="primary", use_container_width=True):
-                    if not reg_name.strip() or not reg_email.strip() or not reg_pass.strip():
-                        st.warning("Please fill in all required fields.")
+                        st.error("Ghalat 4-Digit PIN! Dobara check karein.")
+            with col_b2:
+                if st.button("Switch Profile", use_container_width=True):
+                    st.session_state.selected_profile_email = None
+                    st.rerun()
+            st.markdown('</div>', unsafe_allow_html=True)
+            
+        else:
+            # Registration Tab or First time setup
+            st.markdown('<div class="glass-card"><h4>📝 Register Employee Profile</h4>', unsafe_allow_html=True)
+            reg_name = st.text_input("Full Name", placeholder="Ahsan Khan", key="r_name")
+            reg_email = st.text_input("Company Email", placeholder="employee@company.com", key="r_email")
+            reg_pass = st.text_input("Master Password", type="password", key="r_pass")
+            reg_pin = st.text_input("Create 4-Digit Quick PIN", type="password", max_chars=4, placeholder="1234", key="r_pin")
+            
+            col_r1, col_r2 = st.columns(2)
+            with col_r1:
+                if st.button("Save Profile", type="primary", use_container_width=True):
+                    if not reg_name.strip() or not reg_email.strip() or not reg_pin.strip() or len(reg_pin) != 4:
+                        st.warning("Baraye meherbani saari fields pur karein aur exact 4-digit PIN dein.")
                     else:
-                        success, msg = register_user(reg_name, reg_email, reg_pass)
+                        success, msg = register_employee(reg_name, reg_email, reg_pass, reg_pin)
                         if success:
                             st.success(msg)
-                            st.session_state.pending_verification_email = reg_email.lower().strip()
+                            st.session_state.selected_profile_email = None
                             st.rerun()
                         else:
                             st.error(msg)
-        st.markdown('</div>', unsafe_allow_html=True)
+            with col_r2:
+                if saved_profiles and st.button("Back to Profiles", use_container_width=True):
+                    st.session_state.selected_profile_email = None
+                    st.rerun()
+            st.markdown('</div>', unsafe_allow_html=True)
+            
     st.stop()
 
 # ===========================================================================
@@ -620,14 +606,14 @@ with st.sidebar:
     st.markdown("""
         <div class="sidebar-brand">
             <h3>⚡ HireMatrix Pro</h3>
-            <span>Executive HR Suite v3.0</span>
+            <span>Enterprise Edition v4.0</span>
         </div>
     """, unsafe_allow_html=True)
     st.markdown("---")
     
     st.markdown(f"""
         <div class="sidebar-card">
-            <div style="font-size: 0.75rem; color: #94A3B8; text-transform: uppercase; letter-spacing: 1px; font-weight: 700; margin-bottom: 4px;">Active Session</div>
+            <div style="font-size: 0.75rem; color: #94A3B8; text-transform: uppercase; letter-spacing: 1px; font-weight: 700; margin-bottom: 4px;">Active Employee</div>
             <div style="font-size: 1rem; font-weight: 700; color: #F8FAFC;">👤 {st.session_state.hr_name}</div>
         </div>
     """, unsafe_allow_html=True)
@@ -643,9 +629,11 @@ with st.sidebar:
         st.session_state.results = []
         st.rerun()
         
-    if st.button("🚪 Secure Logout", use_container_width=True):
+    if st.button("🚪 Lock & Switch Profile", use_container_width=True):
         st.session_state.logged_in = False
         st.session_state.hr_name = ""
+        st.session_state.hr_email = ""
+        st.session_state.selected_profile_email = None
         st.session_state.results = []
         st.rerun()
 
@@ -653,7 +641,7 @@ with st.sidebar:
 st.markdown(f"""
     <div class="cyber-hero">
         <div class="cyber-badge">
-            <span>🟢 System Operational</span> &bull; <span>Secure Session Active</span>
+            <span>🟢 Secure Employee Session</span> &bull; <span>{st.session_state.hr_email}</span>
         </div>
         <h1>{APP_NAME}</h1>
         <p>Welcome back, <b>{st.session_state.hr_name}</b> &mdash; {APP_TAGLINE}</p>
@@ -741,7 +729,7 @@ with tab1:
         st.download_button(
             "Download Formatted Master Report (.xlsx)",
             data=dataframe_to_formatted_excel_bytes(df),
-            file_name=f"{job_title_input.replace(' ', '_')}_Candidates.xlsx",
+            file_name=f"{job_title_input.replace(' ','_')}_Candidates.xlsx",
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             use_container_width=True,
         )
