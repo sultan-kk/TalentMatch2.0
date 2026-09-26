@@ -1,7 +1,7 @@
 """
-HireMatrix Pro — Enterprise Edition v10.33 (Complete Code with Styled Profile Box)
+HireMatrix Pro — Enterprise Edition v10.36 (Error-Free Master Code)
 ========================================================================
-Features: Visually distinct Saved Profile box with custom background color and border, 
+Features: Fixed syntax errors, fully intact brand card on left, distinct profile box on right, 
 Dynamic Passing Score Threshold, Smart Duplicate Prevention, and Executive Excel Report.
 """
 
@@ -298,7 +298,7 @@ html, body, [class*="css"] { font-family: 'Inter', sans-serif !important; }
 
 /* Explicit Distinct Background Color Override for Profile Box */
 div[data-testid="stVerticalBlock"] div[data-testid="stContainer"] {
-    background: rgba(14, 165, 233, 0.08) !important;
+    background: rgba(14, 165, 233, 0.10) !important;
     border: 1.5px solid #0EA5E9 !important;
     border-radius: 16px !important;
     padding: 1.5rem !important;
@@ -402,38 +402,75 @@ if not st.session_state.logged_in:
     with col_right:
         st.markdown('<div class="auth-form-card">', unsafe_allow_html=True)
         
-        # ... (OTP, PIN, aur Registration handlers yahan aayenge) ...
+        if st.session_state.pending_pin_email:
+            st.markdown("### 🔐 Security Setup")
+            st.info(f"Email verified for **{st.session_state.pending_pin_email}**.")
+            
+            with st.form("pin_setup_form"):
+                new_pin = st.text_input("Enter 4-Digit PIN", type="password", max_chars=4, placeholder="••••")
+                confirm_pin = st.text_input("Confirm 4-Digit PIN", type="password", max_chars=4, placeholder="••••")
+                submit_pin = st.form_submit_button("Save PIN & Enter Portal", use_container_width=True)
+                
+            if submit_pin:
+                if not new_pin or len(new_pin) != 4 or not new_pin.isdigit():
+                    st.warning("Please enter an exact 4-digit numeric PIN.")
+                elif new_pin != confirm_pin:
+                    st.error("PINs do not match. Please try again.")
+                else:
+                    success, msg = save_employee_pin(st.session_state.pending_pin_email, new_pin)
+                    if success:
+                        st.success(msg)
+                        st.session_state.pending_pin_email = None
+                        st.rerun()
+                    else:
+                        st.error(msg)
+
+        elif st.session_state.pending_otp_email:
+            st.markdown("### 📬 Email Verification")
+            st.info(f"Enter the 6-digit security code sent to **{st.session_state.pending_otp_email}**.")
+            
+            with st.form("otp_form"):
+                otp_input = st.text_input("Enter 6-Digit OTP", placeholder="123456")
+                submit_otp = st.form_submit_button("Verify OTP", use_container_width=True)
+                
+            col_o1, col_o2 = st.columns(2)
+            if submit_otp:
+                success, msg = verify_otp_code(st.session_state.pending_otp_email, otp_input)
+                if success:
+                    st.success(msg)
+                    st.session_state.pending_pin_email = st.session_state.pending_otp_email
+                    st.session_state.pending_otp_email = None
+                    st.rerun()
+                else:
+                    st.error(msg)
+            with col_o2:
+                if st.button("Cancel", use_container_width=True):
+                    st.session_state.pending_otp_email = None
+                    st.rerun()
             
         elif saved_profiles and not st.session_state.selected_profile_email:
-            # --- DISTINCT BACKGROUND CONTAINER FOR SAVED PROFILES ---
-            st.markdown("""
-                <div style="background-color: rgba(14, 165, 233, 0.12); border: 1.5px solid #0EA5E9; border-radius: 14px; padding: 1.5rem; margin-bottom: 1.2rem; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
-                    <h3 style="margin-top: 0; margin-bottom: 0.3rem; font-size: 1.2rem; font-weight: 700;">👥 Saved Employee Profiles</h3>
-                    <p style="font-size: 0.85rem; opacity: 0.8; margin-bottom: 0;">Select your secure profile card below to sign in instantly:</p>
-                </div>
-            """, unsafe_allow_html=True)
-            
-            for p_email, p_name, p_pin, p_role, p_pro in saved_profiles:
-                pro_badge = " 🌟 [PRO]" if p_pro == 1 else " 🆓 [Free]"
-                c_p1, c_p2 = st.columns([3, 1])
-                with c_p1:
-                    if st.button(f"👤 {p_name} ({p_role}){pro_badge}", use_container_width=True, key=f"sel_{p_email}"):
-                        st.session_state.selected_profile_email = p_email
-                        st.rerun()
-                with c_p2:
-                    if st.button("🗑️ Delete", key=f"del_{p_email}", use_container_width=True):
-                        delete_employee_profile(p_email)
-                        st.success(f"Profile for {p_name} has been removed.")
-                        st.rerun()
+            # --- SAVED PROFILES CONTAINER WITH STYLING ---
+            with st.container(border=True):
+                st.markdown("### 👥 Saved Employee Profiles")
+                st.caption("Select your secure profile card below to sign in instantly:")
+                
+                for p_email, p_name, p_pin, p_role, p_pro in saved_profiles:
+                    pro_badge = " 🌟 [PRO]" if p_pro == 1 else " 🆓 [Free]"
+                    c_p1, c_p2 = st.columns([3, 1])
+                    with c_p1:
+                        if st.button(f"👤 {p_name} ({p_role}){pro_badge}", use_container_width=True, key=f"sel_{p_email}"):
+                            st.session_state.selected_profile_email = p_email
+                            st.rerun()
+                    with c_p2:
+                        if st.button("🗑️ Delete", key=f"del_{p_email}", use_container_width=True):
+                            delete_employee_profile(p_email)
+                            st.success(f"Profile for {p_name} has been removed.")
+                            st.rerun()
             
             st.markdown("")
             if st.button("➕ Register New Employee Profile", use_container_width=True):
                 st.session_state.selected_profile_email = "new"
                 st.rerun()
-                
-        # ... (baqi login aur registration forms yahan rahenge) ...
-        
-        st.markdown('</div>', unsafe_allow_html=True)
             
         elif st.session_state.selected_profile_email and st.session_state.selected_profile_email != "new":
             target_email = st.session_state.selected_profile_email
@@ -744,7 +781,7 @@ with st.sidebar:
     st.markdown(f"""
         <div class="sidebar-brand-box">
             <h2>{APP_NAME}</h2>
-            <p>Enterprise v10.33</p>
+            <p>Enterprise v10.36</p>
         </div>
     """, unsafe_allow_html=True)
     st.markdown("---")
