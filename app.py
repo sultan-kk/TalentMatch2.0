@@ -1,8 +1,8 @@
 """
-HireMatrix Pro — Enterprise Edition v10.65 (Unique Sheet Name Fix)
+HireMatrix Pro — Enterprise Edition v10.67 (Ultimate Unique Widget ID Fix)
 ========================================================================
-Features: Fixed duplicate worksheet name errors in Excel exports, persistent same-file master Excel appends, 
-Clean numbered exports, individual candidate deletes, strict duplicate blocking, and complete ATS workflow.
+Features: Cryptographically secure unique keys for all dynamic Streamlit widgets in loops, 
+Persistent master file appends, clean numbered exports, individual candidate deletes, strict duplicate blocking, and complete ATS workflow.
 """
 
 import io
@@ -163,7 +163,7 @@ def verify_employee_pin(email, entered_pin):
     return False, None, None
 
 # ===========================================================================
-# DATABASE OPERATIONS & SAFE EXCEL EXPORTS
+# DATABASE OPERATIONS & PERSISTENT SAME-FILE EXPORT
 # ===========================================================================
 def load_database():
     if os.path.exists(DB_FILE):
@@ -265,9 +265,10 @@ def generate_repository_excel(df: pd.DataFrame) -> bytes:
             export_df = export_df.drop(columns=["Job Title"])
         export_df.insert(0, "Sr. No.", range(1, len(export_df) + 1))
         
-        export_df.to_excel(writer, index=False, sheet_name="Talent_Repository")
+        sheet_n = "Talent_Repository"
+        export_df.to_excel(writer, index=False, sheet_name=sheet_n)
         workbook = writer.book
-        worksheet = writer.sheets["Talent_Repository"]
+        worksheet = writer.sheets[sheet_n]
         
         header_format = workbook.add_format({
             "bold": True, "bg_color": "#1E293B", "font_color": "#FFFFFF", "border": 1, "align": "center", "valign": "vcenter",
@@ -304,9 +305,10 @@ def generate_screening_excel(results_list) -> bytes:
                 "Pipeline Status": r["pipeline_status"]
             })
         export_df = pd.DataFrame(data)
-        export_df.to_excel(writer, index=False, sheet_name="Screened_Results")
+        sheet_n = "Screened_Results"
+        export_df.to_excel(writer, index=False, sheet_name=sheet_n)
         workbook = writer.book
-        worksheet = writer.sheets["Screened_Results"]
+        worksheet = writer.sheets[sheet_n]
         
         header_format = workbook.add_format({
             "bold": True, "bg_color": "#0EA5E9", "font_color": "#FFFFFF", "border": 1, "align": "center", "valign": "vcenter",
@@ -488,7 +490,7 @@ with st.sidebar:
     st.markdown(f"""
         <div class="sidebar-brand-box">
             <h2>{APP_NAME}</h2>
-            <p>Multi-Stage ATS v10.65</p>
+            <p>Multi-Stage ATS v10.67</p>
         </div>
     """, unsafe_allow_html=True)
     st.markdown("---")
@@ -585,7 +587,9 @@ with tab1:
             with c_d2: st.write(f"✉️ `{row['Email']}`")
             with c_d3: st.write(f"🎓 {row['Education']}")
             with c_d4:
-                safe_key = f"del_repo_{idx}_{str(row['Email']).replace('@', '_').replace('.', '_')}"
+                # Cryptographically unique safe key
+                unique_hash = hashlib.md5(f"{idx}_{row['Email']}_{row['Candidate Name']}".encode()).hexdigest()[:8]
+                safe_key = f"del_repo_{idx}_{unique_hash}"
                 if st.button("🗑️ Delete", key=safe_key, use_container_width=True):
                     delete_single_candidate_from_db(row['Email'] if row['Email'] not in ["Not Provided", "Not Found", ""] else row['Candidate Name'])
                     st.success(f"Removed {row['Candidate Name']} from repository!")
@@ -699,7 +703,8 @@ with tab2:
                 current_stage = cand["pipeline_status"]
                 stage_idx = stage_options.index(current_stage) if current_stage in stage_options else 0
                 
-                stage_key = f"stage_sel_{rank}_{str(cand['email']).replace('@', '_').replace('.', '_')}"
+                cand_hash = hashlib.md5(f"{rank}_{cand['email']}_{cand['name']}".encode()).hexdigest()[:8]
+                stage_key = f"stage_sel_{rank}_{cand_hash}"
                 new_stage = st.selectbox(
                     "Update Stage", 
                     stage_options, 
@@ -713,7 +718,7 @@ with tab2:
                     st.rerun()
 
                 st.markdown("---")
-                q_key = f"gen_q_{rank}_{str(cand['email']).replace('@', '_').replace('.', '_')}"
+                q_key = f"gen_q_{rank}_{cand_hash}"
                 if st.button(f"💡 Generate AI Interview Q&A for {cand['name']}", key=q_key):
                     if client:
                         with st.spinner("Generating tailored interview questions..."):
@@ -739,10 +744,10 @@ with tab2:
                         email_subject = f"Application Status Update - {cand['job_title']}"
                         st.warning("⚠️ Stage is **Rejected**: Regret template loaded.")
 
-                    msg_key = f"inv_msg_{rank}_{str(cand['email']).replace('@', '_').replace('.', '_')}"
+                    msg_key = f"inv_msg_{rank}_{cand_hash}"
                     invite_msg = st.text_area("Email Message", value=default_msg, key=msg_key)
                     
-                    send_key = f"send_inv_{rank}_{str(cand['email']).replace('@', '_').replace('.', '_')}"
+                    send_key = f"send_inv_{rank}_{cand_hash}"
                     if st.button(f"📧 Send Email to {cand['name']}", key=send_key):
                         ok, res_m = send_smtp_email(cand['email'], email_subject, invite_msg)
                         if ok:
