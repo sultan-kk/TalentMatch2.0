@@ -1,8 +1,8 @@
 """
-Super TalentMatch AI — Ultimate Creative UI Edition
+Super TalentMatch AI — Ultimate Advanced Creative Edition
 ========================================================================
-Designed with Floating Glassmorphism Panels, Cyberpunk Header Badges, 
-Secure HR Login/Signup with Live Email OTP, and Deep LLM Screening.
+Designed with Fully Immersive Glassmorphic Sidebar, Cyberpunk Badges, 
+Advanced Card Layouts, Secure HR Login/Signup with OTP, and Deep LLM Screening.
 """
 
 import io
@@ -136,16 +136,16 @@ def verify_user(email, password):
     return False, "Invalid"
 
 # ===========================================================================
-# PAGE CONFIG & CYBERPUNK CREATIVE CSS STYLING
+# PAGE CONFIG & ADVANCED CYBERPUNK STYLING
 # ===========================================================================
 st.set_page_config(
-    page_title=f"{APP_NAME} | Creative HR Portal",
+    page_title=f"{APP_NAME} | Executive Portal",
     page_icon="⚡",
     layout="wide",
     initial_sidebar_state="expanded",
 )
 
-CREATIVE_CSS = """
+ADVANCED_CSS = """
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
 
@@ -153,21 +153,21 @@ html, body, [class*="css"] {
     font-family: 'Plus Jakarta Sans', sans-serif !important;
 }
 
-/* Deep Atmospheric Space Background */
+/* Deep Space Luxury Background */
 .stApp {
-    background: radial-gradient(circle at 15% 15%, rgba(13, 18, 30, 1) 0%, rgba(5, 8, 15, 1) 100%);
-    color: #F1F5F9;
+    background: radial-gradient(circle at 10% 10%, rgba(10, 15, 25, 1) 0%, rgba(4, 7, 13, 1) 100%);
+    color: #F8FAFC;
 }
 
-/* Stunning Cyberpunk Graphic Header */
+/* Stunning Cyber-Hero Header */
 .cyber-hero {
-    background: linear-gradient(135deg, rgba(30, 41, 59, 0.6) 0%, rgba(15, 23, 42, 0.85) 100%);
+    background: linear-gradient(135deg, rgba(30, 41, 59, 0.5) 0%, rgba(15, 23, 42, 0.8) 100%);
     backdrop-filter: blur(20px);
     border: 1px solid rgba(0, 229, 255, 0.15);
-    border-radius: 18px;
+    border-radius: 20px;
     padding: 2.2rem 2.8rem;
     margin-bottom: 2rem;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7), 0 0 30px rgba(0, 229, 255, 0.05);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7), 0 0 35px rgba(0, 229, 255, 0.04);
     position: relative;
     overflow: hidden;
 }
@@ -180,21 +180,21 @@ html, body, [class*="css"] {
 .cyber-badge {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    background: rgba(0, 229, 255, 0.1);
-    border: 1px solid rgba(0, 229, 255, 0.3);
+    gap: 8px;
+    background: rgba(0, 229, 255, 0.08);
+    border: 1px solid rgba(0, 229, 255, 0.25);
     color: #00e5ff;
-    padding: 4px 12px;
-    border-radius: 20px;
+    padding: 5px 14px;
+    border-radius: 25px;
     font-size: 0.75rem;
     font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 1px;
+    letter-spacing: 1.2px;
     margin-bottom: 0.8rem;
 }
 .cyber-hero h1 {
     color: #FFFFFF;
-    font-size: 2.2rem;
+    font-size: 2.3rem;
     font-weight: 800;
     letter-spacing: -0.8px;
     margin: 0;
@@ -212,18 +212,18 @@ html, body, [class*="css"] {
 
 /* Glassmorphism Floating Cards */
 .glass-card {
-    background: rgba(30, 41, 59, 0.35);
-    backdrop-filter: blur(14px);
-    border: 1px solid rgba(255, 255, 255, 0.07);
+    background: rgba(26, 35, 50, 0.4);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.06);
     border-radius: 16px;
     padding: 1.6rem;
     margin-bottom: 1.5rem;
     transition: all 0.3s ease;
-    box-shadow: 0 10px 30px -10px rgba(0,0,0,0.4);
+    box-shadow: 0 12px 35px -10px rgba(0,0,0,0.5);
 }
 .glass-card:hover {
     border-color: rgba(0, 229, 255, 0.25);
-    box-shadow: 0 20px 40px -12px rgba(0, 229, 255, 0.1);
+    box-shadow: 0 20px 45px -12px rgba(0, 229, 255, 0.1);
 }
 .glass-card h4 {
     font-size: 1.15rem;
@@ -237,7 +237,7 @@ html, body, [class*="css"] {
 
 /* Glowing Metric Pill */
 .metric-pill {
-    background: rgba(15, 23, 42, 0.7);
+    background: rgba(13, 20, 32, 0.8);
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 14px;
     padding: 1.1rem;
@@ -266,7 +266,7 @@ html, body, [class*="css"] {
 /* Futuristic Gradient Buttons */
 .stButton>button[kind="primary"] {
     background: linear-gradient(135deg, #00e5ff 0%, #3b82f6 50%, #6366f1 100%);
-    color: #070B10;
+    color: #04070D;
     font-weight: 800;
     border-radius: 12px;
     padding: 0.65rem 1.4rem;
@@ -277,17 +277,28 @@ html, body, [class*="css"] {
 .stButton>button[kind="primary"]:hover {
     transform: translateY(-2px);
     box-shadow: 0 10px 30px rgba(0, 229, 255, 0.55);
-    color: #070B10;
+    color: #04070D;
 }
 
-/* Sidebar Custom Look */
+/* Advanced Glassmorphic Sidebar Styling */
 [data-testid="stSidebar"] {
-    background-color: #070B10;
-    border-right: 1px solid rgba(255, 255, 255, 0.05);
+    background: linear-gradient(180deg, rgba(8, 12, 20, 0.95) 0%, rgba(4, 7, 13, 0.98) 100%);
+    border-right: 1px solid rgba(0, 229, 255, 0.1);
+}
+[data-testid="stSidebar"] .stMarkdown {
+    color: #CBD5E1;
+}
+.sidebar-card {
+    background: rgba(20, 30, 48, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 14px;
+    padding: 1.2rem;
+    margin-bottom: 1.2rem;
+    backdrop-filter: blur(10px);
 }
 </style>
 """
-st.markdown(CREATIVE_CSS, unsafe_allow_html=True)
+st.markdown(ADVANCED_CSS, unsafe_allow_html=True)
 
 # ===========================================================================
 # SESSION STATE MANAGEMENT
@@ -307,8 +318,8 @@ if "results" not in st.session_state:
 if not st.session_state.logged_in:
     st.markdown("""
         <div style="text-align: center; padding: 3.5rem 0 1.5rem 0;">
-            <div style="display: inline-flex; align-items: center; gap: 8px; background: rgba(0,229,255,0.1); border: 1px solid rgba(0,229,255,0.3); padding: 6px 16px; border-radius: 30px; color: #00e5ff; font-size: 0.8rem; font-weight: 700; margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 1px;">
-                ⚡ Autonomous HR Intelligence Suite
+            <div style="display: inline-flex; align-items: center; gap: 8px; background: rgba(0,229,255,0.08); border: 1px solid rgba(0,229,255,0.3); padding: 6px 16px; border-radius: 30px; color: #00e5ff; font-size: 0.8rem; font-weight: 700; margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 1px;">
+                ⚡ Autonomous Executive HR Suite
             </div>
             <h1 style="color: #FFFFFF; font-size: 2.6rem; font-weight: 800; letter-spacing: -1px; margin: 0;">Super TalentMatch AI</h1>
             <p style="color: #94A3B8; font-size: 1.15rem; margin-top: 0.6rem;">Next-Generation Deep LLM Resume Screening & Extraction Engine</p>
@@ -561,15 +572,6 @@ def dataframe_to_formatted_excel_bytes(df: pd.DataFrame) -> bytes:
     with pd.ExcelWriter(buffer, engine="xlsxwriter") as writer:
         df.to_excel(writer, index=False, sheet_name="Candidates")
         workbook = writer.book
-        worksheet = workbook.add_worksheet("Candidates") # handled via writer
-        # XlsxWriter setup
-        # ...
-    # Re-writing proper buffer writer
-    # (Using standard pandas writer block)
-    buffer = io.BytesIO()
-    with pd.ExcelWriter(buffer, engine="xlsxwriter") as writer:
-        df.to_excel(writer, index=False, sheet_name="Candidates")
-        workbook = writer.book
         worksheet = writer.sheets["Candidates"]
         header_format = workbook.add_format({
             "bold": True, "bg_color": "#1E293B", "font_color": "#FFFFFF", 
@@ -585,22 +587,27 @@ def dataframe_to_formatted_excel_bytes(df: pd.DataFrame) -> bytes:
     return buffer.getvalue()
 
 # ===========================================================================
-# SIDEBAR & DASHBOARD INTERFACE
+# ADVANCED GLASSMORPHIC SIDEBAR & DASHBOARD INTERFACE
 # ===========================================================================
 with st.sidebar:
     st.markdown("""
-        <div style="text-align: center; padding: 12px 0;">
-            <div style="font-size: 1.3rem; font-weight: 800; color: #00e5ff;">⚡ TalentMatch AI</div>
-            <div style="font-size: 0.75rem; color: #64748B; text-transform: uppercase; letter-spacing: 1px; margin-top: 4px;">Executive HR Suite</div>
+        <div style="text-align: center; padding: 15px 0 5px 0;">
+            <div style="font-size: 1.4rem; font-weight: 800; color: #00e5ff; letter-spacing: -0.5px;">⚡ TalentMatch AI</div>
+            <div style="font-size: 0.7rem; color: #94A3B8; text-transform: uppercase; letter-spacing: 1.5px; margin-top: 6px; font-weight: 700;">Executive Suite v2.5</div>
         </div>
     """, unsafe_allow_html=True)
     st.markdown("---")
     
-    st.markdown(f"👤 **HR Manager:** `{st.session_state.hr_name}`")
+    st.markdown(f"""
+        <div class="sidebar-card">
+            <div style="font-size: 0.75rem; color: #94A3B8; text-transform: uppercase; letter-spacing: 1px; font-weight: 700; margin-bottom: 4px;">Active Session</div>
+            <div style="font-size: 1rem; font-weight: 700; color: #F8FAFC;">👤 {st.session_state.hr_name}</div>
+        </div>
+    """, unsafe_allow_html=True)
     
     if "GROQ_API_KEY" in st.secrets:
         groq_api_key = st.secrets["GROQ_API_KEY"]
-        st.success("✓ Groq Key Active")
+        st.markdown('<div class="sidebar-card" style="border-color: rgba(16, 185, 129, 0.3); color: #10B981; font-size: 0.85rem; font-weight: 600;">✓ Groq API Secured</div>', unsafe_allow_html=True)
     else:
         groq_api_key = st.text_input("Groq API Key", type="password", placeholder="gsk_...")
     
