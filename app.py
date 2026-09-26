@@ -389,7 +389,7 @@ if not st.session_state.logged_in:
     
     col_left, col_right = st.columns([1.1, 1.4], gap="large")
     
-with col_left:
+    with col_left:
         st.markdown(f"""
             <div class="auth-brand-side">
                 <h1>{APP_NAME}</h1>
