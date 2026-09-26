@@ -1,8 +1,8 @@
 """
-HireMatrix Pro — Enterprise Edition v10.21 (Unified Master Container & Balanced Contrast)
+HireMatrix Pro — Enterprise Edition v10.23 (Clean Master Profiles & Syntax Fix)
 ========================================================================
-Features: All saved employee profiles wrapped in a single integrated master container box, 
-Flawless light/dark theme contrast harmony, Executive split-screen login, and Master Excel Export.
+Features: Fixed Python syntax error, single unified master container box for saved profiles, 
+Integrated clean header, and balanced light/dark theme contrast harmony.
 """
 
 import io
@@ -244,7 +244,7 @@ def verify_employee_pin(email, entered_pin):
     return False, None, None, 0
 
 # ===========================================================================
-# PAGE CONFIG & EXECUTIVE STYLING (THEME HARMONY & CONTRAST)
+# PAGE CONFIG & EXECUTIVE STYLING
 # ===========================================================================
 st.set_page_config(
     page_title=f"{APP_NAME} | Executive Portal",
@@ -258,7 +258,6 @@ EXECUTIVE_UI_CSS = """
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 html, body, [class*="css"] { font-family: 'Inter', sans-serif !important; }
 
-/* Premium Sidebar Brand Styling */
 .sidebar-brand-box {
     background: linear-gradient(135deg, rgba(14, 165, 233, 0.12) 0%, rgba(2, 132, 199, 0.04) 100%);
     border: 1px solid rgba(14, 165, 233, 0.3);
@@ -275,7 +274,6 @@ html, body, [class*="css"] { font-family: 'Inter', sans-serif !important; }
     font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1.2px; font-weight: 600; opacity: 0.85; margin: 0;
 }
 
-/* Executive Split Auth Layout Containers */
 .auth-brand-side {
     background: linear-gradient(135deg, #0EA5E9 0%, #1E293B 100%);
     border-radius: 18px;
@@ -290,49 +288,14 @@ html, body, [class*="css"] { font-family: 'Inter', sans-serif !important; }
 .auth-brand-side h1 { font-size: 2.6rem; font-weight: 800; margin-bottom: 1rem; color: #FFFFFF; letter-spacing: -0.5px; }
 .auth-brand-side p { font-size: 1.05rem; opacity: 0.9; line-height: 1.6; }
 
-/* Custom Login Form Card Container with Balanced Contrast */
 .auth-form-card {
     background: var(--background-color);
-    border: 1.5px solid rgba(14, 165, 233, 0.3);
+    border: 1px solid rgba(14, 165, 233, 0.25);
     border-radius: 18px;
     padding: 2.5rem;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.06);
 }
 
-/* Profiles Master Container Styling */
-div[data-testid="stVerticalBlock"] div[data-testid="stVerticalBlock"] div[data-testid="stContainer"] {
-    background-color: var(--secondary-background-color) !important;
-    border: 1px solid rgba(14, 165, 233, 0.25) !important;
-    border-radius: 14px !important;
-    padding: 1.5rem !important;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04);
-}
-
-/* Standard Buttons Styling for Clean Contrast */
-.stButton>button {
-    background: var(--background-color);
-    color: inherit;
-    font-weight: 600;
-    border-radius: 8px;
-    border: 1px solid rgba(14, 165, 233, 0.3);
-    transition: all 0.2s ease;
-}
-.stButton>button:hover {
-    border-color: #0EA5E9;
-    box-shadow: 0 2px 8px rgba(14, 165, 233, 0.15);
-}
-
-/* Primary Action Buttons */
-.stButton>button[kind="primary"] {
-    background: #0EA5E9 !important;
-    color: #FFFFFF !important;
-    font-weight: 700;
-    border: none;
-    box-shadow: 0 4px 12px rgba(14, 165, 233, 0.25);
-}
-.stButton>button[kind="primary"]:hover { background: #0284C7 !important; }
-
-/* Corporate Hero Header & Cards */
 .corp-hero {
     background: var(--background-color);
     border: 1px solid var(--secondary-background-color);
@@ -370,6 +333,12 @@ div[data-testid="stVerticalBlock"] div[data-testid="stVerticalBlock"] div[data-t
 .score-mid { color: #D97706 !important; font-weight: 800; }
 .score-low { color: #DC2626 !important; font-weight: 800; }
 
+.stButton>button[kind="primary"] {
+    background: #0EA5E9; color: #FFFFFF; font-weight: 700; border-radius: 10px; padding: 0.6rem 1.4rem; border: none;
+    box-shadow: 0 4px 12px rgba(14, 165, 233, 0.25);
+}
+.stButton>button[kind="primary"]:hover { background: #0284C7; }
+
 .sidebar-card { background: var(--secondary-background-color); border-radius: 12px; padding: 1.1rem; margin-bottom: 1rem; border: 1px solid rgba(14,165,233,0.15); }
 </style>
 """
@@ -389,7 +358,7 @@ if "pending_pin_email" not in st.session_state: st.session_state.pending_pin_ema
 if "results" not in st.session_state: st.session_state.results = []
 
 # ===========================================================================
-# AUTHENTICATION SCREEN (SINGLE INTEGRATED MASTER PROFILE CONTAINER)
+# AUTHENTICATION SCREEN (CLEAN MASTER PROFILES CONTAINER)
 # ===========================================================================
 if not st.session_state.logged_in:
     saved_profiles = get_all_verified_profiles()
@@ -456,7 +425,7 @@ if not st.session_state.logged_in:
                     st.rerun()
             
         elif saved_profiles and not st.session_state.selected_profile_email:
-            # --- USING STREAMLIT BORDERED CONTAINER FOR PERFECT NATIVE THEME CONTRAST ---
+            # --- SINGLE INTEGRATED MASTER CONTAINER BOX FOR PROFILES ---
             with st.container(border=True):
                 st.markdown("### 👥 Saved Employee Profiles")
                 st.caption("Select your secure profile card below to sign in instantly:")
@@ -769,7 +738,7 @@ with st.sidebar:
     st.markdown(f"""
         <div class="sidebar-brand-box">
             <h2>{APP_NAME}</h2>
-            <p>Enterprise v10.21</p>
+            <p>Enterprise v10.23</p>
         </div>
     """, unsafe_allow_html=True)
     st.markdown("---")
