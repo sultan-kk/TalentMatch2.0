@@ -1,9 +1,9 @@
 """
-HireMatrix Pro — Enterprise Edition v8.0 (With Pro Subscription Tier)
+HireMatrix Pro — Enterprise Edition v9.0 (Automated Meezan/Sadapay Payment & License Gateway)
 ========================================================================
-Features: Multi-User Registry, Live SMTP OTP, Dedicated PIN Setup, 
-Pro Subscription Gate (6999 PKR/month), AI Interview Q&A, Kanban Pipeline, 
-Automated Invites, Admin Controls, and Deep LLM Screening.
+Features: Multi-User Registry, Live SMTP OTP, Quick PIN Setup, 
+Automated Sadapay/Meezan Bank Payment Verification & Auto License Key Dispatch via Email, 
+AI Interview Q&A, Kanban Pipeline, Admin Controls, and Deep LLM Screening.
 """
 
 import io
@@ -21,7 +21,7 @@ import streamlit as st
 from groq import Groq
 
 # ===========================================================================
-# CONFIGURATION & AUTH DB (WITH SUBSCRIPTION SUPPORT)
+# CONFIGURATION & AUTH DB (WITH PAYMENT & LICENSE TABLES)
 # ===========================================================================
 APP_NAME = "HireMatrix Pro"
 APP_TAGLINE = "Autonomous HR Intelligence & Executive Recruitment Suite"
@@ -29,6 +29,11 @@ GROQ_MODEL = "openai/gpt-oss-120b"
 ACCEPTED_TYPES = ["pdf", "docx", "png", "jpg", "jpeg"]
 DB_FILE = "master_candidates.csv"
 AUTH_DB_FILE = "hr_users.db"
+
+# Aapke official payment accounts
+MEEZAN_TITLE = "Muhammad Sultan Sheraz"
+MEEZAN_IBAN = "PK68MEZN0000000000000000" # Apna exact Meezan account number/IBAN yahan dein
+SADAPAY_NUMBER = "0300-1234567" # Apna Sadapay/JazzCash number yahan dein
 
 def init_auth_db():
     conn = sqlite3.connect(AUTH_DB_FILE)
@@ -45,16 +50,19 @@ def init_auth_db():
             otp TEXT
         )
     """)
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS license_keys (
+            license_key TEXT PRIMARY KEY,
+            email TEXT,
+            is_used INTEGER DEFAULT 0
+        )
+    """)
     cursor.execute("PRAGMA table_info(hr_users)")
     columns = [col[1] for col in cursor.fetchall()]
-    if "pin" not in columns:
-        cursor.execute("ALTER TABLE hr_users ADD COLUMN pin TEXT")
-    if "role" not in columns:
-        cursor.execute("ALTER TABLE hr_users ADD COLUMN role TEXT DEFAULT 'Recruiter'")
-    if "is_pro" not in columns:
-        cursor.execute("ALTER TABLE hr_users ADD COLUMN is_pro INTEGER DEFAULT 0")
-    if "otp" not in columns:
-        cursor.execute("ALTER TABLE hr_users ADD COLUMN otp TEXT")
+    if "pin" not in columns: cursor.execute("ALTER TABLE hr_users ADD COLUMN pin TEXT")
+    if "role" not in columns: cursor.execute("ALTER TABLE hr_users ADD COLUMN role TEXT DEFAULT 'Recruiter'")
+    if "is_pro" not in columns: cursor.execute("ALTER TABLE hr_users ADD COLUMN is_pro INTEGER DEFAULT 0")
+    if "otp" not in columns: cursor.execute("ALTER TABLE hr_users ADD COLUMN otp TEXT")
     conn.commit()
     conn.close()
 
@@ -72,7 +80,7 @@ def send_smtp_email(receiver_email, subject, body_text):
 
     try:
         msg = MIMEMultipart()
-        msg['From'] = formataddr(("HireMatrix Pro Executive", sender_email))
+        msg['From'] = formataddr(("HireMatrix Pro Billing", sender_email))
         msg['To'] = receiver_email
         msg['Subject'] = subject
         msg.attach(MIMEText(body_text, 'plain'))
@@ -85,6 +93,27 @@ def send_smtp_email(receiver_email, subject, body_text):
         return True, "Email dispatched successfully!"
     except Exception as e:
         return False, f"Failed to send email: {e}"
+
+def generate_and_send_pro_license(email):
+    key = f"HMPRO-{random.randint(1000, 9999)}-{random.randint(1000, 9999)}"
+    try:
+        conn = sqlite3.connect(AUTH_DB_FILE)
+        cursor = conn.cursor()
+        cursor.execute("INSERT OR REPLACE INTO license_keys (license_key, email, is_used) VALUES (?, ?, 0)", (key, email))
+        conn.commit()
+        conn.close()
+        
+        body = f"""
+        Hello,\n\n
+        Thank you for purchasing HireMatrix Pro Subscription (6,999 PKR).\n\n
+        Your Exclusive Pro License Key is: {key}\n\n
+        You can enter this key in your app sidebar under the Pro Subscription section to unlock all executive features instantly.\n\n
+        Regards,\nTeam HireMatrix Pro Billing
+        """
+        send_smtp_email(email, "Your HireMatrix Pro License Key", body)
+        return True, key
+    except Exception as e:
+        return False, str(e)
 
 def get_all_verified_profiles():
     conn = sqlite3.connect(AUTH_DB_FILE)
@@ -110,7 +139,7 @@ def register_initial_employee(name, email, password):
         cursor.execute("SELECT COUNT(*) FROM hr_users")
         count = cursor.fetchone()[0]
         role = "Admin" if count == 0 else "Recruiter"
-        is_pro_val = 1 if count == 0 else 0  # First user gets free Pro for testing
+        is_pro_val = 1 if count == 0 else 0
         
         cursor.execute("""
             INSERT OR REPLACE INTO hr_users (email, name, password, pin, role, is_pro, is_verified, otp) 
@@ -148,16 +177,22 @@ def save_employee_pin(email, pin):
     except Exception as e:
         return False, f"Error: {e}"
 
-def upgrade_to_pro_db(email):
-    try:
-        conn = sqlite3.connect(AUTH_DB_FILE)
-        cursor = conn.cursor()
-        cursor.execute("UPDATE hr_users SET is_pro = 1 WHERE email = ?", (email.lower().strip(),))
+def activate_license_key(email, key):
+    conn = sqlite3.connect(AUTH_DB_FILE)
+    cursor = conn.cursor()
+    cursor.execute("SELECT is_used FROM license_keys WHERE license_key = ? AND email = ?", (key, email))
+    row = cursor.fetchone()
+    if row:
+        if row[0] == 1:
+            conn.close()
+            return False, "This license key has already been used."
+        cursor.execute("UPDATE license_keys SET is_used = 1 WHERE license_key = ?", (key,))
+        cursor.execute("UPDATE hr_users SET is_pro = 1 WHERE email = ?", (email,))
         conn.commit()
         conn.close()
-        return True
-    except Exception:
-        return False
+        return True, "Pro Subscription successfully activated!"
+    conn.close()
+    return False, "Invalid license key for this email address."
 
 def delete_employee_profile(email):
     try:
@@ -181,7 +216,7 @@ def verify_employee_pin(email, entered_pin):
     return False, None, None, 0
 
 # ===========================================================================
-# PAGE CONFIG & ADVANCED CYBERPUNK STYLING
+# PAGE CONFIG & STYLING
 # ===========================================================================
 st.set_page_config(
     page_title=f"{APP_NAME} | Executive Portal",
@@ -193,99 +228,37 @@ st.set_page_config(
 ADVANCED_CSS = """
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
-
-html, body, [class*="css"] {
-    font-family: 'Plus Jakarta Sans', sans-serif !important;
-}
-
-.stApp {
-    background: radial-gradient(circle at 10% 10%, rgba(10, 15, 25, 1) 0%, rgba(4, 7, 13, 1) 100%);
-    color: #F8FAFC;
-}
-
+html, body, [class*="css"] { font-family: 'Plus Jakarta Sans', sans-serif !important; }
+.stApp { background: radial-gradient(circle at 10% 10%, rgba(10, 15, 25, 1) 0%, rgba(4, 7, 13, 1) 100%); color: #F8FAFC; }
 .cyber-hero {
     background: linear-gradient(135deg, rgba(30, 41, 59, 0.5) 0%, rgba(15, 23, 42, 0.8) 100%);
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(0, 229, 255, 0.15);
-    border-radius: 20px;
-    padding: 2.2rem 2.8rem;
-    margin-bottom: 2rem;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
-    position: relative;
-    overflow: hidden;
+    backdrop-filter: blur(20px); border: 1px solid rgba(0, 229, 255, 0.15); border-radius: 20px;
+    padding: 2.2rem 2.8rem; margin-bottom: 2rem; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+    position: relative; overflow: hidden;
 }
 .cyber-hero::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; width: 6px; height: 100%;
+    content: ''; position: absolute; top: 0; left: 0; width: 6px; height: 100%;
     background: linear-gradient(to bottom, #00e5ff, #3b82f6, #8b5cf6);
 }
 .cyber-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    background: rgba(0, 229, 255, 0.08);
-    border: 1px solid rgba(0, 229, 255, 0.25);
-    color: #00e5ff;
-    padding: 5px 14px;
-    border-radius: 25px;
-    font-size: 0.75rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 1.2px;
-    margin-bottom: 0.8rem;
+    display: inline-flex; align-items: center; gap: 8px; background: rgba(0, 229, 255, 0.08);
+    border: 1px solid rgba(0, 229, 255, 0.25); color: #00e5ff; padding: 5px 14px; border-radius: 25px;
+    font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 0.8rem;
 }
-.cyber-hero h1 {
-    color: #FFFFFF; font-size: 2.3rem; font-weight: 800; margin: 0;
-    background: linear-gradient(to right, #FFFFFF, #94A3B8);
-    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-}
+.cyber-hero h1 { color: #FFFFFF; font-size: 2.3rem; font-weight: 800; margin: 0; background: linear-gradient(to right, #FFFFFF, #94A3B8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
 .cyber-hero p { color: #94A3B8; margin-top: 0.5rem; margin-bottom: 0; font-size: 1.05rem; }
-
-.glass-card {
-    background: rgba(26, 35, 50, 0.4);
-    backdrop-filter: blur(16px);
-    border: 1px solid rgba(255, 255, 255, 0.06);
-    border-radius: 16px;
-    padding: 1.6rem;
-    margin-bottom: 1.5rem;
-    box-shadow: 0 12px 35px -10px rgba(0,0,0,0.5);
-}
+.glass-card { background: rgba(26, 35, 50, 0.4); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 16px; padding: 1.6rem; margin-bottom: 1.5rem; box-shadow: 0 12px 35px -10px rgba(0,0,0,0.5); }
 .glass-card h4 { font-size: 1.15rem; color: #F8FAFC; font-weight: 700; margin-bottom: 1rem; }
-
-.metric-pill {
-    background: rgba(13, 20, 32, 0.8);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 14px;
-    padding: 1.1rem;
-    text-align: center;
-}
+.metric-pill { background: rgba(13, 20, 32, 0.8); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 14px; padding: 1.1rem; text-align: center; }
 .metric-pill .val { font-size: 1.7rem; font-weight: 800; color: #00e5ff; }
 .metric-pill .lbl { font-size: 0.75rem; color: #94A3B8; text-transform: uppercase; letter-spacing: 1.2px; margin-top: 4px; font-weight: 600; }
-
 .score-high { color: #10B981 !important; }
 .score-mid { color: #F59E0B !important; }
 .score-low { color: #EF4444 !important; }
-
-.stButton>button[kind="primary"] {
-    background: linear-gradient(135deg, #00e5ff 0%, #3b82f6 50%, #6366f1 100%);
-    color: #04070D; font-weight: 800; border-radius: 12px; padding: 0.65rem 1.4rem; border: none;
-    box-shadow: 0 6px 20px rgba(0, 229, 255, 0.35);
-}
-
-[data-testid="stSidebar"] {
-    background: linear-gradient(180deg, rgba(8, 12, 20, 0.95) 0%, rgba(4, 7, 13, 0.98) 100%);
-    border-right: 1px solid rgba(0, 229, 255, 0.1);
-}
-.sidebar-card {
-    background: rgba(20, 30, 48, 0.5); border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 14px; padding: 1.2rem; margin-bottom: 1.2rem;
-}
-.sidebar-brand {
-    background: linear-gradient(135deg, rgba(0, 229, 255, 0.1) 0%, rgba(59, 130, 246, 0.1) 100%);
-    border: 1px solid rgba(0, 229, 255, 0.25); border-radius: 14px; padding: 1.2rem 1rem;
-    text-align: center; margin-bottom: 1rem;
-}
+.stButton>button[kind="primary"] { background: linear-gradient(135deg, #00e5ff 0%, #3b82f6 50%, #6366f1 100%); color: #04070D; font-weight: 800; border-radius: 12px; padding: 0.65rem 1.4rem; border: none; box-shadow: 0 6px 20px rgba(0, 229, 255, 0.35); }
+[data-testid="stSidebar"] { background: linear-gradient(180deg, rgba(8, 12, 20, 0.95) 0%, rgba(4, 7, 13, 0.98) 100%); border-right: 1px solid rgba(0, 229, 255, 0.1); }
+.sidebar-card { background: rgba(20, 30, 48, 0.5); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 14px; padding: 1.2rem; margin-bottom: 1.2rem; }
+.sidebar-brand { background: linear-gradient(135deg, rgba(0, 229, 255, 0.1) 0%, rgba(59, 130, 246, 0.1) 100%); border: 1px solid rgba(0, 229, 255, 0.25); border-radius: 14px; padding: 1.2rem 1rem; text-align: center; margin-bottom: 1rem; }
 .sidebar-brand h3 { color: #00e5ff; font-size: 1.25rem; font-weight: 800; margin: 0; }
 .sidebar-brand span { font-size: 0.65rem; color: #94A3B8; text-transform: uppercase; letter-spacing: 2px; font-weight: 700; display: block; margin-top: 4px; }
 </style>
@@ -293,7 +266,7 @@ html, body, [class*="css"] {
 st.markdown(ADVANCED_CSS, unsafe_allow_html=True)
 
 # ===========================================================================
-# SESSION STATE MANAGEMENT
+# SESSION STATE
 # ===========================================================================
 if "logged_in" not in st.session_state: st.session_state.logged_in = False
 if "hr_name" not in st.session_state: st.session_state.hr_name = ""
@@ -306,13 +279,13 @@ if "pending_pin_email" not in st.session_state: st.session_state.pending_pin_ema
 if "results" not in st.session_state: st.session_state.results = []
 
 # ===========================================================================
-# AUTHENTICATION & MULTI-STEP FLOW
+# AUTHENTICATION SCREEN
 # ===========================================================================
 if not st.session_state.logged_in:
     st.markdown("""
         <div style="text-align: center; padding: 2.5rem 0 1rem 0;">
             <div style="display: inline-flex; align-items: center; gap: 8px; background: rgba(0,229,255,0.08); border: 1px solid rgba(0,229,255,0.3); padding: 6px 16px; border-radius: 30px; color: #00e5ff; font-size: 0.8rem; font-weight: 700; margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 1px;">
-                ⚡ Enterprise Subscription Portal (6,999 PKR / mo)
+                ⚡ Enterprise Automated Payment Portal (6,999 PKR / mo)
             </div>
             <h1 style="color: #FFFFFF; font-size: 2.5rem; font-weight: 800; margin: 0;">HireMatrix Pro</h1>
             <p style="color: #94A3B8; font-size: 1.1rem; margin-top: 0.5rem;">Autonomous HR Intelligence & Executive Recruitment Suite</p>
@@ -444,7 +417,7 @@ if not st.session_state.logged_in:
     st.stop()
 
 # ===========================================================================
-# DATABASE OPERATIONS WITH PIPELINE SUPPORT
+# DATABASE OPERATIONS
 # ===========================================================================
 def load_database():
     if os.path.exists(DB_FILE):
@@ -649,7 +622,7 @@ with st.sidebar:
     st.markdown(f"""
         <div class="sidebar-brand">
             <h3>⚡ HireMatrix Pro</h3>
-            <span>Pro Edition v8.0</span>
+            <span>Pro Edition v9.0</span>
         </div>
     """, unsafe_allow_html=True)
     st.markdown("---")
@@ -664,17 +637,29 @@ with st.sidebar:
     """, unsafe_allow_html=True)
     
     if st.session_state.is_pro == 0:
-        st.markdown("### 🌟 Upgrade to PRO")
-        st.info("Unlock AI Interview Generator, Automated Invites & Kanban Pipeline for **6,999 PKR/mo**.")
-        license_input = st.text_input("Enter Pro License Key", type="password", placeholder="HM-PRO-XXXX")
+        st.markdown("### 🌟 Upgrade to PRO (6,999 PKR)")
+        st.info(f"Pay to our Meezan Bank / Sadapay account and get your automated Pro License Key via email instantly.")
+        
+        with st.expander("💳 View Bank / Sadapay Details"):
+            st.markdown(f"**Meezan Bank Account:**\n- Title: `{MEEZAN_TITLE}`\n- IBAN: `{MEEZAN_IBAN}`")
+            st.markdown(f"**Sadapay / JazzCash Wallet:**\n- Number: `{SADAPAY_NUMBER}`")
+            st.markdown("---")
+            if st.button("🤖 Request Auto-License Key", use_container_width=True):
+                ok, k_or_err = generate_and_send_pro_license(st.session_state.hr_email)
+                if ok:
+                    st.success("Pro License Key generated & sent to your email! Check inbox.")
+                else:
+                    st.error(f"Error: {k_or_err}")
+
+        license_input = st.text_input("Enter Pro License Key", type="password", placeholder="HMPRO-XXXX-XXXX")
         if st.button("Activate Pro Subscription", use_container_width=True):
-            if license_input == "HM-PRO-2026" or license_input == "PRO6999":
-                upgrade_to_pro_db(st.session_state.hr_email)
+            ok, msg = activate_license_key(st.session_state.hr_email, license_input)
+            if ok:
                 st.session_state.is_pro = 1
-                st.success("Pro Subscription successfully activated!")
+                st.success(msg)
                 st.rerun()
             else:
-                st.error("Invalid Pro License Key.")
+                st.error(msg)
         st.markdown("---")
 
     if "GROQ_API_KEY" in st.secrets:
@@ -788,7 +773,6 @@ with tab1:
 
                 st.markdown("---")
                 if st.session_state.is_pro == 1:
-                    # PRO FEATURE: AI Interview Questions
                     if st.button(f"💡 Generate AI Interview Q&A for {cand['name']}", key=f"gen_q_{rank}"):
                         if client:
                             with st.spinner("Generating tailored interview questions..."):
@@ -798,7 +782,6 @@ with tab1:
                         else:
                             st.error("Groq API key required.")
 
-                    # PRO FEATURE: Automated Interview Invites
                     if cand['email'] not in ["Not Provided", "Not Found", ""] and cand['email']:
                         st.markdown("#### ✉️ Send Automated Interview Invite")
                         invite_msg = st.text_area("Custom Message", value=f"Dear {cand['name']},\n\nWe were deeply impressed by your resume for the {job_title_input} position at HireMatrix Pro. We would love to invite you for an interview round.\n\nBest Regards,\nTalent Acquisition Team", key=f"inv_msg_{rank}")
