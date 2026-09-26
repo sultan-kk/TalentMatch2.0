@@ -1,9 +1,9 @@
 """
-HireMatrix Pro — Enterprise Edition v9.8 (Final Complete Edition)
+HireMatrix Pro — Enterprise Edition v9.9 (Enter-Key Submission & Next-Gen UI)
 ========================================================================
-Features: Score-based conditional email generation (Interview vs Apology), 
-Master Excel Report with exact Timestamp, Admin Verification Dashboard, 
-Manual TRX ID submission, Live SMTP OTP, Pro Subscription Gate, AI Interview Q&A, and Kanban Pipeline.
+Features: Native st.form integration for instant 'Enter' key submission, 
+Ultra-modern Cyber-Glass UI design, Score-based conditional email generation, 
+Timestamped Master Excel Export, Admin Verification Dashboard, and Kanban Pipeline.
 """
 
 import io
@@ -245,7 +245,7 @@ def verify_employee_pin(email, entered_pin):
     return False, None, None, 0
 
 # ===========================================================================
-# PAGE CONFIG & STYLING
+# PAGE CONFIG & ULTRA-MODERN CYBER STYLING
 # ===========================================================================
 st.set_page_config(
     page_title=f"{APP_NAME} | Executive Portal",
@@ -259,53 +259,85 @@ ADVANCED_CSS = """
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
 html, body, [class*="css"] { font-family: 'Plus Jakarta Sans', sans-serif !important; }
 
+/* Stunning Cyber Hero Header with Neon Glow */
 .cyber-hero {
-    background: rgba(0, 229, 255, 0.04); border: 1px solid rgba(0, 229, 255, 0.2);
-    border-radius: 20px; padding: 2.2rem 2.8rem; margin-bottom: 2rem;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05); position: relative; overflow: hidden;
+    background: linear-gradient(135deg, rgba(0, 229, 255, 0.06) 0%, rgba(59, 130, 246, 0.06) 100%);
+    border: 1px solid rgba(0, 229, 255, 0.25);
+    border-radius: 24px;
+    padding: 2.5rem 3rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 15px 35px rgba(0, 229, 255, 0.04);
+    position: relative;
+    overflow: hidden;
 }
 .cyber-hero::before {
     content: ''; position: absolute; top: 0; left: 0; width: 6px; height: 100%;
     background: linear-gradient(to bottom, #00e5ff, #3b82f6, #8b5cf6);
 }
 .cyber-badge {
-    display: inline-flex; align-items: center; gap: 8px; background: rgba(0, 229, 255, 0.1);
-    border: 1px solid rgba(0, 229, 255, 0.3); color: #00838f; padding: 5px 14px; border-radius: 25px;
-    font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 0.8rem;
+    display: inline-flex; align-items: center; gap: 8px; background: rgba(0, 229, 255, 0.12);
+    border: 1px solid rgba(0, 229, 255, 0.4); color: #00838f; padding: 6px 16px; border-radius: 30px;
+    font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 1rem;
+    box-shadow: 0 0 15px rgba(0, 229, 255, 0.15);
 }
-.cyber-hero h1 { font-size: 2.3rem; font-weight: 800; letter-spacing: -0.8px; margin: 0; }
-.cyber-hero p { margin-top: 0.5rem; margin-bottom: 0; font-size: 1.05rem; }
+.cyber-hero h1 { font-size: 2.5rem; font-weight: 800; letter-spacing: -1px; margin: 0; }
+.cyber-hero p { margin-top: 0.6rem; margin-bottom: 0; font-size: 1.1rem; opacity: 0.85; }
 
+/* Ultra-Modern Glassmorphism Cards */
 .glass-card {
-    background: rgba(128, 128, 128, 0.04); border: 1px solid rgba(128, 128, 128, 0.15);
-    border-radius: 16px; padding: 1.6rem; margin-bottom: 1.5rem; box-shadow: 0 8px 25px rgba(0,0,0,0.03);
+    background: rgba(128, 128, 128, 0.03);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(128, 128, 128, 0.15);
+    border-radius: 20px;
+    padding: 1.8rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.04);
+    transition: all 0.3s ease;
 }
-.glass-card h4 { font-size: 1.15rem; font-weight: 700; margin-bottom: 1rem; }
+.glass-card:hover {
+    border-color: rgba(0, 229, 255, 0.3);
+    box-shadow: 0 12px 35px rgba(0, 229, 255, 0.07);
+}
+.glass-card h4 { font-size: 1.2rem; font-weight: 700; margin-bottom: 1.2rem; }
 
+/* Futuristic Metric Pills */
 .metric-pill {
-    background: rgba(128, 128, 128, 0.06); border: 1px solid rgba(128, 128, 128, 0.12);
-    border-radius: 14px; padding: 1.1rem; text-align: center;
+    background: linear-gradient(135deg, rgba(128,128,128,0.05) 0%, rgba(128,128,128,0.02) 100%);
+    border: 1px solid rgba(128, 128, 128, 0.15);
+    border-radius: 16px;
+    padding: 1.2rem;
+    text-align: center;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.02);
 }
-.metric-pill .val { font-size: 1.7rem; font-weight: 800; color: #00838f; }
-.metric-pill .lbl { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1.2px; margin-top: 4px; font-weight: 600; }
+.metric-pill .val { font-size: 1.8rem; font-weight: 800; color: #00838f; }
+.metric-pill .lbl { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1.5px; margin-top: 6px; font-weight: 700; opacity: 0.8; }
 
-.score-high { color: #10B981 !important; }
-.score-mid { color: #F59E0B !important; }
-.score-low { color: #EF4444 !important; }
+.score-high { color: #10B981 !important; text-shadow: 0 0 10px rgba(16,185,129,0.2); }
+.score-mid { color: #F59E0B !important; text-shadow: 0 0 10px rgba(245,158,11,0.2); }
+.score-low { color: #EF4444 !important; text-shadow: 0 0 10px rgba(239,68,68,0.2); }
 
+/* Glowing Action Buttons */
 .stButton>button[kind="primary"] {
     background: linear-gradient(135deg, #00e5ff 0%, #3b82f6 50%, #6366f1 100%);
-    color: #FFFFFF; font-weight: 800; border-radius: 12px; padding: 0.65rem 1.4rem; border: none;
-    box-shadow: 0 4px 15px rgba(0, 229, 255, 0.3);
+    color: #FFFFFF; font-weight: 800; border-radius: 14px; padding: 0.7rem 1.6rem; border: none;
+    box-shadow: 0 6px 20px rgba(0, 229, 255, 0.35);
+    transition: all 0.3s ease;
 }
+.stButton>button[kind="primary"]:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 229, 255, 0.5);
+}
+
 [data-testid="stSidebar"] { border-right: 1px solid rgba(128, 128, 128, 0.15); }
-.sidebar-card { background: rgba(128, 128, 128, 0.05); border: 1px solid rgba(128, 128, 128, 0.15); border-radius: 14px; padding: 1.2rem; margin-bottom: 1.2rem; }
+.sidebar-card { background: rgba(128, 128, 128, 0.04); border: 1px solid rgba(128, 128, 128, 0.15); border-radius: 16px; padding: 1.3rem; margin-bottom: 1.2rem; }
 .sidebar-brand {
-    background: rgba(0, 229, 255, 0.08); border: 1px solid rgba(0, 229, 255, 0.25);
-    border-radius: 14px; padding: 1.2rem 1rem; text-align: center; margin-bottom: 1rem;
+    background: linear-gradient(135deg, rgba(0, 229, 255, 0.1) 0%, rgba(59, 130, 246, 0.05) 100%);
+    border: 1px solid rgba(0, 229, 255, 0.3);
+    border-radius: 16px; padding: 1.4rem 1rem; text-align: center; margin-bottom: 1.2rem;
+    box-shadow: 0 0 20px rgba(0, 229, 255, 0.08);
 }
-.sidebar-brand h3 { color: #00838f; font-size: 1.25rem; font-weight: 800; margin: 0; }
-.sidebar-brand span { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 2px; font-weight: 700; display: block; margin-top: 4px; }
+.sidebar-brand h3 { color: #00838f; font-size: 1.3rem; font-weight: 800; margin: 0; }
+.sidebar-brand span { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 2.5px; font-weight: 800; display: block; margin-top: 6px; }
 </style>
 """
 st.markdown(ADVANCED_CSS, unsafe_allow_html=True)
@@ -324,16 +356,16 @@ if "pending_pin_email" not in st.session_state: st.session_state.pending_pin_ema
 if "results" not in st.session_state: st.session_state.results = []
 
 # ===========================================================================
-# AUTHENTICATION SCREEN
+# AUTHENTICATION SCREEN (WITH INSTANT ENTER-KEY SUBMISSION)
 # ===========================================================================
 if not st.session_state.logged_in:
     st.markdown("""
         <div style="text-align: center; padding: 2.5rem 0 1rem 0;">
-            <div style="display: inline-flex; align-items: center; gap: 8px; background: rgba(0,229,255,0.08); border: 1px solid rgba(0,229,255,0.3); padding: 6px 16px; border-radius: 30px; color: #00838f; font-size: 0.8rem; font-weight: 700; margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 1px;">
-                ⚡ Enterprise Admin-Verified Payment Portal (6,999 PKR / mo)
+            <div style="display: inline-flex; align-items: center; gap: 8px; background: rgba(0,229,255,0.08); border: 1px solid rgba(0,229,255,0.3); padding: 6px 18px; border-radius: 30px; color: #00838f; font-size: 0.8rem; font-weight: 800; margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 1.5px;">
+                ⚡ Enterprise Next-Gen Secure Portal (6,999 PKR / mo)
             </div>
-            <h1 style="font-size: 2.5rem; font-weight: 800; margin: 0;">HireMatrix Pro</h1>
-            <p style="opacity: 0.8; font-size: 1.1rem; margin-top: 0.5rem;">Autonomous HR Intelligence & Executive Recruitment Suite</p>
+            <h1 style="font-size: 2.8rem; font-weight: 800; margin: 0; letter-spacing: -1px;">HireMatrix Pro</h1>
+            <p style="opacity: 0.8; font-size: 1.15rem; margin-top: 0.6rem;">Autonomous HR Intelligence & Executive Recruitment Suite</p>
         </div>
     """, unsafe_allow_html=True)
     
@@ -345,10 +377,12 @@ if not st.session_state.logged_in:
             st.markdown('<div class="glass-card"><h4>🔐 Step 2: Create Your 4-Digit Quick PIN</h4>', unsafe_allow_html=True)
             st.info(f"Email verified for **{st.session_state.pending_pin_email}**. Secure your account with a 4-digit PIN.")
             
-            new_pin = st.text_input("Enter 4-Digit PIN", type="password", max_chars=4, placeholder="••••", key="setup_pin_in")
-            confirm_pin = st.text_input("Confirm 4-Digit PIN", type="password", max_chars=4, placeholder="••••", key="setup_pin_confirm")
-            
-            if st.button("Save PIN & Enter Portal", type="primary", use_container_width=True):
+            with st.form("pin_setup_form"):
+                new_pin = st.text_input("Enter 4-Digit PIN", type="password", max_chars=4, placeholder="••••")
+                confirm_pin = st.text_input("Confirm 4-Digit PIN", type="password", max_chars=4, placeholder="••••")
+                submit_pin = st.form_submit_button("Save PIN & Enter Portal", use_container_width=True)
+                
+            if submit_pin:
                 if not new_pin or len(new_pin) != 4 or not new_pin.isdigit():
                     st.warning("Please enter an exact 4-digit numeric PIN.")
                 elif new_pin != confirm_pin:
@@ -366,21 +400,23 @@ if not st.session_state.logged_in:
         elif st.session_state.pending_otp_email:
             st.markdown('<div class="glass-card"><h4>📬 Email Verification (OTP)</h4>', unsafe_allow_html=True)
             st.info(f"A 6-digit verification code has been sent to **{st.session_state.pending_otp_email}**.")
-            otp_input = st.text_input("Enter 6-Digit OTP", placeholder="123456", key="reg_otp_in")
             
+            with st.form("otp_form"):
+                otp_input = st.text_input("Enter 6-Digit OTP", placeholder="123456")
+                submit_otp = st.form_submit_button("Verify OTP", use_container_width=True)
+                
             col_o1, col_o2 = st.columns(2)
-            with col_o1:
-                if st.button("Verify OTP", type="primary", use_container_width=True):
-                    success, msg = verify_otp_code(st.session_state.pending_otp_email, otp_input)
-                    if success:
-                        st.success(msg)
-                        st.session_state.pending_pin_email = st.session_state.pending_otp_email
-                        st.session_state.pending_otp_email = None
-                        st.rerun()
-                    else:
-                        st.error(msg)
+            if submit_otp:
+                success, msg = verify_otp_code(st.session_state.pending_otp_email, otp_input)
+                if success:
+                    st.success(msg)
+                    st.session_state.pending_pin_email = st.session_state.pending_otp_email
+                    st.session_state.pending_otp_email = None
+                    st.rerun()
+                else:
+                    st.error(msg)
             with col_o2:
-                if st.button("Cancel", use_container_width=True):
+                if st.button("Cancel Verification", use_container_width=True):
                     st.session_state.pending_otp_email = None
                     st.rerun()
             st.markdown('</div>', unsafe_allow_html=True)
@@ -412,22 +448,24 @@ if not st.session_state.logged_in:
             p_match = next((p for p in saved_profiles if p[0] == target_email), ("Employee", "", "", "Recruiter", 0))
             
             st.markdown(f'<div class="glass-card"><h4>🔐 Enter 4-Digit PIN for {p_match[1]}</h4>', unsafe_allow_html=True)
-            pin_input = st.text_input("4-Digit PIN", type="password", max_chars=4, placeholder="••••", key="quick_pin_in")
             
+            with st.form("pin_login_form"):
+                pin_input = st.text_input("4-Digit PIN", type="password", max_chars=4, placeholder="••••")
+                submit_login = st.form_submit_button("Sign In (Press Enter)", use_container_width=True)
+                
             col_b1, col_b2 = st.columns(2)
-            with col_b1:
-                if st.button("Sign In", type="primary", use_container_width=True):
-                    success, name, role, pro_status = verify_employee_pin(target_email, pin_input)
-                    if success:
-                        st.session_state.logged_in = True
-                        st.session_state.hr_name = name
-                        st.session_state.hr_email = target_email
-                        st.session_state.hr_role = role
-                        st.session_state.is_pro = pro_status
-                        st.success(f"Welcome back, {name}!")
-                        st.rerun()
-                    else:
-                        st.error("Incorrect 4-Digit PIN. Please verify.")
+            if submit_login:
+                success, name, role, pro_status = verify_employee_pin(target_email, pin_input)
+                if success:
+                    st.session_state.logged_in = True
+                    st.session_state.hr_name = name
+                    st.session_state.hr_email = target_email
+                    st.session_state.hr_role = role
+                    st.session_state.is_pro = pro_status
+                    st.success(f"Welcome back, {name}!")
+                    st.rerun()
+                else:
+                    st.error("Incorrect 4-Digit PIN. Please verify.")
             with col_b2:
                 if st.button("Switch Profile", use_container_width=True):
                     st.session_state.selected_profile_email = None
@@ -436,25 +474,28 @@ if not st.session_state.logged_in:
             
         else:
             st.markdown('<div class="glass-card"><h4>📝 Step 1: Employee Registration</h4>', unsafe_allow_html=True)
-            reg_name = st.text_input("Full Name", placeholder="Alex Mercer", key="r_name")
-            reg_email = st.text_input("Company Email", placeholder="employee@company.com", key="r_email")
-            reg_pass = st.text_input("Master Password", type="password", key="r_pass")
             
+            # --- FORM WRAPPER FOR INSTANT ENTER KEY SUBMISSION ---
+            with st.form("registration_form"):
+                reg_name = st.text_input("Full Name", placeholder="Alex Mercer")
+                reg_email = st.text_input("Company Email", placeholder="employee@company.com")
+                reg_pass = st.text_input("Master Password", type="password")
+                submit_reg = st.form_submit_button("Send Verification OTP (Press Enter)", use_container_width=True)
+                
             col_r1, col_r2 = st.columns(2)
-            with col_r1:
-                if st.button("Send Verification OTP", type="primary", use_container_width=True):
-                    if not reg_name.strip() or not reg_email.strip() or not reg_pass.strip():
-                        st.warning("Please fill in all required fields.")
+            if submit_reg:
+                if not reg_name.strip() or not reg_email.strip() or not reg_pass.strip():
+                    st.warning("Please fill in all required fields.")
+                else:
+                    success, msg = register_initial_employee(reg_name, reg_email, reg_pass)
+                    if success:
+                        st.success(msg)
+                        st.session_state.pending_otp_email = reg_email.lower().strip()
+                        st.rerun()
                     else:
-                        success, msg = register_initial_employee(reg_name, reg_email, reg_pass)
-                        if success:
-                            st.success(msg)
-                            st.session_state.pending_otp_email = reg_email.lower().strip()
-                            st.rerun()
-                        else:
-                            st.error(msg)
+                        st.error(msg)
             with col_r2:
-                if saved_profiles and st.button("Back to Profiles", use_container_width=True):
+                if saved_profiles and st.button("Back to Saved Profiles", use_container_width=True):
                     st.session_state.selected_profile_email = None
                     st.rerun()
             st.markdown('</div>', unsafe_allow_html=True)
@@ -663,7 +704,7 @@ def generate_ai_interview_questions(client, resume_text: str, job_title: str) ->
         return f"Could not generate interview questions: {e}"
 
 # ===========================================================================
-# EXCEL EXPORT (FINAL REPORT WITH TIMESTAMP)
+# EXCEL EXPORT (TIMESTAMPED MASTER REPORT)
 # ===========================================================================
 def dataframe_to_formatted_excel_bytes(df: pd.DataFrame) -> bytes:
     buffer = io.BytesIO()
@@ -691,7 +732,7 @@ with st.sidebar:
     st.markdown(f"""
         <div class="sidebar-brand">
             <h3>⚡ HireMatrix Pro</h3>
-            <span>Pro Edition v9.8</span>
+            <span>Pro Edition v9.9</span>
         </div>
     """, unsafe_allow_html=True)
     st.markdown("---")
@@ -927,7 +968,7 @@ with tab2:
                             st.rerun()
                 st.markdown("---")
                 st.dataframe(df_history, use_container_width=True)
-        except Exception as e:
+        exceptException as e:
             st.error(f"Could not load database records: {e}")
     st.markdown("</div>", unsafe_allow_html=True)
 
