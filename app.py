@@ -1,8 +1,8 @@
 """
-HireMatrix Pro — Enterprise Edition v10.51 (Repository Extraction Fix)
+HireMatrix Pro — Enterprise Edition v10.52 (Pipeline & Email Flow Fix)
 ========================================================================
-Features: Fixed independent talent pool repository extraction, seamless 2-step workflow, 
-Conditional Email Dispatchers, Dynamic Threshold, and Executive Excel Report.
+Features: Restored pipeline stage selector and conditional email dispatchers in Step 2 screening results, 
+Talent Pool repository ingestion, dynamic threshold, and Executive Excel Report.
 """
 
 import io
@@ -710,7 +710,7 @@ with st.sidebar:
     st.markdown(f"""
         <div class="sidebar-brand-box">
             <h2>{APP_NAME}</h2>
-            <p>Multi-Stage ATS v10.51</p>
+            <p>Multi-Stage ATS v10.52</p>
         </div>
     """, unsafe_allow_html=True)
     st.markdown("---")
@@ -884,10 +884,14 @@ with tab2:
 
                 st.markdown("---")
                 st.markdown("#### 🔄 Candidate Pipeline Stage")
+                stage_options = ["Shortlisted", "Interview Scheduled", "Hired", "Rejected"]
+                current_stage = cand["pipeline_status"]
+                stage_idx = stage_options.index(current_stage) if current_stage in stage_options else 0
+                
                 new_stage = st.selectbox(
                     "Update Stage", 
-                    ["Shortlisted", "Interview Scheduled", "Hired", "Rejected"], 
-                    index=["Shortlisted", "Interview Scheduled", "Hired", "Rejected"].index(cand["pipeline_status"]) if cand["pipeline_status"] in ["Shortlisted", "Interview Scheduled", "Hired", "Rejected"] else 0,
+                    stage_options, 
+                    index=stage_idx,
                     key=f"stage_sel_{rank}"
                 )
                 if new_stage != cand["pipeline_status"]:
