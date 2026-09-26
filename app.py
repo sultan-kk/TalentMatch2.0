@@ -1,8 +1,8 @@
 """
-HireMatrix Pro — Enterprise Edition v10.59 (Strict Single-Candidate Duplicate Prevention)
+HireMatrix Pro — Enterprise Edition v10.60 (Individual Candidate Delete)
 ========================================================================
-Features: Instant single-candidate duplicate email blocking during Step 1 extraction, 
-Strict JD-relevance filtering, manual pipeline staging, and email dispatchers.
+Features: Added individual delete buttons for each candidate in the Talent Repository table, 
+Strict single-candidate duplicate email blocking, JD-relevance filtering, manual pipeline staging, and email dispatchers.
 """
 
 import io
@@ -163,7 +163,7 @@ def verify_employee_pin(email, entered_pin):
     return False, None, None
 
 # ===========================================================================
-# DATABASE OPERATIONS & STRICT DUPLICATE PREVENTION
+# DATABASE OPERATIONS & INDIVIDUAL DELETE FUNCTION
 # ===========================================================================
 def load_database():
     if os.path.exists(DB_FILE):
@@ -177,7 +177,6 @@ def load_database():
             if col not in df.columns:
                 df[col] = "Not Provided"
         
-        # Clean existing duplicates immediately on load
         if not df.empty and "Email" in df.columns:
             df["CleanEmail"] = df["Email"].astype(str).str.lower().str.strip()
             valid_mask = ~df["CleanEmail"].isin(["not provided", "not found", "nan", ""])
@@ -211,7 +210,6 @@ def save_candidates_to_repository(new_candidates):
     
     for c in new_candidates:
         email = str(c.get("email", "Not Provided")).lower().strip()
-        # STRICT CHECK: Skip if email already exists in database
         if email not in ["not provided", "not found", "", "nan"] and check_if_exists_in_db(email):
             continue
             
@@ -241,6 +239,14 @@ def save_candidates_to_repository(new_candidates):
             df_inv = df_combined[~valid_mask]
             df_combined = pd.concat([df_v, df_inv], ignore_index=True).drop(columns=["CleanEmail"])
         df_combined.to_csv(DB_FILE, index=False)
+
+def delete_single_candidate_from_db(email_or_name):
+    if os.path.exists(DB_FILE):
+        df = pd.read_csv(DB_FILE)
+        # Delete matching by email or candidate name
+        df = df[~(df["Email"].astype(str).str.lower().str.strip() == str(email_or_name).lower().strip()) & 
+                ~(df["Candidate Name"].astype(str).str.lower().str.strip() == str(email_or_name).lower().strip())]
+        df.to_csv(DB_FILE, index=False)
 
 def update_candidate_pipeline_status(email, new_status):
     if os.path.exists(DB_FILE):
@@ -451,7 +457,7 @@ with st.sidebar:
     st.markdown(f"""
         <div class="sidebar-brand-box">
             <h2>{APP_NAME}</h2>
-            <p>Multi-Stage ATS v10.59</p>
+            <p>Multi-Stage ATS v10.60</p>
         </div>
     """, unsafe_allow_html=True)
     st.markdown("---")
@@ -531,8 +537,18 @@ with tab1:
     
     df_repo = load_database()
     if not df_repo.empty:
-        st.markdown('<div class="corp-card"><h4>📋 Current Candidates in Talent Repository</h4>', unsafe_allow_html=True)
-        st.dataframe(df_repo[["Candidate Name", "Email", "Phone", "Education", "Experience Years", "Latest Experience", "Extracted Skills", "Pipeline Status"]], use_container_width=True)
+        st.markdown('<div class="corp-card"><h4>📋 Current Candidates in Talent Repository (Manage & Delete)</h4>', unsafe_allow_html=True)
+        
+        for idx, row in df_repo.iterrows():
+            c_d1, c_d2, c_d3, c_d4 = st.columns([2, 2, 2, 1])
+            with c_d1: st.write(f"👤 **{row['Candidate Name']}**")
+            with c_d2: st.write(f"✉️ `{row['Email']}`")
+            with c_d3: st.write(f"🎓 {row['Education']}")
+            with c_d4:
+                if st.button("🗑️ Delete", key=f"del_repo_{idx}", use_container_width=True):
+                    delete_single_candidate_from_db(row['Email'] if row['Email'] not in ["Not Provided", "Not Found", ""] else row['Candidate Name'])
+                    st.success(f"Removed {row['Candidate Name']} from repository!")
+                    st.rerun()
         st.markdown('</div>', unsafe_allow_html=True)
 
 with tab2:
