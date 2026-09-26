@@ -1,8 +1,8 @@
 """
-HireMatrix Pro — Enterprise Edition v10.61 (Clean Numbered Excel Export)
+HireMatrix Pro — Enterprise Edition v10.62 (Dual Excel Reports Workflow)
 ========================================================================
-Features: Removed Job Title from Excel report, added clean 1-based numbering (Sr. No.), 
-Permanent duplicate cleaning, individual candidate delete in repository, and complete ATS workflow.
+Features: Separate downloadable Excel sheets for Step 1 (Raw Talent Repository) and Step 2 (Screened JD Results), 
+Clean numbered exports, individual candidate deletes, strict duplicate blocking, and complete ATS workflow.
 """
 
 import io
@@ -163,7 +163,7 @@ def verify_employee_pin(email, entered_pin):
     return False, None, None
 
 # ===========================================================================
-# DATABASE OPERATIONS & CLEAN NUMBERED EXPORT
+# DATABASE OPERATIONS & DUAL EXPORT FUNCTIONS
 # ===========================================================================
 def load_database():
     if os.path.exists(DB_FILE):
@@ -257,45 +257,67 @@ def clear_candidate_database():
     if os.path.exists(DB_FILE):
         os.remove(DB_FILE)
 
-def dataframe_to_formatted_executive_report(df: pd.DataFrame) -> bytes:
+def generate_repository_excel(df: pd.DataFrame) -> bytes:
     buffer = io.BytesIO()
     with pd.ExcelWriter(buffer, engine="xlsxwriter") as writer:
-        # Prepare export dataframe (Drop Job Title if present, add clean Sr. No. 1-based numbering)
         export_df = df.copy()
         if "Job Title" in export_df.columns:
             export_df = export_df.drop(columns=["Job Title"])
-            
-        # Insert Sr. No. at the very beginning starting from 1
         export_df.insert(0, "Sr. No.", range(1, len(export_df) + 1))
         
-        export_df.to_excel(writer, index=False, sheet_name="Talent Repository Report")
+        export_df.to_excel(writer, index=False, sheet_name="Talent Repository")
         workbook = writer.book
-        worksheet = writer.sheets["Talent Repository Report"]
+        worksheet = writer.sheets["Talent Repository"]
         
         header_format = workbook.add_format({
-            "bold": True,
-            "bg_color": "#1E293B",
-            "font_color": "#FFFFFF",
-            "border": 1,
-            "align": "center",
-            "valign": "vcenter",
+            "bold": True, "bg_color": "#1E293B", "font_color": "#FFFFFF", "border": 1, "align": "center", "valign": "vcenter",
         })
-        
-        wrap_format = workbook.add_format({
-            "text_wrap": True,
-            "valign": "top",
-            "border": 1
-        })
+        wrap_format = workbook.add_format({"text_wrap": True, "valign": "top", "border": 1})
         
         for col_idx, col_name in enumerate(export_df.columns):
             worksheet.write(0, col_idx, col_name, header_format)
-            if col_name == "Sr. No.":
-                worksheet.set_column(col_idx, col_idx, 10, wrap_format)
-            elif col_name in ["Extracted Skills", "Latest Experience", "University Name"]:
-                worksheet.set_column(col_idx, col_idx, 30, wrap_format)
-            else:
-                worksheet.set_column(col_idx, col_idx, 18, wrap_format)
-                
+            if col_name == "Sr. No.": worksheet.set_column(col_idx, col_idx, 10, wrap_format)
+            elif col_name in ["Extracted Skills", "Latest Experience", "University Name"]: worksheet.set_column(col_idx, col_idx, 30, wrap_format)
+            else: worksheet.set_column(col_idx, col_idx, 18, wrap_format)
+        worksheet.freeze_panes(1, 0)
+    buffer.seek(0)
+    return buffer.getvalue()
+
+def generate_screening_excel(results_list) -> bytes:
+    buffer = io.BytesIO()
+    with pd.ExcelWriter(buffer, engine="xlsxwriter") as writer:
+        data = []
+        for idx, r in enumerate(results_list, start=1):
+            data.append({
+                "Sr. No.": idx,
+                "Candidate Name": r["name"],
+                "Father Name": r["father_name"],
+                "Email": r["email"],
+                "Phone": r["phone"],
+                "CGPA": r["cgpa"],
+                "Education": r["education"],
+                "University Name": r["university_name"],
+                "Experience Years": r["experience_years"],
+                "Latest Experience": r["latest_experience"],
+                "Extracted Skills": r["skills"],
+                "Match Score (%)": r["match_score"],
+                "Pipeline Status": r["pipeline_status"]
+            })
+        export_df = pd.DataFrame(data)
+        export_df.to_excel(writer, index=False, sheet_name="Screened Results")
+        workbook = writer.book
+        worksheet = writer.sheets["Screened Results"]
+        
+        header_format = workbook.add_format({
+            "bold": True, "bg_color": "#0EA5E9", "font_color": "#FFFFFF", "border": 1, "align": "center", "valign": "vcenter",
+        })
+        wrap_format = workbook.add_format({"text_wrap": True, "valign": "top", "border": 1})
+        
+        for col_idx, col_name in enumerate(export_df.columns):
+            worksheet.write(0, col_idx, col_name, header_format)
+            if col_name == "Sr. No.": worksheet.set_column(col_idx, col_idx, 10, wrap_format)
+            elif col_name in ["Extracted Skills", "Latest Experience", "University Name"]: worksheet.set_column(col_idx, col_idx, 30, wrap_format)
+            else: worksheet.set_column(col_idx, col_idx, 18, wrap_format)
         worksheet.freeze_panes(1, 0)
     buffer.seek(0)
     return buffer.getvalue()
@@ -466,7 +488,7 @@ with st.sidebar:
     st.markdown(f"""
         <div class="sidebar-brand-box">
             <h2>{APP_NAME}</h2>
-            <p>Multi-Stage ATS v10.61</p>
+            <p>Multi-Stage ATS v10.62</p>
         </div>
     """, unsafe_allow_html=True)
     st.markdown("---")
@@ -548,6 +570,16 @@ with tab1:
     if not df_repo.empty:
         st.markdown('<div class="corp-card"><h4>📋 Current Candidates in Talent Repository (Manage & Delete)</h4>', unsafe_allow_html=True)
         
+        # Talent Pool Specific Download Button
+        st.download_button(
+            "📊 Download Raw Talent Repository Report (.xlsx)",
+            data=generate_repository_excel(df_repo),
+            file_name=f"Talent_Repository_Report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            use_container_width=True,
+        )
+        st.markdown("---")
+        
         for idx, row in df_repo.iterrows():
             c_d1, c_d2, c_d3, c_d4 = st.columns([2, 2, 2, 1])
             with c_d1: st.write(f"👤 **{row['Candidate Name']}**")
@@ -625,6 +657,16 @@ with tab2:
         
         if not results:
             st.warning("⚠️ No candidates in the repository matched the requirements of this Job Description.")
+        else:
+            # Screened Results Specific Download Button
+            st.download_button(
+                "📊 Download Screened & Selected Candidates Report (.xlsx)",
+                data=generate_screening_excel(results),
+                file_name=f"Screened_Candidates_Report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx",
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                use_container_width=True,
+            )
+            st.markdown("---")
         
         client = Groq(api_key=groq_api_key) if groq_api_key else None
 
@@ -713,7 +755,7 @@ with tab3:
     df_export = load_database()
     st.download_button(
         "📊 Download Executive Formatted Report (.xlsx)",
-        data=dataframe_to_formatted_executive_report(df_export),
+        data=generate_repository_excel(df_export),
         file_name=f"Executive_Talent_Report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx",
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         use_container_width=True,
