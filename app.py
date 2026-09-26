@@ -1,8 +1,8 @@
 """
-Super TalentMatch AI — Unified HR Screener & Extractor with Real Email OTP
+Super TalentMatch AI — Creative Modern UI Edition
 ========================================================================
-Professional Edition: Secure HR Login/Signup with Live Email OTP Verification, 
-Adaptive UI, Precise Data Extraction, Local Database, and Deep LLM Screening.
+Designed with Glassmorphism, Floating Glow Cards, Custom Animations, 
+Secure HR Login/Signup with Live Email OTP, and Deep LLM Screening.
 """
 
 import io
@@ -136,34 +136,138 @@ def verify_user(email, password):
     return False, "Invalid"
 
 # ===========================================================================
-# PAGE CONFIG & CSS
+# PAGE CONFIG & ULTRA-CREATIVE CUSTOM CSS (THE UI REVOLUTION)
 # ===========================================================================
 st.set_page_config(
-    page_title=f"{APP_NAME} | HR Portal",
+    page_title=f"{APP_NAME} | Creative HR Portal",
     page_icon="⚡",
     layout="wide",
     initial_sidebar_state="expanded",
 )
 
-CUSTOM_CSS = """
+CREATIVE_CSS = """
 <style>
-html, body, [class*="css"] {font-family: "Segoe UI", Roboto, sans-serif; font-size: 15px;}
-.tm-header {padding: 1.5rem 2rem; border-radius: 8px; margin-bottom: 1.5rem; background: #1A202C; border-left: 6px solid #3182CE;}
-.tm-header h1 { color: #FFFFFF; font-size: 1.7rem; font-weight: 600; margin: 0;}
-.tm-header p { color: #A0AEC0; margin-top: 0.3rem; margin-bottom: 0; font-size: 0.95rem;}
-.tm-card {background: var(--background-color); border: 1px solid var(--faded-text-20); border-radius: 8px; padding: 1.2rem 1.5rem; margin-bottom: 1rem; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);}
-.tm-card h4 { font-size: 1.1rem; color: var(--text-color); font-weight: 600; margin-bottom: 1rem;}
-.tm-metric-box {background: var(--secondary-background-color); border-radius: 6px; padding: 0.8rem; text-align: center; border: 1px solid var(--faded-text-20);}
-.tm-metric-box .tm-value { font-size: 1.4rem; font-weight: 700; color: var(--text-color);}
-.tm-metric-box .tm-label { font-size: 0.75rem; color: var(--text-color); text-transform: uppercase; opacity: 0.8;}
-.tm-score-high { color: #38A169; }
-.tm-score-mid { color: #DD6B20; }
-.tm-score-low { color: #E53E3E; }
-.stButton>button[kind="primary"] {background: #3182CE; color: #fff; font-weight: 600; border-radius: 6px; padding: 0.5rem 1rem;}
-.stButton>button[kind="primary"]:hover { background: #2B6CB0; color: white;}
+/* Import Google Fonts for High-End Look */
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
+
+html, body, [class*="css"] {
+    font-family: 'Plus Jakarta Sans', sans-serif !important;
+}
+
+/* Background Atmospheric Glow */
+.stApp {
+    background: radial-gradient(circle at 10% 10%, rgba(15, 23, 42, 1) 0%, rgba(7, 11, 20, 1) 100%);
+    color: #F8FAFC;
+}
+
+/* Stunning Floating Glassmorphism Hero Header */
+.creative-header {
+    background: linear-gradient(135deg, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.8) 100%);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    padding: 2rem 2.5rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5);
+    position: relative;
+    overflow: hidden;
+}
+.creative-header::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; width: 4px; height: 100%;
+    background: linear-gradient(to bottom, #00e5ff, #3b82f6);
+}
+.creative-header h1 {
+    color: #FFFFFF;
+    font-size: 2rem;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    margin: 0;
+}
+.creative-header p {
+    color: #94A3B8;
+    margin-top: 0.5rem;
+    margin-bottom: 0;
+    font-size: 1rem;
+}
+
+/* Modern Floating Cards replacing boring box containers */
+.glass-card {
+    background: rgba(30, 41, 59, 0.4);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 14px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    transition: all 0.3s ease;
+    box-shadow: 0 10px 30px -10px rgba(0,0,0,0.3);
+}
+.glass-card:hover {
+    border-color: rgba(0, 229, 255, 0.2);
+    box-shadow: 0 15px 35px -10px rgba(0, 229, 255, 0.08);
+}
+.glass-card h4 {
+    font-size: 1.15rem;
+    color: #F1F5F9;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Sleek Glowing Metrics */
+.metric-pill {
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    padding: 1rem;
+    text-align: center;
+}
+.metric-pill .val {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: #00e5ff;
+}
+.metric-pill .lbl {
+    font-size: 0.75rem;
+    color: #94A3B8;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-top: 4px;
+}
+
+/* Score Colors */
+.score-high { color: #10B981 !important; }
+.score-mid { color: #F59E0B !important; }
+.score-low { color: #EF4444 !important; }
+
+/* Custom Futuristic Buttons */
+.stButton>button[kind="primary"] {
+    background: linear-gradient(135deg, #00e5ff 0%, #2563eb 100%);
+    color: #0F172A;
+    font-weight: 700;
+    border-radius: 10px;
+    padding: 0.6rem 1.2rem;
+    border: none;
+    box-shadow: 0 4px 15px rgba(0, 229, 255, 0.3);
+    transition: all 0.2s ease;
+}
+.stButton>button[kind="primary"]:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 229, 255, 0.5);
+    color: #0F172A;
+}
+
+/* Sidebar Aesthetic Tweaks */
+[data-testid="stSidebar"] {
+    background-color: #090D16;
+    border-right: 1px solid rgba(255, 255, 255, 0.05);
+}
 </style>
 """
-st.markdown(CUSTOM_CSS, unsafe_allow_html=True)
+st.markdown(CREATIVE_CSS, unsafe_allow_html=True)
 
 # ===========================================================================
 # SESSION STATE MANAGEMENT
@@ -178,24 +282,25 @@ if "results" not in st.session_state:
     st.session_state.results = []
 
 # ===========================================================================
-# AUTHENTICATION SCREEN (IF NOT LOGGED IN)
+# AUTHENTICATION SCREEN (CREATIVE LOGIN / SIGNUP)
 # ===========================================================================
 if not st.session_state.logged_in:
     st.markdown("""
-        <div style="text-align: center; padding: 2rem 0 1rem 0;">
-            <h1 style="color: #00e5ff; font-size: 2.2rem;">⚡ Super TalentMatch AI</h1>
-            <p style="color: #A0AEC0; font-size: 1.1rem;">HR Portal - Secure Login & Live Email OTP</p>
+        <div style="text-align: center; padding: 3rem 0 1.5rem 0;">
+            <h1 style="color: #00e5ff; font-size: 2.5rem; font-weight: 800; letter-spacing: -1px;">⚡ Super TalentMatch AI</h1>
+            <p style="color: #94A3B8; font-size: 1.15rem; margin-top: 0.5rem;">Next-Gen Autonomous HR Screening & Intelligence Suite</p>
         </div>
     """, unsafe_allow_html=True)
     
-    col1, col2, col3 = st.columns([1, 1.2, 1])
+    col1, col2, col3 = st.columns([1, 1.3, 1])
     with col2:
+        st.markdown('<div class="glass-card">', unsafe_allow_html=True)
         if st.session_state.pending_verification_email:
-            st.markdown("### Enter Email Verification Code")
-            st.info(f"OTP code aapki email ({st.session_state.pending_verification_email}) par bhej diya gaya hai.")
-            otp_input = st.text_input("6-Digit OTP Code", placeholder="123456", key="otp_code_in")
+            st.markdown("### 🔐 Verify Your Email")
+            st.info(f"OTP code has been dispatched to **{st.session_state.pending_verification_email}**")
+            otp_input = st.text_input("Enter 6-Digit OTP", placeholder="123456", key="otp_code_in")
             
-            if st.button("Verify OTP", type="primary", use_container_width=True):
+            if st.button("Verify & Enter Portal", type="primary", use_container_width=True):
                 success, msg = verify_otp_code(st.session_state.pending_verification_email, otp_input)
                 if success:
                     st.success(msg)
@@ -203,40 +308,40 @@ if not st.session_state.logged_in:
                     st.rerun()
                 else:
                     st.error(msg)
-            if st.button("Cancel / Back", use_container_width=True):
+            if st.button("Cancel & Go Back", use_container_width=True):
                 st.session_state.pending_verification_email = None
                 st.rerun()
         else:
-            auth_tab1, auth_tab2 = st.tabs(["🔑 HR Login", "📝 Create Account (Sign Up)"])
+            auth_tab1, auth_tab2 = st.tabs(["✨ HR Login", "🚀 Create Account"])
             
             with auth_tab1:
-                st.markdown("### Login to Dashboard")
-                login_email = st.text_input("Work Email", placeholder="hr@company.com", key="l_email")
+                st.markdown("#### Welcome Back")
+                login_email = st.text_input("Work Email", placeholder="alex@company.com", key="l_email")
                 login_pass = st.text_input("Password", type="password", key="l_pass")
                 
-                if st.button("Login", type="primary", use_container_width=True):
+                if st.button("Access Dashboard", type="primary", use_container_width=True):
                     success, res_val = verify_user(login_email, login_pass)
                     if success:
                         st.session_state.logged_in = True
                         st.session_state.hr_name = res_val
-                        st.success(f"Khush amdeed, {res_val}!")
+                        st.success(f"Welcome back, {res_val}!")
                         st.rerun()
                     elif res_val == "Not Verified":
-                        st.warning("Aapka account verify nahi hai. Baraye meherbani OTP enter karein.")
+                        st.warning("Account pending verification. Enter OTP.")
                         st.session_state.pending_verification_email = login_email
                         st.rerun()
                     else:
-                        st.error("Ghalat Email ya Password!")
+                        st.error("Invalid credentials. Please check email/password.")
                         
             with auth_tab2:
-                st.markdown("### Register New HR Account")
-                reg_name = st.text_input("Full Name", placeholder="Your Full Name", key="r_name")
-                reg_email = st.text_input("Work Email", placeholder="hr@company.com", key="r_email")
+                st.markdown("#### Join TalentMatch")
+                reg_name = st.text_input("Full Name", placeholder="Alex Mercer", key="r_name")
+                reg_email = st.text_input("Work Email", placeholder="alex@company.com", key="r_email")
                 reg_pass = st.text_input("Create Password", type="password", key="r_pass")
                 
-                if st.button("Sign Up & Send OTP", type="primary", use_container_width=True):
+                if st.button("Register & Send OTP", type="primary", use_container_width=True):
                     if not reg_name.strip() or not reg_email.strip() or not reg_pass.strip():
-                        st.warning("Baraye meherbani tamam fields pur karein.")
+                        st.warning("Please fill in all required fields.")
                     else:
                         success, msg = register_user(reg_name, reg_email, reg_pass)
                         if success:
@@ -245,6 +350,7 @@ if not st.session_state.logged_in:
                             st.rerun()
                         else:
                             st.error(msg)
+        st.markdown('</div>', unsafe_allow_html=True)
     st.stop()
 
 # ===========================================================================
@@ -435,7 +541,7 @@ def dataframe_to_formatted_excel_bytes(df: pd.DataFrame) -> bytes:
         worksheet = writer.sheets["Candidates"]
         
         header_format = workbook.add_format({
-            "bold": True, "bg_color": "#2D3748", "font_color": "#FFFFFF", 
+            "bold": True, "bg_color": "#1E293B", "font_color": "#FFFFFF", 
             "border": 1, "align": "center", "valign": "vcenter",
         })
         wrap_format = workbook.add_format({"text_wrap": True, "valign": "top"})
@@ -453,60 +559,66 @@ def dataframe_to_formatted_excel_bytes(df: pd.DataFrame) -> bytes:
     return buffer.getvalue()
 
 # ===========================================================================
-# DASHBOARD INTERFACE (IF LOGGED IN)
+# SIDEBAR & DASHBOARD INTERFACE
 # ===========================================================================
 with st.sidebar:
     st.markdown("""
-        <div style="text-align: center; padding: 10px;">
-            <h2 style="color: #00e5ff; margin-bottom: 0px;">⚡ Super TalentMatch AI</h2>
-            <p style="color: #888888; font-size: 12px;">Unified Resume Extraction & Deep LLM Screening</p>
+        <div style="text-align: center; padding: 10px 0;">
+            <h3 style="color: #00e5ff; font-weight: 700; margin-bottom: 0px;">⚡ TalentMatch AI</h3>
+            <p style="color: #64748B; font-size: 0.8rem; margin-top: 4px;">Creative HR Suite</p>
         </div>
     """, unsafe_allow_html=True)
     st.markdown("---")
     
-    st.info(f"👤 **HR Manager:** {st.session_state.hr_name}")
+    st.markdown(f"👤 **Active HR:** `{st.session_state.hr_name}`")
     
     if "GROQ_API_KEY" in st.secrets:
         groq_api_key = st.secrets["GROQ_API_KEY"]
-        st.success("✓ Groq API key loaded.")
+        st.success("✓ Groq API Key Connected")
     else:
         groq_api_key = st.text_input("Groq API Key", type="password", placeholder="gsk_...")
     
     st.markdown("---")
-    if st.button("🗑️ Clear Session Results", use_container_width=True):
+    if st.button("🗑️ Clear Session Data", use_container_width=True):
         st.session_state.results = []
         st.rerun()
         
-    if st.button("🚪 Logout", use_container_width=True):
+    if st.button("🚪 Secure Logout", use_container_width=True):
         st.session_state.logged_in = False
         st.session_state.hr_name = ""
         st.session_state.results = []
         st.rerun()
 
-st.markdown(f'<div class="tm-header"><h1>{APP_NAME}</h1><p>Welcome back, {st.session_state.hr_name} | {APP_TAGLINE}</p></div>', unsafe_allow_html=True)
+# Creative Hero Banner
+st.markdown(f"""
+    <div class="creative-header">
+        <h1>{APP_NAME}</h1>
+        <p>Welcome back, <b>{st.session_state.hr_name}</b> &mdash; {APP_TAGLINE}</p>
+    </div>
+""", unsafe_allow_html=True)
 
-tab1, tab2 = st.tabs(["🚀 New Processing", "🗄️ Database Records"])
+tab1, tab2 = st.tabs(["🚀 Screening Workspace", "🗄️ Candidate Database"])
 
 with tab1:
     col1, col2 = st.columns(2, gap="large")
     with col1:
-        st.markdown('<div class="tm-card"><h4>📋 Job Setup</h4>', unsafe_allow_html=True)
-        job_title_input = st.text_input("Job Title / Position Name", placeholder="e.g. Senior Python Developer")
-        jd_text = st.text_area("Job Description", height=130, placeholder="Paste Job Description here...")
+        st.markdown('<div class="glass-card"><h4>📋 Job Specification</h4>', unsafe_allow_html=True)
+        job_title_input = st.text_input("Job Title", placeholder="e.g. Lead AI Engineer")
+        jd_text = st.text_area("Job Description & Requirements", height=140, placeholder="Paste job description here...")
         st.markdown('</div>', unsafe_allow_html=True)
         
     with col2:
-        st.markdown('<div class="tm-card"><h4>📥 Upload Resumes</h4>', unsafe_allow_html=True)
-        uploaded_files = st.file_uploader("Upload resumes", type=ACCEPTED_TYPES, accept_multiple_files=True, label_visibility="collapsed")
+        st.markdown('<div class="glass-card"><h4>📥 Resume Dropzone</h4>', unsafe_allow_html=True)
+        uploaded_files = st.file_uploader("Upload candidate resumes", type=ACCEPTED_TYPES, accept_multiple_files=True, label_visibility="collapsed")
         st.markdown('</div>', unsafe_allow_html=True)
 
-    if st.button("🚀 Process & Screen Candidates", type="primary", use_container_width=True, disabled=not (uploaded_files and jd_text.strip() and job_title_input.strip() and groq_api_key)):
+    if st.button("⚡ Run Autonomous Screening & Extract", type="primary", use_container_width=True, disabled=not (uploaded_files and jd_text.strip() and job_title_input.strip() and groq_api_key)):
         client = Groq(api_key=groq_api_key)
         results = []
-        progress = st.progress(0.0, text="Initializing...")
+        progress = st.progress(0.0, text="Initializing Neural Extraction...")
         
         for i, file in enumerate(uploaded_files):
-            progress.progress((i + 1) / (len(uploaded_files) + 1), text=f"Processing {file.name}...")
+            progress.progress((i + 1) / (len(uploaded_files) + 1), text=f"Analyzing {file.name}...")
             text = extract_resume_text(file)
             if text:
                 analysis = analyze_and_extract_with_groq(client, text, jd_text, job_title_input, file.name)
@@ -517,50 +629,54 @@ with tab1:
         st.session_state.results = results
         if results:
             save_to_database(results)
-            st.success(f"Successfully processed {len(results)} candidates and saved records!")
+            st.success(f"Successfully processed {len(results)} candidate resumes!")
 
-    # --- DISPLAY RESULTS ---
+    # --- RESULTS DISPLAY ---
     if st.session_state.results:
         results = st.session_state.results
-        st.markdown('<div class="tm-card"><h4>📊 Screening Overview</h4>', unsafe_allow_html=True)
+        
+        st.markdown('<div class="glass-card"><h4>📊 Screening Overview</h4>', unsafe_allow_html=True)
         m1, m2 = st.columns(2)
-        m1.metric("Total Candidates Processed", len(results))
-        avg_score = round(sum(r["match_score"] for r in results) / len(results), 1)
-        m2.metric("Average Match Score", f"{avg_score}%")
+        with m1:
+            st.markdown(f'<div class="metric-pill"><div class="val">{len(results)}</div><div class="lbl">Total Screened</div></div>', unsafe_allow_html=True)
+        with m2:
+            avg_score = round(sum(r["match_score"] for r in results) / len(results), 1)
+            st.markdown(f'<div class="metric-pill"><div class="val">{avg_score}%</div><div class="lbl">Average Match Score</div></div>', unsafe_allow_html=True)
         st.markdown("</div>", unsafe_allow_html=True)
 
-        st.markdown('<div class="tm-card"><h4>🧾 Candidate Details & Rankings</h4>', unsafe_allow_html=True)
+        st.markdown('<div class="glass-card"><h4>🧾 Ranked Candidates</h4>', unsafe_allow_html=True)
         results = sorted(results, key=lambda x: x["match_score"], reverse=True)
         
         for rank, cand in enumerate(results, start=1):
-            history_badge = " ⚠️ (Previously Saved)" if cand["is_duplicate"] else " 🆕 (New Candidate)"
-            with st.expander(f"#{rank} — {cand['name']} | Score: {cand['match_score']}%{history_badge}", expanded=(rank == 1)):
-                c1, c2 = st.columns([1.2, 1])
+            history_badge = " ⚠️ [Previously in DB]" if cand["is_duplicate"] else " 🆕 [New Candidate]"
+            score_cls = "score-high" if cand["match_score"] >= 75 else ("score-mid" if cand["match_score"] >= 50 else "score-low")
+            
+            with st.expander(f"#{rank} — {cand['name']} | Match Score: {cand['match_score']}%{history_badge}", expanded=(rank == 1)):
+                c1, c2 = st.columns([1.3, 1])
                 with c1:
-                    st.markdown(f"**✉️ Email:** {cand['email']} | **📞 Phone:** {cand['phone']}")
+                    st.markdown(f"**✉️ Email:** `{cand['email']}` | **📞 Phone:** `{cand['phone']}`")
                     st.markdown(f"**👤 Father's Name:** {cand['father_name']}")
                     st.markdown(f"**🎓 Education:** {cand['education']} (CGPA: {cand['cgpa']})")
-                    st.markdown(f"**🏫 University:** {cand['university_name']}")
-                    st.markdown(f"**💼 Experience:** {cand['experience_years']} | **Latest:** {cand['latest_experience']}")
+                    st.markdown(f"**🏫 Institution:** {cand['university_name']}")
+                    st.markdown(f"**💼 Experience:** {cand['experience_years']} | **Latest Role:** {cand['latest_experience']}")
                     st.markdown(f"**🔗 Reference:** {cand['reference']}")
-                    st.markdown(f"**🛠️ Skills:** {cand['skills']}")
+                    st.markdown(f"**🛠️ Extracted Skills:** {cand['skills']}")
                     
-                    score_class = "tm-score-high" if cand["match_score"] >= 75 else ("tm-score-mid" if cand["match_score"] >= 50 else "tm-score-low")
-                    st.markdown(f'<div class="tm-metric-box" style="margin-top: 15px; width: 160px;"><div class="tm-value {score_class}">{cand["match_score"]}%</div><div class="tm-label">Match Score</div></div>', unsafe_allow_html=True)
+                    st.markdown(f'<div class="metric-pill" style="margin-top: 15px; width: 150px;"><div class="val {score_cls}">{cand["match_score"]}%</div><div class="lbl">Match Rating</div></div>', unsafe_allow_html=True)
                 
                 with c2:
-                    st.markdown("**❌ Missing Skills (vs. JD):**")
+                    st.markdown("**❌ Skill Gaps / Missing vs. JD:**")
                     if cand["missing_skills"]:
                         for skill in cand["missing_skills"]:
                             st.markdown(f"- {skill}")
                     else:
-                        st.caption("No significant gaps identified.")
+                        st.caption("No significant skill gaps identified.")
         st.markdown("</div>", unsafe_allow_html=True)
 
-        st.markdown('<div class="tm-card"><h4>⬇️ Export Master Sheet</h4>', unsafe_allow_html=True)
+        st.markdown('<div class="glass-card"><h4>⬇️ Master Data Export</h4>', unsafe_allow_html=True)
         df = build_results_dataframe(results)
         st.download_button(
-            "Download Formatted Excel (.xlsx)",
+            "Download Formatted Master Report (.xlsx)",
             data=dataframe_to_formatted_excel_bytes(df),
             file_name=f"{job_title_input.replace(' ', '_')}_Candidates.xlsx",
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -570,13 +686,13 @@ with tab1:
         st.markdown("</div>", unsafe_allow_html=True)
 
 with tab2:
-    st.markdown('<div class="tm-card"><h4>🗄️ All Saved Candidates (Database)</h4>', unsafe_allow_html=True)
+    st.markdown('<div class="glass-card"><h4>🗄️ Master Candidate Database Repository</h4>', unsafe_allow_html=True)
     try:
         df_history = load_database()
         if df_history.empty:
-            st.info("No candidates saved in the database yet.")
+            st.info("Database is currently empty.")
         else:
             st.dataframe(df_history, use_container_width=True)
     except Exception as e:
-        st.error(f"Could not load history: {e}")
+        st.error(f"Could not load database records: {e}")
     st.markdown("</div>", unsafe_allow_html=True)
