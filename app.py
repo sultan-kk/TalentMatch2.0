@@ -1,8 +1,8 @@
 """
-HireMatrix Pro — Enterprise Edition v10.14 (Executive Split-Screen & Unified Profiles)
+HireMatrix Pro — Enterprise Edition v10.15 (Unified Profiles Master Container)
 ========================================================================
-Features: Two-sided executive split-screen login/signup, unified single container for saved profiles, 
-Adaptive light/dark theme contrast fix, Advanced Search & Score Filter, and Master Excel Export.
+Features: Single master container enclosing all saved employee profiles, Integrated header styling, 
+Executive split-screen login, Adaptive light/dark theme contrast fix, Advanced Search & Score Filter, and Master Excel Export.
 """
 
 import io
@@ -244,7 +244,7 @@ def verify_employee_pin(email, entered_pin):
     return False, None, None, 0
 
 # ===========================================================================
-# PAGE CONFIG & EXECUTIVE STYLING (THEME CONTRAST FIX)
+# PAGE CONFIG & EXECUTIVE STYLING
 # ===========================================================================
 st.set_page_config(
     page_title=f"{APP_NAME} | Executive Portal",
@@ -296,6 +296,15 @@ html, body, [class*="css"] { font-family: 'Inter', sans-serif !important; }
     border-radius: 18px;
     padding: 2.5rem;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+}
+
+/* Profiles Master Container */
+.profiles-master-box {
+    background: var(--secondary-background-color);
+    border: 1px solid rgba(14, 165, 233, 0.2);
+    border-radius: 14px;
+    padding: 1.5rem;
+    margin-bottom: 1.2rem;
 }
 
 /* Corporate Hero Header & Cards */
@@ -361,7 +370,7 @@ if "pending_pin_email" not in st.session_state: st.session_state.pending_pin_ema
 if "results" not in st.session_state: st.session_state.results = []
 
 # ===========================================================================
-# AUTHENTICATION SCREEN (EXECUTIVE SPLIT-SCREEN & UNIFIED PROFILES CONTAINER)
+# AUTHENTICATION SCREEN (EXECUTIVE SPLIT-SCREEN & UNIFIED MASTER CONTAINER)
 # ===========================================================================
 if not st.session_state.logged_in:
     saved_profiles = get_all_verified_profiles()
@@ -428,8 +437,13 @@ if not st.session_state.logged_in:
                     st.rerun()
             
         elif saved_profiles and not st.session_state.selected_profile_email:
-            st.markdown("### 👥 Saved Employee Profiles")
-            st.caption("Select your secure profile card below to sign in instantly:")
+            # --- UNIFIED MASTER CONTAINER FOR SAVED PROFILES ---
+            st.markdown("""
+                <div class="profiles-master-box">
+                    <h3 style="margin-top:0; margin-bottom: 0.3rem; font-size: 1.15rem; font-weight: 700;">👥 Saved Employee Profiles</h3>
+                    <p style="font-size: 0.85rem; opacity: 0.75; margin-bottom: 0;">Select your secure profile card below to sign in instantly:</p>
+                </div>
+            """, unsafe_allow_html=True)
             
             for p_email, p_name, p_pin, p_role, p_pro in saved_profiles:
                 pro_badge = " 🌟 [PRO]" if p_pro == 1 else " 🆓 [Free]"
@@ -738,7 +752,7 @@ with st.sidebar:
     st.markdown(f"""
         <div class="sidebar-brand-box">
             <h2>{APP_NAME}</h2>
-            <p>Enterprise v10.14</p>
+            <p>Enterprise v10.15</p>
         </div>
     """, unsafe_allow_html=True)
     st.markdown("---")
