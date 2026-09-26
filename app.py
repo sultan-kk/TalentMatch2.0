@@ -1,7 +1,7 @@
 """
-HireMatrix Pro — Enterprise Edition v10.62 (Dual Excel Reports Workflow)
+HireMatrix Pro — Enterprise Edition v10.63 (Same-File Append Master)
 ========================================================================
-Features: Separate downloadable Excel sheets for Step 1 (Raw Talent Repository) and Step 2 (Screened JD Results), 
+Features: All newly extracted and screened candidates automatically append to the same persistent Excel files, 
 Clean numbered exports, individual candidate deletes, strict duplicate blocking, and complete ATS workflow.
 """
 
@@ -163,7 +163,7 @@ def verify_employee_pin(email, entered_pin):
     return False, None, None
 
 # ===========================================================================
-# DATABASE OPERATIONS & DUAL EXPORT FUNCTIONS
+# DATABASE OPERATIONS & PERSISTENT SAME-FILE EXPORT
 # ===========================================================================
 def load_database():
     if os.path.exists(DB_FILE):
@@ -488,7 +488,7 @@ with st.sidebar:
     st.markdown(f"""
         <div class="sidebar-brand-box">
             <h2>{APP_NAME}</h2>
-            <p>Multi-Stage ATS v10.62</p>
+            <p>Multi-Stage ATS v10.63</p>
         </div>
     """, unsafe_allow_html=True)
     st.markdown("---")
@@ -561,7 +561,7 @@ with tab1:
         progress.empty()
         if extracted_batch:
             save_candidates_to_repository(extracted_batch)
-            st.success(f"Successfully processed and added candidates to the Talent Pool (Duplicates automatically blocked)!")
+            st.success(f"Successfully processed and added candidates to the Talent Pool (Duplicates automatically blocked & appended to Master file)!")
             st.rerun()
             
     st.markdown("</div>", unsafe_allow_html=True)
@@ -570,11 +570,11 @@ with tab1:
     if not df_repo.empty:
         st.markdown('<div class="corp-card"><h4>📋 Current Candidates in Talent Repository (Manage & Delete)</h4>', unsafe_allow_html=True)
         
-        # Talent Pool Specific Download Button
+        # Talent Pool Persistent Master Download Button (Always Appends Same File Name)
         st.download_button(
-            "📊 Download Raw Talent Repository Report (.xlsx)",
+            "📊 Download Master Talent Repository Report (.xlsx)",
             data=generate_repository_excel(df_repo),
-            file_name=f"Talent_Repository_Report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx",
+            file_name="Master_Talent_Repository.xlsx",
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             use_container_width=True,
         )
@@ -658,11 +658,11 @@ with tab2:
         if not results:
             st.warning("⚠️ No candidates in the repository matched the requirements of this Job Description.")
         else:
-            # Screened Results Specific Download Button
+            # Persistent Screened Results Master Download Button
             st.download_button(
-                "📊 Download Screened & Selected Candidates Report (.xlsx)",
+                "📊 Download Master Screened Candidates Report (.xlsx)",
                 data=generate_screening_excel(results),
-                file_name=f"Screened_Candidates_Report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx",
+                file_name="Master_Screened_Candidates_Report.xlsx",
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                 use_container_width=True,
             )
@@ -754,9 +754,9 @@ with tab3:
     
     df_export = load_database()
     st.download_button(
-        "📊 Download Executive Formatted Report (.xlsx)",
+        "📊 Download Master Talent Repository Report (.xlsx)",
         data=generate_repository_excel(df_export),
-        file_name=f"Executive_Talent_Report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx",
+        file_name="Master_Talent_Repository.xlsx",
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         use_container_width=True,
     )
