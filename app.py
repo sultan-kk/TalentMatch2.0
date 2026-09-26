@@ -1,7 +1,7 @@
 """
-HireMatrix Pro — Enterprise Edition v10.74 (Stable Widget Keys & Excel Fix)
+HireMatrix Pro — Enterprise Edition v10.75 (Empty Data Error Safe Fix)
 ========================================================================
-Features: Completely secure widget keys in loops, stable Excel buffer generation using openpyxl, 
+Features: Robust CSV reader with automatic recovery for empty/missing databases, secure widget keys, 
 Persistent master file appends, individual candidate deletes, strict duplicate blocking, and complete ATS workflow.
 """
 
@@ -171,42 +171,43 @@ def verify_employee_pin(email, entered_pin):
     return False, None, None
 
 # ===========================================================================
-# DATABASE OPERATIONS & PERSISTENT SAME-FILE EXPORT
+# DATABASE OPERATIONS & SAFE EMPTY ERROR RECOVERY
 # ===========================================================================
 def load_database():
-    if os.path.exists(DB_FILE):
-        df = pd.read_csv(DB_FILE)
-        expected_cols = [
-            "Candidate Name", "Father Name", "Email", "Phone", 
-            "CGPA", "Education", "University Name", "Experience Years", 
-            "Latest Experience", "Extracted Skills", "Reference", "Pipeline Status", "Added At"
-        ]
-        for col in expected_cols:
-            if col not in df.columns:
-                df[col] = "Not Provided"
-        
-        if not df.empty and "Email" in df.columns:
-            df["CleanEmail"] = df["Email"].astype(str).str.lower().str.strip()
-            valid_mask = ~df["CleanEmail"].isin(["not provided", "not found", "nan", ""])
-            df_valid = df[valid_mask].drop_duplicates(subset=["CleanEmail"], keep="first")
-            df_invalid = df[~valid_mask]
-            df = pd.concat([df_valid, df_invalid], ignore_index=True).drop(columns=["CleanEmail"])
-            df.to_csv(DB_FILE, index=False)
+    expected_cols = [
+        "Candidate Name", "Father Name", "Email", "Phone", 
+        "CGPA", "Education", "University Name", "Experience Years", 
+        "Latest Experience", "Extracted Skills", "Reference", "Pipeline Status", "Added At"
+    ]
+    if os.path.exists(DB_FILE) and os.path.getsize(DB_FILE) > 0:
+        try:
+            df = pd.read_csv(DB_FILE)
+            for col in expected_cols:
+                if col not in df.columns:
+                    df[col] = "Not Provided"
             
-        return df
-    else:
-        return pd.DataFrame(columns=[
-            "Candidate Name", "Father Name", "Email", "Phone", 
-            "CGPA", "Education", "University Name", "Experience Years", 
-            "Latest Experience", "Extracted Skills", "Reference", "Pipeline Status", "Added At"
-        ])
+            if not df.empty and "Email" in df.columns:
+                df["CleanEmail"] = df["Email"].astype(str).str.lower().str.strip()
+                valid_mask = ~df["CleanEmail"].isin(["not provided", "not found", "nan", ""])
+                df_valid = df[valid_mask].drop_duplicates(subset=["CleanEmail"], keep="first")
+                df_invalid = df[~valid_mask]
+                df = pd.concat([df_valid, df_invalid], ignore_index=True).drop(columns=["CleanEmail"])
+                df.to_csv(DB_FILE, index=False)
+            return df
+        except Exception:
+            pass
+            
+    # Fallback to empty DataFrame if file is missing, corrupted, or empty
+    empty_df = pd.DataFrame(columns=expected_cols)
+    empty_df.to_csv(DB_FILE, index=False)
+    return empty_df
 
 def check_if_exists_in_db(email):
     if not os.path.exists(DB_FILE) or email in ["Not Provided", "Not Found", ""] or not email:
         return False
     df = load_database()
     clean_in = email.lower().strip()
-    if "Email" not in df.columns:
+    if "Email" not in df.columns or df.empty:
         return False
     existing_emails = df["Email"].astype(str).str.lower().str.strip().values
     return clean_in in existing_emails
@@ -264,6 +265,7 @@ def update_candidate_pipeline_status(email, new_status):
 def clear_candidate_database():
     if os.path.exists(DB_FILE):
         os.remove(DB_FILE)
+    load_database()
 
 def generate_repository_excel(df: pd.DataFrame) -> bytes:
     buffer = io.BytesIO()
@@ -468,7 +470,7 @@ with st.sidebar:
     st.markdown(f"""
         <div class="sidebar-brand-box">
             <h2>{APP_NAME}</h2>
-            <p>Multi-Stage ATS v10.74</p>
+            <p>Multi-Stage ATS v10.75</p>
         </div>
     """, unsafe_allow_html=True)
     st.markdown("---")
