@@ -1,8 +1,8 @@
 """
-HireMatrix Pro — Enterprise Free Edition v10.42 (All Pro Features Unlocked)
+HireMatrix Pro — Enterprise Edition v10.50 (Multi-Stage ATS Architecture)
 ========================================================================
-Features: Completely removed subscription & payment walls, all features open & free, 
-Distinct profile box, dynamic passing score threshold, and Executive Excel Report.
+Features: 2-Step Workflow (1. Talent Pool Repository & CV Extraction -> 2. JD Matching & Ranked Scoring), 
+Conditional Email Dispatchers, Dynamic Threshold, and Executive Excel Report.
 """
 
 import io
@@ -287,7 +287,7 @@ if "hr_role" not in st.session_state: st.session_state.hr_role = "Recruiter"
 if "selected_profile_email" not in st.session_state: st.session_state.selected_profile_email = None
 if "pending_otp_email" not in st.session_state: st.session_state.pending_otp_email = None
 if "pending_pin_email" not in st.session_state: st.session_state.pending_pin_email = None
-if "results" not in st.session_state: st.session_state.results = []
+if "screening_results" not in st.session_state: st.session_state.screening_results = []
 
 # ===========================================================================
 # AUTHENTICATION SCREEN
@@ -303,7 +303,7 @@ if not st.session_state.logged_in:
                 <h1>{APP_NAME}</h1>
                 <p>{APP_TAGLINE}</p>
                 <hr style="border-color: rgba(255,255,255,0.2); margin: 1.8rem 0;">
-                <p style="font-size: 0.95rem; opacity: 0.9;">Empowering modern corporate enterprises with deep AI resume evaluation, automated candidate scoring, instant workflow pipelines, and secure employee role management.</p>
+                <p style="font-size: 0.95rem; opacity: 0.9;">Empowering modern corporate enterprises with multi-stage ATS workflow, intelligent talent repository, automated candidate scoring, and secure role management.</p>
             </div>
         """, unsafe_allow_html=True)
         
@@ -447,9 +447,9 @@ def load_database():
     if os.path.exists(DB_FILE):
         df = pd.read_csv(DB_FILE)
         expected_cols = [
-            "Job Title", "Candidate Name", "Father Name", "Email", "Phone", 
+            "Candidate Name", "Father Name", "Email", "Phone", 
             "CGPA", "Education", "University Name", "Experience Years", 
-            "Latest Experience", "Extracted Skills", "Reference", "Match Score", "Pipeline Status", "Screened At"
+            "Latest Experience", "Extracted Skills", "Reference", "Pipeline Status", "Added At"
         ]
         for col in expected_cols:
             if col not in df.columns:
@@ -458,48 +458,47 @@ def load_database():
         return df
     else:
         return pd.DataFrame(columns=[
-            "Job Title", "Candidate Name", "Father Name", "Email", "Phone", 
+            "Candidate Name", "Father Name", "Email", "Phone", 
             "CGPA", "Education", "University Name", "Experience Years", 
-            "Latest Experience", "Extracted Skills", "Reference", "Match Score", "Pipeline Status", "Screened At"
+            "Latest Experience", "Extracted Skills", "Reference", "Pipeline Status", "Added At"
         ])
 
-def save_to_database(new_results, default_status="Shortlisted"):
+def save_candidates_to_repository(new_candidates):
     df = load_database()
     current_timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     new_data = []
-    for r in new_results:
+    for c in new_candidates:
         new_data.append({
-            "Job Title": r["job_title"],
-            "Candidate Name": r["name"],
-            "Father Name": r.get("father_name", "Not Provided"),
-            "Email": r["email"],
-            "Phone": r["phone"],
-            "CGPA": r.get("cgpa", "Not Provided"),
-            "Education": r.get("education", "Not Provided"),
-            "University Name": r.get("university_name", "Not Provided"),
-            "Experience Years": r.get("experience_years", "0"),
-            "Latest Experience": r.get("latest_experience", "Not Provided"),
-            "Extracted Skills": r.get("skills", "Not Provided"),
-            "Reference": r.get("reference", "Not Provided"),
-            "Match Score": r["match_score"],
-            "Pipeline Status": default_status,
-            "Screened At": current_timestamp
+            "Candidate Name": c["name"],
+            "Father Name": c.get("father_name", "Not Provided"),
+            "Email": c["email"],
+            "Phone": c["phone"],
+            "CGPA": c.get("cgpa", "Not Provided"),
+            "Education": c.get("education", "Not Provided"),
+            "University Name": c.get("university_name", "Not Provided"),
+            "Experience Years": c.get("experience_years", "0"),
+            "Latest Experience": c.get("latest_experience", "Not Provided"),
+            "Extracted Skills": c.get("skills", "Not Provided"),
+            "Reference": c.get("reference", "Not Provided"),
+            "Pipeline Status": "Talent Pool",
+            "Added At": current_timestamp
         })
     df_new = pd.DataFrame(new_data)
     
+    # Smart Duplicate Prevention based on Email
     if not df.empty and not df_new.empty:
         for _, new_row in df_new.iterrows():
             incoming_email = str(new_row["Email"]).lower().strip()
             if incoming_email not in ["not provided", "not found", "", "nan"]:
                 df = df[~(df["Email"].str.lower().str.strip() == incoming_email)]
-    
+                
     df_combined = pd.concat([df, df_new], ignore_index=True)
     df_combined.to_csv(DB_FILE, index=False)
 
-def update_candidate_status_in_db(email, job_title, new_status):
+def update_candidate_pipeline_status(email, new_status):
     if os.path.exists(DB_FILE):
         df = pd.read_csv(DB_FILE)
-        df.loc[(df["Email"].str.lower() == email.lower()) & (df["Job Title"] == job_title), "Pipeline Status"] = new_status
+        df.loc[df["Email"].str.lower() == email.lower(), "Pipeline Status"] = new_status
         df.to_csv(DB_FILE, index=False)
 
 def clear_candidate_database():
@@ -515,9 +514,9 @@ def check_if_exists_in_db(email):
 def dataframe_to_formatted_executive_report(df: pd.DataFrame) -> bytes:
     buffer = io.BytesIO()
     with pd.ExcelWriter(buffer, engine="xlsxwriter") as writer:
-        df.to_excel(writer, index=False, sheet_name="Recruitment Master Report")
+        df.to_excel(writer, index=False, sheet_name="Talent Repository Report")
         workbook = writer.book
-        worksheet = writer.sheets["Recruitment Master Report"]
+        worksheet = writer.sheets["Talent Repository Report"]
         
         header_format = workbook.add_format({
             "bold": True,
@@ -536,7 +535,7 @@ def dataframe_to_formatted_executive_report(df: pd.DataFrame) -> bytes:
         
         for col_idx, col_name in enumerate(df.columns):
             worksheet.write(0, col_idx, col_name, header_format)
-            if col_name in ["Extracted Skills", "Latest Experience", "University Name", "Job Title"]:
+            if col_name in ["Extracted Skills", "Latest Experience", "University Name"]:
                 worksheet.set_column(col_idx, col_idx, 30, wrap_format)
             else:
                 worksheet.set_column(col_idx, col_idx, 18, wrap_format)
@@ -605,14 +604,11 @@ def extract_resume_text(uploaded_file):
 # ===========================================================================
 # GROQ AI INTEGRATION
 # ===========================================================================
-def build_unified_prompt(resume_text: str, jd_text: str) -> str:
-    return f"""You are an expert HR AI assistant. Analyze the CANDIDATE RESUME against the JOB DESCRIPTION.
+def build_repository_extraction_prompt(resume_text: str) -> str:
+    return f"""You are an expert HR AI assistant. Extract candidate profile information from the following resume.
 
-CANDIDATE RESUME:
+RESUME TEXT:
 {resume_text[:12000]}
-
-JOB DESCRIPTION:
-{jd_text}
 
 Return ONLY a valid JSON object with exactly the following keys. Extract the information precisely. Do not include markdown fences or explanations.
 {{
@@ -626,15 +622,29 @@ Return ONLY a valid JSON object with exactly the following keys. Extract the inf
   "experience_years": "Total years of experience (e.g. '3 Years', 'Fresh', etc.)",
   "latest_experience": "Most recent job title and company (or 'None')",
   "skills": "Core skills extracted from the resume (comma-separated)",
-  "reference": "Reference names/details mentioned (if any, else 'Available on Request' or 'Not Provided')",
-  "match_score": A number between 0 and 100 representing how well the resume matches the JD,
-  "missing_skills": ["List", "of", "key JD skills", "missing from resume"]
+  "reference": "Reference names/details mentioned (if any, else 'Available on Request' or 'Not Provided')"
 }}
 """
 
-def analyze_and_extract_with_groq(client, resume_text: str, jd_text: str, job_title: str, file_name: str):
+def build_jd_matching_prompt(candidate_text_summary: str, jd_text: str) -> str:
+    return f"""You are an expert HR recruiter AI. Evaluate the CANDIDATE PROFILE against the JOB DESCRIPTION.
+
+CANDIDATE PROFILE SUMMARY:
+{candidate_text_summary}
+
+JOB DESCRIPTION:
+{jd_text}
+
+Return ONLY a valid JSON object with exactly the following keys. Do not include markdown fences.
+{{
+  "match_score": A number between 0 and 100 representing how well the candidate matches the JD,
+  "missing_skills": ["List", "of", "key JD skills", "missing from candidate profile"]
+}}
+"""
+
+def extract_candidate_for_repo(client, resume_text: str, file_name: str):
     try:
-        prompt = build_unified_prompt(resume_text, jd_text)
+        prompt = build_repository_extraction_prompt(resume_text)
         response = client.chat.completions.create(
             model=GROQ_MODEL,
             messages=[{"role": "user", "content": prompt}],
@@ -648,7 +658,6 @@ def analyze_and_extract_with_groq(client, resume_text: str, jd_text: str, job_ti
         
         return {
             "file_name": file_name,
-            "job_title": job_title,
             "name": result.get("name", "Unknown"),
             "father_name": result.get("father_name", "Not Provided"),
             "email": email,
@@ -660,25 +669,38 @@ def analyze_and_extract_with_groq(client, resume_text: str, jd_text: str, job_ti
             "latest_experience": result.get("latest_experience", "Not Provided"),
             "skills": result.get("skills", "Not Provided"),
             "reference": result.get("reference", "Not Provided"),
-            "match_score": float(result.get("match_score", 0)),
-            "missing_skills": result.get("missing_skills", []),
             "is_duplicate": is_duplicate
         }
     except Exception as exc:
-        st.error(f"⚠️ Groq analysis failed for **{file_name}**: {exc}")
+        st.error(f"⚠️ Extraction failed for **{file_name}**: {exc}")
         return None
 
-def generate_ai_interview_questions(client, resume_text: str, job_title: str) -> str:
+def evaluate_candidate_against_jd(client, candidate_row, jd_text: str):
     try:
-        prompt = f"""Based on the candidate resume and the job title '{job_title}', generate 5 precise technical and behavioral interview questions along with ideal expected answers for the interviewer. Format clearly with Markdown bullet points and headings. Do not include raw HTML tags."""
+        summary = f"Name: {candidate_row['Candidate Name']}, Education: {candidate_row['Education']}, University: {candidate_row['University Name']}, Experience: {candidate_row['Experience Years']}, Latest Role: {candidate_row['Latest Experience']}, Skills: {candidate_row['Extracted Skills']}"
+        prompt = build_jd_matching_prompt(summary, jd_text)
+        response = client.chat.completions.create(
+            model=GROQ_MODEL,
+            messages=[{"role": "user", "content": prompt}],
+            response_format={"type": "json_object"},
+            temperature=0.2,
+        )
+        raw_content = response.choices[0].message.content.strip()
+        result = json.loads(raw_content)
+        return float(result.get("match_score", 0)), result.get("missing_skills", [])
+    except Exception:
+        return 0.0, []
+
+def generate_ai_interview_questions(client, skills_text: str, job_title: str) -> str:
+    try:
+        prompt = f"""Based on the candidate skills '{skills_text}' and the job title '{job_title}', generate 5 precise technical and behavioral interview questions along with ideal expected answers. Format clearly with Markdown bullet points and headings. Do not include raw HTML tags."""
         response = client.chat.completions.create(
             model=GROQ_MODEL,
             messages=[{"role": "user", "content": prompt}],
             temperature=0.3,
         )
         raw_output = response.choices[0].message.content.strip()
-        cleaned_output = raw_output.replace("<br>", "\n").replace("<br/>", "\n").replace("<BR>", "\n")
-        return cleaned_output
+        return raw_output.replace("<br>", "\n").replace("<br/>", "\n").replace("<BR>", "\n")
     except Exception as e:
         return f"Could not generate interview questions: {e}"
 
@@ -689,7 +711,7 @@ with st.sidebar:
     st.markdown(f"""
         <div class="sidebar-brand-box">
             <h2>{APP_NAME}</h2>
-            <p>Enterprise Free Edition</p>
+            <p>Multi-Stage ATS v10.50</p>
         </div>
     """, unsafe_allow_html=True)
     st.markdown("---")
@@ -711,7 +733,7 @@ with st.sidebar:
     
     st.markdown("---")
     if st.button("🗑️ Clear Session Cache", use_container_width=True, key="clear_cache_btn"):
-        st.session_state.results = []
+        st.session_state.screening_results = []
         st.rerun()
         
     if st.button("🚪 Lock & Switch Profile", use_container_width=True, key="lock_switch_btn"):
@@ -720,96 +742,129 @@ with st.sidebar:
         st.session_state.hr_email = ""
         st.session_state.hr_role = "Recruiter"
         st.session_state.selected_profile_email = None
-        st.session_state.results = []
+        st.session_state.screening_results = []
         st.rerun()
 
 # --- TOP LIVE MENU ACTIVITY FEED ---
 df_all = load_database()
-total_screened_db = len(df_all)
+total_repo_db = len(df_all)
 latest_candidate = df_all.iloc[-1]["Candidate Name"] if not df_all.empty else "None"
-latest_job = df_all.iloc[-1]["Job Title"] if not df_all.empty else "N/A"
 
 st.markdown(f"""
     <div class="corp-hero">
         <div class="corp-badge">
-            <span>🟢 Live Employee Session</span> &bull; <span>{st.session_state.hr_email} (UNLOCKED)</span>
+            <span>🟢 Multi-Stage ATS Session</span> &bull; <span>{st.session_state.hr_email} (UNLOCKED)</span>
         </div>
         <h1>{APP_NAME}</h1>
-        <p>Welcome back, <b>{st.session_state.hr_name}</b> &mdash; Total Screened Profiles in System: <b>{total_screened_db}</b> | Latest Screening: <b>{latest_candidate} ({latest_job})</b></p>
+        <p>Welcome back, <b>{st.session_state.hr_name}</b> &mdash; Total Candidates in Talent Pool: <b>{total_repo_db}</b> | Latest Added: <b>{latest_candidate}</b></p>
     </div>
 """, unsafe_allow_html=True)
 
-tab1, tab2, tab3 = st.tabs(["🚀 Screening Workspace", "🗄️ Candidate Database & Analytics", "🛡️ Admin Controls"])
+tab1, tab2, tab3, tab4 = st.tabs(["📥 1. Talent Repository (Upload)", "🎯 2. JD Screening & Matching", "🗄️ 3. Candidate Database & Pipeline", "🛡️ 4. Admin Controls"])
 
 with tab1:
-    col1, col2 = st.columns(2, gap="large")
-    with col1:
-        st.markdown('<div class="corp-card"><h4>📋 Job Specification & Threshold</h4>', unsafe_allow_html=True)
-        job_title_input = st.text_input("Job Position Title", placeholder="e.g. Lead AI Engineer")
-        jd_text = st.text_area("Job Description & Requirements", height=110, placeholder="Paste detailed job description here...")
-        
-        # --- DYNAMIC MATCH SCORE THRESHOLD SETTING ---
-        st.markdown("---")
-        st.markdown("**🎯 Select Minimum Passing Score Threshold (%)**")
-        custom_threshold = st.slider(
-            "Candidates scoring above this will be Shortlisted; others will be marked as Rejected.",
-            min_value=0, max_value=100, value=50, step=5,
-            label_visibility="collapsed"
-        )
-        st.caption(f"Current Selected Threshold: **{custom_threshold}%**")
-        st.markdown('</div>', unsafe_allow_html=True)
-        
-    with col2:
-        st.markdown('<div class="corp-card"><h4>📥 Resume Dropzone</h4>', unsafe_allow_html=True)
-        uploaded_files = st.file_uploader("Upload candidate resumes", type=ACCEPTED_TYPES, accept_multiple_files=True, label_visibility="collapsed")
-        st.markdown('</div>', unsafe_allow_html=True)
-
-    if st.button("⚡ Execute Deep LLM Screening", type="primary", use_container_width=True, disabled=not (uploaded_files and jd_text.strip() and job_title_input.strip() and groq_api_key)):
+    st.markdown('<div class="corp-card"><h4>📥 Step 1: Talent Repository Ingestion (Upload Resumes)</h4>', unsafe_allow_html=True)
+    st.caption("Upload candidate resumes below. AI will extract their profile details and save them to the central repository independently of any Job Description.")
+    
+    uploaded_repo_files = st.file_uploader("Upload candidate resumes to repository", type=ACCEPTED_TYPES, accept_multiple_files=True, label_visibility="collapsed")
+    
+    if st.button("⚡ Extract & Save to Talent Pool", type="primary", use_container_width=True, disabled=not (uploaded_repo_files and groq_api_key)):
         client = Groq(api_key=groq_api_key)
-        results = []
-        progress = st.progress(0.0, text="Initializing Neural Extraction...")
+        extracted_batch = []
+        progress = st.progress(0.0, text="Reading and extracting profiles...")
         
-        for i, file in enumerate(uploaded_files):
-            progress.progress((i + 1) / (len(uploaded_files) + 1), text=f"Analyzing {file.name}...")
+        for i, file in enumerate(uploaded_repo_files):
+            progress.progress((i + 1) / (len(uploaded_repo_files) + 1), text=f"Extracting {file.name}...")
             text = extract_resume_text(file)
             if text:
-                analysis = analyze_and_extract_with_groq(client, text, jd_text, job_title_input, file.name)
-                if analysis:
-                    results.append(analysis)
+                profile_data = extract_candidate_for_repo(client, text, file.name)
+                if profile_data:
+                    extracted_batch.append(profile_data)
                     
         progress.empty()
-        st.session_state.results = results
-        if results:
-            for r in results:
-                r["initial_status"] = "Shortlisted" if r["match_score"] >= custom_threshold else "Rejected"
-            
-            save_to_database(results, default_status="Shortlisted")
-            st.success(f"Successfully processed {len(results)} candidate resumes! Duplicates merged/prevented.")
+        if extracted_batch:
+            save_candidates_to_repository(extracted_batch)
+            st.success(f"Successfully processed and added {len(extracted_batch)} candidates to the Talent Pool!")
             st.rerun()
+            
+    st.markdown("</div>", unsafe_allow_html=True)
+    
+    # Display current repo summary
+    df_repo = load_database()
+    if not df_repo.empty:
+        st.markdown('<div class="corp-card"><h4>📋 Current Candidates in Talent Repository</h4>', unsafe_allow_html=True)
+        st.dataframe(df_repo[["Candidate Name", "Email", "Phone", "Education", "Experience Years", "Extracted Skills", "Pipeline Status"]], use_container_width=True)
+        st.markdown('</div>', unsafe_allow_html=True)
 
-    # --- RESULTS DISPLAY ---
-    if st.session_state.results:
-        results = st.session_state.results
+with tab2:
+    st.markdown('<div class="corp-card"><h4>🎯 Step 2: Job Description Screening & Smart Matching</h4>', unsafe_allow_html=True)
+    st.caption("Enter a Job Description below. AI will scan your stored Talent Pool repository, evaluate candidates against the JD, and rank them instantly.")
+    
+    jd_title_input = st.text_input("Job Position Title", placeholder="e.g. Senior AI Engineer")
+    jd_desc_text = st.text_area("Job Description & Requirements", height=120, placeholder="Paste detailed job description here...")
+    
+    st.markdown("---")
+    st.markdown("**🎯 Select Minimum Passing Score Threshold (%)**")
+    screening_threshold = st.slider(
+        "Candidates scoring above this will be Shortlisted; others will be marked as Rejected.",
+        min_value=0, max_value=100, value=50, step=5,
+        label_visibility="collapsed",
+        key="screening_threshold_slider"
+    )
+    st.caption(f"Current Selected Threshold: **{screening_threshold}%**")
+    
+    df_pool = load_database()
+    
+    if st.button("⚡ Run AI Screening against Talent Pool", type="primary", use_container_width=True, disabled=not (jd_desc_text.strip() and jd_title_input.strip() and not df_pool.empty and groq_api_key)):
+        client = Groq(api_key=groq_api_key)
+        screened_results = []
+        progress = st.progress(0.0, text="Evaluating candidates against Job Description...")
         
-        st.markdown('<div class="corp-card"><h4>📊 Screening Metrics Overview</h4>', unsafe_allow_html=True)
-        m1, m2 = st.columns(2)
-        with m1:
-            st.markdown(f'<div class="metric-box"><div class="val">{len(results)}</div><div class="lbl">Total Screened (Batch)</div></div>', unsafe_allow_html=True)
-        with m2:
-            avg_score = round(sum(r["match_score"] for r in results) / len(results), 1)
-            st.markdown(f'<div class="metric-box"><div class="val">{avg_score}%</div><div class="lbl">Average Match Score</div></div>', unsafe_allow_html=True)
-        st.markdown("</div>", unsafe_allow_html=True)
+        for idx, row in df_pool.iterrows():
+            progress.progress((idx + 1) / (len(df_pool) + 1), text=f"Evaluating {row['Candidate Name']}...")
+            score, missing = evaluate_candidate_against_jd(client, row, jd_desc_text)
+            
+            initial_status = "Shortlisted" if score >= screening_threshold else "Rejected"
+            
+            screened_results.append({
+                "job_title": jd_title_input,
+                "name": row["Candidate Name"],
+                "father_name": row["Father Name"],
+                "email": row["Email"],
+                "phone": row["Phone"],
+                "cgpa": row["CGPA"],
+                "education": row["Education"],
+                "university_name": row["University Name"],
+                "experience_years": row["Experience Years"],
+                "latest_experience": row["Latest Experience"],
+                "skills": row["Extracted Skills"],
+                "reference": row["Reference"],
+                "match_score": score,
+                "missing_skills": missing,
+                "pipeline_status": initial_status
+            })
+            
+        progress.empty()
+        st.session_state.screening_results = screened_results
+        st.success(f"Successfully evaluated {len(df_pool)} candidates from repository!")
+        st.rerun()
+        
+    if df_pool.empty:
+        st.info("⚠️ Talent repository is currently empty. Please upload resumes in **Step 1** first.")
+        
+    st.markdown('</div>', unsafe_allow_html=True)
 
-        st.markdown('<div class="corp-card"><h4>🧾 Ranked Candidate Insights & Unlocked AI Tools</h4>', unsafe_allow_html=True)
-        results = sorted(results, key=lambda x: x["match_score"], reverse=True)
+    # --- SCREENED RESULTS & PIPELINE STATUS / CONDITIONAL EMAILS ---
+    if st.session_state.screening_results:
+        st.markdown('<div class="corp-card"><h4>📊 Ranked Screening Results & Conditional Action Pipeline</h4>', unsafe_allow_html=True)
+        results = sorted(st.session_state.screening_results, key=lambda x: x["match_score"], reverse=True)
         
         client = Groq(api_key=groq_api_key) if groq_api_key else None
 
         for rank, cand in enumerate(results, start=1):
-            history_badge = " ⚠️ [Previously in DB]" if cand["is_duplicate"] else " 🆕 [New Candidate]"
             score_cls = "score-high" if cand["match_score"] >= 75 else ("score-mid" if cand["match_score"] >= 50 else "score-low")
             
-            with st.expander(f"#{rank} — {cand['name']} | Match Score: {cand['match_score']}%{history_badge}", expanded=(rank == 1)):
+            with st.expander(f"#{rank} — {cand['name']} | Match Score: {cand['match_score']}% | Stage: {cand['pipeline_status']}", expanded=(rank == 1)):
                 c1, c2 = st.columns([1.3, 1])
                 with c1:
                     st.markdown(f"**✉️ Email:** `{cand['email']}` | **📞 Phone:** `{cand['phone']}`")
@@ -831,117 +886,113 @@ with tab1:
                         st.caption("No significant skill gaps identified.")
 
                 st.markdown("---")
+                # --- PIPELINE STATUS SELECTOR ---
+                st.markdown("#### 🔄 Candidate Pipeline Stage")
+                new_stage = st.selectbox(
+                    "Update Stage", 
+                    ["Shortlisted", "Interview Scheduled", "Hired", "Rejected"], 
+                    index=["Shortlisted", "Interview Scheduled", "Hired", "Rejected"].index(cand["pipeline_status"]) if cand["pipeline_status"] in ["Shortlisted", "Interview Scheduled", "Hired", "Rejected"] else 0,
+                    key=f"stage_sel_{rank}"
+                )
+                if new_stage != cand["pipeline_status"]:
+                    cand["pipeline_status"] = new_stage
+                    update_candidate_pipeline_status(cand["email"], new_stage)
+                    st.success(f"Pipeline stage updated to **{new_stage}**!")
+                    st.rerun()
+
+                st.markdown("---")
                 if st.button(f"💡 Generate AI Interview Q&A for {cand['name']}", key=f"gen_q_{rank}"):
                     if client:
                         with st.spinner("Generating tailored interview questions..."):
-                            q_text = generate_ai_interview_questions(client, cand['skills'], job_title_input)
+                            q_text = generate_ai_interview_questions(client, cand['skills'], cand['job_title'])
                             st.markdown("#### 🎯 AI Generated Interview Guide:")
                             st.markdown(q_text)
                     else:
                         st.error("Groq API key required.")
 
+                # --- CONDITIONAL EMAIL DISPATCHER (TRIGGERS ONLY ON STAGE CHANGE) ---
                 if cand['email'] not in ["Not Provided", "Not Found", ""] and cand['email']:
-                    st.markdown("#### ✉️ Conditional Email Dispatcher (Score-Based)")
+                    st.markdown("#### ✉️ Conditional Email Dispatcher")
                     
-                    if cand['match_score'] >= 50:
-                        default_msg = f"Dear {cand['name']},\n\nWe were deeply impressed by your credentials and match score ({cand['match_score']}%) for the {job_title_input} position at HireMatrix Pro. We would love to invite you for an interview round.\n\nBest Regards,\nTeam HireMatrix Pro"
-                        email_subject = f"Interview Invitation - {job_title_input}"
-                        st.info("✓ Score >= 50%: **Interview Invitation Template loaded.**")
+                    if cand["pipeline_status"] in ["Shortlisted", "Interview Scheduled"]:
+                        default_msg = f"Dear {cand['name']},\n\nWe were deeply impressed by your credentials and match score ({cand['match_score']}%) for the {cand['job_title']} position at HireMatrix Pro. We would love to invite you for an interview round.\n\nBest Regards,\nTeam HireMatrix Pro"
+                        email_subject = f"Interview Invitation - {cand['job_title']}"
+                        st.info(f"✓ Stage is **{cand['pipeline_status']}**: Interview Invitation template loaded.")
+                    elif cand["pipeline_status"] == "Hired":
+                        default_msg = f"Dear {cand['name']},\n\nCongratulations! We are thrilled to offer you the position of {cand['job_title']} at HireMatrix Pro. Welcome aboard!\n\nBest Regards,\nTeam HireMatrix Pro"
+                        email_subject = f"Official Offer Letter - {cand['job_title']}"
+                        st.success("✓ Stage is **Hired**: Official Offer Letter template loaded.")
                     else:
-                        default_msg = f"Dear {cand['name']},\n\nThank you for your interest in the {job_title_input} position at HireMatrix Pro. Although your background is notable, your match score ({cand['match_score']}%) does not meet our current threshold for this role. We wish you the best in your career pursuits.\n\nBest Regards,\nTeam HireMatrix Pro"
-                        email_subject = f"Application Status Update - {job_title_input}"
-                        st.warning("⚠️ Score < 50%: **Apology / Rejection Template loaded.**")
+                        default_msg = f"Dear {cand['name']},\n\nThank you for your interest in the {cand['job_title']} position at HireMatrix Pro. Although your background is notable, we have decided to move forward with other candidates. We wish you the best.\n\nBest Regards,\nTeam HireMatrix Pro"
+                        email_subject = f"Application Status Update - {cand['job_title']}"
+                        st.warning("⚠️ Stage is **Rejected**: Regret template loaded.")
 
                     invite_msg = st.text_area("Email Message", value=default_msg, key=f"inv_msg_{rank}")
                     
-                    if st.button(f"📧 Send Email", key=f"send_inv_{rank}"):
+                    if st.button(f"📧 Send Email to {cand['name']}", key=f"send_inv_{rank}"):
                         ok, res_m = send_smtp_email(cand['email'], email_subject, invite_msg)
                         if ok:
                             st.success(f"Email sent successfully to {cand['email']}!")
-                            new_status = "Interview Scheduled" if cand['match_score'] >= 50 else "Rejected"
-                            update_candidate_status_in_db(cand['email'], job_title_input, new_status)
                         else:
                             st.error(res_m)
 
         st.markdown("</div>", unsafe_allow_html=True)
 
-with tab2:
+with tab3:
     st.markdown('<div class="corp-card"><h4>🗄️ Candidate Database, Search Filters & Analytics Charts</h4>', unsafe_allow_html=True)
     
     df_export = load_database()
     st.download_button(
         "📊 Download Executive Formatted Report (.xlsx)",
         data=dataframe_to_formatted_executive_report(df_export),
-        file_name=f"Executive_Recruitment_Report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx",
+        file_name=f"Executive_Talent_Report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx",
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         use_container_width=True,
     )
     st.markdown("---")
     
-    if st.button("🗑️ Clear Entire Candidate Database", type="secondary", key="clear_db_btn"):
+    if st.button("🗑️ Clear Entire Talent Repository", type="secondary", key="clear_db_btn"):
         clear_candidate_database()
-        st.success("Candidate database has been successfully cleared!")
+        st.success("Talent repository has been successfully cleared!")
         st.rerun()
         
     st.markdown("---")
     
     df_db = load_database()
     if df_db.empty:
-        st.info("Database is currently empty.")
+        st.info("Talent repository database is currently empty.")
     else:
-        col_f1, col_f2 = st.columns([2, 1])
-        with col_f1:
-            search_query = st.text_input("🔍 Live Search (Candidate Name, Skills, Job Title, Email)", placeholder="Type to search...")
-        with col_f2:
-            min_score_filter = st.slider("Minimum Match Score (%)", 0, 100, 0)
+        search_query = st.text_input("🔍 Live Search (Candidate Name, Skills, Education, Email)", placeholder="Type to search repository...")
             
         filtered_df = df_db.copy()
-        if min_score_filter > 0:
-            filtered_df = filtered_df[filtered_df["Match Score"] >= min_score_filter]
-            
         if search_query.strip():
             q = search_query.lower()
             filtered_df = filtered_df[
                 filtered_df["Candidate Name"].str.lower().str.contains(q, na=False) |
-                filtered_df["Job Title"].str.lower().str.contains(q, na=False) |
                 filtered_df["Extracted Skills"].str.lower().str.contains(q, na=False) |
+                filtered_df["Education"].str.lower().str.contains(q, na=False) |
                 filtered_df["Email"].str.lower().str.contains(q, na=False)
             ]
             
-        st.markdown(f"**Showing {len(filtered_df)} of {len(df_db)} candidates matching criteria:**")
+        st.markdown(f"**Showing {len(filtered_df)} of {len(df_db)} candidates in repository:**")
         st.dataframe(filtered_df, use_container_width=True)
         
         st.markdown("---")
-        st.markdown("### 📈 Built-in Visual Analytics & Charts")
+        st.markdown("### 📈 Built-in Visual Analytics & Pipeline Breakdown")
         
         c_ch1, c_ch2 = st.columns(2)
         with c_ch1:
-            st.markdown("#### Match Score Distribution")
-            st.bar_chart(df_db.set_index("Candidate Name")["Match Score"])
+            st.markdown("#### Experience Distribution")
+            st.bar_chart(df_db["Experience Years"].value_counts())
             
         with c_ch2:
             st.markdown("#### Pipeline Status Breakdown")
             if "Pipeline Status" in df_db.columns:
-                status_counts = df_db["Pipeline Status"].value_counts()
-                st.bar_chart(status_counts)
-
-        st.markdown("---")
-        st.markdown("Update candidate pipeline stage below:")
-        for idx, row in df_db.iterrows():
-            cols = st.columns([2, 2, 2, 2])
-            with cols[0]: st.write(f"**{row['Candidate Name']}**")
-            with cols[1]: st.write(f"*{row['Job Title']}*")
-            with cols[2]: st.write(f"Score: {row['Match Score']}%")
-            with cols[3]:
-                current_status = row["Pipeline Status"] if "Pipeline Status" in df_db.columns else "Shortlisted"
-                new_status = st.selectbox("Stage", ["Shortlisted", "Interview Scheduled", "Hired", "Rejected"], index=["Shortlisted", "Interview Scheduled", "Hired", "Rejected"].index(current_status) if current_status in ["Shortlisted", "Interview Scheduled", "Hired", "Rejected"] else 0, key=f"status_{idx}")
-                if new_status != current_status:
-                    update_candidate_status_in_db(row['Email'], row['Job Title'], new_status)
-                    st.rerun()
+                st.bar_chart(df_db["Pipeline Status"].value_counts())
                         
     st.markdown("</div>", unsafe_allow_html=True)
 
-with tab3:
+with tab4:
     st.markdown('<div class="corp-card"><h4>🛡️ Admin Access & Employee Management</h4>', unsafe_allow_html=True)
     if st.session_state.hr_role != "Admin":
         st.warning("⚠️ Access Restricted: Only users with **Admin** role can manage company employee profiles.")
