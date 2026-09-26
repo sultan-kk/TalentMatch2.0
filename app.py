@@ -1,8 +1,8 @@
 """
-Super TalentMatch AI — Unified HR Screener & Extractor with Authentication
+Super TalentMatch AI — Unified HR Screener & Extractor with Email OTP Auth
 ========================================================================
-Professional Edition: Secure HR Login/Signup, Adaptive UI, Precise Data Extraction, 
-Local Database for Candidates & Users, and Deep LLM Screening.
+Professional Edition: Secure HR Login/Signup with Email OTP Verification, 
+Adaptive UI, Precise Data Extraction, Local Database, and Deep LLM Screening.
 """
 
 import io
@@ -10,6 +10,10 @@ import json
 import os
 import sqlite3
 import hashlib
+import random
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 import pandas as pd
 import streamlit as st
 from groq import Groq
@@ -24,7 +28,7 @@ ACCEPTED_TYPES = ["pdf", "docx", "png", "jpg", "jpeg"]
 DB_FILE = "master_candidates.csv"
 AUTH_DB_FILE = "hr_users.db"
 
-# Initialize Auth Database
+# Initialize Auth Database with OTP support
 def init_auth_db():
     conn = sqlite3.connect(AUTH_DB_FILE)
     cursor = conn.cursor()
@@ -32,7 +36,9 @@ def init_auth_db():
         CREATE TABLE IF NOT EXISTS hr_users (
             email TEXT PRIMARY KEY,
             name TEXT,
-            password TEXT
+            password TEXT,
+            is_verified INTEGER DEFAULT 0,
+            otp TEXT
         )
     """)
     conn.commit()
@@ -43,29 +49,95 @@ init_auth_db()
 def hash_password(password):
     return hashlib.sha256(password.encode()).hexdigest()
 
+# Send Free OTP via Gmail SMTP
+def send_otp_email(receiver_email, otp_code):
+    # Aap yahan apni company ya personal Gmail credentials set kar sakte hain
+    sender_email = st.secrets.get("SMTP_EMAIL", "your_email@gmail.com")
+    sender_password = st.secrets.get("SMTP_PASSWORD", "your_app_password")
+    
+    if sender_email == "your_email@gmail.com":
+        return False, "SMTP credentials configured nahi hain. Streamlit secrets mein add karein."
+
+    try:
+        msg = MIMEMultipart()
+        msg['From'] = sender_email
+        msg['To'] = receiver_email
+        msg['Subject'] = "Super TalentMatch AI - Email Verification OTP"
+        
+        body = f"""
+        Hello,\n\n
+        Aapka Super TalentMatch AI account verification code yeh hai:\n\n
+        OTP: {otp_code}\n\n
+        Yeh code kisi ke sath share mat karein.\n
+        Regards,\nTeam TalentMatch
+        """
+        msg.attach(MIMEText(body, 'plain'))
+        
+        server = smtplib.SMTP('smtp.gmail.com', 587)
+        server.starttls()
+        server.login(sender_email, sender_password)
+        server.sendmail(sender_email, receiver_email, msg.as_string())
+        server.quit()
+        return True, "OTP successfully bhej diya gaya hai!"
+    except Exception as e:
+        return False, f"Email bhejne mein masla aaya: {e}"
+
 def register_user(name, email, password):
+    clean_email = email.lower().strip()
+    otp = str(random.randint(100000, 999999))
     try:
         conn = sqlite3.connect(AUTH_DB_FILE)
         cursor = conn.cursor()
-        cursor.execute("INSERT INTO hr_users (email, name, password) VALUES (?, ?, ?)", 
-                       (email.lower().strip(), name, hash_password(password)))
+        cursor.execute("SELECT is_verified FROM hr_users WHERE email = ?", (clean_email,))
+        row = cursor.fetchone()
+        
+        if row:
+            if row[0] == 1:
+                conn.close()
+                return False, "Yeh email pehle se registered aur verified hai. Baraye meherbani login karein."
+            else:
+                cursor.execute("UPDATE hr_users SET name = ?, password = ?, otp = ? WHERE email = ?", 
+                               (name, hash_password(password), otp, clean_email))
+        else:
+            cursor.execute("INSERT INTO hr_users (email, name, password, is_verified, otp) VALUES (?, ?, ?, 0, ?)", 
+                           (clean_email, name, hash_password(password), otp))
         conn.commit()
         conn.close()
-        return True, "Account successfully ban gaya hai! Ab aap login kar sakte hain."
-    except sqlite3.IntegrityError:
-        return False, "Yeh email pehle se registered hai. Baraye meherbani login karein."
+        
+        # Send Email OTP
+        success, msg = send_otp_email(clean_email, otp)
+        if success:
+            return True, "Account ban gaya hai! Aapki email par verification OTP bhej diya gaya hai."
+        else:
+            return True, f"Account ban gaya lekin email nahi gayi (OTP: {otp} - testing ke liye)."
     except Exception as e:
         return False, f"Error: {e}"
+
+def verify_otp_code(email, entered_otp):
+    conn = sqlite3.connect(AUTH_DB_FILE)
+    cursor = conn.cursor()
+    cursor.execute("SELECT otp FROM hr_users WHERE email = ?", (email.lower().strip(),))
+    row = cursor.fetchone()
+    if row and row[0] == entered_otp:
+        cursor.execute("UPDATE hr_users SET is_verified = 1 WHERE email = ?", (email.lower().strip(),))
+        conn.commit()
+        conn.close()
+        return True, "Account successfully verify ho gaya hai!"
+    conn.close()
+    return False, "Ghalat OTP code! Dobara check karein."
 
 def verify_user(email, password):
     conn = sqlite3.connect(AUTH_DB_FILE)
     cursor = conn.cursor()
-    cursor.execute("SELECT name, password FROM hr_users WHERE email = ?", (email.lower().strip(),))
+    cursor.execute("SELECT name, password, is_verified FROM hr_users WHERE email = ?", (email.lower().strip(),))
     row = cursor.fetchone()
     conn.close()
-    if row and row[1] == hash_password(password):
-        return True, row[0]
-    return False, None
+    if row:
+        if row[2] == 0:
+            return False, "Not Verified"
+        if row[1] == hash_password(password):
+            return True, row[0]
+    return False, "Invalid"
 
 # ===========================================================================
 # PAGE CONFIG & CSS
@@ -104,6 +176,8 @@ if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 if "hr_name" not in st.session_state:
     st.session_state.hr_name = ""
+if "pending_verification_email" not in st.session_state:
+    st.session_state.pending_verification_email = None
 if "results" not in st.session_state:
     st.session_state.results = []
 
@@ -114,44 +188,67 @@ if not st.session_state.logged_in:
     st.markdown("""
         <div style="text-align: center; padding: 2rem 0 1rem 0;">
             <h1 style="color: #00e5ff; font-size: 2.2rem;">⚡ Super TalentMatch AI</h1>
-            <p style="color: #A0AEC0; font-size: 1.1rem;">HR Portal - Secure Login & Sign Up</p>
+            <p style="color: #A0AEC0; font-size: 1.1rem;">HR Portal - Secure Login & OTP Sign Up</p>
         </div>
     """, unsafe_allow_html=True)
     
     col1, col2, col3 = st.columns([1, 1.2, 1])
     with col2:
-        auth_tab1, auth_tab2 = st.tabs(["🔑 HR Login", "📝 Create Account (Sign Up)"])
-        
-        with auth_tab1:
-            st.markdown("### Login to Dashboard")
-            login_email = st.text_input("Work Email", placeholder="hr@company.com", key="l_email")
-            login_pass = st.text_input("Password", type="password", key="l_pass")
+        if st.session_state.pending_verification_email:
+            st.markdown("### Enter Email Verification Code")
+            st.info(f"OTP code aapki email ({st.session_state.pending_verification_email}) par bhej diya gaya hai.")
+            otp_input = st.text_input("6-Digit OTP Code", placeholder="123456", key="otp_code_in")
             
-            if st.button("Login", type="primary", use_container_width=True):
-                success, name_or_msg = verify_user(login_email, login_pass)
+            if st.button("Verify OTP", type="primary", use_container_width=True):
+                success, msg = verify_otp_code(st.session_state.pending_verification_email, otp_input)
                 if success:
-                    st.session_state.logged_in = True
-                    st.session_state.hr_name = name_or_msg
-                    st.success(f" خوش آمدید, {name_or_msg}!")
+                    st.success(msg)
+                    st.session_state.pending_verification_email = None
                     st.rerun()
                 else:
-                    st.error("Ghalat Email ya Password! Baraye meherbani dobara koshish karein.")
-                    
-        with auth_tab2:
-            st.markdown("### Register New HR Account")
-            reg_name = st.text_input("Full Name", placeholder="Muhammad Sultan", key="r_name")
-            reg_email = st.text_input("Work Email", placeholder="hr@company.com", key="r_email")
-            reg_pass = st.text_input("Create Password", type="password", key="r_pass")
+                    st.error(msg)
+            if st.button("Cancel / Back", use_container_width=True):
+                st.session_state.pending_verification_email = None
+                st.rerun()
+        else:
+            auth_tab1, auth_tab2 = st.tabs(["🔑 HR Login", "📝 Create Account (Sign Up)"])
             
-            if st.button("Sign Up", type="primary", use_container_width=True):
-                if not reg_name.strip() or not reg_email.strip() or not reg_pass.strip():
-                    st.warning("Baraye meherbani tamam fields pur karein.")
-                else:
-                    success, msg = register_user(reg_name, reg_email, reg_pass)
+            with auth_tab1:
+                st.markdown("### Login to Dashboard")
+                login_email = st.text_input("Work Email", placeholder="hr@company.com", key="l_email")
+                login_pass = st.text_input("Password", type="password", key="l_pass")
+                
+                if st.button("Login", type="primary", use_container_width=True):
+                    success, res_val = verify_user(login_email, login_pass)
                     if success:
-                        st.success(msg)
+                        st.session_state.logged_in = True
+                        st.session_state.hr_name = res_val
+                        st.success(f"Khush amdeed, {res_val}!")
+                        st.rerun()
+                    elif res_val == "Not Verified":
+                        st.warning("Aapka account verify nahi hai. Baraye meherbani OTP enter karein.")
+                        st.session_state.pending_verification_email = login_email
+                        st.rerun()
                     else:
-                        st.error(msg)
+                        st.error("Ghalat Email ya Password!")
+                        
+            with auth_tab2:
+                st.markdown("### Register New HR Account")
+                reg_name = st.text_input("Full Name", placeholder="Muhammad Sultan", key="r_name")
+                reg_email = st.text_input("Work Email", placeholder="hr@company.com", key="r_email")
+                reg_pass = st.text_input("Create Password", type="password", key="r_pass")
+                
+                if st.button("Sign Up & Send OTP", type="primary", use_container_width=True):
+                    if not reg_name.strip() or not reg_email.strip() or not reg_pass.strip():
+                        st.warning("Baraye meherbani tamam fields pur karein.")
+                    else:
+                        success, msg = register_user(reg_name, reg_email, reg_pass)
+                        if success:
+                            st.success(msg)
+                            st.session_state.pending_verification_email = reg_email.lower().strip()
+                            st.rerun()
+                        else:
+                            st.error(msg)
     st.stop()
 
 # ===========================================================================
@@ -371,7 +468,7 @@ with st.sidebar:
     """, unsafe_allow_html=True)
     st.markdown("---")
     
-    st.info(👤 **HR Manager:** {st.session_state.hr_name})
+    st.info(f"👤 **HR Manager:** {st.session_state.hr_name}")
     
     if "GROQ_API_KEY" in st.secrets:
         groq_api_key = st.secrets["GROQ_API_KEY"]
@@ -486,4 +583,4 @@ with tab2:
             st.dataframe(df_history, use_container_width=True)
     except Exception as e:
         st.error(f"Could not load history: {e}")
-    st.markdown("</div>", unsafe_allow_html=True)
+    st.markdown("</div>", unsafe_code_container=True) if "unsafe_code_container" in globals() else st.markdown("</div>", unsafe_allow_html=True)
