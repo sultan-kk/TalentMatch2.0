@@ -1,7 +1,7 @@
 """
-Super TalentMatch AI — Ultimate Advanced Creative Edition
+Super TalentMatch AI — Ultimate Advanced Creative Edition (v2.6)
 ========================================================================
-Designed with Fully Immersive Glassmorphic Sidebar, Cyberpunk Badges, 
+Designed with Fully Immersive Glassmorphic Sidebar, Glowing Holographic Title, 
 Advanced Card Layouts, Secure HR Login/Signup with OTP, and Deep LLM Screening.
 """
 
@@ -295,6 +295,33 @@ html, body, [class*="css"] {
     padding: 1.2rem;
     margin-bottom: 1.2rem;
     backdrop-filter: blur(10px);
+}
+/* Holographic Sidebar Brand Header */
+.sidebar-brand {
+    background: linear-gradient(135deg, rgba(0, 229, 255, 0.1) 0%, rgba(59, 130, 246, 0.1) 100%);
+    border: 1px solid rgba(0, 229, 255, 0.25);
+    border-radius: 14px;
+    padding: 1.2rem 1rem;
+    text-align: center;
+    margin-bottom: 1rem;
+    box-shadow: 0 0 20px rgba(0, 229, 255, 0.05);
+}
+.sidebar-brand h3 {
+    color: #00e5ff;
+    font-size: 1.25rem;
+    font-weight: 800;
+    margin: 0;
+    letter-spacing: -0.5px;
+    text-shadow: 0 0 10px rgba(0, 229, 255, 0.4);
+}
+.sidebar-brand span {
+    font-size: 0.65rem;
+    color: #94A3B8;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-weight: 700;
+    display: block;
+    margin-top: 4px;
 }
 </style>
 """
@@ -591,9 +618,9 @@ def dataframe_to_formatted_excel_bytes(df: pd.DataFrame) -> bytes:
 # ===========================================================================
 with st.sidebar:
     st.markdown("""
-        <div style="text-align: center; padding: 15px 0 5px 0;">
-            <div style="font-size: 1.4rem; font-weight: 800; color: #00e5ff; letter-spacing: -0.5px;">⚡ TalentMatch AI</div>
-            <div style="font-size: 0.7rem; color: #94A3B8; text-transform: uppercase; letter-spacing: 1.5px; margin-top: 6px; font-weight: 700;">Executive Suite v2.5</div>
+        <div class="sidebar-brand">
+            <h3>⚡ TalentMatch AI</h3>
+            <span>Executive HR Suite v2.6</span>
         </div>
     """, unsafe_allow_html=True)
     st.markdown("---")
