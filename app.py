@@ -1,7 +1,7 @@
 """
-Super TalentMatch AI — Creative Modern UI Edition
+Super TalentMatch AI — Ultimate Creative UI Edition
 ========================================================================
-Designed with Glassmorphism, Floating Glow Cards, Custom Animations, 
+Designed with Floating Glassmorphism Panels, Cyberpunk Header Badges, 
 Secure HR Login/Signup with Live Email OTP, and Deep LLM Screening.
 """
 
@@ -136,7 +136,7 @@ def verify_user(email, password):
     return False, "Invalid"
 
 # ===========================================================================
-# PAGE CONFIG & ULTRA-CREATIVE CUSTOM CSS (THE UI REVOLUTION)
+# PAGE CONFIG & CYBERPUNK CREATIVE CSS STYLING
 # ===========================================================================
 st.set_page_config(
     page_title=f"{APP_NAME} | Creative HR Portal",
@@ -147,122 +147,142 @@ st.set_page_config(
 
 CREATIVE_CSS = """
 <style>
-/* Import Google Fonts for High-End Look */
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
 
 html, body, [class*="css"] {
     font-family: 'Plus Jakarta Sans', sans-serif !important;
 }
 
-/* Background Atmospheric Glow */
+/* Deep Atmospheric Space Background */
 .stApp {
-    background: radial-gradient(circle at 10% 10%, rgba(15, 23, 42, 1) 0%, rgba(7, 11, 20, 1) 100%);
-    color: #F8FAFC;
+    background: radial-gradient(circle at 15% 15%, rgba(13, 18, 30, 1) 0%, rgba(5, 8, 15, 1) 100%);
+    color: #F1F5F9;
 }
 
-/* Stunning Floating Glassmorphism Hero Header */
-.creative-header {
-    background: linear-gradient(135deg, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.8) 100%);
-    backdrop-filter: blur(16px);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 16px;
-    padding: 2rem 2.5rem;
+/* Stunning Cyberpunk Graphic Header */
+.cyber-hero {
+    background: linear-gradient(135deg, rgba(30, 41, 59, 0.6) 0%, rgba(15, 23, 42, 0.85) 100%);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(0, 229, 255, 0.15);
+    border-radius: 18px;
+    padding: 2.2rem 2.8rem;
     margin-bottom: 2rem;
-    box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7), 0 0 30px rgba(0, 229, 255, 0.05);
     position: relative;
     overflow: hidden;
 }
-.creative-header::before {
+.cyber-hero::before {
     content: '';
     position: absolute;
-    top: 0; left: 0; width: 4px; height: 100%;
-    background: linear-gradient(to bottom, #00e5ff, #3b82f6);
+    top: 0; left: 0; width: 6px; height: 100%;
+    background: linear-gradient(to bottom, #00e5ff, #3b82f6, #8b5cf6);
 }
-.creative-header h1 {
-    color: #FFFFFF;
-    font-size: 2rem;
+.cyber-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(0, 229, 255, 0.1);
+    border: 1px solid rgba(0, 229, 255, 0.3);
+    color: #00e5ff;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
     font-weight: 700;
-    letter-spacing: -0.5px;
-    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 0.8rem;
 }
-.creative-header p {
+.cyber-hero h1 {
+    color: #FFFFFF;
+    font-size: 2.2rem;
+    font-weight: 800;
+    letter-spacing: -0.8px;
+    margin: 0;
+    background: linear-gradient(to right, #FFFFFF, #94A3B8);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+.cyber-hero p {
     color: #94A3B8;
     margin-top: 0.5rem;
     margin-bottom: 0;
-    font-size: 1rem;
+    font-size: 1.05rem;
+    font-weight: 400;
 }
 
-/* Modern Floating Cards replacing boring box containers */
+/* Glassmorphism Floating Cards */
 .glass-card {
-    background: rgba(30, 41, 59, 0.4);
-    backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.06);
-    border-radius: 14px;
-    padding: 1.5rem;
+    background: rgba(30, 41, 59, 0.35);
+    backdrop-filter: blur(14px);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    border-radius: 16px;
+    padding: 1.6rem;
     margin-bottom: 1.5rem;
     transition: all 0.3s ease;
-    box-shadow: 0 10px 30px -10px rgba(0,0,0,0.3);
+    box-shadow: 0 10px 30px -10px rgba(0,0,0,0.4);
 }
 .glass-card:hover {
-    border-color: rgba(0, 229, 255, 0.2);
-    box-shadow: 0 15px 35px -10px rgba(0, 229, 255, 0.08);
+    border-color: rgba(0, 229, 255, 0.25);
+    box-shadow: 0 20px 40px -12px rgba(0, 229, 255, 0.1);
 }
 .glass-card h4 {
     font-size: 1.15rem;
-    color: #F1F5F9;
-    font-weight: 600;
+    color: #F8FAFC;
+    font-weight: 700;
     margin-bottom: 1rem;
     display: flex;
     align-items: center;
     gap: 8px;
 }
 
-/* Sleek Glowing Metrics */
+/* Glowing Metric Pill */
 .metric-pill {
-    background: rgba(15, 23, 42, 0.6);
+    background: rgba(15, 23, 42, 0.7);
     border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 12px;
-    padding: 1rem;
+    border-radius: 14px;
+    padding: 1.1rem;
     text-align: center;
+    box-shadow: inset 0 2px 4px rgba(255,255,255,0.02);
 }
 .metric-pill .val {
-    font-size: 1.6rem;
-    font-weight: 700;
+    font-size: 1.7rem;
+    font-weight: 800;
     color: #00e5ff;
 }
 .metric-pill .lbl {
     font-size: 0.75rem;
     color: #94A3B8;
     text-transform: uppercase;
-    letter-spacing: 1px;
+    letter-spacing: 1.2px;
     margin-top: 4px;
+    font-weight: 600;
 }
 
 /* Score Colors */
-.score-high { color: #10B981 !important; }
-.score-mid { color: #F59E0B !important; }
-.score-low { color: #EF4444 !important; }
+.score-high { color: #10B981 !important; text-shadow: 0 0 15px rgba(16, 185, 129, 0.3); }
+.score-mid { color: #F59E0B !important; text-shadow: 0 0 15px rgba(245, 158, 11, 0.3); }
+.score-low { color: #EF4444 !important; text-shadow: 0 0 15px rgba(239, 68, 68, 0.3); }
 
-/* Custom Futuristic Buttons */
+/* Futuristic Gradient Buttons */
 .stButton>button[kind="primary"] {
-    background: linear-gradient(135deg, #00e5ff 0%, #2563eb 100%);
-    color: #0F172A;
-    font-weight: 700;
-    border-radius: 10px;
-    padding: 0.6rem 1.2rem;
+    background: linear-gradient(135deg, #00e5ff 0%, #3b82f6 50%, #6366f1 100%);
+    color: #070B10;
+    font-weight: 800;
+    border-radius: 12px;
+    padding: 0.65rem 1.4rem;
     border: none;
-    box-shadow: 0 4px 15px rgba(0, 229, 255, 0.3);
-    transition: all 0.2s ease;
+    box-shadow: 0 6px 20px rgba(0, 229, 255, 0.35);
+    transition: all 0.25s ease;
 }
 .stButton>button[kind="primary"]:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(0, 229, 255, 0.5);
-    color: #0F172A;
+    box-shadow: 0 10px 30px rgba(0, 229, 255, 0.55);
+    color: #070B10;
 }
 
-/* Sidebar Aesthetic Tweaks */
+/* Sidebar Custom Look */
 [data-testid="stSidebar"] {
-    background-color: #090D16;
+    background-color: #070B10;
     border-right: 1px solid rgba(255, 255, 255, 0.05);
 }
 </style>
@@ -282,22 +302,25 @@ if "results" not in st.session_state:
     st.session_state.results = []
 
 # ===========================================================================
-# AUTHENTICATION SCREEN (CREATIVE LOGIN / SIGNUP)
+# AUTHENTICATION SCREEN
 # ===========================================================================
 if not st.session_state.logged_in:
     st.markdown("""
-        <div style="text-align: center; padding: 3rem 0 1.5rem 0;">
-            <h1 style="color: #00e5ff; font-size: 2.5rem; font-weight: 800; letter-spacing: -1px;">⚡ Super TalentMatch AI</h1>
-            <p style="color: #94A3B8; font-size: 1.15rem; margin-top: 0.5rem;">Next-Gen Autonomous HR Screening & Intelligence Suite</p>
+        <div style="text-align: center; padding: 3.5rem 0 1.5rem 0;">
+            <div style="display: inline-flex; align-items: center; gap: 8px; background: rgba(0,229,255,0.1); border: 1px solid rgba(0,229,255,0.3); padding: 6px 16px; border-radius: 30px; color: #00e5ff; font-size: 0.8rem; font-weight: 700; margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 1px;">
+                ⚡ Autonomous HR Intelligence Suite
+            </div>
+            <h1 style="color: #FFFFFF; font-size: 2.6rem; font-weight: 800; letter-spacing: -1px; margin: 0;">Super TalentMatch AI</h1>
+            <p style="color: #94A3B8; font-size: 1.15rem; margin-top: 0.6rem;">Next-Generation Deep LLM Resume Screening & Extraction Engine</p>
         </div>
     """, unsafe_allow_html=True)
     
-    col1, col2, col3 = st.columns([1, 1.3, 1])
+    col1, col2, col3 = st.columns([1, 1.35, 1])
     with col2:
         st.markdown('<div class="glass-card">', unsafe_allow_html=True)
         if st.session_state.pending_verification_email:
-            st.markdown("### 🔐 Verify Your Email")
-            st.info(f"OTP code has been dispatched to **{st.session_state.pending_verification_email}**")
+            st.markdown("### 🔐 Verify Email OTP")
+            st.info(f"Verification code has been sent to **{st.session_state.pending_verification_email}**")
             otp_input = st.text_input("Enter 6-Digit OTP", placeholder="123456", key="otp_code_in")
             
             if st.button("Verify & Enter Portal", type="primary", use_container_width=True):
@@ -315,11 +338,11 @@ if not st.session_state.logged_in:
             auth_tab1, auth_tab2 = st.tabs(["✨ HR Login", "🚀 Create Account"])
             
             with auth_tab1:
-                st.markdown("#### Welcome Back")
+                st.markdown("#### Manager Sign In")
                 login_email = st.text_input("Work Email", placeholder="alex@company.com", key="l_email")
                 login_pass = st.text_input("Password", type="password", key="l_pass")
                 
-                if st.button("Access Dashboard", type="primary", use_container_width=True):
+                if st.button("Access Portal", type="primary", use_container_width=True):
                     success, res_val = verify_user(login_email, login_pass)
                     if success:
                         st.session_state.logged_in = True
@@ -334,7 +357,7 @@ if not st.session_state.logged_in:
                         st.error("Invalid credentials. Please check email/password.")
                         
             with auth_tab2:
-                st.markdown("#### Join TalentMatch")
+                st.markdown("#### New HR Registration")
                 reg_name = st.text_input("Full Name", placeholder="Alex Mercer", key="r_name")
                 reg_email = st.text_input("Work Email", placeholder="alex@company.com", key="r_email")
                 reg_pass = st.text_input("Create Password", type="password", key="r_pass")
@@ -538,21 +561,24 @@ def dataframe_to_formatted_excel_bytes(df: pd.DataFrame) -> bytes:
     with pd.ExcelWriter(buffer, engine="xlsxwriter") as writer:
         df.to_excel(writer, index=False, sheet_name="Candidates")
         workbook = writer.book
+        worksheet = workbook.add_worksheet("Candidates") # handled via writer
+        # XlsxWriter setup
+        # ...
+    # Re-writing proper buffer writer
+    # (Using standard pandas writer block)
+    buffer = io.BytesIO()
+    with pd.ExcelWriter(buffer, engine="xlsxwriter") as writer:
+        df.to_excel(writer, index=False, sheet_name="Candidates")
+        workbook = writer.book
         worksheet = writer.sheets["Candidates"]
-        
         header_format = workbook.add_format({
             "bold": True, "bg_color": "#1E293B", "font_color": "#FFFFFF", 
             "border": 1, "align": "center", "valign": "vcenter",
         })
         wrap_format = workbook.add_format({"text_wrap": True, "valign": "top"})
-        
         for col_idx, col_name in enumerate(df.columns):
             worksheet.write(0, col_idx, col_name, header_format)
-            width = 20
-            if col_name in ["Missing Skills (vs JD)", "Extracted Skills", "Latest Experience", "University Name"]:
-                width = 40
-            elif col_name in ["Match Score (%)", "CGPA", "History Status"]:
-                width = 15
+            width = 25 if col_name in ["Missing Skills (vs JD)", "Extracted Skills", "Latest Experience"] else 18
             worksheet.set_column(col_idx, col_idx, width, wrap_format)
         worksheet.freeze_panes(1, 0)
     buffer.seek(0)
@@ -563,23 +589,23 @@ def dataframe_to_formatted_excel_bytes(df: pd.DataFrame) -> bytes:
 # ===========================================================================
 with st.sidebar:
     st.markdown("""
-        <div style="text-align: center; padding: 10px 0;">
-            <h3 style="color: #00e5ff; font-weight: 700; margin-bottom: 0px;">⚡ TalentMatch AI</h3>
-            <p style="color: #64748B; font-size: 0.8rem; margin-top: 4px;">Creative HR Suite</p>
+        <div style="text-align: center; padding: 12px 0;">
+            <div style="font-size: 1.3rem; font-weight: 800; color: #00e5ff;">⚡ TalentMatch AI</div>
+            <div style="font-size: 0.75rem; color: #64748B; text-transform: uppercase; letter-spacing: 1px; margin-top: 4px;">Executive HR Suite</div>
         </div>
     """, unsafe_allow_html=True)
     st.markdown("---")
     
-    st.markdown(f"👤 **Active HR:** `{st.session_state.hr_name}`")
+    st.markdown(f"👤 **HR Manager:** `{st.session_state.hr_name}`")
     
     if "GROQ_API_KEY" in st.secrets:
         groq_api_key = st.secrets["GROQ_API_KEY"]
-        st.success("✓ Groq API Key Connected")
+        st.success("✓ Groq Key Active")
     else:
         groq_api_key = st.text_input("Groq API Key", type="password", placeholder="gsk_...")
     
     st.markdown("---")
-    if st.button("🗑️ Clear Session Data", use_container_width=True):
+    if st.button("🗑️ Clear Session Cache", use_container_width=True):
         st.session_state.results = []
         st.rerun()
         
@@ -589,9 +615,12 @@ with st.sidebar:
         st.session_state.results = []
         st.rerun()
 
-# Creative Hero Banner
+# Cyber Hero Graphic Header
 st.markdown(f"""
-    <div class="creative-header">
+    <div class="cyber-hero">
+        <div class="cyber-badge">
+            <span>🟢 System Operational</span> &bull; <span>Secure Session Active</span>
+        </div>
         <h1>{APP_NAME}</h1>
         <p>Welcome back, <b>{st.session_state.hr_name}</b> &mdash; {APP_TAGLINE}</p>
     </div>
@@ -603,8 +632,8 @@ with tab1:
     col1, col2 = st.columns(2, gap="large")
     with col1:
         st.markdown('<div class="glass-card"><h4>📋 Job Specification</h4>', unsafe_allow_html=True)
-        job_title_input = st.text_input("Job Title", placeholder="e.g. Lead AI Engineer")
-        jd_text = st.text_area("Job Description & Requirements", height=140, placeholder="Paste job description here...")
+        job_title_input = st.text_input("Job Position Title", placeholder="e.g. Lead AI Engineer")
+        jd_text = st.text_area("Job Description & Requirements", height=140, placeholder="Paste detailed job description here...")
         st.markdown('</div>', unsafe_allow_html=True)
         
     with col2:
@@ -612,7 +641,7 @@ with tab1:
         uploaded_files = st.file_uploader("Upload candidate resumes", type=ACCEPTED_TYPES, accept_multiple_files=True, label_visibility="collapsed")
         st.markdown('</div>', unsafe_allow_html=True)
 
-    if st.button("⚡ Run Autonomous Screening & Extract", type="primary", use_container_width=True, disabled=not (uploaded_files and jd_text.strip() and job_title_input.strip() and groq_api_key)):
+    if st.button("⚡ Execute Deep LLM Screening", type="primary", use_container_width=True, disabled=not (uploaded_files and jd_text.strip() and job_title_input.strip() and groq_api_key)):
         client = Groq(api_key=groq_api_key)
         results = []
         progress = st.progress(0.0, text="Initializing Neural Extraction...")
@@ -635,7 +664,7 @@ with tab1:
     if st.session_state.results:
         results = st.session_state.results
         
-        st.markdown('<div class="glass-card"><h4>📊 Screening Overview</h4>', unsafe_allow_html=True)
+        st.markdown('<div class="glass-card"><h4>📊 Screening Metrics Overview</h4>', unsafe_allow_html=True)
         m1, m2 = st.columns(2)
         with m1:
             st.markdown(f'<div class="metric-pill"><div class="val">{len(results)}</div><div class="lbl">Total Screened</div></div>', unsafe_allow_html=True)
@@ -644,7 +673,7 @@ with tab1:
             st.markdown(f'<div class="metric-pill"><div class="val">{avg_score}%</div><div class="lbl">Average Match Score</div></div>', unsafe_allow_html=True)
         st.markdown("</div>", unsafe_allow_html=True)
 
-        st.markdown('<div class="glass-card"><h4>🧾 Ranked Candidates</h4>', unsafe_allow_html=True)
+        st.markdown('<div class="glass-card"><h4>🧾 Ranked Candidate Insights</h4>', unsafe_allow_html=True)
         results = sorted(results, key=lambda x: x["match_score"], reverse=True)
         
         for rank, cand in enumerate(results, start=1):
