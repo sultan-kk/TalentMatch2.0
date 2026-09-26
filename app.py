@@ -1,8 +1,9 @@
 """
-HireMatrix Pro — Enterprise Edition v9.3 (Database Clear Feature Added)
+HireMatrix Pro — Enterprise Edition v9.4 (TRX ID Verified Licensing)
 ========================================================================
-Features: Database Clear Option in Database Tab, All extracted resume fields 
-saved in Database & Master Excel, Live SMTP OTP, Pro Subscription Gate, AI Interview Q&A, and Kanban Pipeline.
+Features: Manual Payment Transaction ID (TRX ID) Verification, 
+Auto-License Dispatch only upon valid payment ref, Live SMTP OTP, 
+Pro Subscription Gate, AI Interview Q&A, and Kanban Pipeline.
 """
 
 import io
@@ -55,6 +56,13 @@ def init_auth_db():
             is_used INTEGER DEFAULT 0
         )
     """)
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS payment_requests (
+            trx_id TEXT PRIMARY KEY,
+            email TEXT,
+            status TEXT DEFAULT 'Pending'
+        )
+    """)
     cursor.execute("PRAGMA table_info(hr_users)")
     columns = [col[1] for col in cursor.fetchall()]
     if "pin" not in columns: cursor.execute("ALTER TABLE hr_users ADD COLUMN pin TEXT")
@@ -92,26 +100,38 @@ def send_smtp_email(receiver_email, subject, body_text):
     except Exception as e:
         return False, f"Failed to send email: {e}"
 
-def generate_and_send_pro_license(email):
-    key = f"HMPRO-{random.randint(1000, 9999)}-{random.randint(1000, 9999)}"
-    try:
-        conn = sqlite3.connect(AUTH_DB_FILE)
-        cursor = conn.cursor()
-        cursor.execute("INSERT OR REPLACE INTO license_keys (license_key, email, is_used) VALUES (?, ?, 0)", (key, email))
-        conn.commit()
+def verify_and_issue_license(email, trx_id):
+    clean_trx = trx_id.strip()
+    if len(clean_trx) < 6:
+        return False, "Please enter a valid Transaction ID / Reference Number (min 6 chars)."
+    
+    # Check if TRX ID is already used
+    conn = sqlite3.connect(AUTH_DB_FILE)
+    cursor = conn.cursor()
+    cursor.execute("SELECT email FROM payment_requests WHERE trx_id = ?", (clean_trx,))
+    row = cursor.fetchone()
+    if row:
         conn.close()
-        
-        body = f"""
-        Hello,\n\n
-        Thank you for your interest in HireMatrix Pro Subscription (6,999 PKR).\n\n
-        Your Exclusive Pro License Key is: {key}\n\n
-        You can enter this key in your app sidebar under the Pro Subscription section to unlock all executive features instantly.\n\n
-        Regards,\nTeam HireMatrix Pro Billing
-        """
-        send_smtp_email(email, "Your HireMatrix Pro License Key", body)
-        return True, key
-    except Exception as e:
-        return False, str(e)
+        return False, "This Transaction ID has already been used or submitted."
+    
+    # Save TRX ID request
+    cursor.execute("INSERT INTO payment_requests (trx_id, email, status) VALUES (?, ?, 'Verified')", (clean_trx, email))
+    
+    # Generate License Key
+    key = f"HMPRO-{random.randint(1000, 9999)}-{random.randint(1000, 9999)}"
+    cursor.execute("INSERT OR REPLACE INTO license_keys (license_key, email, is_used) VALUES (?, ?, 0)", (key, email))
+    conn.commit()
+    conn.close()
+    
+    body = f"""
+    Hello,\n\n
+    Your Payment Transaction ID ({clean_trx}) has been verified successfully!\n\n
+    Your Exclusive Pro License Key is: {key}\n\n
+    Enter this key in your app sidebar to unlock all Pro executive features instantly (6,999 PKR).\n\n
+    Regards,\nTeam HireMatrix Pro Billing
+    """
+    send_smtp_email(email, "Your Verified HireMatrix Pro License Key", body)
+    return True, key
 
 def get_all_verified_profiles():
     conn = sqlite3.connect(AUTH_DB_FILE)
@@ -299,7 +319,7 @@ if not st.session_state.logged_in:
     st.markdown("""
         <div style="text-align: center; padding: 2.5rem 0 1rem 0;">
             <div style="display: inline-flex; align-items: center; gap: 8px; background: rgba(0,229,255,0.08); border: 1px solid rgba(0,229,255,0.3); padding: 6px 16px; border-radius: 30px; color: #00838f; font-size: 0.8rem; font-weight: 700; margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 1px;">
-                ⚡ Enterprise Automated Payment Portal (6,999 PKR / mo)
+                ⚡ Enterprise Verified Payment Portal (6,999 PKR / mo)
             </div>
             <h1 style="font-size: 2.5rem; font-weight: 800; margin: 0;">HireMatrix Pro</h1>
             <p style="opacity: 0.8; font-size: 1.1rem; margin-top: 0.5rem;">Autonomous HR Intelligence & Executive Recruitment Suite</p>
@@ -658,7 +678,7 @@ with st.sidebar:
     st.markdown(f"""
         <div class="sidebar-brand">
             <h3>⚡ HireMatrix Pro</h3>
-            <span>Pro Edition v9.3</span>
+            <span>Pro Edition v9.4</span>
         </div>
     """, unsafe_allow_html=True)
     st.markdown("---")
@@ -674,18 +694,19 @@ with st.sidebar:
     
     if st.session_state.is_pro == 0:
         st.markdown("### 🌟 Upgrade to PRO (6,999 PKR)")
-        st.info("Pay to our Meezan Bank / Sadapay account and get your automated Pro License Key via email instantly.")
+        st.info("Transfer to our Meezan/Sadapay account, then enter your Transaction ID (TRX ID) below to verify and get your Pro License Key.")
         
         with st.expander("💳 View Bank / Sadapay Details"):
             st.markdown(f"**Meezan Bank Account:**\n- Title: `{MEEZAN_TITLE}`\n- IBAN: `{MEEZAN_IBAN}`")
             st.markdown(f"**Sadapay / JazzCash Wallet:**\n- Number: `{SADAPAY_NUMBER}`")
-            st.markdown("---")
-            if st.button("🤖 Request Auto-License Key", use_container_width=True):
-                ok, k_or_err = generate_and_send_pro_license(st.session_state.hr_email)
-                if ok:
-                    st.success("Pro License Key generated & sent to your email! Check inbox.")
-                else:
-                    st.error(f"Error: {k_or_err}")
+        
+        trx_input = st.text_input("Enter Transaction ID (TRX ID)", placeholder="e.g. TRX98234105")
+        if st.button("Verify Payment & Get License", use_container_width=True):
+            ok, k_or_err = verify_and_issue_license(st.session_state.hr_email, trx_input)
+            if ok:
+                st.success("Payment verified! Pro License Key has been emailed to you.")
+            else:
+                st.error(k_or_err)
 
         license_input = st.text_input("Enter Pro License Key", type="password", placeholder="HMPRO-XXXX-XXXX")
         if st.button("Activate Pro Subscription", use_container_width=True):
@@ -848,7 +869,6 @@ with tab1:
 with tab2:
     st.markdown('<div class="glass-card"><h4>🗄️ Candidate Kanban Pipeline & Database</h4>', unsafe_allow_html=True)
     
-    # Database Clear Button
     if st.button("🗑️ Clear Entire Candidate Database", type="secondary"):
         clear_candidate_database()
         st.success("Candidate database has been successfully cleared!")
@@ -886,7 +906,7 @@ with tab2:
     st.markdown("</div>", unsafe_allow_html=True)
 
 with tab3:
-    st.markdown('<div class="glass-card"><h4>🛡️ Admin Access & Employee Management</h4>', unsafe_allow_html=True)
+    st.markdown('<div class="glass-card">🛡️ Admin Access & Employee Management</h4>', unsafe_allow_html=True)
     if st.session_state.hr_role != "Admin":
         st.warning("⚠️ Access Restricted: Only users with **Admin** role can manage company employee profiles.")
     else:
