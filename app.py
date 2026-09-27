@@ -1,14 +1,13 @@
 """
-HireMatrix Pro — Enterprise Edition v10.94 (Ultimate Neon Glassmorphic Form UI)
+HireMatrix Pro — Enterprise Edition v10.96 (Full Supabase Cloud Integration)
 ========================================================================
-Features: Glowing neon borders, frosted glassmorphic cards, optimized registration UI, 
-Persistent storage synchronization, dedicated Admin PIN creation, and complete ATS workflow.
+Features: Direct Supabase PostgreSQL cloud synchronization preventing any data loss on reboots, 
+Stunning Neon glassmorphic form UI, dedicated Admin PIN creation, and complete ATS workflow.
 """
 
 import io
 import json
 import os
-import sqlite3
 import hashlib
 import random
 import smtplib
@@ -19,41 +18,37 @@ from email.utils import formataddr
 import pandas as pd
 import streamlit as st
 from groq import Groq
+from supabase import create_client, Client
 
 # ===========================================================================
-# CONFIGURATION & PERSISTENT DATABASE STORAGE
+# CONFIGURATION & SUPABASE CLOUD DATABASE CONNECTION
 # ===========================================================================
 APP_NAME = "HireMatrix Pro"
 APP_TAGLINE = "Autonomous HR Intelligence & Executive Recruitment Suite"
 GROQ_MODEL = "openai/gpt-oss-120b"
 ACCEPTED_TYPES = ["pdf", "docx", "png", "jpg", "jpeg"]
-DB_FILE = "master_candidates.csv"
-AUTH_DB_FILE = "hr_users.db"
 
-def init_auth_db():
-    conn = sqlite3.connect(AUTH_DB_FILE)
-    cursor = conn.cursor()
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS hr_users (
-            email TEXT PRIMARY KEY,
-            name TEXT,
-            password TEXT,
-            pin TEXT,
-            role TEXT DEFAULT 'Recruiter',
-            is_verified INTEGER DEFAULT 0,
-            otp TEXT
-        )
-    """)
-    cursor.execute("PRAGMA table_info(hr_users)")
-    columns = [col[1] for col in cursor.fetchall()]
-    if "pin" not in columns: cursor.execute("ALTER TABLE hr_users ADD COLUMN pin TEXT")
-    if "role" not in columns: cursor.execute("ALTER TABLE hr_users ADD COLUMN role TEXT DEFAULT 'Recruiter'")
-    if "otp" not in columns: cursor.execute("ALTER TABLE hr_users ADD COLUMN otp TEXT")
-        
-    conn.commit()
-    conn.close()
+# Initialize Supabase Client from Streamlit Secrets
+@st.cache_resource
+def init_supabase():
+    try:
+        url = st.secrets["SUPABASE_URL"]
+        key = st.secrets["SUPABASE_KEY"]
+        return create_client(url, key)
+    except Exception as e:
+        st.error(f"⚠️ Supabase Connection Error: Please ensure SUPABASE_URL and SUPABASE_KEY are correctly added in Streamlit Secrets. Details: {e}")
+        return None
 
-init_auth_db()
+supabase: Client = init_supabase()
+
+def init_supabase_tables():
+    if not supabase:
+        return
+    # Supabase tables (hr_users and candidates) are created directly in Supabase SQL editor.
+    # We manage operations dynamically via Supabase PostgREST API.
+    pass
+
+init_supabase_tables()
 
 def hash_password(password):
     return hashlib.sha256(password.encode()).hexdigest()
@@ -83,54 +78,53 @@ def send_smtp_email(receiver_email, subject, body_text):
 
 def verify_employee_pin(email, entered_pin):
     clean_email = email.lower().strip()
-    conn = sqlite3.connect(AUTH_DB_FILE)
-    cursor = conn.cursor()
-    cursor.execute("SELECT name, pin, role FROM hr_users WHERE email = ? AND is_verified = 1", (clean_email,))
-    row = cursor.fetchone()
-    conn.close()
-    if row and row[1] == entered_pin:
-        return True, row[0], row[2]
+    if not supabase:
+        return False, None, None
+    try:
+        response = supabase.table("hr_users").select("name, pin, role").eq("email", clean_email).eq("is_verified", 1).execute()
+        rows = response.data
+        if rows and rows[0].get("pin") == entered_pin:
+            return True, rows[0]["name"], rows[0]["role"]
+    except Exception:
+        pass
     return False, None, None
 
 def get_all_verified_profiles():
-    conn = sqlite3.connect(AUTH_DB_FILE)
-    cursor = conn.cursor()
-    cursor.execute("SELECT email, name, pin, role FROM hr_users WHERE is_verified = 1 AND pin IS NOT NULL")
-    rows = cursor.fetchall()
-    conn.close()
-    return rows
+    if not supabase:
+        return []
+    try:
+        response = supabase.table("hr_users").select("email, name, pin, role").eq("is_verified", 1).not_.is_("pin", "null").execute()
+        return [(r["email"], r["name"], r["pin"], r["role"]) for r in response.data]
+    except Exception:
+        return []
 
 def get_all_verified_profiles_admin():
-    conn = sqlite3.connect(AUTH_DB_FILE)
-    cursor = conn.cursor()
-    cursor.execute("SELECT email, name, pin, role FROM hr_users WHERE is_verified = 1 AND pin IS NOT NULL")
-    rows = cursor.fetchall()
-    conn.close()
-    return rows
+    return get_all_verified_profiles()
 
 def register_initial_employee(name, email, password):
     clean_email = email.lower().strip()
     otp = str(random.randint(100000, 999999))
+    if not supabase:
+        return False, "Supabase client not initialized."
     try:
-        conn = sqlite3.connect(AUTH_DB_FILE)
-        cursor = conn.cursor()
-        cursor.execute("SELECT is_verified, pin FROM hr_users WHERE email = ?", (clean_email,))
-        row = cursor.fetchone()
-        
-        if row and row[0] == 1 and row[1]:
-            conn.close()
+        existing = supabase.table("hr_users").select("is_verified, pin").eq("email", clean_email).execute().data
+        if existing and existing[0].get("is_verified") == 1 and existing[0].get("pin"):
             return False, "This email is already registered and active. Please sign in."
         
-        cursor.execute("SELECT COUNT(*) FROM hr_users WHERE is_verified = 1")
-        count = cursor.fetchone()[0]
+        count_res = supabase.table("hr_users").select("email", count="exact").eq("is_verified", 1).execute()
+        count = count_res.count if count_res.count is not None else 0
         role = "Admin" if count == 0 else "Recruiter"
         
-        cursor.execute("""
-            INSERT OR REPLACE INTO hr_users (email, name, password, pin, role, is_verified, otp) 
-            VALUES (?, ?, ?, NULL, ?, 0, ?)
-        """, (clean_email, name, hash_password(password), role, otp))
-        conn.commit()
-        conn.close()
+        data = {
+            "email": clean_email,
+            "name": name,
+            "password": hash_password(password),
+            "pin": None,
+            "role": role,
+            "is_verified": 0,
+            "otp": otp
+        }
+        supabase.table("hr_users").upsert(data).execute()
         
         success, msg = send_smtp_email(clean_email, "HireMatrix Pro - Verification OTP", f"Your verification code is: {otp}")
         if success:
@@ -141,36 +135,194 @@ def register_initial_employee(name, email, password):
         return False, f"Error: {e}"
 
 def verify_otp_code(email, entered_otp):
-    conn = sqlite3.connect(AUTH_DB_FILE)
-    cursor = conn.cursor()
-    cursor.execute("SELECT otp FROM hr_users WHERE email = ?", (email.lower().strip(),))
-    row = cursor.fetchone()
-    conn.close()
-    if row and row[0] == entered_otp:
-        return True, "OTP verified successfully!"
+    if not supabase:
+        return False, "Supabase client not initialized."
+    try:
+        response = supabase.table("hr_users").select("otp").eq("email", email.lower().strip()).execute().data
+        if response and response[0].get("otp") == entered_otp:
+            return True, "OTP verified successfully!"
+    except Exception:
+        pass
     return False, "Invalid OTP code. Please verify and try again."
 
 def save_employee_pin(email, pin):
+    if not supabase:
+        return False, "Supabase client not initialized."
     try:
-        conn = sqlite3.connect(AUTH_DB_FILE)
-        cursor = conn.cursor()
-        cursor.execute("UPDATE hr_users SET pin = ?, is_verified = 1 WHERE email = ?", (pin, email.lower().strip()))
-        conn.commit()
-        conn.close()
+        supabase.table("hr_users").update({"pin": pin, "is_verified": 1}).eq("email", email.lower().strip()).execute()
         return True, "Admin & Employee PIN configured successfully!"
     except Exception as e:
         return False, f"Error: {e}"
 
 def delete_employee_profile(email):
+    if not supabase:
+        return False, "Supabase client not initialized."
     try:
-        conn = sqlite3.connect(AUTH_DB_FILE)
-        cursor = conn.cursor()
-        cursor.execute("DELETE FROM hr_users WHERE email = ?", (email.lower().strip(),))
-        conn.commit()
-        conn.close()
+        supabase.table("hr_users").delete().eq("email", email.lower().strip()).execute()
         return True, "Employee profile successfully removed."
     except Exception as e:
         return False, f"Error: {e}"
+
+# ===========================================================================
+# CLOUD CANDIDATE REPOSITORY STORAGE (SUPABASE)
+# ===========================================================================
+def load_database():
+    expected_cols = [
+        "Candidate Name", "Father Name", "Email", "Phone", 
+        "CGPA", "Education", "University Name", "Experience Years", 
+        "Latest Experience", "Reference", "Pipeline Status", "Added At"
+    ]
+    if not supabase:
+        return pd.DataFrame(columns=expected_cols)
+    try:
+        response = supabase.table("candidates").select("*").execute()
+        rows = response.data
+        if rows:
+            mapped_rows = []
+            for r in rows:
+                mapped_rows.append({
+                    "Candidate Name": r.get("candidate_name", "Not Provided"),
+                    "Father Name": r.get("father_name", "Not Provided"),
+                    "Email": r.get("email", "Not Provided"),
+                    "Phone": r.get("phone", "Not Provided"),
+                    "CGPA": r.get("cgpa", "Not Provided"),
+                    "Education": r.get("education", "Not Provided"),
+                    "University Name": r.get("university_name", "Not Provided"),
+                    "Experience Years": r.get("experience_years", "0"),
+                    "Latest Experience": r.get("latest_experience", "Not Provided"),
+                    "Reference": r.get("reference", "Not Provided"),
+                    "Pipeline Status": r.get("pipeline_status", "Talent Pool"),
+                    "Added At": r.get("added_at", str(datetime.now()))
+                })
+            return pd.DataFrame(mapped_rows)
+    except Exception:
+        pass
+    return pd.DataFrame(columns=expected_cols)
+
+def check_if_exists_in_db(email):
+    if email in ["Not Provided", "Not Found", ""] or not email or not supabase:
+        return False
+    try:
+        response = supabase.table("candidates").select("email").ilike("email", email.lower().strip()).execute()
+        return len(response.data) > 0
+    except Exception:
+        return False
+
+def save_candidates_to_repository(new_candidates):
+    if not supabase:
+        return
+    current_timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    for c in new_candidates:
+        email = str(c.get("email", "Not Provided")).lower().strip()
+        if email not in ["not provided", "not found", "", "nan"] and check_if_exists_in_db(email):
+            continue
+            
+        payload = {
+            "candidate_name": c["name"],
+            "father_name": c.get("father_name", "Not Provided"),
+            "email": c["email"],
+            "phone": c["phone"],
+            "cgpa": c.get("cgpa", "Not Provided"),
+            "education": c.get("education", "Not Provided"),
+            "university_name": c.get("university_name", "Not Provided"),
+            "experience_years": str(c.get("experience_years", "0")),
+            "latest_experience": c.get("latest_experience", "Not Provided"),
+            "reference": c.get("reference", "Not Provided"),
+            "pipeline_status": "Talent Pool",
+            "added_at": current_timestamp
+        }
+        try:
+            supabase.table("candidates").insert(payload).execute()
+        except Exception:
+            pass
+
+def delete_single_candidate_from_db(email_or_name):
+    if not supabase:
+        return
+    try:
+        supabase.table("candidates").delete().or_(f"email.ilike.{email_or_name},candidate_name.ilike.{email_or_name}").execute()
+    except Exception:
+        pass
+
+def update_candidate_pipeline_status(email, new_status):
+    if not supabase:
+        return
+    try:
+        supabase.table("candidates").update({"pipeline_status": new_status}).ilike("email", email).execute()
+    except Exception:
+        pass
+
+def clear_candidate_database():
+    if not supabase:
+        return
+    try:
+        # Delete all records from candidates table
+        supabase.table("candidates").delete().neq("id", 0).execute()
+    except Exception:
+        try:
+            df = load_database()
+            for _, row in df.iterrows():
+                supabase.table("candidates").delete().eq("email", row["Email"]).execute()
+        except Exception:
+            pass
+
+def generate_repository_excel(df: pd.DataFrame) -> bytes:
+    import openpyxl
+    buffer = io.BytesIO()
+    export_df = df.copy()
+    if "Job Title" in export_df.columns:
+        export_df = export_df.drop(columns=["Job Title"])
+    export_df.insert(0, "Sr. No.", range(1, len(export_df) + 1))
+    
+    with pd.ExcelWriter(buffer, engine="openpyxl") as writer:
+        export_df.to_excel(writer, index=False, sheet_name="Talent_Repository")
+        
+        worksheet = writer.sheets["Talent_Repository"]
+        worksheet.freeze_panes = "A2"
+        for col in worksheet.columns:
+            max_len = max(len(str(cell.value or '')) for cell in col)
+            col_letter = col[0].column_letter
+            worksheet.column_dimensions[col_letter].width = min(max(max_len + 3, 15), 40)
+            for cell in col:
+                cell.alignment = openpyxl.styles.Alignment(wrap_text=True, vertical="top")
+                
+    buffer.seek(0)
+    return buffer.getvalue()
+
+def generate_screening_excel(results_list) -> bytes:
+    import openpyxl
+    buffer = io.BytesIO()
+    data = []
+    for idx, r in enumerate(results_list, start=1):
+        data.append({
+            "Sr. No.": idx,
+            "Candidate Name": r["name"],
+            "Father Name": r["father_name"],
+            "Email": r["email"],
+            "Phone": r["phone"],
+            "CGPA": r["cgpa"],
+            "Education": r["education"],
+            "University Name": r["university_name"],
+            "Experience Years": r["experience_years"],
+            "Latest Experience": r["latest_experience"],
+            "Match Score (%)": r["match_score"],
+            "Pipeline Status": r["pipeline_status"]
+        })
+    export_df = pd.DataFrame(data)
+    with pd.ExcelWriter(buffer, engine="openpyxl") as writer:
+        export_df.to_excel(writer, index=False, sheet_name="Screened_Results")
+        
+        worksheet = writer.sheets["Screened_Results"]
+        worksheet.freeze_panes = "A2"
+        for col in worksheet.columns:
+            max_len = max(len(str(cell.value or '')) for cell in col)
+            col_letter = col[0].column_letter
+            worksheet.column_dimensions[col_letter].width = min(max(max_len + 3, 15), 40)
+            for cell in col:
+                cell.alignment = openpyxl.styles.Alignment(wrap_text=True, vertical="top")
+                
+    buffer.seek(0)
+    return buffer.getvalue()
 
 # ===========================================================================
 # PAGE CONFIG & ULTRA-NEON GLASSMORPHISM STYLING
@@ -474,161 +626,6 @@ if not st.session_state.logged_in:
     st.stop()
 
 # ===========================================================================
-# DATABASE OPERATIONS & ABSOLUTE PERSISTENT STORAGE
-# ===========================================================================
-def load_database():
-    expected_cols = [
-        "Candidate Name", "Father Name", "Email", "Phone", 
-        "CGPA", "Education", "University Name", "Experience Years", 
-        "Latest Experience", "Reference", "Pipeline Status", "Added At"
-    ]
-    if os.path.exists(DB_FILE) and os.path.getsize(DB_FILE) > 0:
-        try:
-            df = pd.read_csv(DB_FILE)
-            for col in expected_cols:
-                if col not in df.columns:
-                    df[col] = "Not Provided"
-            
-            if not df.empty and "Email" in df.columns:
-                df["CleanEmail"] = df["Email"].astype(str).str.lower().str.strip()
-                valid_mask = ~df["CleanEmail"].isin(["not provided", "not found", "nan", ""])
-                df_valid = df[valid_mask].drop_duplicates(subset=["CleanEmail"], keep="first")
-                df_invalid = df[~valid_mask]
-                df = pd.concat([df_valid, df_invalid], ignore_index=True).drop(columns=["CleanEmail"])
-                df.to_csv(DB_FILE, index=False)
-            return df
-        except Exception:
-            pass
-            
-    empty_df = pd.DataFrame(columns=expected_cols)
-    empty_df.to_csv(DB_FILE, index=False)
-    return empty_df
-
-def check_if_exists_in_db(email):
-    if email in ["Not Provided", "Not Found", ""] or not email:
-        return False
-    df = load_database()
-    clean_in = email.lower().strip()
-    if "Email" not in df.columns or df.empty:
-        return False
-    existing_emails = df["Email"].astype(str).str.lower().str.strip().values
-    return clean_in in existing_emails
-
-def save_candidates_to_repository(new_candidates):
-    df = load_database()
-    current_timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    new_data = []
-    
-    for c in new_candidates:
-        email = str(c.get("email", "Not Provided")).lower().strip()
-        if email not in ["not provided", "not found", "", "nan"] and check_if_exists_in_db(email):
-            continue
-            
-        new_data.append({
-            "Candidate Name": c["name"],
-            "Father Name": c.get("father_name", "Not Provided"),
-            "Email": c["email"],
-            "Phone": c["phone"],
-            "CGPA": c.get("cgpa", "Not Provided"),
-            "Education": c.get("education", "Not Provided"),
-            "University Name": c.get("university_name", "Not Provided"),
-            "Experience Years": c.get("experience_years", "0"),
-            "Latest Experience": c.get("latest_experience", "Not Provided"),
-            "Reference": c.get("reference", "Not Provided"),
-            "Pipeline Status": "Talent Pool",
-            "Added At": current_timestamp
-        })
-        
-    if new_data:
-        df_new = pd.DataFrame(new_data)
-        df_combined = pd.concat([df, df_new], ignore_index=True)
-        if "Email" in df_combined.columns:
-            df_combined["CleanEmail"] = df_combined["Email"].astype(str).str.lower().str.strip()
-            valid_mask = ~df_combined["CleanEmail"].isin(["not provided", "not found", "nan", ""])
-            df_v = df_combined[valid_mask].drop_duplicates(subset=["CleanEmail"], keep="first")
-            df_inv = df_combined[~valid_mask]
-            df_combined = pd.concat([df_v, df_inv], ignore_index=True).drop(columns=["CleanEmail"])
-        df_combined.to_csv(DB_FILE, index=False)
-
-def delete_single_candidate_from_db(email_or_name):
-    df = load_database()
-    df = df[~(df["Email"].astype(str).str.lower().str.strip() == str(email_or_name).lower().strip()) & 
-            ~(df["Candidate Name"].astype(str).str.lower().str.strip() == str(email_or_name).lower().strip())]
-    df.to_csv(DB_FILE, index=False)
-
-def update_candidate_pipeline_status(email, new_status):
-    df = load_database()
-    df.loc[df["Email"].str.lower() == email.lower(), "Pipeline Status"] = new_status
-    df.to_csv(DB_FILE, index=False)
-
-def clear_candidate_database():
-    expected_cols = [
-        "Candidate Name", "Father Name", "Email", "Phone", 
-        "CGPA", "Education", "University Name", "Experience Years", 
-        "Latest Experience", "Reference", "Pipeline Status", "Added At"
-    ]
-    empty_df = pd.DataFrame(columns=expected_cols)
-    empty_df.to_csv(DB_FILE, index=False)
-
-def generate_repository_excel(df: pd.DataFrame) -> bytes:
-    import openpyxl
-    buffer = io.BytesIO()
-    export_df = df.copy()
-    if "Job Title" in export_df.columns:
-        export_df = export_df.drop(columns=["Job Title"])
-    export_df.insert(0, "Sr. No.", range(1, len(export_df) + 1))
-    
-    with pd.ExcelWriter(buffer, engine="openpyxl") as writer:
-        export_df.to_excel(writer, index=False, sheet_name="Talent_Repository")
-        
-        worksheet = writer.sheets["Talent_Repository"]
-        worksheet.freeze_panes = "A2"
-        for col in worksheet.columns:
-            max_len = max(len(str(cell.value or '')) for cell in col)
-            col_letter = col[0].column_letter
-            worksheet.column_dimensions[col_letter].width = min(max(max_len + 3, 15), 40)
-            for cell in col:
-                cell.alignment = openpyxl.styles.Alignment(wrap_text=True, vertical="top")
-                
-    buffer.seek(0)
-    return buffer.getvalue()
-
-def generate_screening_excel(results_list) -> bytes:
-    import openpyxl
-    buffer = io.BytesIO()
-    data = []
-    for idx, r in enumerate(results_list, start=1):
-        data.append({
-            "Sr. No.": idx,
-            "Candidate Name": r["name"],
-            "Father Name": r["father_name"],
-            "Email": r["email"],
-            "Phone": r["phone"],
-            "CGPA": r["cgpa"],
-            "Education": r["education"],
-            "University Name": r["university_name"],
-            "Experience Years": r["experience_years"],
-            "Latest Experience": r["latest_experience"],
-            "Match Score (%)": r["match_score"],
-            "Pipeline Status": r["pipeline_status"]
-        })
-    export_df = pd.DataFrame(data)
-    with pd.ExcelWriter(buffer, engine="openpyxl") as writer:
-        export_df.to_excel(writer, index=False, sheet_name="Screened_Results")
-        
-        worksheet = writer.sheets["Screened_Results"]
-        worksheet.freeze_panes = "A2"
-        for col in worksheet.columns:
-            max_len = max(len(str(cell.value or '')) for cell in col)
-            col_letter = col[0].column_letter
-            worksheet.column_dimensions[col_letter].width = min(max(max_len + 3, 15), 40)
-            for cell in col:
-                cell.alignment = openpyxl.styles.Alignment(wrap_text=True, vertical="top")
-                
-    buffer.seek(0)
-    return buffer.getvalue()
-
-# ===========================================================================
 # TEXT EXTRACTION & OCR
 # ===========================================================================
 def extract_text_from_image(file_bytes: bytes) -> str:
@@ -824,7 +821,7 @@ st.markdown(f"""
             <span>🟢 Multi-Stage ATS Session</span> &bull; <span>Total Talent Pool: {total_repo_db} Candidates</span>
         </div>
         <h1>Executive Recruitment Suite</h1>
-        <p>Welcome back, <b>{st.session_state.get('hr_name', 'Recruiter')}</b> &mdash; Latest Added: <b>{latest_candidate}</b> | All extracted resumes are automatically appended and permanently saved to the database.</p>
+        <p>Welcome back, <b>{st.session_state.get('hr_name', 'Recruiter')}</b> &mdash; Latest Added: <b>{latest_candidate}</b> | All extracted resumes are automatically appended and permanently saved to Supabase Cloud.</p>
     </div>
 """, unsafe_allow_html=True)
 
@@ -832,7 +829,7 @@ tab1, tab2, tab3, tab4 = st.tabs(["📥 1. Talent Repository (Upload)", "🎯 2.
 
 with tab1:
     st.markdown('<div class="corp-card"><h4>📥 Step 1: Talent Repository Ingestion (Upload Resumes)</h4>', unsafe_allow_html=True)
-    st.caption("Upload candidate resumes below. AI will extract their profile details and save them to the central master repository.")
+    st.caption("Upload candidate resumes below. AI will extract their profile details and save them to the Supabase cloud repository.")
     
     uploaded_repo_files = st.file_uploader("Upload candidate resumes to repository", type=ACCEPTED_TYPES, accept_multiple_files=True, label_visibility="collapsed")
     
@@ -853,7 +850,7 @@ with tab1:
         progress.empty()
         if extracted_batch:
             save_candidates_to_repository(extracted_batch)
-            st.success(f"Successfully processed and permanently saved candidates to database!")
+            st.success(f"Successfully processed and permanently saved candidates to Supabase cloud!")
             st.rerun()
             
     st.markdown("</div>", unsafe_allow_html=True)
