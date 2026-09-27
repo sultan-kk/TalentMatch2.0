@@ -510,9 +510,8 @@ html, body, [class*="css"] {
     border: 1.5px solid #00F2FE !important;
     border-radius: 12px !important;
     font-weight: 700 !important;
-    padding: 0.65rem 1.5rem !important;
-    box-shadow: 0 0 15px rgba(0, 242, 254, 0.3) !important;
-    transition: all 0.25s ease-in-out !important;
+    white-space: nowrap !important; /* Text ko ek line mein rakhega */
+    padding: 0.65rem 1rem !important;
 }
 
 .stButton > button:hover {
@@ -716,7 +715,7 @@ if "screening_results" not in st.session_state: st.session_state.screening_resul
 if not st.session_state.logged_in:
     saved_profiles = get_all_verified_profiles()
     
-    col_c1, col_c2, col_c3 = st.columns([1, 2.2, 1])
+    col_c1, col_c2, col_c3 = st.columns([1, 3.8, 1])
     with col_c2:
         with st.container(border=True):
             st.markdown(f"""
@@ -824,7 +823,7 @@ if not st.session_state.logged_in:
                         </div>
                     """, unsafe_allow_html=True)
                     
-                    c_btn1, c_btn2 = st.columns([2.2, 1])
+                    c_btn1, c_btn2 = st.columns([3.4, 1.1])
                     with c_btn1:
                         if st.button(f"🔐 Sign In as {p_name}", use_container_width=True, key=f"sel_card_{p_email}"):
                             st.session_state.selected_profile_email = p_email
