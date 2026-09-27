@@ -354,7 +354,13 @@ html, body, [class*="css"] { font-family: 'Inter', sans-serif !important; }
     0% { filter: drop-shadow(0 0 15px rgba(56, 189, 248, 0.4)); }
     100% { filter: drop-shadow(0 0 30px rgba(192, 132, 252, 0.7)); }
 }
-
+/* Fix for empty notification/status containers */
+.stAlert, [data-testid="stNotification"] {
+    background: rgba(15, 23, 42, 0.9) !important;
+    border: 1px solid #0EA5E9 !important;
+    color: #38BDF8 !important;
+    border-radius: 12px !important;
+}
 .login-tagline-badge {
     display: inline-flex;
     align-items: center;
