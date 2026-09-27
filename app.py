@@ -1,8 +1,8 @@
 """
-HireMatrix Pro — Enterprise Edition v10.77 (NameError & Excel Fix)
+HireMatrix Pro — Enterprise Edition v10.78 (Top Navbar & Live Excel Grid)
 ========================================================================
-Features: Fixed missing openpyxl module import inside Excel generation, removed Extracted Skills column, 
-Forced text-wrap on Excel cells, robust CSV reader with auto-recovery, and complete ATS workflow.
+Features: Converted sidebar into a sleek top Navigation Bar, top-left corner app title, 
+Live embedded Excel-style data grid view, seamless data appending, and complete ATS workflow.
 """
 
 import io
@@ -171,13 +171,307 @@ def verify_employee_pin(email, entered_pin):
     return False, None, None
 
 # ===========================================================================
-# DATABASE OPERATIONS & EXCEL FORMATTING WITH TEXT WRAP
+# PAGE CONFIG & TOP NAVBAR STYLING (COLLAPSED SIDEBAR)
+# ===========================================================================
+st.set_page_config(
+    page_title=f"{APP_NAME} | Executive Portal",
+    page_icon="💼",
+    layout="wide",
+    initial_sidebar_state="collapsed",
+)
+
+EXECUTIVE_UI_CSS = """
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+html, body, [class*="css"] { font-family: 'Inter', sans-serif !important; }
+
+/* Hide default streamlit sidebar toggle & sidebar */
+[data-testid="stSidebar"] { display: none !important; }
+[data-testid="collapsedControl"] { display: none !important; }
+
+.top-navbar {
+    background: linear-gradient(135deg, rgba(14, 165, 233, 0.08) 0%, rgba(30, 41, 59, 0.04) 100%);
+    border: 1.5px solid rgba(14, 165, 233, 0.25);
+    border-radius: 14px;
+    padding: 1rem 1.8rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 4px 15px rgba(14, 165, 233, 0.06);
+}
+
+.top-brand-title {
+    font-size: 1.5rem; font-weight: 800; color: #0EA5E9; margin: 0; letter-spacing: -0.5px;
+    display: flex; align-items: center; gap: 10px;
+}
+.top-brand-subtitle {
+    font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1.2px; font-weight: 600; color: #64748B; margin: 0;
+}
+
+.auth-brand-side {
+    background: linear-gradient(135deg, #0EA5E9 0%, #1E293B 100%);
+    border-radius: 18px;
+    padding: 3.5rem 2.5rem;
+    color: #FFFFFF;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    box-shadow: 0 10px 30px rgba(14, 165, 233, 0.15);
+}
+.auth-brand-side h1 { font-size: 2.6rem; font-weight: 800; margin-bottom: 1rem; color: #FFFFFF; letter-spacing: -0.5px; }
+.auth-brand-side p { font-size: 1.05rem; opacity: 0.9; line-height: 1.6; }
+
+.auth-form-card {
+    background: var(--background-color);
+    border: 1.5px solid rgba(14, 165, 233, 0.3);
+    border-radius: 18px;
+    padding: 2.5rem;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.06);
+}
+
+.stButton > button {
+    background: rgba(14, 165, 233, 0.14) !important;
+    color: inherit !important;
+    border: 1.5px solid rgba(14, 165, 233, 0.45) !important;
+    border-radius: 10px !important;
+    font-weight: 600 !important;
+    transition: all 0.2s ease-in-out;
+}
+.stButton > button:hover {
+    background: rgba(14, 165, 233, 0.25) !important;
+    border-color: #0EA5E9 !important;
+    box-shadow: 0 4px 12px rgba(14, 165, 233, 0.18);
+}
+
+.corp-hero {
+    background: linear-gradient(135deg, rgba(14, 165, 233, 0.10) 0%, rgba(30, 41, 59, 0.06) 100%);
+    border: 1.5px solid rgba(14, 165, 233, 0.35);
+    border-radius: 14px;
+    padding: 2rem 2.5rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 6px 20px rgba(14, 165, 233, 0.08);
+    border-left: 6px solid #0EA5E9;
+}
+.corp-badge {
+    display: inline-flex; align-items: center; gap: 8px; 
+    background: rgba(14, 165, 233, 0.15); color: #0EA5E9; 
+    padding: 5px 14px; border-radius: 8px;
+    font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.8rem;
+}
+.corp-card {
+    background: var(--background-color);
+    border: 1px solid var(--secondary-background-color);
+    border-radius: 14px;
+    padding: 1.6rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.03);
+}
+.metric-box {
+    background: var(--secondary-background-color);
+    border: 1px solid var(--secondary-background-color);
+    border-radius: 12px;
+    padding: 1.1rem;
+    text-align: center;
+}
+.metric-box .val { font-size: 1.7rem; font-weight: 800; color: #0EA5E9; }
+.metric-box .lbl { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.9px; margin-top: 4px; font-weight: 700; opacity: 0.8; }
+
+.score-high { color: #10B981 !important; font-weight: 800; }
+.score-mid { color: #D97706 !important; font-weight: 800; }
+.score-low { color: #DC2626 !important; font-weight: 800; }
+
+.stButton>button[kind="primary"] {
+    background: #0EA5E9 !important; color: #FFFFFF !important; font-weight: 700; border-radius: 10px; padding: 0.6rem 1.4rem; border: none !important;
+    box-shadow: 0 4px 12px rgba(14, 165, 233, 0.25);
+}
+.stButton>button[kind="primary"]:hover { background: #0284C7 !important; }
+</style>
+"""
+st.markdown(EXECUTIVE_UI_CSS, unsafe_allow_html=True)
+
+# ===========================================================================
+# SESSION STATE SAFE INITIALIZATION
+# ===========================================================================
+if "logged_in" not in st.session_state: st.session_state.logged_in = False
+if "hr_name" not in st.session_state: st.session_state.hr_name = ""
+if "hr_email" not in st.session_state: st.session_state.hr_email = ""
+if "hr_role" not in st.session_state: st.session_state.hr_role = "Recruiter"
+if "selected_profile_email" not in st.session_state: st.session_state.selected_profile_email = None
+if "pending_otp_email" not in st.session_state: st.session_state.pending_otp_email = None
+if "pending_pin_email" not in st.session_state: st.session_state.pending_pin_email = None
+if "screening_results" not in st.session_state: st.session_state.screening_results = []
+
+# ===========================================================================
+# AUTHENTICATION SCREEN
+# ===========================================================================
+if not st.session_state.logged_in:
+    saved_profiles = get_all_verified_profiles()
+    
+    col_left, col_right = st.columns([1.1, 1.4], gap="large")
+    
+    with col_left:
+        st.markdown(f"""
+            <div class="auth-brand-side">
+                <h1>{APP_NAME}</h1>
+                <p>{APP_TAGLINE}</p>
+                <hr style="border-color: rgba(255,255,255,0.2); margin: 1.8rem 0;">
+                <p style="font-size: 0.95rem; opacity: 0.9;">Empowering modern corporate enterprises with multi-stage ATS workflow, intelligent talent repository, automated candidate scoring, and secure role management.</p>
+            </div>
+        """, unsafe_allow_html=True)
+        
+    with col_right:
+        st.markdown('<div class="auth-form-card">', unsafe_allow_html=True)
+        
+        st.markdown("""
+            <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid #10B981; border-radius: 10px; padding: 10px 15px; margin-bottom: 15px; font-size: 0.85rem;">
+                💡 <b>Default Admin Credentials:</b><br>
+                Email: <code>admin@company.com</code> | PIN: <code>1234</code>
+            </div>
+        """, unsafe_allow_html=True)
+        
+        if st.session_state.pending_pin_email:
+            st.markdown("### 🔐 Security Setup")
+            st.info(f"Email verified for **{st.session_state.pending_pin_email}**.")
+            
+            with st.form("pin_setup_form"):
+                new_pin = st.text_input("Enter 4-Digit PIN", type="password", max_chars=4, placeholder="••••")
+                confirm_pin = st.text_input("Confirm 4-Digit PIN", type="password", max_chars=4, placeholder="••••")
+                submit_pin = st.form_submit_button("Save PIN & Enter Portal", use_container_width=True)
+                
+            if submit_pin:
+                if not new_pin or len(new_pin) != 4 or not new_pin.isdigit():
+                    st.warning("Please enter an exact 4-digit numeric PIN.")
+                elif new_pin != confirm_pin:
+                    st.error("PINs do not match. Please try again.")
+                else:
+                    success, msg = save_employee_pin(st.session_state.pending_pin_email, new_pin)
+                    if success:
+                        st.success(msg)
+                        st.session_state.pending_pin_email = None
+                        st.rerun()
+                    else:
+                        st.error(msg)
+
+        elif st.session_state.pending_otp_email:
+            st.markdown("### 📬 Email Verification")
+            st.info(f"Enter the 6-digit security code sent to **{st.session_state.pending_otp_email}**.")
+            
+            with st.form("otp_form"):
+                otp_input = st.text_input("Enter 6-Digit OTP", placeholder="123456")
+                submit_otp = st.form_submit_button("Verify OTP", use_container_width=True)
+                
+            col_o1, col_o2 = st.columns(2)
+            if submit_otp:
+                success, msg = verify_otp_code(st.session_state.pending_otp_email, otp_input)
+                if success:
+                    st.success(msg)
+                    st.session_state.pending_pin_email = st.session_state.pending_otp_email
+                    st.session_state.pending_otp_email = None
+                    st.rerun()
+                else:
+                    st.error(msg)
+            with col_o2:
+                if st.button("Cancel", use_container_width=True, key="cancel_otp_btn"):
+                    st.session_state.pending_otp_email = None
+                    st.rerun()
+            
+        elif saved_profiles and not st.session_state.selected_profile_email:
+            st.markdown("""
+                <div style="background: rgba(14, 165, 233, 0.08); border: 1.5px solid #0EA5E9; border-radius: 14px; padding: 1.6rem; margin-bottom: 1.5rem; box-shadow: 0 4px 15px rgba(0,0,0,0.04);">
+                    <h3 style="margin-top: 0; margin-bottom: 0.3rem; font-size: 1.2rem; font-weight: 700;">👥 Saved Employee Profiles</h3>
+                    <p style="font-size: 0.85rem; opacity: 0.8; margin-bottom: 0;">Select your secure profile card below to sign in instantly:</p>
+                </div>
+            """, unsafe_allow_html=True)
+            
+            for p_email, p_name, p_pin, p_role in saved_profiles:
+                c_p1, c_p2 = st.columns([3, 1])
+                with c_p1:
+                    if st.button(f"👤 {p_name} ({p_role})", use_container_width=True, key=f"sel_{p_email}"):
+                        st.session_state.selected_profile_email = p_email
+                        st.rerun()
+                with c_p2:
+                    if p_email != "admin@company.com":
+                        if st.button("🗑️ Delete", key=f"del_{p_email}", use_container_width=True):
+                            delete_employee_profile(p_email)
+                            st.success(f"Profile for {p_name} has been removed.")
+                            st.rerun()
+                    else:
+                        st.caption("Protected")
+            
+            st.markdown("")
+            if st.button("➕ Register New Employee Profile", use_container_width=True, key="reg_new_emp_auth_btn"):
+                st.session_state.selected_profile_email = "new"
+                st.rerun()
+            
+        elif st.session_state.selected_profile_email and st.session_state.selected_profile_email != "new":
+            target_email = st.session_state.selected_profile_email
+            p_match = next((p for p in saved_profiles if p[0] == target_email), ("Employee", "", "", "Recruiter"))
+            
+            st.markdown(f"### 🔐 Sign In: {p_match[1]}")
+            st.caption("Enter your 4-digit security PIN to access portal.")
+            
+            with st.form("pin_login_form"):
+                pin_input = st.text_input("4-Digit PIN", type="password", max_chars=4, placeholder="••••")
+                submit_login = st.form_submit_button("Sign In (Press Enter)", use_container_width=True)
+                
+            col_b1, col_b2 = st.columns(2)
+            if submit_login:
+                success, name, role = verify_employee_pin(target_email, pin_input)
+                if success:
+                    st.session_state.logged_in = True
+                    st.session_state.hr_name = name
+                    st.session_state.hr_email = target_email
+                    st.session_state.hr_role = role
+                    st.success(f"Welcome back, {name}!")
+                    st.rerun()
+                else:
+                    st.error("Incorrect 4-Digit PIN. (Default Admin PIN is 1234).")
+            with col_b2:
+                if st.button("Switch Profile", use_container_width=True, key="switch_prof_auth_btn"):
+                    st.session_state.selected_profile_email = None
+                    st.rerun()
+            
+        else:
+            st.markdown("### 📝 Employee Registration")
+            st.caption("Enter your credentials to create a secure corporate account.")
+            
+            with st.form("registration_form"):
+                reg_name = st.text_input("Full Name", placeholder="Alex Mercer")
+                reg_email = st.text_input("Company Email", placeholder="employee@company.com")
+                reg_pass = st.text_input("Master Password", type="password")
+                submit_reg = st.form_submit_button("Send Verification OTP (Press Enter)", use_container_width=True)
+                
+            col_r1, col_r2 = st.columns(2)
+            if submit_reg:
+                if not reg_name.strip() or not reg_email.strip() or not reg_pass.strip():
+                    st.warning("Please fill in all required fields.")
+                else:
+                    success, msg = register_initial_employee(reg_name, reg_email, reg_pass)
+                    if success:
+                        st.success(msg)
+                        st.session_state.pending_otp_email = reg_email.lower().strip()
+                        st.rerun()
+                    else:
+                        st.error(msg)
+            with col_r2:
+                if saved_profiles and st.button("Back to Profiles", use_container_width=True, key="back_to_prof_auth_btn"):
+                    st.session_state.selected_profile_email = None
+                    st.rerun()
+                    
+        st.markdown('</div>', unsafe_allow_html=True)
+            
+    st.stop()
+
+# ===========================================================================
+# DATABASE OPERATIONS & PERSISTENT SAME-FILE EXPORT
 # ===========================================================================
 def load_database():
     expected_cols = [
         "Candidate Name", "Father Name", "Email", "Phone", 
         "CGPA", "Education", "University Name", "Experience Years", 
-        "Latest Experience", "Extracted Skills", "Reference", "Pipeline Status", "Added At"
+        "Latest Experience", "Reference", "Pipeline Status", "Added At"
     ]
     if os.path.exists(DB_FILE) and os.path.getsize(DB_FILE) > 0:
         try:
@@ -231,7 +525,6 @@ def save_candidates_to_repository(new_candidates):
             "University Name": c.get("university_name", "Not Provided"),
             "Experience Years": c.get("experience_years", "0"),
             "Latest Experience": c.get("latest_experience", "Not Provided"),
-            "Extracted Skills": c.get("skills", "Not Provided"),
             "Reference": c.get("reference", "Not Provided"),
             "Pipeline Status": "Talent Pool",
             "Added At": current_timestamp
@@ -270,12 +563,8 @@ def generate_repository_excel(df: pd.DataFrame) -> bytes:
     import openpyxl
     buffer = io.BytesIO()
     export_df = df.copy()
-    
-    cols_to_drop = ["Job Title", "Extracted Skills"]
-    for c in cols_to_drop:
-        if c in export_df.columns:
-            export_df = export_df.drop(columns=[c])
-            
+    if "Job Title" in export_df.columns:
+        export_df = export_df.drop(columns=["Job Title"])
     export_df.insert(0, "Sr. No.", range(1, len(export_df) + 1))
     
     with pd.ExcelWriter(buffer, engine="openpyxl") as writer:
@@ -488,38 +777,25 @@ def generate_ai_interview_questions(client, skills_text: str, job_title: str) ->
         return f"Could not generate interview questions: {e}"
 
 # ===========================================================================
-# SIDEBAR & DASHBOARD INTERFACE
+# TOP NAVIGATION BAR & DASHBOARD INTERFACE
 # ===========================================================================
-with st.sidebar:
-    st.markdown(f"""
-        <div class="sidebar-brand-box">
-            <h2>{APP_NAME}</h2>
-            <p>Multi-Stage ATS v10.77</p>
+df_all = load_database()
+total_repo_db = len(df_all)
+latest_candidate = df_all.iloc[-1]["Candidate Name"] if not df_all.empty else "None"
+
+# Top Navbar Render
+st.markdown(f"""
+    <div class="top-navbar">
+        <div>
+            <h2 class="top-brand-title">💼 {APP_NAME}</h2>
+            <p class="top-brand-subtitle">Autonomous HR Intelligence &bull; Active: <b>{st.session_state.get('hr_name', 'Recruiter')}</b> ({st.session_state.get('hr_email', 'admin@company.com')})</p>
         </div>
-    """, unsafe_allow_html=True)
-    st.markdown("---")
-    
-    st.markdown(f"""
-        <div class="sidebar-card">
-            <div style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.8px; font-weight: 700; margin-bottom: 4px;">Active Employee</div>
-            <div style="font-size: 0.95rem; font-weight: 700;">👤 {st.session_state.get('hr_name', 'Recruiter')}</div>
-            <div style="font-size: 0.75rem; color: #10B981; margin-top: 4px; font-weight: 600;">🌟 FULL ACCESS UNLOCKED</div>
-        </div>
-    """, unsafe_allow_html=True)
-    
-    st.markdown("---")
-    if "GROQ_API_KEY" in st.secrets:
-        groq_api_key = st.secrets["GROQ_API_KEY"]
-        st.markdown('<div class="sidebar-card" style="border-color: #10B981; color: #059669; font-size: 0.8rem; font-weight: 600;">✓ Groq API Secured</div>', unsafe_allow_html=True)
-    else:
-        groq_api_key = st.text_input("Groq API Key", type="password", placeholder="gsk_...")
-    
-    st.markdown("---")
-    if st.button("🗑️ Clear Session Cache", use_container_width=True, key="clear_cache_btn_main"):
-        st.session_state.screening_results = []
-        st.rerun()
-        
-    if st.button("🚪 Lock & Switch Profile", use_container_width=True, key="lock_switch_btn_main"):
+        <div style="display: flex; gap: 10px; align-items: center;">
+""", unsafe_allow_html=True)
+
+col_nav1, col_nav2 = st.columns([8, 2])
+with col_nav2:
+    if st.button("🚪 Lock Portal", use_container_width=True, key="lock_portal_btn_top"):
         st.session_state.logged_in = False
         st.session_state.hr_name = ""
         st.session_state.hr_email = ""
@@ -528,31 +804,31 @@ with st.sidebar:
         st.session_state.screening_results = []
         st.rerun()
 
-# --- TOP LIVE MENU ACTIVITY FEED ---
-df_all = load_database()
-total_repo_db = len(df_all)
-latest_candidate = df_all.iloc[-1]["Candidate Name"] if not df_all.empty else "None"
+st.markdown("</div></div>", unsafe_allow_html=True)
 
+# --- HERO BANNER ---
 st.markdown(f"""
     <div class="corp-hero">
         <div class="corp-badge">
-            <span>🟢 Multi-Stage ATS Session</span> &bull; <span>{st.session_state.get('hr_email', 'admin@company.com')} (UNLOCKED)</span>
+            <span>🟢 Multi-Stage ATS Session</span> &bull; <span>Total Talent Pool: {total_repo_db} Candidates</span>
         </div>
-        <h1>{APP_NAME}</h1>
-        <p>Welcome back, <b>{st.session_state.get('hr_name', 'Recruiter')}</b> &mdash; Total Candidates in Talent Pool: <b>{total_repo_db}</b> | Latest Added: <b>{latest_candidate}</b></p>
+        <h1>Executive Recruitment Suite</h1>
+        <p>Welcome back, <b>{st.session_state.get('hr_name', 'Recruiter')}</b> &mdash; Latest Added: <b>{latest_candidate}</b> | All extracted resumes are automatically appended to the live master database table below.</p>
     </div>
 """, unsafe_allow_html=True)
 
-tab1, tab2, tab3, tab4 = st.tabs(["📥 1. Talent Repository (Upload)", "🎯 2. JD Screening & Matching", "🗄️ 3. Candidate Database & Pipeline", "🛡️ 4. Admin Controls"])
+tab1, tab2, tab3, tab4 = st.tabs(["📥 1. Talent Repository (Upload)", "🎯 2. JD Screening & Matching", "🗄️ 3. Live Master Excel Table & Pipeline", "🛡️ 4. Admin Controls"])
 
 with tab1:
     st.markdown('<div class="corp-card"><h4>📥 Step 1: Talent Repository Ingestion (Upload Resumes)</h4>', unsafe_allow_html=True)
-    st.caption("Upload candidate resumes below. AI will extract their profile details and save them to the central repository independently of any Job Description.")
+    st.caption("Upload candidate resumes below. AI will extract their profile details and save them to the central master repository.")
     
     uploaded_repo_files = st.file_uploader("Upload candidate resumes to repository", type=ACCEPTED_TYPES, accept_multiple_files=True, label_visibility="collapsed")
     
-    if st.button("⚡ Extract & Save to Talent Pool", type="primary", use_container_width=True, disabled=not (uploaded_repo_files and groq_api_key)):
-        client = Groq(api_key=groq_api_key)
+    if st.button("⚡ Extract & Save to Master Database", type="primary", use_container_width=True, disabled=not (uploaded_repo_files and ("GROQ_API_KEY" in st.secrets or 'groq_api_key' in locals()))):
+        # Resolve Groq Key
+        g_key = st.secrets["GROQ_API_KEY"] if "GROQ_API_KEY" in st.secrets else ""
+        client = Groq(api_key=g_key)
         extracted_batch = []
         progress = st.progress(0.0, text="Reading and extracting profiles...")
         
@@ -567,14 +843,14 @@ with tab1:
         progress.empty()
         if extracted_batch:
             save_candidates_to_repository(extracted_batch)
-            st.success(f"Successfully processed and added candidates to the Talent Pool (Duplicates automatically blocked & appended to Master file)!")
+            st.success(f"Successfully processed and appended candidates to the master database!")
             st.rerun()
             
     st.markdown("</div>", unsafe_allow_html=True)
     
     df_repo = load_database()
     if not df_repo.empty:
-        st.markdown('<div class="corp-card"><h4>📋 Current Candidates in Talent Repository (Manage & Delete)</h4>', unsafe_allow_html=True)
+        st.markdown('<div class="corp-card"><h4>📋 Current Candidates in Talent Repository</h4>', unsafe_allow_html=True)
         
         st.download_button(
             "📊 Download Master Talent Repository Report (.xlsx)",
@@ -618,9 +894,10 @@ with tab2:
     st.caption(f"Current Highlight Threshold: **{screening_threshold}%**")
     
     df_pool = load_database()
+    g_key_active = st.secrets["GROQ_API_KEY"] if "GROQ_API_KEY" in st.secrets else ""
     
-    if st.button("⚡ Run AI Screening against Talent Pool", type="primary", use_container_width=True, disabled=not (jd_desc_text.strip() and jd_title_input.strip() and not df_pool.empty and groq_api_key), key="run_screening_btn_main"):
-        client = Groq(api_key=groq_api_key)
+    if st.button("⚡ Run AI Screening against Talent Pool", type="primary", use_container_width=True, disabled=not (jd_desc_text.strip() and jd_title_input.strip() and not df_pool.empty and g_key_active), key="run_screening_btn_main"):
+        client = Groq(api_key=g_key_active)
         screened_results = []
         progress = st.progress(0.0, text="Evaluating candidates against Job Description...")
         
@@ -642,7 +919,6 @@ with tab2:
                     "university_name": row["University Name"],
                     "experience_years": row["Experience Years"],
                     "latest_experience": row["Latest Experience"],
-                    "skills": row["Extracted Skills"],
                     "reference": row["Reference"],
                     "match_score": score,
                     "missing_skills": missing,
@@ -676,7 +952,7 @@ with tab2:
             )
             st.markdown("---")
         
-        client = Groq(api_key=groq_api_key) if groq_api_key else None
+        client = Groq(api_key=g_key_active) if g_key_active else None
 
         for rank, cand in enumerate(results, start=1):
             score_cls = "score-high" if cand["match_score"] >= 75 else ("score-mid" if cand["match_score"] >= 40 else "score-low")
@@ -690,7 +966,6 @@ with tab2:
                     st.markdown(f"**🏫 Institution:** {cand['university_name']}")
                     st.markdown(f"**💼 Experience:** {cand['experience_years']} | **Latest Role:** {cand['latest_experience']}")
                     st.markdown(f"**🔗 Reference:** {cand['reference']}")
-                    st.markdown(f"**🛠️ Extracted Skills:** {cand['skills']}")
                     
                     st.markdown(f'<div class="metric-box" style="margin-top: 15px; width: 150px;"><div class="val {score_cls}">{cand["match_score"]}%</div><div class="lbl">Match Rating</div></div>', unsafe_allow_html=True)
                 
@@ -727,7 +1002,7 @@ with tab2:
                 if st.button(f"💡 Generate AI Interview Q&A for {cand['name']}", key=q_key):
                     if client:
                         with st.spinner("Generating tailored interview questions..."):
-                            q_text = generate_ai_interview_questions(client, cand['skills'], cand['job_title'])
+                            q_text = generate_ai_interview_questions(client, "General HR and Professional Skills", cand['job_title'])
                             st.markdown("#### 🎯 AI Generated Interview Guide:")
                             st.markdown(q_text)
                     else:
@@ -763,63 +1038,46 @@ with tab2:
         st.markdown("</div>", unsafe_allow_html=True)
 
 with tab3:
-    st.markdown('<div class="corp-card"><h4>🗄️ Candidate Database, Search Filters & Analytics Charts</h4>', unsafe_allow_html=True)
-    
-    df_export = load_database()
-    st.download_button(
-        "📊 Download Master Talent Repository Report (.xlsx)",
-        data=generate_repository_excel(df_export),
-        file_name="Master_Talent_Repository.xlsx",
-        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        use_container_width=True,
-        key="download_db_tab_btn"
-    )
-    st.markdown("---")
-    
-    if st.button("🗑️ Clear Entire Talent Repository", type="secondary", key="clear_db_btn_master"):
-        clear_candidate_database()
-        st.success("Talent repository has been successfully cleared!")
-        st.rerun()
-        
-    st.markdown("---")
+    st.markdown('<div class="corp-card"><h4>🗄️ Live Master Excel Table (Real-time Database View)</h4>', unsafe_allow_html=True)
+    st.caption("Aapka saara naya data yahan live excel sheet table format mein update ho raha hai. Recruiter jab chahe neechay button se poori sheet download kar sakta hai.")
     
     df_db = load_database()
+    
     if df_db.empty:
-        st.info("Talent repository database is currently empty.")
+        st.info("Master database is currently empty. Upload resumes in Step 1.")
     else:
-        search_query = st.text_input("🔍 Live Search (Candidate Name, Skills, Education, Email)", placeholder="Type to search repository...", key="live_search_input_db")
-            
-        filtered_df = df_db.copy()
-        if search_query.strip():
-            q = search_query.lower()
-            filtered_df = filtered_df[
-                filtered_df["Candidate Name"].str.lower().str.contains(q, na=False) |
-                filtered_df["Extracted Skills"].str.lower().str.contains(q, na=False) |
-                filtered_df["Education"].str.lower().str.contains(q, na=False) |
-                filtered_df["Email"].str.lower().str.contains(q, na=False)
-            ]
-            
-        st.markdown(f"**Showing {len(filtered_df)} of {len(df_db)} candidates in repository:**")
-        st.dataframe(filtered_df, use_container_width=True)
+        # Render real interactive Excel grid view with 1-based indexing
+        grid_df = df_db.copy()
+        if "Job Title" in grid_df.columns:
+            grid_df = grid_df.drop(columns=["Job Title"])
+        if "Extracted Skills" in grid_df.columns:
+            grid_df = grid_df.drop(columns=["Extracted Skills"])
+        grid_df.insert(0, "Sr. No.", range(1, len(grid_df) + 1))
+        
+        st.dataframe(grid_df, use_container_width=True, height=350)
         
         st.markdown("---")
-        st.markdown("### 📈 Built-in Visual Analytics & Pipeline Breakdown")
-        
-        c_ch1, c_ch2 = st.columns(2)
-        with c_ch1:
-            st.markdown("#### Experience Distribution")
-            st.bar_chart(df_db["Experience Years"].value_counts())
-            
-        with c_ch2:
-            st.markdown("#### Pipeline Status Breakdown")
-            if "Pipeline Status" in df_db.columns:
-                st.bar_chart(df_db["Pipeline Status"].value_counts())
-                        
+        c_ex1, c_ex2 = st.columns([2, 1])
+        with c_ex1:
+            st.download_button(
+                "📊 Download Master Talent Repository Report (.xlsx)",
+                data=generate_repository_excel(df_db),
+                file_name="Master_Talent_Repository.xlsx",
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                use_container_width=True,
+                key="download_live_grid_xlsx_btn"
+            )
+        with c_ex2:
+            if st.button("🗑️ Clear Entire Database", type="secondary", key="clear_db_btn_master_grid", use_container_width=True):
+                clear_candidate_database()
+                st.success("Repository cleared successfully!")
+                st.rerun()
+                
     st.markdown("</div>", unsafe_allow_html=True)
 
 with tab4:
     st.markdown('<div class="corp-card"><h4>🛡️ Admin Access & Employee Management</h4>', unsafe_allow_html=True)
-    if st.session_state.hr_role != "Admin":
+    if st.session_state.get('hr_role') != "Admin":
         st.warning("⚠️ Access Restricted: Only users with **Admin** role can manage company employee profiles.")
     else:
         st.success("✓ Admin privileges active.")
@@ -832,7 +1090,7 @@ with tab4:
             with col_a1: st.write(f"👤 **{emp_name}** ({emp_email}) — *{emp_role}*")
             with col_a2: st.write(f"PIN: `{emp_pin}`")
             with col_a3:
-                if emp_email.lower() != st.session_state.hr_email.lower():
+                if emp_email.lower() != st.session_state.get('hr_email', '').lower():
                     if st.button("🗑️ Revoke", key=f"rev_admin_{emp_email.replace('@','_')}", use_container_width=True):
                         delete_employee_profile(emp_email)
                         st.success(f"Access revoked for {emp_name}.")
