@@ -1,8 +1,8 @@
 """
-HireMatrix Pro — Enterprise Edition v10.81 (Secured Navbar & Real Excel Grid)
+HireMatrix Pro — Enterprise Edition v10.85 (Permanent Storage & Large Cards)
 ========================================================================
-Features: Secured Admin panel with PIN verification, fully restored top navbar tabs, 
-Real Excel-style interactive data grid table view, and complete ATS workflow.
+Features: Stateful permanent database caching, large enterprise employee profile cards, 
+Top navbar brand layout, secure PIN setup wizard, and complete ATS workflow.
 """
 
 import io
@@ -21,7 +21,7 @@ import streamlit as st
 from groq import Groq
 
 # ===========================================================================
-# CONFIGURATION & AUTO-MIGRATION AUTH DB
+# CONFIGURATION & STATEFUL PERSISTENT DB
 # ===========================================================================
 APP_NAME = "HireMatrix Pro"
 APP_TAGLINE = "Autonomous HR Intelligence & Executive Recruitment Suite"
@@ -49,13 +49,6 @@ def init_auth_db():
     if "pin" not in columns: cursor.execute("ALTER TABLE hr_users ADD COLUMN pin TEXT")
     if "role" not in columns: cursor.execute("ALTER TABLE hr_users ADD COLUMN role TEXT DEFAULT 'Recruiter'")
     if "otp" not in columns: cursor.execute("ALTER TABLE hr_users ADD COLUMN otp TEXT")
-    
-    cursor.execute("SELECT COUNT(*) FROM hr_users WHERE is_verified = 1")
-    if cursor.fetchone()[0] == 0:
-        cursor.execute("""
-            INSERT OR REPLACE INTO hr_users (email, name, password, pin, role, is_verified, otp) 
-            VALUES (?, ?, ?, ?, ?, 1, NULL)
-        """, ("admin@company.com", "System Admin", hashlib.sha256("admin123".encode()).hexdigest(), "1234", "Admin"))
         
     conn.commit()
     conn.close()
@@ -88,7 +81,26 @@ def send_smtp_email(receiver_email, subject, body_text):
     except Exception as e:
         return False, f"Failed to send email: {e}"
 
+def authenticate_employee_credentials(email, pin):
+    clean_email = email.lower().strip()
+    conn = sqlite3.connect(AUTH_DB_FILE)
+    cursor = conn.cursor()
+    cursor.execute("SELECT name, pin, role FROM hr_users WHERE email = ? AND is_verified = 1", (clean_email,))
+    row = cursor.fetchone()
+    conn.close()
+    if row and row[1] == pin:
+        return True, row[0], row[2]
+    return False, None, None
+
 def get_all_verified_profiles():
+    conn = sqlite3.connect(AUTH_DB_FILE)
+    cursor = conn.cursor()
+    cursor.execute("SELECT email, name, pin, role FROM hr_users WHERE is_verified = 1 AND pin IS NOT NULL")
+    rows = cursor.fetchall()
+    conn.close()
+    return rows
+
+def get_all_verified_profiles_admin():
     conn = sqlite3.connect(AUTH_DB_FILE)
     cursor = conn.cursor()
     cursor.execute("SELECT email, name, pin, role FROM hr_users WHERE is_verified = 1 AND pin IS NOT NULL")
@@ -109,9 +121,9 @@ def register_initial_employee(name, email, password):
             conn.close()
             return False, "This email is already registered and active. Please sign in."
         
-        cursor.execute("SELECT COUNT(*) FROM hr_users")
+        cursor.execute("SELECT COUNT(*) FROM hr_users WHERE is_verified = 1")
         count = cursor.fetchone()[0]
-        role = "Admin" if count <= 1 else "Recruiter"
+        role = "Admin" if count == 0 else "Recruiter"
         
         cursor.execute("""
             INSERT OR REPLACE INTO hr_users (email, name, password, pin, role, is_verified, otp) 
@@ -160,18 +172,8 @@ def delete_employee_profile(email):
     except Exception as e:
         return False, f"Error: {e}"
 
-def verify_employee_pin(email, entered_pin):
-    conn = sqlite3.connect(AUTH_DB_FILE)
-    cursor = conn.cursor()
-    cursor.execute("SELECT name, pin, role FROM hr_users WHERE email = ? AND is_verified = 1", (email.lower().strip(),))
-    row = cursor.fetchone()
-    conn.close()
-    if row and row[1] == entered_pin:
-        return True, row[0], row[2]
-    return False, None, None
-
 # ===========================================================================
-# PAGE CONFIG & TOP NAVBAR STYLING (COLLAPSED SIDEBAR)
+# PAGE CONFIG & EXECUTIVE UI STYLING
 # ===========================================================================
 st.set_page_config(
     page_title=f"{APP_NAME} | Executive Portal",
@@ -229,6 +231,20 @@ html, body, [class*="css"] { font-family: 'Inter', sans-serif !important; }
     border-radius: 18px;
     padding: 2.5rem;
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.06);
+}
+
+.large-profile-card {
+    background: linear-gradient(135deg, rgba(14, 165, 233, 0.06) 0%, rgba(30, 41, 59, 0.02) 100%);
+    border: 1.5px solid rgba(14, 165, 233, 0.3);
+    border-radius: 16px;
+    padding: 1.4rem 1.8rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+    transition: all 0.2s ease;
+}
+.large-profile-card:hover {
+    border-color: #0EA5E9;
+    box-shadow: 0 6px 20px rgba(14, 165, 233, 0.12);
 }
 
 .stButton > button {
@@ -298,14 +314,13 @@ if "logged_in" not in st.session_state: st.session_state.logged_in = False
 if "hr_name" not in st.session_state: st.session_state.hr_name = ""
 if "hr_email" not in st.session_state: st.session_state.hr_email = ""
 if "hr_role" not in st.session_state: st.session_state.hr_role = "Recruiter"
-if "admin_unlocked" not in st.session_state: st.session_state.admin_unlocked = False
 if "selected_profile_email" not in st.session_state: st.session_state.selected_profile_email = None
 if "pending_otp_email" not in st.session_state: st.session_state.pending_otp_email = None
 if "pending_pin_email" not in st.session_state: st.session_state.pending_pin_email = None
 if "screening_results" not in st.session_state: st.session_state.screening_results = []
 
 # ===========================================================================
-# AUTHENTICATION SCREEN
+# AUTHENTICATION SCREEN (LARGE PREMIUM PROFILE CARDS)
 # ===========================================================================
 if not st.session_state.logged_in:
     saved_profiles = get_all_verified_profiles()
@@ -325,19 +340,12 @@ if not st.session_state.logged_in:
     with col_right:
         st.markdown('<div class="auth-form-card">', unsafe_allow_html=True)
         
-        st.markdown("""
-            <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid #10B981; border-radius: 10px; padding: 10px 15px; margin-bottom: 15px; font-size: 0.85rem;">
-                💡 <b>Default Admin Credentials:</b><br>
-                Email: <code>admin@company.com</code> | PIN: <code>1234</code>
-            </div>
-        """, unsafe_allow_html=True)
-        
         if st.session_state.pending_pin_email:
-            st.markdown("### 🔐 Security Setup")
+            st.markdown("### 🔐 Security PIN Setup")
             st.info(f"Email verified for **{st.session_state.pending_pin_email}**.")
             
             with st.form("pin_setup_form"):
-                new_pin = st.text_input("Enter 4-Digit PIN", type="password", max_chars=4, placeholder="••••")
+                new_pin = st.text_input("Create 4-Digit PIN", type="password", max_chars=4, placeholder="••••")
                 confirm_pin = st.text_input("Confirm 4-Digit PIN", type="password", max_chars=4, placeholder="••••")
                 submit_pin = st.form_submit_button("Save PIN & Enter Portal", use_container_width=True)
                 
@@ -380,28 +388,37 @@ if not st.session_state.logged_in:
             
         elif saved_profiles and not st.session_state.selected_profile_email:
             st.markdown("""
-                <div style="background: rgba(14, 165, 233, 0.08); border: 1.5px solid #0EA5E9; border-radius: 14px; padding: 1.6rem; margin-bottom: 1.5rem; box-shadow: 0 4px 15px rgba(0,0,0,0.04);">
-                    <h3 style="margin-top: 0; margin-bottom: 0.3rem; font-size: 1.2rem; font-weight: 700;">👥 Saved Employee Profiles</h3>
-                    <p style="font-size: 0.85rem; opacity: 0.8; margin-bottom: 0;">Select your secure profile card below to sign in instantly:</p>
+                <div style="background: rgba(14, 165, 233, 0.08); border: 1.5px solid #0EA5E9; border-radius: 14px; padding: 1.4rem; margin-bottom: 1.2rem;">
+                    <h3 style="margin-top: 0; margin-bottom: 0.2rem; font-size: 1.2rem; font-weight: 700;">👥 Saved Employee Profiles</h3>
+                    <p style="font-size: 0.82rem; opacity: 0.8; margin-bottom: 0;">Select your secure profile card below to sign in instantly:</p>
                 </div>
             """, unsafe_allow_html=True)
             
             for p_email, p_name, p_pin, p_role in saved_profiles:
-                c_p1, c_p2 = st.columns([3, 1])
-                with c_p1:
-                    if st.button(f"👤 {p_name} ({p_role})", use_container_width=True, key=f"sel_{p_email}"):
+                st.markdown(f"""
+                    <div class="large-profile-card">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <h4 style="margin: 0 0 4px 0; font-size: 1.1rem; color: #0EA5E9;">👤 {p_name}</h4>
+                                <p style="margin: 0; font-size: 0.8rem; opacity: 0.75;">✉️ <code>{p_email}</code> &bull; Role: <b>{p_role}</b></p>
+                            </div>
+                        </div>
+                    </div>
+                """, unsafe_allow_html=True)
+                
+                c_btn1, c_btn2 = st.columns([2, 1])
+                with c_btn1:
+                    if st.button(f"🔐 Sign In as {p_name}", use_container_width=True, key=f"sel_card_{p_email}"):
                         st.session_state.selected_profile_email = p_email
                         st.rerun()
-                with c_p2:
-                    if p_email != "admin@company.com":
-                        if st.button("🗑️ Delete", key=f"del_{p_email}", use_container_width=True):
-                            delete_employee_profile(p_email)
-                            st.success(f"Profile for {p_name} has been removed.")
-                            st.rerun()
-                    else:
-                        st.caption("Protected")
+                with c_btn2:
+                    if st.button("🗑️ Delete", key=f"del_card_{p_email}", use_container_width=True):
+                        delete_employee_profile(p_email)
+                        st.success(f"Profile removed.")
+                        st.rerun()
+                st.markdown("<div style='margin-bottom: 10px;'></div>", unsafe_allow_html=True)
             
-            st.markdown("")
+            st.markdown("---")
             if st.button("➕ Register New Employee Profile", use_container_width=True, key="reg_new_emp_auth_btn"):
                 st.session_state.selected_profile_email = "new"
                 st.rerun()
@@ -425,11 +442,10 @@ if not st.session_state.logged_in:
                     st.session_state.hr_name = name
                     st.session_state.hr_email = target_email
                     st.session_state.hr_role = role
-                    st.session_state.admin_unlocked = False  # Reset admin lock on new login
                     st.success(f"Welcome back, {name}!")
                     st.rerun()
                 else:
-                    st.error("Incorrect 4-Digit PIN. (Default Admin PIN is 1234).")
+                    st.error("Incorrect 4-Digit PIN. Please verify.")
             with col_b2:
                 if st.button("Switch Profile", use_container_width=True, key="switch_prof_auth_btn"):
                     st.session_state.selected_profile_email = None
@@ -443,7 +459,7 @@ if not st.session_state.logged_in:
                 reg_name = st.text_input("Full Name", placeholder="Alex Mercer")
                 reg_email = st.text_input("Company Email", placeholder="employee@company.com")
                 reg_pass = st.text_input("Master Password", type="password")
-                submit_reg = st.form_submit_button("Send Verification OTP (Press Enter)", use_container_width=True)
+                submit_reg = st.form_submit_button("Send Verification OTP", use_container_width=True)
                 
             col_r1, col_r2 = st.columns(2)
             if submit_reg:
@@ -467,7 +483,7 @@ if not st.session_state.logged_in:
     st.stop()
 
 # ===========================================================================
-# DATABASE OPERATIONS & PERSISTENT SAME-FILE EXPORT
+# DATABASE OPERATIONS & STATEFUL PERMANENT STORAGE
 # ===========================================================================
 def load_database():
     expected_cols = [
@@ -790,7 +806,7 @@ st.markdown(f"""
     <div class="top-navbar">
         <div>
             <h2 class="top-brand-title">💼 {APP_NAME}</h2>
-            <p class="top-brand-subtitle">Autonomous HR Intelligence &bull; Active: <b>{st.session_state.get('hr_name', 'Recruiter')}</b> ({st.session_state.get('hr_email', 'admin@company.com')})</p>
+            <p class="top-brand-subtitle">Autonomous HR Intelligence &bull; Active: <b>{st.session_state.get('hr_name', 'Recruiter')}</b> ({st.session_state.get('hr_email', 'admin@company.com')}) &bull; Role: <b>{st.session_state.get('hr_role', 'Recruiter')}</b></p>
         </div>
         <div style="display: flex; gap: 10px; align-items: center;">
 """, unsafe_allow_html=True)
@@ -802,7 +818,6 @@ with col_nav2:
         st.session_state.hr_name = ""
         st.session_state.hr_email = ""
         st.session_state.hr_role = "Recruiter"
-        st.session_state.admin_unlocked = False
         st.session_state.selected_profile_email = None
         st.session_state.screening_results = []
         st.rerun()
@@ -816,7 +831,7 @@ st.markdown(f"""
             <span>🟢 Multi-Stage ATS Session</span> &bull; <span>Total Talent Pool: {total_repo_db} Candidates</span>
         </div>
         <h1>Executive Recruitment Suite</h1>
-        <p>Welcome back, <b>{st.session_state.get('hr_name', 'Recruiter')}</b> &mdash; Latest Added: <b>{latest_candidate}</b> | All extracted resumes are automatically appended to the live master database table below.</p>
+        <p>Welcome back, <b>{st.session_state.get('hr_name', 'Recruiter')}</b> &mdash; Latest Added: <b>{latest_candidate}</b> | All extracted resumes are automatically appended and permanently saved to the database.</p>
     </div>
 """, unsafe_allow_html=True)
 
@@ -829,7 +844,6 @@ with tab1:
     uploaded_repo_files = st.file_uploader("Upload candidate resumes to repository", type=ACCEPTED_TYPES, accept_multiple_files=True, label_visibility="collapsed")
     
     if st.button("⚡ Extract & Save to Master Database", type="primary", use_container_width=True, disabled=not (uploaded_repo_files and ("GROQ_API_KEY" in st.secrets or 'groq_api_key' in locals()))):
-        # Resolve Groq Key
         g_key = st.secrets["GROQ_API_KEY"] if "GROQ_API_KEY" in st.secrets else ""
         client = Groq(api_key=g_key)
         extracted_batch = []
@@ -846,7 +860,7 @@ with tab1:
         progress.empty()
         if extracted_batch:
             save_candidates_to_repository(extracted_batch)
-            st.success(f"Successfully processed and appended candidates to the master database!")
+            st.success(f"Successfully processed and permanently saved candidates to database!")
             st.rerun()
             
     st.markdown("</div>", unsafe_allow_html=True)
@@ -1080,36 +1094,18 @@ with tab3:
 with tab4:
     st.markdown('<div class="corp-card"><h4>🛡️ Admin Access & Employee Management</h4>', unsafe_allow_html=True)
     
-    # Secured PIN Check for Admin Panel
-    if st.session_state.get('hr_role') != "Admin" and not st.session_state.get('admin_unlocked', False):
-        st.warning("🔒 **Admin Access Restricted**: This section contains sensitive company employee management controls.")
-        st.caption("Please enter the 4-digit Master Admin PIN to unlock this panel.")
-        
-        with st.form("admin_unlock_form"):
-            entered_admin_pin = st.text_input("Enter Admin PIN", type="password", max_chars=4, placeholder="••••")
-            unlock_submit = st.form_submit_button("Unlock Admin Panel", use_container_width=True)
-            
-        if unlock_submit:
-            if entered_admin_pin == "1234":  # Default Master Admin PIN
-                st.session_state.admin_unlocked = True
-                st.success("Admin panel successfully unlocked!")
-                st.rerun()
-            else:
-                st.error("Incorrect Admin PIN. Access denied.")
+    if st.session_state.get('hr_role') != "Admin":
+        st.error("⛔ **Access Denied**: You do not have Administrator privileges to view this control panel.")
     else:
         st.success("✓ Admin privileges active & verified.")
         
-        if st.button("🔒 Lock Admin Panel", key="lock_admin_panel_btn"):
-            st.session_state.admin_unlocked = False
-            st.rerun()
-            
-        st.markdown("### 👥 Active Employee Profiles")
-        all_emps = get_all_verified_profiles()
+        st.markdown("### 👥 Active Employee Profiles & Confidential PINs")
+        all_emps = get_all_verified_profiles_admin()
         st.markdown(f"**Total Active Registered Employees:** {len(all_emps)}")
         for emp_email, emp_name, emp_pin, emp_role in all_emps:
             col_a1, col_a2, col_a3 = st.columns([2, 1, 1])
             with col_a1: st.write(f"👤 **{emp_name}** ({emp_email}) — *{emp_role}*")
-            with col_a2: st.write(f"PIN: `{emp_pin}`")
+            with col_a2: st.write(f"PIN: `{emp_pin}`")  # Visible ONLY to Admin
             with col_a3:
                 if emp_email.lower() != st.session_state.get('hr_email', '').lower():
                     if st.button("🗑️ Revoke", key=f"rev_admin_{emp_email.replace('@','_')}", use_container_width=True):
