@@ -1073,4 +1073,4 @@ with tab3:
     st.markdown("</div>", unsafe_allow_html=True)
 
 with tab4:
-    st.markdown('<div class="corp-card">['🛡️ Admin Access & Employee Management'](https://supabase.com/dashboard/project/nylpzshnuausfuoudziw/settings/general)</div>', unsafe_allow_html=True)
+    st.markdown('<div class="corp-card">[' Admin Access & Employee Management'](https://supabase.com/dashboard/project/nylpzshnuausfuoudziw/settings/general)</div>', unsafe_allow_html=True)
