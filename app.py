@@ -331,7 +331,11 @@ html, body, [class*="css"] { font-family: 'Inter', sans-serif !important; }
 [data-testid="stSidebar"] { display: none !important; }
 [data-testid="collapsedControl"] { display: none !important; }
 
-/* Completely Hide Empty Status Containers & Notifications */
+/* Forcefully hide any empty or misplaced structural status blocks */
+div[data-testid="stVerticalBlock"] > div:empty {
+    display: none !important;
+}
+
 .stStatusWidget, [data-testid="stStatusWidget"], .stAlert:empty, [data-testid="stNotification"]:empty {
     display: none !important;
     visibility: hidden !important;
