@@ -325,11 +325,51 @@ def generate_screening_excel(results_list) -> bytes:
 # ===========================================================================
 ULTRA_NEON_CSS = """
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 html, body, [class*="css"] { font-family: 'Inter', sans-serif !important; }
 
 [data-testid="stSidebar"] { display: none !important; }
 [data-testid="collapsedControl"] { display: none !important; }
+
+/* Glowing Header & Title Container */
+.login-header-container {
+    text-align: center;
+    margin-bottom: 2.5rem;
+    position: relative;
+}
+
+.login-main-title {
+    font-size: 3.5rem;
+    font-weight: 900;
+    background: linear-gradient(135deg, #38BDF8 0%, #818CF8 50%, #C084FC 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 10px;
+    letter-spacing: -1px;
+    text-shadow: 0 0 35px rgba(56, 189, 248, 0.4);
+    animation: pulseGlow 3s ease-in-out infinite alternate;
+}
+
+@keyframes pulseGlow {
+    0% { filter: drop-shadow(0 0 15px rgba(56, 189, 248, 0.4)); }
+    100% { filter: drop-shadow(0 0 30px rgba(192, 132, 252, 0.7)); }
+}
+
+.login-tagline-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: linear-gradient(135deg, rgba(56, 189, 248, 0.15), rgba(192, 132, 252, 0.15));
+    border: 1.5px solid rgba(56, 189, 248, 0.4);
+    padding: 6px 18px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: #38BDF8;
+    box-shadow: 0 0 20px rgba(56, 189, 248, 0.2);
+}
 
 .top-navbar {
     background: linear-gradient(135deg, rgba(14, 165, 233, 0.15) 0%, rgba(15, 23, 42, 0.8) 100%);
@@ -461,9 +501,11 @@ if not st.session_state.logged_in:
     saved_profiles = get_all_verified_profiles()
     
     st.markdown(f"""
-        <div style="text-align: center; margin-bottom: 2.5rem;">
-            <h1 style="font-size: 3.2rem; font-weight: 800; color: #38BDF8; margin-bottom: 8px; text-shadow: 0 0 20px rgba(14, 165, 233, 0.6);">{APP_NAME}</h1>
-            <p style="font-size: 1.15rem; opacity: 0.95; text-transform: uppercase; letter-spacing: 2px; font-weight: 700; color: #7DD3FC;">{APP_TAGLINE}</p>
+        <div class="login-header-container">
+            <h1 class="login-main-title">{APP_NAME}</h1>
+            <div class="login-tagline-badge">
+                <span>⚡</span> {APP_TAGLINE} <span>⚡</span>
+            </div>
         </div>
     """, unsafe_allow_html=True)
     
