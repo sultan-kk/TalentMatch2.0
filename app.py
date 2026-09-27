@@ -1,8 +1,8 @@
 """
-HireMatrix Pro — Enterprise Edition v10.87 (Dedicated Admin PIN Setup & Modern UI)
+HireMatrix Pro — Enterprise Edition v10.88 (Clean Login & Centered UI)
 ========================================================================
-Features: Dedicated Admin PIN creation wizard, top navbar brand layout, 
-Large modern enterprise employee profile cards, real Excel-style live grid, and ATS workflow.
+Features: Removed side auth branding box from login screen for a centered modern design, 
+Dedicated Admin PIN setup wizard, real-time Excel-style live grid, and ATS workflow.
 """
 
 import io
@@ -211,26 +211,14 @@ html, body, [class*="css"] { font-family: 'Inter', sans-serif !important; }
     font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1.2px; font-weight: 600; color: #64748B; margin: 0;
 }
 
-.auth-brand-side {
-    background: linear-gradient(135deg, #0EA5E9 0%, #1E293B 100%);
-    border-radius: 18px;
-    padding: 3.5rem 2.5rem;
-    color: #FFFFFF;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    box-shadow: 0 10px 30px rgba(14, 165, 233, 0.15);
-}
-.auth-brand-side h1 { font-size: 2.6rem; font-weight: 800; margin-bottom: 1rem; color: #FFFFFF; letter-spacing: -0.5px; }
-.auth-brand-side p { font-size: 1.05rem; opacity: 0.9; line-height: 1.6; }
-
 .auth-form-card {
     background: var(--background-color);
     border: 1.5px solid rgba(14, 165, 233, 0.3);
     border-radius: 18px;
     padding: 2.5rem;
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.06);
+    max-width: 650px;
+    margin: 0 auto;
 }
 
 .large-profile-card {
@@ -320,24 +308,20 @@ if "pending_pin_email" not in st.session_state: st.session_state.pending_pin_ema
 if "screening_results" not in st.session_state: st.session_state.screening_results = []
 
 # ===========================================================================
-# AUTHENTICATION SCREEN (DEDICATED ADMIN PIN SETUP & LARGE CARDS)
+# AUTHENTICATION SCREEN (CENTERED MODERN LAYOUT)
 # ===========================================================================
 if not st.session_state.logged_in:
     saved_profiles = get_all_verified_profiles()
     
-    col_left, col_right = st.columns([1.1, 1.4], gap="large")
+    st.markdown(f"""
+        <div style="text-align: center; margin-bottom: 2rem;">
+            <h1 style="font-size: 2.8rem; font-weight: 800; color: #0EA5E9; margin-bottom: 5px;">{APP_NAME}</h1>
+            <p style="font-size: 1.1rem; opacity: 0.85; text-transform: uppercase; letter-spacing: 1.5px; font-weight: 600;">{APP_TAGLINE}</p>
+        </div>
+    """, unsafe_allow_html=True)
     
-    with col_left:
-        st.markdown(f"""
-            <div class="auth-brand-side">
-                <h1>{APP_NAME}</h1>
-                <p>{APP_TAGLINE}</p>
-                <hr style="border-color: rgba(255,255,255,0.2); margin: 1.8rem 0;">
-                <p style="font-size: 0.95rem; opacity: 0.9;">Empowering modern corporate enterprises with multi-stage ATS workflow, intelligent talent repository, automated candidate scoring, and secure role management.</p>
-            </div>
-        """, unsafe_allow_html=True)
-        
-    with col_right:
+    col_c1, col_c2, col_c3 = st.columns([1, 2.2, 1])
+    with col_c2:
         st.markdown('<div class="auth-form-card">', unsafe_allow_html=True)
         
         if st.session_state.pending_pin_email:
