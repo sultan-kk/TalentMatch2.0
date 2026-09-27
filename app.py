@@ -675,19 +675,31 @@ button[data-baseweb="tab"][aria-selected="true"] {
     text-shadow: 0 0 10px rgba(0, 242, 254, 0.5) !important;
 }
 /* =========================================================
-   LOGIN SCREEN LIGHT GREY OUTER BORDER WRAPPER
+   LOGIN SCREEN LIGHT GREY OUTER BORDER (FIXED: BUTTON BOXES REMOVED)
    ========================================================= */
-[data-testid="stVerticalBlockBorderWrapper"] {
-    border: 1.5px solid #D1D5DB !important; /* Light Grey Border */
+
+/* Sirf sabse bahar wale main container par border lagayega */
+[data-testid="stVerticalBlock"] > [data-testid="stVerticalBlockBorderWrapper"]:first-child {
+    border: 1.5px solid #D1D5DB !important;
     border-radius: 24px !important;
-    padding: 1.8rem 2.2rem !important;
+    padding: 2rem 2.2rem !important;
     background: rgba(255, 255, 255, 0.02) !important;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04) !important;
 }
 
+/* Columns ke andar banne wale faltu inner boxes aur padding ko reset karna */
+[data-testid="column"] [data-testid="stVerticalBlockBorderWrapper"],
+[data-testid="column"] > div {
+    border: none !important;
+    background: transparent !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+}
+
+/* Dark mode styling for outer container only */
 @media (prefers-color-scheme: dark) {
-    [data-testid="stVerticalBlockBorderWrapper"] {
-        border: 1.5px solid rgba(255, 255, 255, 0.2) !important; /* Subtle sleek grey in Dark Mode */
+    [data-testid="stVerticalBlock"] > [data-testid="stVerticalBlockBorderWrapper"]:first-child {
+        border: 1.5px solid rgba(255, 255, 255, 0.2) !important;
         background: rgba(15, 23, 42, 0.55) !important;
         box-shadow: 0 14px 40px rgba(0, 0, 0, 0.35) !important;
         backdrop-filter: blur(14px) !important;
