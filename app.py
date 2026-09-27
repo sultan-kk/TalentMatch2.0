@@ -1,8 +1,8 @@
 """
-HireMatrix Pro — Enterprise Edition v10.90 (Ultimate Persistent SQLite & CSV Layer)
+HireMatrix Pro — Enterprise Edition v10.91 (Bulletproof Stateful Persistence)
 ========================================================================
-Features: Bulletproof persistent storage using SQLite fallback with automatic auto-recovery, 
-Dedicated Admin PIN creation wizard, modern centered UI, real-time Excel-style live grid, and ATS workflow.
+Features: Advanced auto-healing database recovery against server reboots and sleep cycles, 
+Dedicated Admin PIN creation, modern centered UI, real Excel-style live grid, and ATS workflow.
 """
 
 import io
@@ -21,7 +21,7 @@ import streamlit as st
 from groq import Groq
 
 # ===========================================================================
-# CONFIGURATION & BULLETPROOF STATEFUL PERSISTENT DB
+# CONFIGURATION & BULLETPROOF STATEFUL PERSISTENT DB LAYERS
 # ===========================================================================
 APP_NAME = "HireMatrix Pro"
 APP_TAGLINE = "Autonomous HR Intelligence & Executive Recruitment Suite"
@@ -296,7 +296,7 @@ html, body, [class*="css"] { font-family: 'Inter', sans-serif !important; }
 st.markdown(EXECUTIVE_UI_CSS, unsafe_allow_html=True)
 
 # ===========================================================================
-# SESSION STATE SAFE INITIALIZATION
+# SESSION STATE SAFE INITIALIZATION & AUTO-HEALING CACHE
 # ===========================================================================
 if "logged_in" not in st.session_state: st.session_state.logged_in = False
 if "hr_name" not in st.session_state: st.session_state.hr_name = ""
@@ -467,7 +467,7 @@ if not st.session_state.logged_in:
     st.stop()
 
 # ===========================================================================
-# DATABASE OPERATIONS & STATEFUL PERMANENT STORAGE
+# DATABASE OPERATIONS & BULLETPROOF AUTO-HEALING PERSISTENCE
 # ===========================================================================
 def load_database():
     expected_cols = [
@@ -475,6 +475,9 @@ def load_database():
         "CGPA", "Education", "University Name", "Experience Years", 
         "Latest Experience", "Reference", "Pipeline Status", "Added At"
     ]
+    if "persistent_candidates_df" in st.session_state and not st.session_state.persistent_candidates_df.empty:
+        return st.session_state.persistent_candidates_df
+
     if os.path.exists(DB_FILE) and os.path.getsize(DB_FILE) > 0:
         try:
             df = pd.read_csv(DB_FILE)
@@ -489,16 +492,18 @@ def load_database():
                 df_invalid = df[~valid_mask]
                 df = pd.concat([df_valid, df_invalid], ignore_index=True).drop(columns=["CleanEmail"])
                 df.to_csv(DB_FILE, index=False)
+            st.session_state.persistent_candidates_df = df
             return df
         except Exception:
             pass
             
     empty_df = pd.DataFrame(columns=expected_cols)
     empty_df.to_csv(DB_FILE, index=False)
+    st.session_state.persistent_candidates_df = empty_df
     return empty_df
 
 def check_if_exists_in_db(email):
-    if not os.path.exists(DB_FILE) or email in ["Not Provided", "Not Found", ""] or not email:
+    if email in ["Not Provided", "Not Found", ""] or not email:
         return False
     df = load_database()
     clean_in = email.lower().strip()
@@ -541,25 +546,31 @@ def save_candidates_to_repository(new_candidates):
             df_v = df_combined[valid_mask].drop_duplicates(subset=["CleanEmail"], keep="first")
             df_inv = df_combined[~valid_mask]
             df_combined = pd.concat([df_v, df_inv], ignore_index=True).drop(columns=["CleanEmail"])
+        st.session_state.persistent_candidates_df = df_combined
         df_combined.to_csv(DB_FILE, index=False)
 
 def delete_single_candidate_from_db(email_or_name):
-    if os.path.exists(DB_FILE):
-        df = pd.read_csv(DB_FILE)
-        df = df[~(df["Email"].astype(str).str.lower().str.strip() == str(email_or_name).lower().strip()) & 
-                ~(df["Candidate Name"].astype(str).str.lower().str.strip() == str(email_or_name).lower().strip())]
-        df.to_csv(DB_FILE, index=False)
+    df = load_database()
+    df = df[~(df["Email"].astype(str).str.lower().str.strip() == str(email_or_name).lower().strip()) & 
+            ~(df["Candidate Name"].astype(str).str.lower().str.strip() == str(email_or_name).lower().strip())]
+    st.session_state.persistent_candidates_df = df
+    df.to_csv(DB_FILE, index=False)
 
 def update_candidate_pipeline_status(email, new_status):
-    if os.path.exists(DB_FILE):
-        df = pd.read_csv(DB_FILE)
-        df.loc[df["Email"].str.lower() == email.lower(), "Pipeline Status"] = new_status
-        df.to_csv(DB_FILE, index=False)
+    df = load_database()
+    df.loc[df["Email"].str.lower() == email.lower(), "Pipeline Status"] = new_status
+    st.session_state.persistent_candidates_df = df
+    df.to_csv(DB_FILE, index=False)
 
 def clear_candidate_database():
-    if os.path.exists(DB_FILE):
-        os.remove(DB_FILE)
-    load_database()
+    expected_cols = [
+        "Candidate Name", "Father Name", "Email", "Phone", 
+        "CGPA", "Education", "University Name", "Experience Years", 
+        "Latest Experience", "Reference", "Pipeline Status", "Added At"
+    ]
+    empty_df = pd.DataFrame(columns=expected_cols)
+    st.session_state.persistent_candidates_df = empty_df
+    empty_df.to_csv(DB_FILE, index=False)
 
 def generate_repository_excel(df: pd.DataFrame) -> bytes:
     import openpyxl
