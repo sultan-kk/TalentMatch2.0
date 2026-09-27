@@ -1,8 +1,8 @@
 """
-HireMatrix Pro — Enterprise Edition v10.85 (Permanent Storage & Large Cards)
+HireMatrix Pro — Enterprise Edition v10.87 (Dedicated Admin PIN Setup & Modern UI)
 ========================================================================
-Features: Stateful permanent database caching, large enterprise employee profile cards, 
-Top navbar brand layout, secure PIN setup wizard, and complete ATS workflow.
+Features: Dedicated Admin PIN creation wizard, top navbar brand layout, 
+Large modern enterprise employee profile cards, real Excel-style live grid, and ATS workflow.
 """
 
 import io
@@ -21,7 +21,7 @@ import streamlit as st
 from groq import Groq
 
 # ===========================================================================
-# CONFIGURATION & STATEFUL PERSISTENT DB
+# CONFIGURATION & STATEFUL PERMANENT DB
 # ===========================================================================
 APP_NAME = "HireMatrix Pro"
 APP_TAGLINE = "Autonomous HR Intelligence & Executive Recruitment Suite"
@@ -81,14 +81,14 @@ def send_smtp_email(receiver_email, subject, body_text):
     except Exception as e:
         return False, f"Failed to send email: {e}"
 
-def authenticate_employee_credentials(email, pin):
+def verify_employee_pin(email, entered_pin):
     clean_email = email.lower().strip()
     conn = sqlite3.connect(AUTH_DB_FILE)
     cursor = conn.cursor()
     cursor.execute("SELECT name, pin, role FROM hr_users WHERE email = ? AND is_verified = 1", (clean_email,))
     row = cursor.fetchone()
     conn.close()
-    if row and row[1] == pin:
+    if row and row[1] == entered_pin:
         return True, row[0], row[2]
     return False, None, None
 
@@ -157,7 +157,7 @@ def save_employee_pin(email, pin):
         cursor.execute("UPDATE hr_users SET pin = ?, is_verified = 1 WHERE email = ?", (pin, email.lower().strip()))
         conn.commit()
         conn.close()
-        return True, "Quick PIN configured successfully!"
+        return True, "Admin & Employee PIN configured successfully!"
     except Exception as e:
         return False, f"Error: {e}"
 
@@ -320,7 +320,7 @@ if "pending_pin_email" not in st.session_state: st.session_state.pending_pin_ema
 if "screening_results" not in st.session_state: st.session_state.screening_results = []
 
 # ===========================================================================
-# AUTHENTICATION SCREEN (LARGE PREMIUM PROFILE CARDS)
+# AUTHENTICATION SCREEN (DEDICATED ADMIN PIN SETUP & LARGE CARDS)
 # ===========================================================================
 if not st.session_state.logged_in:
     saved_profiles = get_all_verified_profiles()
@@ -341,8 +341,8 @@ if not st.session_state.logged_in:
         st.markdown('<div class="auth-form-card">', unsafe_allow_html=True)
         
         if st.session_state.pending_pin_email:
-            st.markdown("### 🔐 Security PIN Setup")
-            st.info(f"Email verified for **{st.session_state.pending_pin_email}**.")
+            st.markdown("### 🔐 Dedicated Admin & Employee PIN Setup")
+            st.info(f"Email verified for **{st.session_state.pending_pin_email}**. Please create your confidential 4-digit security PIN.")
             
             with st.form("pin_setup_form"):
                 new_pin = st.text_input("Create 4-Digit PIN", type="password", max_chars=4, placeholder="••••")
@@ -419,7 +419,7 @@ if not st.session_state.logged_in:
                 st.markdown("<div style='margin-bottom: 10px;'></div>", unsafe_allow_html=True)
             
             st.markdown("---")
-            if st.button("➕ Register New Employee Profile", use_container_width=True, key="reg_new_emp_auth_btn"):
+            if st.button("➕ Register New Employee / Admin Profile", use_container_width=True, key="reg_new_emp_auth_btn"):
                 st.session_state.selected_profile_email = "new"
                 st.rerun()
             
@@ -452,8 +452,8 @@ if not st.session_state.logged_in:
                     st.rerun()
             
         else:
-            st.markdown("### 📝 Employee Registration")
-            st.caption("Enter your credentials to create a secure corporate account.")
+            st.markdown("### 📝 Employee / Admin Registration")
+            st.caption("Enter your credentials. First registered user automatically becomes Admin with dedicated PIN creation.")
             
             with st.form("registration_form"):
                 reg_name = st.text_input("Full Name", placeholder="Alex Mercer")
@@ -952,9 +952,10 @@ with tab2:
         
     st.markdown('</div>', unsafe_allow_html=True)
 
-    if st.session_state.screening_results:
+    screening_results_safe = st.session_state.get('screening_results', [])
+    if screening_results_safe:
         st.markdown('<div class="corp-card"><h4>📊 JD-Relevant Candidates & Recruiter Decision Pipeline</h4>', unsafe_allow_html=True)
-        results = sorted(st.session_state.screening_results, key=lambda x: x["match_score"], reverse=True)
+        results = sorted(screening_results_safe, key=lambda x: x["match_score"], reverse=True)
         
         if not results:
             st.warning("⚠️ No candidates in the repository matched the requirements of this Job Description.")
