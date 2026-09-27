@@ -603,7 +603,7 @@ html, body, [class*="css"] {
 
 @media (prefers-color-scheme: dark) {
     .corp-card h4 {
-        color: #00F2FE !important;
+        color: #000000 !important;
         background: linear-gradient(90deg, rgba(0, 242, 254, 0.16) 0%, rgba(15, 23, 42, 0.6) 100%) !important;
         border-left: 4px solid #00F2FE !important;
         border-bottom: 1px solid rgba(0, 242, 254, 0.3) !important;
