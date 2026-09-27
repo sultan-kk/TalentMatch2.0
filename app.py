@@ -590,6 +590,57 @@ html, body, [class*="css"] {
 .score-high { color: #10B981 !important; font-weight: 800; }
 .score-mid { color: #F59E0B !important; font-weight: 800; }
 .score-low { color: #EF4444 !important; font-weight: 800; }
+/* =========================================================
+   FUTURISTIC CYBER-NEON TABS (NAV-PILLS)
+   ========================================================= */
+
+/* Default red underline aur border hide karna */
+div[data-baseweb="tab-highlight"],
+div[data-baseweb="tab-border"] {
+    display: none !important;
+}
+
+/* Tabs ka outer container */
+div[data-baseweb="tab-list"] {
+    background: rgba(15, 23, 42, 0.75) !important;
+    border: 1.5px solid rgba(0, 242, 254, 0.35) !important;
+    border-radius: 16px !important;
+    padding: 6px 10px !important;
+    gap: 8px !important;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.35), inset 0 0 15px rgba(0, 242, 254, 0.06) !important;
+    backdrop-filter: blur(12px) !important;
+    margin-bottom: 1.8rem !important;
+}
+
+/* Individual tab button */
+button[data-baseweb="tab"] {
+    background: transparent !important;
+    border: 1.5px solid transparent !important;
+    border-radius: 12px !important;
+    padding: 8px 20px !important;
+    color: #94A3B8 !important;
+    font-size: 0.92rem !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.5px !important;
+    transition: all 0.25s ease-in-out !important;
+}
+
+/* Hover effect */
+button[data-baseweb="tab"]:hover {
+    color: #00F2FE !important;
+    background: rgba(0, 242, 254, 0.1) !important;
+    border-color: rgba(0, 242, 254, 0.4) !important;
+    transform: translateY(-1px) !important;
+}
+
+/* Active / Selected Tab (Glowing Neon Pill) */
+button[data-baseweb="tab"][aria-selected="true"] {
+    background: linear-gradient(135deg, rgba(2, 132, 199, 0.35) 0%, rgba(0, 242, 254, 0.2) 100%) !important;
+    border: 1.5px solid #00F2FE !important;
+    color: #00F2FE !important;
+    box-shadow: 0 0 18px rgba(0, 242, 254, 0.4) !important;
+    text-shadow: 0 0 10px rgba(0, 242, 254, 0.5) !important;
+}
 </style>
 """
 st.markdown(CYBER_NEON_CSS, unsafe_allow_html=True)
