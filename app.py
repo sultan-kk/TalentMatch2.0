@@ -1,8 +1,8 @@
 """
-HireMatrix Pro — Enterprise Edition v11.6 (Minimal Executive Indigo & Slate)
+HireMatrix Pro — Enterprise Edition v11.7 (Cyber-Neon Holographic Executive UI)
 ========================================================================
-Features: Native adaptive Streamlit theme matching, elegant Royal Indigo palette,
-dual-pass OCR for colored banners, and full Supabase cloud integration.
+Features: High-tech Cyberpunk/Neon Executive Cards, Glowing Glassmorphism, 
+Dual-Pass OCR for colored resumes, and full Supabase cloud integration.
 """
 
 import io
@@ -321,162 +321,259 @@ def generate_screening_excel(results_list) -> bytes:
     return buffer.getvalue()
 
 # ===========================================================================
-# 4. ELEGANT EXECUTIVE INDIGO CSS (CLEAN, MINIMAL & UNIVERSAL)
+# 4. CYBER-NEON HOLOGRAPHIC EXECUTIVE CSS
 # ===========================================================================
-ELEGANT_THEME_CSS = """
+CYBER_NEON_CSS = """
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap');
+
 html, body, [class*="css"] {
-    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif !important;
+    font-family: 'Space Grotesk', sans-serif !important;
 }
 
 [data-testid="stSidebar"] { display: none !important; }
 [data-testid="collapsedControl"] { display: none !important; }
 
-/* Clean Minimal Header */
-.login-header-box {
+/* Futuristic Glowing Header */
+.cyber-header-box {
     text-align: center;
-    padding: 2.2rem 1rem 1.4rem 1rem;
+    padding: 2.2rem 1rem 1.6rem 1rem;
     margin-bottom: 1.5rem;
 }
 
-.login-title-text {
-    font-size: 3.2rem;
+.cyber-title {
+    font-size: 3.8rem;
     font-weight: 800;
-    letter-spacing: -0.8px;
-    color: var(--text-color);
-    margin: 0 0 10px 0;
+    letter-spacing: -1px;
+    background: linear-gradient(135deg, #00F2FE 0%, #4FACFE 50%, #00C6FF 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin: 0 0 12px 0;
+    filter: drop-shadow(0 0 25px rgba(0, 242, 254, 0.45));
 }
 
-.login-subtitle-badge {
+.cyber-badge {
     display: inline-flex;
     align-items: center;
-    gap: 8px;
-    background: rgba(99, 102, 241, 0.08);
-    border: 1px solid rgba(99, 102, 241, 0.25);
-    padding: 6px 20px;
-    border-radius: 20px;
-    font-size: 0.8rem;
+    gap: 10px;
+    background: rgba(0, 242, 254, 0.08);
+    border: 1px solid rgba(0, 242, 254, 0.4);
+    padding: 7px 24px;
+    border-radius: 30px;
+    font-size: 0.82rem;
     font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 1.5px;
-    color: #4F46E5;
+    letter-spacing: 2px;
+    color: #00F2FE;
+    box-shadow: 0 0 18px rgba(0, 242, 254, 0.2);
 }
 
-/* Polished Minimal Cards */
-.profiles-header-card {
-    background: var(--secondary-background-color);
-    border: 1px solid rgba(99, 102, 241, 0.2);
-    border-radius: 14px;
+/* Profiles Section Header */
+.cyber-profiles-header {
+    background: rgba(15, 23, 42, 0.7);
+    border: 1px solid rgba(0, 242, 254, 0.3);
+    border-radius: 16px;
     padding: 1.2rem 1.6rem;
     margin-bottom: 1.4rem;
+    backdrop-filter: blur(12px);
 }
 
-.large-profile-card {
-    background: var(--secondary-background-color);
-    border: 1.5px solid rgba(99, 102, 241, 0.25);
-    border-radius: 18px;
-    padding: 1.8rem 2rem;
-    min-height: 140px;
-    margin-bottom: 1rem;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
-    transition: all 0.25s ease;
+/* Holographic Executive Profile Badge */
+.cyber-badge-card {
+    position: relative;
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.85) 0%, rgba(13, 20, 36, 0.95) 100%);
+    border: 1.5px solid rgba(0, 242, 254, 0.45);
+    border-radius: 20px;
+    padding: 1.8rem 2.2rem;
+    margin-bottom: 1.2rem;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), inset 0 0 20px rgba(0, 242, 254, 0.08);
+    backdrop-filter: blur(16px);
+    transition: all 0.3s ease;
 }
-.large-profile-card:hover {
-    border-color: #6366F1;
-    box-shadow: 0 8px 25px rgba(99, 102, 241, 0.12);
+
+.cyber-badge-card:hover {
+    border-color: #00F2FE;
+    box-shadow: 0 14px 40px rgba(0, 242, 254, 0.25), inset 0 0 30px rgba(0, 242, 254, 0.15);
     transform: translateY(-2px);
 }
 
-.profile-role-badge {
-    display: inline-block;
-    background: rgba(99, 102, 241, 0.1);
-    border: 1px solid rgba(99, 102, 241, 0.3);
-    color: #4F46E5;
-    padding: 3px 12px;
-    border-radius: 8px;
-    font-size: 0.75rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    margin-left: 8px;
-}
-
-/* Polished Indigo Buttons */
-.stButton > button {
-    background: #4F46E5 !important;
-    color: #FFFFFF !important;
-    border: 1px solid #4338CA !important;
-    border-radius: 10px !important;
-    font-weight: 600 !important;
-    padding: 0.6rem 1.4rem !important;
-    box-shadow: 0 2px 8px rgba(79, 70, 229, 0.25) !important;
-    transition: all 0.2s ease-in-out;
-}
-.stButton > button:hover {
-    background: #4338CA !important;
-    border-color: #3730A3 !important;
-    box-shadow: 0 4px 14px rgba(79, 70, 229, 0.35) !important;
-    transform: translateY(-1px);
-}
-
-/* Top Navbar */
-.top-navbar {
-    background: var(--secondary-background-color);
-    border: 1px solid rgba(99, 102, 241, 0.2);
-    border-radius: 14px;
-    padding: 1.1rem 1.8rem;
-    margin-bottom: 1.6rem;
+/* Card Micro-Tags */
+.cyber-top-bar {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    margin-bottom: 1rem;
+    border-bottom: 1px dashed rgba(0, 242, 254, 0.2);
+    padding-bottom: 0.6rem;
+}
+
+.cyber-access-id {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: #64748B;
+    letter-spacing: 1.5px;
+}
+
+.cyber-status-dot {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #10B981;
+    letter-spacing: 1px;
+}
+
+.cyber-status-dot::before {
+    content: '';
+    display: inline-block;
+    width: 7px;
+    height: 7px;
+    background-color: #10B981;
+    border-radius: 50%;
+    box-shadow: 0 0 10px #10B981;
+}
+
+.cyber-avatar-ring {
+    width: 66px;
+    height: 66px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, rgba(0, 242, 254, 0.2) 0%, rgba(79, 172, 254, 0.3) 100%);
+    border: 2px solid #00F2FE;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    box-shadow: 0 0 20px rgba(0, 242, 254, 0.35);
+    flex-shrink: 0;
+}
+
+.cyber-name-title {
+    margin: 0;
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: #FFFFFF;
+    letter-spacing: -0.5px;
+    text-shadow: 0 0 14px rgba(0, 242, 254, 0.4);
+}
+
+.cyber-role-pill {
+    background: rgba(0, 242, 254, 0.15);
+    border: 1px solid #00F2FE;
+    color: #00F2FE;
+    padding: 3px 12px;
+    border-radius: 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+.cyber-email-mono {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.88rem;
+    color: #94A3B8;
+    background: rgba(15, 23, 42, 0.6);
+    padding: 4px 10px;
+    border-radius: 6px;
+    border: 1px solid rgba(148, 163, 184, 0.15);
+    display: inline-block;
+    margin-top: 6px;
+}
+
+/* Buttons */
+.stButton > button {
+    background: linear-gradient(135deg, #0284C7 0%, #0369A1 100%) !important;
+    color: #FFFFFF !important;
+    border: 1.5px solid #00F2FE !important;
+    border-radius: 12px !important;
+    font-weight: 700 !important;
+    padding: 0.65rem 1.5rem !important;
+    box-shadow: 0 0 15px rgba(0, 242, 254, 0.3) !important;
+    transition: all 0.25s ease-in-out !important;
+}
+
+.stButton > button:hover {
+    background: linear-gradient(135deg, #00C6FF 0%, #0072FF 100%) !important;
+    border-color: #FFFFFF !important;
+    box-shadow: 0 0 25px rgba(0, 242, 254, 0.6) !important;
+    transform: translateY(-2px);
+}
+
+/* Forms */
+[data-testid="stForm"] {
+    background: rgba(15, 23, 42, 0.85) !important;
+    border: 1.5px solid rgba(0, 242, 254, 0.4) !important;
+    border-radius: 20px !important;
+    padding: 2.5rem !important;
+    box-shadow: 0 0 35px rgba(0, 242, 254, 0.2) !important;
+    backdrop-filter: blur(16px);
+}
+
+/* Portal Navbar */
+.top-navbar {
+    background: rgba(15, 23, 42, 0.85);
+    border: 1.5px solid rgba(0, 242, 254, 0.4);
+    border-radius: 16px;
+    padding: 1.2rem 2rem;
+    margin-bottom: 1.8rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 0 25px rgba(0, 242, 254, 0.2);
 }
 .top-brand-title {
-    font-size: 1.5rem; font-weight: 800; color: #4F46E5; margin: 0;
-    display: flex; align-items: center; gap: 8px;
+    font-size: 1.6rem; font-weight: 800; color: #00F2FE; margin: 0;
+    display: flex; align-items: center; gap: 10px;
+    text-shadow: 0 0 15px rgba(0, 242, 254, 0.4);
 }
 .top-brand-subtitle {
-    font-size: 0.72rem; text-transform: uppercase; letter-spacing: 1.2px; font-weight: 600; opacity: 0.8; margin: 0;
+    font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1.4px; font-weight: 700; color: #94A3B8; margin: 0;
 }
 
 .corp-hero {
-    background: var(--secondary-background-color);
-    border: 1px solid rgba(99, 102, 241, 0.2);
-    border-radius: 14px;
-    padding: 2rem 2.4rem;
-    margin-bottom: 1.8rem;
-    border-left: 5px solid #4F46E5;
+    background: linear-gradient(135deg, rgba(0, 242, 254, 0.12) 0%, rgba(15, 23, 42, 0.8) 100%);
+    border: 1.5px solid rgba(0, 242, 254, 0.4);
+    border-radius: 16px;
+    padding: 2.2rem 2.8rem;
+    margin-bottom: 2rem;
+    border-left: 6px solid #00F2FE;
+    box-shadow: 0 0 30px rgba(0, 242, 254, 0.2);
 }
 .corp-badge {
-    display: inline-flex; align-items: center; gap: 6px;
-    background: rgba(99, 102, 241, 0.08); color: #4F46E5;
-    padding: 4px 14px; border-radius: 6px;
-    font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.8rem;
-    border: 1px solid rgba(99, 102, 241, 0.2);
+    display: inline-flex; align-items: center; gap: 8px; 
+    background: rgba(0, 242, 254, 0.15); color: #00F2FE; 
+    padding: 6px 16px; border-radius: 8px;
+    font-size: 0.78rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 0.9rem;
+    border: 1px solid rgba(0, 242, 254, 0.4);
 }
 .corp-card {
     background: var(--background-color);
-    border: 1px solid rgba(99, 102, 241, 0.18);
-    border-radius: 14px;
-    padding: 1.6rem;
-    margin-bottom: 1.4rem;
+    border: 1.5px solid rgba(0, 242, 254, 0.3);
+    border-radius: 16px;
+    padding: 1.8rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 0 20px rgba(0, 242, 254, 0.1);
 }
 .metric-box {
     background: var(--secondary-background-color);
-    border: 1px solid rgba(99, 102, 241, 0.25);
-    border-radius: 12px;
-    padding: 1rem;
+    border: 1.5px solid rgba(0, 242, 254, 0.35);
+    border-radius: 14px;
+    padding: 1.2rem;
     text-align: center;
 }
-.metric-box .val { font-size: 1.7rem; font-weight: 800; color: #4F46E5; }
-.metric-box .lbl { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; font-weight: 600; opacity: 0.8; }
+.metric-box .val { font-size: 1.8rem; font-weight: 800; color: #00F2FE; text-shadow: 0 0 10px rgba(0, 242, 254, 0.4); }
+.metric-box .lbl { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; font-weight: 700; opacity: 0.85; }
 
-.score-high { color: #10B981 !important; font-weight: 700; }
-.score-mid { color: #F59E0B !important; font-weight: 700; }
-.score-low { color: #EF4444 !important; font-weight: 700; }
+.score-high { color: #10B981 !important; font-weight: 800; }
+.score-mid { color: #F59E0B !important; font-weight: 800; }
+.score-low { color: #EF4444 !important; font-weight: 800; }
 </style>
 """
-st.markdown(ELEGANT_THEME_CSS, unsafe_allow_html=True)
+st.markdown(CYBER_NEON_CSS, unsafe_allow_html=True)
 
 # ===========================================================================
 # 5. SESSION STATE INITIALIZATION
@@ -491,16 +588,16 @@ if "pending_pin_email" not in st.session_state: st.session_state.pending_pin_ema
 if "screening_results" not in st.session_state: st.session_state.screening_results = []
 
 # ===========================================================================
-# 6. AUTHENTICATION & LOGIN SCREEN
+# 6. AUTHENTICATION & LOGIN SCREEN (CYBER-NEON)
 # ===========================================================================
 if not st.session_state.logged_in:
     saved_profiles = get_all_verified_profiles()
     
     st.markdown(f"""
-        <div class="login-header-box">
-            <h1 class="login-title-text">{APP_NAME}</h1>
-            <div class="login-subtitle-badge">
-                <span>⚡</span> {APP_TAGLINE} <span>⚡</span>
+        <div class="cyber-header-box">
+            <h1 class="cyber-title">{APP_NAME}</h1>
+            <div class="cyber-badge">
+                <span>◈</span> {APP_TAGLINE} <span>◈</span>
             </div>
         </div>
     """, unsafe_allow_html=True)
@@ -555,31 +652,35 @@ if not st.session_state.logged_in:
             
         elif saved_profiles and not st.session_state.selected_profile_email:
             st.markdown("""
-                <div class="profiles-header-card">
-                    <h3 style="margin: 0 0 0.3rem 0; font-size: 1.3rem; font-weight: 700; color: var(--text-color);">👥 Saved Employee Profiles</h3>
-                    <p style="font-size: 0.85rem; opacity: 0.85; margin: 0;">Select your secure profile card below to sign in instantly:</p>
+                <div class="cyber-profiles-header">
+                    <h3 style="margin: 0 0 0.3rem 0; font-size: 1.35rem; font-weight: 700; color: #00F2FE;">👥 Active Executive Profiles</h3>
+                    <p style="font-size: 0.85rem; opacity: 0.85; margin: 0; color: #94A3B8;">Select your digital access badge to sign in:</p>
                 </div>
             """, unsafe_allow_html=True)
             
             for p_email, p_name, p_pin, p_role in saved_profiles:
                 st.markdown(f"""
-                    <div class="large-profile-card">
+                    <div class="cyber-badge-card">
+                        <div class="cyber-top-bar">
+                            <span class="cyber-access-id">ID // {hashlib.md5(p_email.encode()).hexdigest()[:8].upper()}</span>
+                            <span class="cyber-status-dot">ONLINE</span>
+                        </div>
                         <div style="display: flex; align-items: center; gap: 20px;">
-                            <div style="background: linear-gradient(135deg, #4F46E5, #6366F1); width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; flex-shrink: 0; box-shadow: 0 4px 14px rgba(79, 70, 229, 0.25);">
+                            <div class="cyber-avatar-ring">
                                 👤
                             </div>
                             <div style="flex-grow: 1;">
-                                <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-                                    <h3 style="margin: 0; font-size: 1.45rem; font-weight: 700; color: var(--text-color);">{p_name}</h3>
-                                    <span class="profile-role-badge">{p_role}</span>
+                                <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                                    <h3 class="cyber-name-title">{p_name}</h3>
+                                    <span class="cyber-role-pill">{p_role}</span>
                                 </div>
-                                <p style="margin: 6px 0 0 0; font-size: 0.9rem; opacity: 0.85;">✉️ <code style="color: #4F46E5; background: rgba(99, 102, 241, 0.08); padding: 3px 8px; border-radius: 6px; font-weight: 600;">{p_email}</code></p>
+                                <div class="cyber-email-mono">✉ {p_email}</div>
                             </div>
                         </div>
                     </div>
                 """, unsafe_allow_html=True)
                 
-                c_btn1, c_btn2 = st.columns([2, 1])
+                c_btn1, c_btn2 = st.columns([2.2, 1])
                 with c_btn1:
                     if st.button(f"🔐 Sign In as {p_name}", use_container_width=True, key=f"sel_card_{p_email}"):
                         st.session_state.selected_profile_email = p_email
@@ -589,7 +690,7 @@ if not st.session_state.logged_in:
                         delete_employee_profile(p_email)
                         st.success("Profile removed.")
                         st.rerun()
-                st.markdown("<div style='margin-bottom: 14px;'></div>", unsafe_allow_html=True)
+                st.markdown("<div style='margin-bottom: 16px;'></div>", unsafe_allow_html=True)
             
             st.markdown("---")
             if st.button("➕ Register New Employee / Admin Profile", use_container_width=True, key="reg_new_emp_auth_btn"):
