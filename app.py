@@ -334,38 +334,53 @@ html, body, [class*="css"] {
 [data-testid="stSidebar"] { display: none !important; }
 [data-testid="collapsedControl"] { display: none !important; }
 
-/* Futuristic Glowing Header */
+/* Futuristic High-Contrast Glowing Header */
 .cyber-header-box {
     text-align: center;
-    padding: 2.2rem 1rem 1.6rem 1rem;
+    padding: 2.4rem 1rem 1.6rem 1rem;
     margin-bottom: 1.5rem;
 }
 
 .cyber-title {
     font-size: 3.8rem;
-    font-weight: 800;
-    letter-spacing: -1px;
-    background: linear-gradient(135deg, #00F2FE 0%, #4FACFE 50%, #00C6FF 100%);
+    font-weight: 900;
+    letter-spacing: -1.5px;
+    /* Deep Midnight Navy into Vivid Electric Cyan */
+    background: linear-gradient(135deg, #0B192C 0%, #008DDA 45%, #00F2FE 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     margin: 0 0 12px 0;
-    filter: drop-shadow(0 0 25px rgba(0, 242, 254, 0.45));
+    filter: drop-shadow(0 4px 16px rgba(0, 141, 218, 0.35));
 }
 
 .cyber-badge {
     display: inline-flex;
     align-items: center;
     gap: 10px;
-    background: rgba(0, 242, 254, 0.08);
-    border: 1px solid rgba(0, 242, 254, 0.4);
-    padding: 7px 24px;
+    background: rgba(0, 141, 218, 0.08);
+    border: 1.5px solid #008DDA;
+    padding: 8px 24px;
     border-radius: 30px;
     font-size: 0.82rem;
-    font-weight: 700;
+    font-weight: 800;
     text-transform: uppercase;
     letter-spacing: 2px;
-    color: #00F2FE;
-    box-shadow: 0 0 18px rgba(0, 242, 254, 0.2);
+    color: #0369A1;
+    box-shadow: 0 4px 15px rgba(0, 141, 218, 0.18);
+}
+
+/* Agar dark mode ho toh automatic glowing neon cyan switch ho jaye */
+@media (prefers-color-scheme: dark) {
+    .cyber-title {
+        background: linear-gradient(135deg, #FFFFFF 0%, #38BDF8 50%, #00F2FE 100%);
+        filter: drop-shadow(0 0 25px rgba(0, 242, 254, 0.55));
+    }
+    .cyber-badge {
+        background: rgba(0, 242, 254, 0.12);
+        border-color: #00F2FE;
+        color: #00F2FE;
+        box-shadow: 0 0 18px rgba(0, 242, 254, 0.3);
+    }
 }
 
 /* Profiles Section Header */
