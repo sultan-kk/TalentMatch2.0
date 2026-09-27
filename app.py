@@ -1123,7 +1123,7 @@ with tab2:
 
 with tab3:
     st.markdown('<div class="corp-card"><h4>🗄️ Live Master Excel Sheet Grid (Real-time Database View)</h4>', unsafe_allow_html=True)
-    st.caption("Yeh bilkul real Microsoft Excel sheet jaisa interactive grid hai. Saara naya data yahan live update ho raha hai aur aap ek click par poori sheet download kar sakte hain.")
+    st.caption("Interactive candidate database grid. All extracted talent pool records are synchronized in real-time.")
     
     df_db = load_database()
     
