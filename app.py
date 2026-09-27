@@ -675,6 +675,25 @@ button[data-baseweb="tab"][aria-selected="true"] {
     box-shadow: 0 0 18px rgba(0, 242, 254, 0.4) !important;
     text-shadow: 0 0 10px rgba(0, 242, 254, 0.5) !important;
 }
+/* =========================================================
+   LOGIN SCREEN LIGHT GREY OUTER BORDER WRAPPER
+   ========================================================= */
+[data-testid="stVerticalBlockBorderWrapper"] {
+    border: 1.5px solid #D1D5DB !important; /* Light Grey Border */
+    border-radius: 24px !important;
+    padding: 1.8rem 2.2rem !important;
+    background: rgba(255, 255, 255, 0.02) !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04) !important;
+}
+
+@media (prefers-color-scheme: dark) {
+    [data-testid="stVerticalBlockBorderWrapper"] {
+        border: 1.5px solid rgba(255, 255, 255, 0.2) !important; /* Subtle sleek grey in Dark Mode */
+        background: rgba(15, 23, 42, 0.55) !important;
+        box-shadow: 0 14px 40px rgba(0, 0, 0, 0.35) !important;
+        backdrop-filter: blur(14px) !important;
+    }
+}
 </style>
 """
 st.markdown(CYBER_NEON_CSS, unsafe_allow_html=True)
@@ -697,185 +716,186 @@ if "screening_results" not in st.session_state: st.session_state.screening_resul
 if not st.session_state.logged_in:
     saved_profiles = get_all_verified_profiles()
     
-    st.markdown(f"""
-        <div class="cyber-header-box">
-            <!-- Glowing Cyber Emblem Logo -->
-            <div style="display: flex; justify-content: center; margin-bottom: 12px;">
-                <div style="
-                    width: 70px; 
-                    height: 70px; 
-                    border-radius: 18px; 
-                    background: linear-gradient(135deg, rgba(0, 242, 254, 0.15) 0%, rgba(15, 23, 42, 0.9) 100%);
-                    border: 2px solid #00F2FE;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    box-shadow: 0 0 25px rgba(0, 242, 254, 0.4), inset 0 0 15px rgba(0, 242, 254, 0.2);
-                ">
-                    <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="#00F2FE" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
-                        <polyline points="2 17 12 22 22 17"></polyline>
-                        <polyline points="2 12 12 17 22 12"></polyline>
-                    </svg>
-                </div>
-            </div>
-            <h1 class="cyber-title">HireMatrix <span class="cyber-title-pro">Pro</span></h1>
-            <div class="cyber-badge">
-                <span>◈</span> {APP_TAGLINE} <span>◈</span>
-            </div>
-        </div>
-    """, unsafe_allow_html=True)
-    
     col_c1, col_c2, col_c3 = st.columns([1, 2.2, 1])
     with col_c2:
-        if st.session_state.pending_pin_email:
-            st.markdown("### 🔐 Dedicated Admin & Employee PIN Setup")
-            st.info(f"Email verified for **{st.session_state.pending_pin_email}**. Please create your confidential 4-digit security PIN.")
-            
-            with st.form("pin_setup_form"):
-                new_pin = st.text_input("Create 4-Digit PIN", type="password", max_chars=4, placeholder="••••")
-                confirm_pin = st.text_input("Confirm 4-Digit PIN", type="password", max_chars=4, placeholder="••••")
-                submit_pin = st.form_submit_button("Save PIN & Enter Portal", use_container_width=True)
-                
-            if submit_pin:
-                if not new_pin or len(new_pin) != 4 or not new_pin.isdigit():
-                    st.warning("Please enter an exact 4-digit numeric PIN.")
-                elif new_pin != confirm_pin:
-                    st.error("PINs do not match. Please try again.")
-                else:
-                    success, msg = save_employee_pin(st.session_state.pending_pin_email, new_pin)
-                    if success:
-                        st.success(msg)
-                        st.session_state.pending_pin_email = None
-                        st.rerun()
-                    else:
-                        st.error(msg)
-
-        elif st.session_state.pending_otp_email:
-            st.markdown("### 📬 Email Verification")
-            st.info(f"Enter the 6-digit security code sent to **{st.session_state.pending_otp_email}**.")
-            
-            with st.form("otp_form"):
-                otp_input = st.text_input("Enter 6-Digit OTP", placeholder="123456")
-                submit_otp = st.form_submit_button("Verify OTP", use_container_width=True)
-                
-            col_o1, col_o2 = st.columns(2)
-            if submit_otp:
-                success, nag = verify_otp_code(st.session_state.pending_otp_email, otp_input)
-                if success:
-                    st.success(nag)
-                    st.session_state.pending_pin_email = st.session_state.pending_otp_email
-                    st.session_state.pending_otp_email = None
-                    st.rerun()
-                else:
-                    st.error(nag)
-            with col_o2:
-                if st.button("Cancel", use_container_width=True, key="cancel_otp_btn"):
-                    st.session_state.pending_otp_email = None
-                    st.rerun()
-            
-        elif saved_profiles and not st.session_state.selected_profile_email:
-            st.markdown("""
-                <div class="cyber-profiles-header">
-                    <h3 style="margin: 0 0 0.3rem 0; font-size: 1.35rem; font-weight: 700; color: #00F2FE;">👥 Active Executive Profiles</h3>
-                    <p style="font-size: 0.85rem; opacity: 0.85; margin: 0; color: #94A3B8;">Select your digital access badge to sign in:</p>
+        with st.container(border=True):
+            st.markdown(f"""
+                <div class="cyber-header-box" style="padding-top: 0.5rem; margin-bottom: 1.4rem;">
+                    <!-- Glowing Cyber Emblem Logo -->
+                    <div style="display: flex; justify-content: center; margin-bottom: 12px;">
+                        <div style="
+                            width: 68px; 
+                            height: 68px; 
+                            border-radius: 18px; 
+                            background: linear-gradient(135deg, rgba(0, 242, 254, 0.15) 0%, rgba(15, 23, 42, 0.9) 100%);
+                            border: 2px solid #00F2FE;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            box-shadow: 0 0 25px rgba(0, 242, 254, 0.4), inset 0 0 15px rgba(0, 242, 254, 0.2);
+                        ">
+                            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#00F2FE" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                                <polyline points="2 17 12 22 22 17"></polyline>
+                                <polyline points="2 12 12 17 22 12"></polyline>
+                            </svg>
+                        </div>
+                    </div>
+                    <h1 class="cyber-title">HireMatrix <span class="cyber-title-pro">Pro</span></h1>
+                    <div class="cyber-badge">
+                        <span>◈</span> {APP_TAGLINE} <span>◈</span>
+                    </div>
                 </div>
             """, unsafe_allow_html=True)
             
-            for p_email, p_name, p_pin, p_role in saved_profiles:
-                st.markdown(f"""
-                    <div class="cyber-badge-card">
-                        <div class="cyber-top-bar">
-                            <span class="cyber-access-id">ID // {hashlib.md5(p_email.encode()).hexdigest()[:8].upper()}</span>
-                            <span class="cyber-status-dot">ONLINE</span>
-                        </div>
-                        <div style="display: flex; align-items: center; gap: 20px;">
-                            <div class="cyber-avatar-ring">
-                                👤
-                            </div>
-                            <div style="flex-grow: 1;">
-                                <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-                                    <h3 class="cyber-name-title">{p_name}</h3>
-                                    <span class="cyber-role-pill">{p_role}</span>
-                                </div>
-                                <div class="cyber-email-mono">✉ {p_email}</div>
-                            </div>
-                        </div>
+            if st.session_state.pending_pin_email:
+                st.markdown("### 🔐 Dedicated Admin & Employee PIN Setup")
+                st.info(f"Email verified for **{st.session_state.pending_pin_email}**. Please create your confidential 4-digit security PIN.")
+                
+                with st.form("pin_setup_form"):
+                    new_pin = st.text_input("Create 4-Digit PIN", type="password", max_chars=4, placeholder="••••")
+                    confirm_pin = st.text_input("Confirm 4-Digit PIN", type="password", max_chars=4, placeholder="••••")
+                    submit_pin = st.form_submit_button("Save PIN & Enter Portal", use_container_width=True)
+                    
+                if submit_pin:
+                    if not new_pin or len(new_pin) != 4 or not new_pin.isdigit():
+                        st.warning("Please enter an exact 4-digit numeric PIN.")
+                    elif new_pin != confirm_pin:
+                        st.error("PINs do not match. Please try again.")
+                    else:
+                        success, msg = save_employee_pin(st.session_state.pending_pin_email, new_pin)
+                        if success:
+                            st.success(msg)
+                            st.session_state.pending_pin_email = None
+                            st.rerun()
+                        else:
+                            st.error(msg)
+
+            elif st.session_state.pending_otp_email:
+                st.markdown("### 📬 Email Verification")
+                st.info(f"Enter the 6-digit security code sent to **{st.session_state.pending_otp_email}**.")
+                
+                with st.form("otp_form"):
+                    otp_input = st.text_input("Enter 6-Digit OTP", placeholder="123456")
+                    submit_otp = st.form_submit_button("Verify OTP", use_container_width=True)
+                    
+                col_o1, col_o2 = st.columns(2)
+                if submit_otp:
+                    success, nag = verify_otp_code(st.session_state.pending_otp_email, otp_input)
+                    if success:
+                        st.success(nag)
+                        st.session_state.pending_pin_email = st.session_state.pending_otp_email
+                        st.session_state.pending_otp_email = None
+                        st.rerun()
+                    else:
+                        st.error(nag)
+                with col_o2:
+                    if st.button("Cancel", use_container_width=True, key="cancel_otp_btn"):
+                        st.session_state.pending_otp_email = None
+                        st.rerun()
+                
+            elif saved_profiles and not st.session_state.selected_profile_email:
+                st.markdown("""
+                    <div class="cyber-profiles-header">
+                        <h3 style="margin: 0 0 0.3rem 0; font-size: 1.35rem; font-weight: 700; color: #00F2FE;">👥 Active Executive Profiles</h3>
+                        <p style="font-size: 0.85rem; opacity: 0.85; margin: 0; color: #94A3B8;">Select your digital access badge to sign in:</p>
                     </div>
                 """, unsafe_allow_html=True)
                 
-                c_btn1, c_btn2 = st.columns([2.2, 1])
-                with c_btn1:
-                    if st.button(f"🔐 Sign In as {p_name}", use_container_width=True, key=f"sel_card_{p_email}"):
-                        st.session_state.selected_profile_email = p_email
-                        st.rerun()
-                with c_btn2:
-                    if st.button("🗑️ Delete", key=f"del_card_{p_email}", use_container_width=True):
-                        delete_employee_profile(p_email)
-                        st.success("Profile removed.")
-                        st.rerun()
-                st.markdown("<div style='margin-bottom: 16px;'></div>", unsafe_allow_html=True)
-            
-            st.markdown("---")
-            if st.button("➕ Register New Employee / Admin Profile", use_container_width=True, key="reg_new_emp_auth_btn"):
-                st.session_state.selected_profile_email = "new"
-                st.rerun()
-            
-        elif st.session_state.selected_profile_email and st.session_state.selected_profile_email != "new":
-            target_email = st.session_state.selected_profile_email
-            p_match = next((p for p in saved_profiles if p[0] == target_email), ("Employee", "", "", "Recruiter"))
-            
-            st.markdown(f"### 🔐 Sign In: {p_match[1]}")
-            st.caption("Enter your 4-digit security PIN to access portal.")
-            
-            with st.form("pin_login_form"):
-                pin_input = st.text_input("4-Digit PIN", type="password", max_chars=4, placeholder="••••")
-                submit_log = st.form_submit_button("Sign In (Press Enter)", use_container_width=True)
+                for p_email, p_name, p_pin, p_role in saved_profiles:
+                    st.markdown(f"""
+                        <div class="cyber-badge-card">
+                            <div class="cyber-top-bar">
+                                <span class="cyber-access-id">ID // {hashlib.md5(p_email.encode()).hexdigest()[:8].upper()}</span>
+                                <span class="cyber-status-dot">ONLINE</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 20px;">
+                                <div class="cyber-avatar-ring">
+                                    👤
+                                </div>
+                                <div style="flex-grow: 1;">
+                                    <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                                        <h3 class="cyber-name-title">{p_name}</h3>
+                                        <span class="cyber-role-pill">{p_role}</span>
+                                    </div>
+                                    <div class="cyber-email-mono">✉ {p_email}</div>
+                                </div>
+                            </div>
+                        </div>
+                    """, unsafe_allow_html=True)
+                    
+                    c_btn1, c_btn2 = st.columns([2.2, 1])
+                    with c_btn1:
+                        if st.button(f"🔐 Sign In as {p_name}", use_container_width=True, key=f"sel_card_{p_email}"):
+                            st.session_state.selected_profile_email = p_email
+                            st.rerun()
+                    with c_btn2:
+                        if st.button("🗑️ Delete", key=f"del_card_{p_email}", use_container_width=True):
+                            delete_employee_profile(p_email)
+                            st.success("Profile removed.")
+                            st.rerun()
+                    st.markdown("<div style='margin-bottom: 16px;'></div>", unsafe_allow_html=True)
                 
-            col_b1, col_b2 = st.columns(2)
-            if submit_log:
-                success, name, role = verify_employee_pin(target_email, pin_input)
-                if success:
-                    st.session_state.logged_in = True
-                    st.session_state.hr_name = name
-                    st.session_state.hr_email = target_email
-                    st.session_state.hr_role = role
-                    st.success(f"Welcome back, {name}!")
+                st.markdown("---")
+                if st.button("➕ Register New Employee / Admin Profile", use_container_width=True, key="reg_new_emp_auth_btn"):
+                    st.session_state.selected_profile_email = "new"
                     st.rerun()
-                else:
-                    st.error("Incorrect 4-Digit PIN. Please verify.")
-            with col_b2:
-                if st.button("Switch Profile", use_container_width=True, key="switch_prof_auth_btn"):
-                    st.session_state.selected_profile_email = None
-                    st.rerun()
-            
-        else:
-            st.markdown("### 📝 Employee / Admin Registration")
-            st.caption("Enter your credentials. First registered user automatically becomes Admin with dedicated PIN creation.")
-            
-            with st.form("registration_form"):
-                reg_name = st.text_input("Full Name", placeholder="Alex Mercer")
-                reg_email = st.text_input("Company Email", placeholder="employee@company.com")
-                reg_pass = st.text_input("Master Password", type="password")
-                submit_reg = st.form_submit_button("Send Verification OTP", use_container_width=True)
                 
-            col_r1, col_r2 = st.columns(2)
-            if submit_reg:
-                if not reg_name.strip() or not reg_email.strip() or not reg_pass.strip():
-                    st.warning("Please verify all required fields.")
-                else:
-                    success, msg = register_initial_employee(reg_name, reg_email, reg_pass)
+            elif st.session_state.selected_profile_email and st.session_state.selected_profile_email != "new":
+                target_email = st.session_state.selected_profile_email
+                p_match = next((p for p in saved_profiles if p[0] == target_email), ("Employee", "", "", "Recruiter"))
+                
+                st.markdown(f"### 🔐 Sign In: {p_match[1]}")
+                st.caption("Enter your 4-digit security PIN to access portal.")
+                
+                with st.form("pin_login_form"):
+                    pin_input = st.text_input("4-Digit PIN", type="password", max_chars=4, placeholder="••••")
+                    submit_log = st.form_submit_button("Sign In (Press Enter)", use_container_width=True)
+                    
+                col_b1, col_b2 = st.columns(2)
+                if submit_log:
+                    success, name, role = verify_employee_pin(target_email, pin_input)
                     if success:
-                        st.success(msg)
-                        st.session_state.pending_otp_email = reg_email.lower().strip()
+                        st.session_state.logged_in = True
+                        st.session_state.hr_name = name
+                        st.session_state.hr_email = target_email
+                        st.session_state.hr_role = role
+                        st.success(f"Welcome back, {name}!")
                         st.rerun()
                     else:
-                        st.error(msg)
-            with col_r2:
-                if saved_profiles and st.button("Back to Profiles", use_container_width=True, key="back_to_prof_auth_btn"):
-                    st.session_state.selected_profile_email = None
-                    st.rerun()
-            
+                        st.error("Incorrect 4-Digit PIN. Please verify.")
+                with col_b2:
+                    if st.button("Switch Profile", use_container_width=True, key="switch_prof_auth_btn"):
+                        st.session_state.selected_profile_email = None
+                        st.rerun()
+                
+            else:
+                st.markdown("### 📝 Employee / Admin Registration")
+                st.caption("Enter your credentials. First registered user automatically becomes Admin with dedicated PIN creation.")
+                
+                with st.form("registration_form"):
+                    reg_name = st.text_input("Full Name", placeholder="Alex Mercer")
+                    reg_email = st.text_input("Company Email", placeholder="employee@company.com")
+                    reg_pass = st.text_input("Master Password", type="password")
+                    submit_reg = st.form_submit_button("Send Verification OTP", use_container_width=True)
+                    
+                col_r1, col_r2 = st.columns(2)
+                if submit_reg:
+                    if not reg_name.strip() or not reg_email.strip() or not reg_pass.strip():
+                        st.warning("Please verify all required fields.")
+                    else:
+                        success, msg = register_initial_employee(reg_name, reg_email, reg_pass)
+                        if success:
+                            st.success(msg)
+                            st.session_state.pending_otp_email = reg_email.lower().strip()
+                            st.rerun()
+                        else:
+                            st.error(msg)
+                with col_r2:
+                    if saved_profiles and st.button("Back to Profiles", use_container_width=True, key="back_to_prof_auth_btn"):
+                        st.session_state.selected_profile_email = None
+                        st.rerun()
+                
     st.stop()
 
 # ===========================================================================
