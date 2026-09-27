@@ -1,8 +1,8 @@
 """
-HireMatrix Pro — Enterprise Edition v11.2 (Flawless UI & Zero Blank Containers)
+HireMatrix Pro — Enterprise Edition v11.3 (Executive Profile Card UI & Supabase)
 ========================================================================
-Features: Supabase PostgreSQL cloud integration, eliminated ghost containers, 
-vibrant neon gradient typography, dedicated Admin PIN creation, and full ATS suite.
+Features: High-profile executive badge cards, deep-neon glassmorphism, 
+Supabase PostgreSQL cloud sync, and end-to-end ATS recruitment suite.
 """
 
 import io
@@ -21,7 +21,7 @@ from groq import Groq
 from supabase import create_client, Client
 
 # ===========================================================================
-# 1. PAGE CONFIGURATION (MUST BE FIRST)
+# 1. PAGE CONFIGURATION
 # ===========================================================================
 APP_NAME = "HireMatrix Pro"
 APP_TAGLINE = "Autonomous HR Intelligence & Executive Recruitment Suite"
@@ -164,7 +164,7 @@ def delete_employee_profile(email):
         return False, f"Error: {e}"
 
 # ===========================================================================
-# 3. CLOUD CANDIDATE REPOSITORY STORAGE (SUPABASE)
+# 3. CANDIDATE REPOSITORY STORAGE (SUPABASE)
 # ===========================================================================
 def load_database():
     expected_cols = [
@@ -319,9 +319,9 @@ def generate_screening_excel(results_list) -> bytes:
     return buffer.getvalue()
 
 # ===========================================================================
-# 4. MODERN NEON STYLING (FLAWLESS & ZERO EMPTY DIVS)
+# 4. EXECUTIVE CARD & NEON GLASSMORPHISM CSS
 # ===========================================================================
-PREMIUM_NEON_CSS = """
+EXECUTIVE_CSS = """
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
 html, body, [class*="css"] { font-family: 'Inter', sans-serif !important; }
@@ -329,10 +329,9 @@ html, body, [class*="css"] { font-family: 'Inter', sans-serif !important; }
 [data-testid="stSidebar"] { display: none !important; }
 [data-testid="collapsedControl"] { display: none !important; }
 
-/* Glowing Header Typography */
 .login-header-box {
     text-align: center;
-    padding: 2.2rem 1rem 1.8rem 1rem;
+    padding: 2.2rem 1rem 1.6rem 1rem;
     margin-bottom: 1.5rem;
 }
 
@@ -353,7 +352,7 @@ html, body, [class*="css"] { font-family: 'Inter', sans-serif !important; }
     gap: 8px;
     background: rgba(14, 165, 233, 0.12);
     border: 1.5px solid rgba(56, 189, 248, 0.5);
-    padding: 8px 22px;
+    padding: 8px 24px;
     border-radius: 30px;
     font-size: 0.85rem;
     font-weight: 800;
@@ -363,40 +362,56 @@ html, body, [class*="css"] { font-family: 'Inter', sans-serif !important; }
     box-shadow: 0 0 20px rgba(14, 165, 233, 0.25);
 }
 
+/* Executive Profile Card Styling */
+.profiles-header-card {
+    background: linear-gradient(135deg, rgba(14, 165, 233, 0.15) 0%, rgba(15, 23, 42, 0.7) 100%);
+    border: 2px solid #0EA5E9;
+    border-radius: 18px;
+    padding: 1.4rem 1.8rem;
+    margin-bottom: 1.6rem;
+    box-shadow: 0 0 20px rgba(14, 165, 233, 0.25);
+}
+
+.large-profile-card {
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.85) 60%, rgba(14, 165, 233, 0.2) 100%);
+    border: 2.5px solid #0EA5E9;
+    border-radius: 20px;
+    padding: 2.2rem 2.2rem;
+    min-height: 160px;
+    margin-bottom: 1.2rem;
+    box-shadow: 0 10px 30px rgba(14, 165, 233, 0.3), inset 0 0 20px rgba(14, 165, 233, 0.15);
+    transition: all 0.3s ease;
+}
+.large-profile-card:hover {
+    border-color: #38BDF8;
+    box-shadow: 0 12px 40px rgba(14, 165, 233, 0.5);
+    transform: translateY(-2px);
+}
+
+.profile-role-badge {
+    display: inline-block;
+    background: rgba(14, 165, 233, 0.25);
+    border: 1px solid #38BDF8;
+    color: #7DD3FC;
+    padding: 4px 14px;
+    border-radius: 12px;
+    font-size: 0.78rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    margin-left: 10px;
+}
+
 /* Glassmorphism Forms */
 [data-testid="stForm"] {
-    background: rgba(15, 23, 42, 0.8) !important;
+    background: rgba(15, 23, 42, 0.85) !important;
     border: 2px solid #0EA5E9 !important;
     border-radius: 20px !important;
     padding: 2.5rem !important;
     box-shadow: 0 0 35px rgba(14, 165, 233, 0.3) !important;
 }
 
-/* Profiles List & Cards */
-.profiles-header-card {
-    background: rgba(14, 165, 233, 0.15);
-    border: 2px solid #0EA5E9;
-    border-radius: 16px;
-    padding: 1.5rem 1.8rem;
-    margin-bottom: 1.5rem;
-    box-shadow: 0 0 20px rgba(14, 165, 233, 0.2);
-}
-
-.large-profile-card {
-    background: rgba(15, 23, 42, 0.65);
-    border: 2px solid rgba(14, 165, 233, 0.6);
-    border-radius: 16px;
-    padding: 1.4rem 1.8rem;
-    margin-bottom: 0.8rem;
-    box-shadow: 0 0 15px rgba(14, 165, 233, 0.15);
-    transition: all 0.25s ease;
-}
-.large-profile-card:hover {
-    border-color: #38BDF8;
-    box-shadow: 0 0 25px rgba(14, 165, 233, 0.4);
-}
-
-/* Buttons */
+/* Styled Action Buttons */
 .stButton > button {
     background: linear-gradient(135deg, #0EA5E9 0%, #0284C7 100%) !important;
     color: #FFFFFF !important;
@@ -473,7 +488,7 @@ html, body, [class*="css"] { font-family: 'Inter', sans-serif !important; }
 .score-low { color: #DC2626 !important; font-weight: 800; }
 </style>
 """
-st.markdown(PREMIUM_NEON_CSS, unsafe_allow_html=True)
+st.markdown(EXECUTIVE_CSS, unsafe_allow_html=True)
 
 # ===========================================================================
 # 5. SESSION STATE INITIALIZATION
@@ -488,7 +503,7 @@ if "pending_pin_email" not in st.session_state: st.session_state.pending_pin_ema
 if "screening_results" not in st.session_state: st.session_state.screening_results = []
 
 # ===========================================================================
-# 6. AUTHENTICATION & LOGIN SCREEN (NO GHOST CONTAINERS)
+# 6. AUTHENTICATION & LOGIN SCREEN
 # ===========================================================================
 if not st.session_state.logged_in:
     saved_profiles = get_all_verified_profiles()
@@ -553,7 +568,7 @@ if not st.session_state.logged_in:
         elif saved_profiles and not st.session_state.selected_profile_email:
             st.markdown("""
                 <div class="profiles-header-card">
-                    <h3 style="margin: 0 0 0.4rem 0; font-size: 1.35rem; font-weight: 800; color: #38BDF8;">👥 Saved Employee Profiles</h3>
+                    <h3 style="margin: 0 0 0.3rem 0; font-size: 1.35rem; font-weight: 800; color: #38BDF8;">👥 Saved Employee Profiles</h3>
                     <p style="font-size: 0.85rem; opacity: 0.9; margin: 0;">Select your secure profile card below to sign in instantly:</p>
                 </div>
             """, unsafe_allow_html=True)
@@ -561,10 +576,16 @@ if not st.session_state.logged_in:
             for p_email, p_name, p_pin, p_role in saved_profiles:
                 st.markdown(f"""
                     <div class="large-profile-card">
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <div>
-                                <h4 style="margin: 0 0 4px 0; font-size: 1.25rem; color: #38BDF8;">👤 {p_name}</h4>
-                                <p style="margin: 0; font-size: 0.85rem; opacity: 0.85;">✉️ <code>{p_email}</code> &bull; Role: <b>{p_role}</b></p>
+                        <div style="display: flex; align-items: center; gap: 20px;">
+                            <div style="background: linear-gradient(135deg, #0EA5E9, #6366F1); width: 62px; height: 62px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.9rem; box-shadow: 0 0 18px rgba(14, 165, 233, 0.55); flex-shrink: 0;">
+                                👤
+                            </div>
+                            <div style="flex-grow: 1;">
+                                <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                                    <h3 style="margin: 0; font-size: 1.55rem; font-weight: 800; color: #FFFFFF; text-shadow: 0 0 12px rgba(56, 189, 248, 0.5);">{p_name}</h3>
+                                    <span class="profile-role-badge">{p_role}</span>
+                                </div>
+                                <p style="margin: 8px 0 0 0; font-size: 0.92rem; color: #94A3B8;">✉️ <code style="color: #38BDF8; background: rgba(14, 165, 233, 0.15); padding: 3px 10px; border-radius: 6px; font-weight: 600;">{p_email}</code></p>
                             </div>
                         </div>
                     </div>
@@ -580,7 +601,7 @@ if not st.session_state.logged_in:
                         delete_employee_profile(p_email)
                         st.success("Profile removed.")
                         st.rerun()
-                st.markdown("<div style='margin-bottom: 12px;'></div>", unsafe_allow_html=True)
+                st.markdown("<div style='margin-bottom: 16px;'></div>", unsafe_allow_html=True)
             
             st.markdown("---")
             if st.button("➕ Register New Employee / Admin Profile", use_container_width=True, key="reg_new_emp_auth_btn"):
@@ -1098,7 +1119,7 @@ with tab3:
     st.markdown("</div>", unsafe_allow_html=True)
 
 with tab4:
-    st.markdown('<div class="corp-card"><h4>🛡️ Admin Access & Employee Management</h4>', unsafe_allow_html=True)
+    st.markdown('<div class="corp-card"><h4>🛡️ Admin Access & Employee Management</h4></div>', unsafe_allow_html=True)
     
     if st.session_state.get('hr_role') != "Admin":
         st.error("⛔ **Access Denied**: You do not have Administrator privileges to view this control panel.")
