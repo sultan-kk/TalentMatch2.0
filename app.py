@@ -835,13 +835,13 @@ if not st.session_state.logged_in:
                         </div>
                     """, unsafe_allow_html=True)
                     
-                    c_btn1, c_btn2 = st.columns([3.4, 2.2])
+                    c_btn1, c_btn2 = st.columns([3, 1.2])
                     with c_btn1:
                         if st.button(f"🔐 Sign In as {p_name}", use_container_width=True, key=f"sel_card_{p_email}"):
                             st.session_state.selected_profile_email = p_email
                             st.rerun()
                     with c_btn2:
-                        if st.button("🗑️ Delete", key=f"del_card_{p_email}", use_container_width=True):
+                        if st.button("🗑️ Delete", use_container_width=True, key=f"del_card_{p_email}"):
                             delete_employee_profile(p_email)
                             st.success("Profile removed.")
                             st.rerun()
