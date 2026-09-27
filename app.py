@@ -1,8 +1,8 @@
 """
-HireMatrix Pro — Enterprise Edition v11.1 (Forced Layout & Clean Cache Fix)
+HireMatrix Pro — Enterprise Edition v11.2 (Flawless UI & Zero Blank Containers)
 ========================================================================
-Features: Supabase PostgreSQL cloud integration, clean header structure, 
-Stunning Neon glassmorphic form UI, dedicated Admin PIN creation, and complete ATS workflow.
+Features: Supabase PostgreSQL cloud integration, eliminated ghost containers, 
+vibrant neon gradient typography, dedicated Admin PIN creation, and full ATS suite.
 """
 
 import io
@@ -21,7 +21,7 @@ from groq import Groq
 from supabase import create_client, Client
 
 # ===========================================================================
-# PAGE CONFIG (MUST BE THE FIRST STREAMLIT COMMAND)
+# 1. PAGE CONFIGURATION (MUST BE FIRST)
 # ===========================================================================
 APP_NAME = "HireMatrix Pro"
 APP_TAGLINE = "Autonomous HR Intelligence & Executive Recruitment Suite"
@@ -36,7 +36,7 @@ st.set_page_config(
 )
 
 # ===========================================================================
-# SUPABASE CLOUD DATABASE CONNECTION
+# 2. SUPABASE CLOUD DATABASE CONNECTION
 # ===========================================================================
 @st.cache_resource
 def init_supabase():
@@ -45,7 +45,7 @@ def init_supabase():
         key = st.secrets["SUPABASE_KEY"]
         return create_client(url, key)
     except Exception as e:
-        st.error(f"⚠️ Supabase Connection Error: Please ensure SUPABASE_URL and SUPABASE_KEY are correctly added in Streamlit Secrets. Details: {e}")
+        st.error(f"⚠️ Supabase Connection Error: Please ensure SUPABASE_URL and SUPABASE_KEY are in Streamlit Secrets. Details: {e}")
         return None
 
 supabase: Client = init_supabase()
@@ -164,7 +164,7 @@ def delete_employee_profile(email):
         return False, f"Error: {e}"
 
 # ===========================================================================
-# CLOUD CANDIDATE REPOSITORY STORAGE (SUPABASE)
+# 3. CLOUD CANDIDATE REPOSITORY STORAGE (SUPABASE)
 # ===========================================================================
 def load_database():
     expected_cols = [
@@ -272,7 +272,6 @@ def generate_repository_excel(df: pd.DataFrame) -> bytes:
     
     with pd.ExcelWriter(buffer, engine="openpyxl") as writer:
         export_df.to_excel(writer, index=False, sheet_name="Talent_Repository")
-        
         worksheet = writer.sheets["Talent_Repository"]
         worksheet.freeze_panes = "A2"
         for col in worksheet.columns:
@@ -307,7 +306,6 @@ def generate_screening_excel(results_list) -> bytes:
     export_df = pd.DataFrame(data)
     with pd.ExcelWriter(buffer, engine="openpyxl") as writer:
         export_df.to_excel(writer, index=False, sheet_name="Screened_Results")
-        
         worksheet = writer.sheets["Screened_Results"]
         worksheet.freeze_panes = "A2"
         for col in worksheet.columns:
@@ -321,50 +319,103 @@ def generate_screening_excel(results_list) -> bytes:
     return buffer.getvalue()
 
 # ===========================================================================
-# FRESH CLEAN CSS (REMOVED UNWANTED CONTAINERS & DARK BOXES)
+# 4. MODERN NEON STYLING (FLAWLESS & ZERO EMPTY DIVS)
 # ===========================================================================
-FRESH_CSS = """
+PREMIUM_NEON_CSS = """
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
 html, body, [class*="css"] { font-family: 'Inter', sans-serif !important; }
 
 [data-testid="stSidebar"] { display: none !important; }
 [data-testid="collapsedControl"] { display: none !important; }
 
-/* Hide Streamlit default status boxes & empty alerts */
-.stStatusWidget, [data-testid="stStatusWidget"], .stAlert:empty {
-    display: none !important;
-}
-
-.login-title-box {
+/* Glowing Header Typography */
+.login-header-box {
     text-align: center;
-    padding: 1.5rem 0;
-    margin-bottom: 2rem;
+    padding: 2.2rem 1rem 1.8rem 1rem;
+    margin-bottom: 1.5rem;
 }
 
 .login-title-text {
-    font-size: 3.2rem;
+    font-size: 3.8rem;
     font-weight: 900;
-    color: #38BDF8;
-    margin: 0 0 10px 0;
-    text-shadow: 0 0 25px rgba(56, 189, 248, 0.5);
+    background: linear-gradient(135deg, #38BDF8 0%, #818CF8 50%, #C084FC 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin: 0 0 14px 0;
+    letter-spacing: -1.2px;
+    filter: drop-shadow(0 0 25px rgba(56, 189, 248, 0.45));
 }
 
 .login-subtitle-badge {
-    display: inline-block;
-    background: rgba(56, 189, 248, 0.15);
-    border: 1px solid #38BDF8;
-    padding: 6px 20px;
-    border-radius: 20px;
-    font-size: 0.82rem;
-    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(14, 165, 233, 0.12);
+    border: 1.5px solid rgba(56, 189, 248, 0.5);
+    padding: 8px 22px;
+    border-radius: 30px;
+    font-size: 0.85rem;
+    font-weight: 800;
     text-transform: uppercase;
-    letter-spacing: 1.5px;
-    color: #7DD3FC;
+    letter-spacing: 2px;
+    color: #38BDF8;
+    box-shadow: 0 0 20px rgba(14, 165, 233, 0.25);
 }
 
+/* Glassmorphism Forms */
+[data-testid="stForm"] {
+    background: rgba(15, 23, 42, 0.8) !important;
+    border: 2px solid #0EA5E9 !important;
+    border-radius: 20px !important;
+    padding: 2.5rem !important;
+    box-shadow: 0 0 35px rgba(14, 165, 233, 0.3) !important;
+}
+
+/* Profiles List & Cards */
+.profiles-header-card {
+    background: rgba(14, 165, 233, 0.15);
+    border: 2px solid #0EA5E9;
+    border-radius: 16px;
+    padding: 1.5rem 1.8rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 0 20px rgba(14, 165, 233, 0.2);
+}
+
+.large-profile-card {
+    background: rgba(15, 23, 42, 0.65);
+    border: 2px solid rgba(14, 165, 233, 0.6);
+    border-radius: 16px;
+    padding: 1.4rem 1.8rem;
+    margin-bottom: 0.8rem;
+    box-shadow: 0 0 15px rgba(14, 165, 233, 0.15);
+    transition: all 0.25s ease;
+}
+.large-profile-card:hover {
+    border-color: #38BDF8;
+    box-shadow: 0 0 25px rgba(14, 165, 233, 0.4);
+}
+
+/* Buttons */
+.stButton > button {
+    background: linear-gradient(135deg, #0EA5E9 0%, #0284C7 100%) !important;
+    color: #FFFFFF !important;
+    border: 2px solid #38BDF8 !important;
+    border-radius: 12px !important;
+    font-weight: 700 !important;
+    padding: 0.65rem 1.5rem !important;
+    box-shadow: 0 0 15px rgba(14, 165, 233, 0.35);
+    transition: all 0.2s ease-in-out;
+}
+.stButton > button:hover {
+    border-color: #BAE6FD !important;
+    box-shadow: 0 0 25px rgba(14, 165, 233, 0.6);
+    transform: translateY(-1px);
+}
+
+/* Portal Navbar & Dashboard */
 .top-navbar {
-    background: linear-gradient(135deg, rgba(14, 165, 233, 0.15) 0%, rgba(15, 23, 42, 0.8) 100%);
+    background: linear-gradient(135deg, rgba(14, 165, 233, 0.15) 0%, rgba(15, 23, 42, 0.85) 100%);
     border: 2px solid #0EA5E9;
     border-radius: 16px;
     padding: 1.2rem 2rem;
@@ -374,47 +425,13 @@ html, body, [class*="css"] { font-family: 'Inter', sans-serif !important; }
     align-items: center;
     box-shadow: 0 0 25px rgba(14, 165, 233, 0.35);
 }
-
 .top-brand-title {
-    font-size: 1.6rem; font-weight: 800; color: #38BDF8; margin: 0; letter-spacing: -0.5px;
+    font-size: 1.6rem; font-weight: 800; color: #38BDF8; margin: 0;
     display: flex; align-items: center; gap: 10px;
     text-shadow: 0 0 12px rgba(14, 165, 233, 0.5);
 }
 .top-brand-subtitle {
-    font-size: 0.72rem; text-transform: uppercase; letter-spacing: 1.4px; font-weight: 700; color: #94A3B8; margin: 0;
-}
-
-.auth-form-card {
-    background: rgba(15, 23, 42, 0.85);
-    border: 2px solid #0EA5E9;
-    border-radius: 24px;
-    padding: 2.8rem;
-    box-shadow: 0 0 35px rgba(14, 165, 233, 0.35);
-    max-width: 650px;
-    margin: 0 auto;
-}
-
-.auth-form-card h3 {
-    color: #38BDF8 !important;
-    font-weight: 800 !important;
-}
-
-.large-profile-card {
-    background: rgba(14, 165, 233, 0.08);
-    border: 2px solid rgba(14, 165, 233, 0.5);
-    border-radius: 16px;
-    padding: 1.4rem 1.8rem;
-    margin-bottom: 1.2rem;
-}
-
-.stButton > button {
-    background: linear-gradient(135deg, #0EA5E9 0%, #0284C7 100%) !important;
-    color: #FFFFFF !important;
-    border: 2px solid #38BDF8 !important;
-    border-radius: 12px !important;
-    font-weight: 700 !important;
-    padding: 0.6rem 1.5rem !important;
-    box-shadow: 0 0 12px rgba(14, 165, 233, 0.3);
+    font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1.4px; font-weight: 700; color: #94A3B8; margin: 0;
 }
 
 .corp-hero {
@@ -423,7 +440,15 @@ html, body, [class*="css"] { font-family: 'Inter', sans-serif !important; }
     border-radius: 16px;
     padding: 2.2rem 2.8rem;
     margin-bottom: 2rem;
+    box-shadow: 0 0 30px rgba(14, 165, 233, 0.25);
     border-left: 6px solid #0EA5E9;
+}
+.corp-badge {
+    display: inline-flex; align-items: center; gap: 8px; 
+    background: rgba(14, 165, 233, 0.25); color: #38BDF8; 
+    padding: 6px 16px; border-radius: 8px;
+    font-size: 0.78rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 0.9rem;
+    border: 1px solid rgba(14, 165, 233, 0.5);
 }
 .corp-card {
     background: var(--background-color);
@@ -431,6 +456,7 @@ html, body, [class*="css"] { font-family: 'Inter', sans-serif !important; }
     border-radius: 16px;
     padding: 1.8rem;
     margin-bottom: 1.5rem;
+    box-shadow: 0 0 20px rgba(14, 165, 233, 0.15);
 }
 .metric-box {
     background: var(--secondary-background-color);
@@ -439,7 +465,7 @@ html, body, [class*="css"] { font-family: 'Inter', sans-serif !important; }
     padding: 1.2rem;
     text-align: center;
 }
-.metric-box .val { font-size: 1.8rem; font-weight: 800; color: #38BDF8; }
+.metric-box .val { font-size: 1.8rem; font-weight: 800; color: #38BDF8; text-shadow: 0 0 10px rgba(14, 165, 233, 0.4); }
 .metric-box .lbl { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; font-weight: 700; opacity: 0.85; }
 
 .score-high { color: #10B981 !important; font-weight: 800; }
@@ -447,10 +473,10 @@ html, body, [class*="css"] { font-family: 'Inter', sans-serif !important; }
 .score-low { color: #DC2626 !important; font-weight: 800; }
 </style>
 """
-st.markdown(FRESH_CSS, unsafe_allow_html=True)
+st.markdown(PREMIUM_NEON_CSS, unsafe_allow_html=True)
 
 # ===========================================================================
-# SESSION STATE SAFE INITIALIZATION
+# 5. SESSION STATE INITIALIZATION
 # ===========================================================================
 if "logged_in" not in st.session_state: st.session_state.logged_in = False
 if "hr_name" not in st.session_state: st.session_state.hr_name = ""
@@ -462,24 +488,22 @@ if "pending_pin_email" not in st.session_state: st.session_state.pending_pin_ema
 if "screening_results" not in st.session_state: st.session_state.screening_results = []
 
 # ===========================================================================
-# AUTHENTICATION SCREEN
+# 6. AUTHENTICATION & LOGIN SCREEN (NO GHOST CONTAINERS)
 # ===========================================================================
 if not st.session_state.logged_in:
     saved_profiles = get_all_verified_profiles()
     
     st.markdown(f"""
-        <div class="login-title-box">
+        <div class="login-header-box">
             <h1 class="login-title-text">{APP_NAME}</h1>
             <div class="login-subtitle-badge">
-                {APP_TAGLINE}
+                <span>⚡</span> {APP_TAGLINE} <span>⚡</span>
             </div>
         </div>
     """, unsafe_allow_html=True)
     
-    col_c1, col_c2, col_c3 = st.columns([1, 2.4, 1])
+    col_c1, col_c2, col_c3 = st.columns([1, 2.2, 1])
     with col_c2:
-        st.markdown('<div class="auth-form-card">', unsafe_allow_html=True)
-        
         if st.session_state.pending_pin_email:
             st.markdown("### 🔐 Dedicated Admin & Employee PIN Setup")
             st.info(f"Email verified for **{st.session_state.pending_pin_email}**. Please create your confidential 4-digit security PIN.")
@@ -528,9 +552,9 @@ if not st.session_state.logged_in:
             
         elif saved_profiles and not st.session_state.selected_profile_email:
             st.markdown("""
-                <div style="background: rgba(14, 165, 233, 0.15); border: 2px solid #0EA5E9; border-radius: 16px; padding: 1.5rem; margin-bottom: 1.5rem;">
-                    <h3 style="margin-top: 0; margin-bottom: 0.3rem; font-size: 1.3rem; font-weight: 800; color: #38BDF8;">👥 Saved Employee Profiles</h3>
-                    <p style="font-size: 0.85rem; opacity: 0.9; margin-bottom: 0;">Select your secure profile card below to sign in instantly:</p>
+                <div class="profiles-header-card">
+                    <h3 style="margin: 0 0 0.4rem 0; font-size: 1.35rem; font-weight: 800; color: #38BDF8;">👥 Saved Employee Profiles</h3>
+                    <p style="font-size: 0.85rem; opacity: 0.9; margin: 0;">Select your secure profile card below to sign in instantly:</p>
                 </div>
             """, unsafe_allow_html=True)
             
@@ -539,8 +563,8 @@ if not st.session_state.logged_in:
                     <div class="large-profile-card">
                         <div style="display: flex; justify-content: space-between; align-items: center;">
                             <div>
-                                <h4 style="margin: 0 0 4px 0; font-size: 1.2rem; color: #38BDF8;">👤 {p_name}</h4>
-                                <p style="margin: 0; font-size: 0.82rem; opacity: 0.85;">✉️ <code>{p_email}</code> &bull; Role: <b>{p_role}</b></p>
+                                <h4 style="margin: 0 0 4px 0; font-size: 1.25rem; color: #38BDF8;">👤 {p_name}</h4>
+                                <p style="margin: 0; font-size: 0.85rem; opacity: 0.85;">✉️ <code>{p_email}</code> &bull; Role: <b>{p_role}</b></p>
                             </div>
                         </div>
                     </div>
@@ -617,13 +641,11 @@ if not st.session_state.logged_in:
                 if saved_profiles and st.button("Back to Profiles", use_container_width=True, key="back_to_prof_auth_btn"):
                     st.session_state.selected_profile_email = None
                     st.rerun()
-                    
-        st.markdown('</div>', unsafe_allow_html=True)
             
     st.stop()
 
 # ===========================================================================
-# TEXT EXTRACTION & OCR
+# 7. TEXT EXTRACTION & OCR
 # ===========================================================================
 def extract_text_from_image(file_bytes: bytes) -> str:
     import pytesseract
@@ -680,7 +702,7 @@ def extract_resume_text(uploaded_file):
     return None
 
 # ===========================================================================
-# GROQ AI INTEGRATION
+# 8. GROQ AI INTEGRATION
 # ===========================================================================
 def build_repository_extraction_prompt(resume_text: str) -> str:
     return f"""You are an expert HR AI assistant. Extract candidate profile information from the following resume.
@@ -782,24 +804,23 @@ def generate_ai_interview_questions(client, skills_text: str, job_title: str) ->
         return f"Could not generate interview questions: {e}"
 
 # ===========================================================================
-# TOP NAVIGATION BAR & DASHBOARD INTERFACE
+# 9. PORTAL NAVIGATION BAR & DASHBOARD
 # ===========================================================================
 df_all = load_database()
 total_repo_db = len(df_all)
 latest_candidate = df_all.iloc[-1]["Candidate Name"] if not df_all.empty else "None"
 
-# Top Navbar Render with Top-Left Title and Controls
-st.markdown(f"""
-    <div class="top-navbar">
-        <div>
-            <h2 class="top-brand-title">💼 {APP_NAME}</h2>
-            <p class="top-brand-subtitle">Autonomous HR Intelligence &bull; Active: <b>{st.session_state.get('hr_name', 'Recruiter')}</b> ({st.session_state.get('hr_email', 'admin@company.com')}) &bull; Role: <b>{st.session_state.get('hr_role', 'Recruiter')}</b></p>
+col_n1, col_n2 = st.columns([8, 2])
+with col_n1:
+    st.markdown(f"""
+        <div class="top-navbar">
+            <div>
+                <h2 class="top-brand-title">💼 {APP_NAME}</h2>
+                <p class="top-brand-subtitle">Autonomous HR Intelligence &bull; Active: <b>{st.session_state.get('hr_name', 'Recruiter')}</b> ({st.session_state.get('hr_email', 'admin@company.com')}) &bull; Role: <b>{st.session_state.get('hr_role', 'Recruiter')}</b></p>
+            </div>
         </div>
-        <div style="display: flex; gap: 10px; align-items: center;">
-""", unsafe_allow_html=True)
-
-col_nav1, col_nav2 = st.columns([8, 2])
-with col_nav2:
+    """, unsafe_allow_html=True)
+with col_n2:
     if st.button("🚪 Lock Portal", use_container_width=True, key="lock_portal_btn_top"):
         st.session_state.logged_in = False
         st.session_state.hr_name = ""
@@ -809,9 +830,6 @@ with col_nav2:
         st.session_state.screening_results = []
         st.rerun()
 
-st.markdown("</div></div>", unsafe_allow_html=True)
-
-# --- HERO BANNER ---
 st.markdown(f"""
     <div class="corp-hero">
         <div class="corp-badge">
