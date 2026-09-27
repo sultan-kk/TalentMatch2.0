@@ -45,12 +45,6 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="collapsed",
 )
-st.set_page_config(
-    page_title=f"{APP_NAME} | Executive Portal",
-    page_icon="💼",
-    layout="wide",
-    initial_sidebar_state="collapsed",
-)
 
 # ===========================================================================
 # 2. SUPABASE CLOUD DATABASE CONNECTION
