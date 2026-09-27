@@ -1111,13 +1111,32 @@ df_all = load_database()
 total_repo_db = len(df_all)
 latest_candidate = df_all.iloc[-1]["Candidate Name"] if not df_all.empty else "None"
 
-col_n1, col_n2 = st.columns([8, 2])
+col_n1, col_n2 = st.columns([8.2, 1.8], vertical_alignment="center")
 with col_n1:
     st.markdown(f"""
-        <div class="top-navbar">
+        <div class="top-navbar" style="display: flex; align-items: center; gap: 16px;">
+            <!-- Glowing Cyber Emblem Logo -->
+            <div style="
+                width: 48px; 
+                height: 48px; 
+                border-radius: 14px; 
+                background: linear-gradient(135deg, rgba(0, 242, 254, 0.18) 0%, rgba(15, 23, 42, 0.9) 100%);
+                border: 2px solid #00F2FE;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                box-shadow: 0 0 20px rgba(0, 242, 254, 0.45), inset 0 0 10px rgba(0, 242, 254, 0.2);
+                flex-shrink: 0;
+            ">
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#00F2FE" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                    <polyline points="2 17 12 22 22 17"></polyline>
+                    <polyline points="2 12 12 17 22 12"></polyline>
+                </svg>
+            </div>
             <div>
-                <h2 class="top-brand-title">💼 {APP_NAME}</h2>
-                <p class="top-brand-subtitle">Autonomous HR Intelligence &bull; Active: <b>{st.session_state.get('hr_name', 'Recruiter')}</b> ({st.session_state.get('hr_email', 'admin@company.com')}) &bull; Role: <b>{st.session_state.get('hr_role', 'Recruiter')}</b></p>
+                <h2 class="top-brand-title" style="margin: 0; font-size: 1.55rem; color: #00F2FE; text-shadow: 0 0 16px rgba(0, 242, 254, 0.5);">HireMatrix <span style="color: #38BDF8;">Pro</span></h2>
+                <p class="top-brand-subtitle" style="margin: 4px 0 0 0;">Autonomous HR Intelligence &bull; Active: <b>{st.session_state.get('hr_name', 'Recruiter')}</b> ({st.session_state.get('hr_email', 'admin@company.com')}) &bull; Role: <b>{st.session_state.get('hr_role', 'Recruiter')}</b></p>
             </div>
         </div>
     """, unsafe_allow_html=True)
