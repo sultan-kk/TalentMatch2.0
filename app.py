@@ -491,6 +491,7 @@ html, body, [class*="css"] { font-family: 'Inter', sans-serif !important; }
 .score-mid { color: #D97706 !important; font-weight: 800; }
 .score-low { color: #DC2626 !important; font-weight: 800; }
 </style>
+"""
 st.markdown(ULTRA_NEON_CSS, unsafe_allow_html=True)
 
 # ===========================================================================
@@ -512,7 +513,7 @@ if not st.session_state.logged_in:
     saved_profiles = get_all_verified_profiles()
     
     st.markdown(f"""
-        <div class="login-header-container">
+         <div class="login-header-container">
             <h1 class="login-main-title">{APP_NAME}</h1>
             <div class="login-tagline-badge">
                 <span>⚡</span> {APP_TAGLINE} <span>⚡</span>
