@@ -1,8 +1,8 @@
 """
-HireMatrix Pro — Enterprise Edition v10.78 (Top Navbar & Live Excel Grid)
+HireMatrix Pro — Enterprise Edition v10.79 (Final Optimized Master)
 ========================================================================
-Features: Converted sidebar into a sleek top Navigation Bar, top-left corner app title, 
-Live embedded Excel-style data grid view, seamless data appending, and complete ATS workflow.
+Features: Top Navbar layout, Top-Left App Title, Live Embedded Excel Table Grid view, 
+Seamless data appending, and complete ATS workflow.
 """
 
 import io
@@ -783,7 +783,7 @@ df_all = load_database()
 total_repo_db = len(df_all)
 latest_candidate = df_all.iloc[-1]["Candidate Name"] if not df_all.empty else "None"
 
-# Top Navbar Render
+# Top Navbar Render with Top-Left Title and Controls
 st.markdown(f"""
     <div class="top-navbar">
         <div>
