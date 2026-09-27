@@ -334,52 +334,57 @@ html, body, [class*="css"] {
 [data-testid="stSidebar"] { display: none !important; }
 [data-testid="collapsedControl"] { display: none !important; }
 
-/* Futuristic High-Contrast Glowing Header */
+/* Futuristic Dual-Tone High-Contrast Header */
 .cyber-header-box {
     text-align: center;
-    padding: 2.4rem 1rem 1.6rem 1rem;
-    margin-bottom: 1.5rem;
+    padding: 2rem 1rem 1.4rem 1rem;
+    margin-bottom: 1.2rem;
 }
 
 .cyber-title {
-    font-size: 3.8rem;
-    font-weight: 900;
-    letter-spacing: -1.5px;
-    /* Deep Midnight Navy into Vivid Electric Cyan */
-    background: linear-gradient(135deg, #0B192C 0%, #008DDA 45%, #00F2FE 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    margin: 0 0 12px 0;
-    filter: drop-shadow(0 4px 16px rgba(0, 141, 218, 0.35));
+    font-size: 3.6rem !important;
+    font-weight: 900 !important;
+    letter-spacing: -1.2px !important;
+    color: #0F172A !important;
+    margin: 0 0 10px 0 !important;
+    background: none !important;
+    -webkit-text-fill-color: initial !important;
+}
+
+.cyber-title-pro {
+    color: #00B4D8 !important;
+    text-shadow: 0 0 20px rgba(0, 180, 216, 0.45) !important;
 }
 
 .cyber-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-    background: rgba(0, 141, 218, 0.08);
-    border: 1.5px solid #008DDA;
-    padding: 8px 24px;
-    border-radius: 30px;
-    font-size: 0.82rem;
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    color: #0369A1;
-    box-shadow: 0 4px 15px rgba(0, 141, 218, 0.18);
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    background: rgba(0, 180, 216, 0.08) !important;
+    border: 1.5px solid #00B4D8 !important;
+    padding: 6px 22px !important;
+    border-radius: 30px !important;
+    font-size: 0.8rem !important;
+    font-weight: 800 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 2px !important;
+    color: #0284C7 !important;
+    box-shadow: 0 2px 12px rgba(0, 180, 216, 0.15) !important;
 }
 
-/* Agar dark mode ho toh automatic glowing neon cyan switch ho jaye */
 @media (prefers-color-scheme: dark) {
     .cyber-title {
-        background: linear-gradient(135deg, #FFFFFF 0%, #38BDF8 50%, #00F2FE 100%);
-        filter: drop-shadow(0 0 25px rgba(0, 242, 254, 0.55));
+        color: #F8FAFC !important;
+    }
+    .cyber-title-pro {
+        color: #00F2FE !important;
+        text-shadow: 0 0 25px rgba(0, 242, 254, 0.6) !important;
     }
     .cyber-badge {
-        background: rgba(0, 242, 254, 0.12);
-        border-color: #00F2FE;
-        color: #00F2FE;
-        box-shadow: 0 0 18px rgba(0, 242, 254, 0.3);
+        background: rgba(0, 242, 254, 0.12) !important;
+        border-color: #00F2FE !important;
+        color: #00F2FE !important;
+        box-shadow: 0 0 18px rgba(0, 242, 254, 0.3) !important;
     }
 }
 
@@ -610,7 +615,7 @@ if not st.session_state.logged_in:
     
     st.markdown(f"""
         <div class="cyber-header-box">
-            <h1 class="cyber-title">{APP_NAME}</h1>
+            <h1 class="cyber-title">HireMatrix <span class="cyber-title-pro">Pro</span></h1>
             <div class="cyber-badge">
                 <span>◈</span> {APP_TAGLINE} <span>◈</span>
             </div>
