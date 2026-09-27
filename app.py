@@ -29,7 +29,22 @@ APP_NAME = "HireMatrix Pro"
 APP_TAGLINE = "Autonomous HR Intelligence & Executive Recruitment Suite"
 GROQ_MODEL = "openai/gpt-oss-120b"
 ACCEPTED_TYPES = ["pdf", "docx", "png", "jpg", "jpeg"]
+from PIL import Image, ImageDraw
 
+def get_cyber_favicon():
+    img = Image.new("RGBA", (64, 64), (11, 19, 43, 255))
+    draw = ImageDraw.Draw(img)
+    # Glowing Cyan Diamond / Matrix Icon
+    draw.polygon([(32, 6), (58, 32), (32, 58), (6, 32)], outline=(0, 242, 254), width=4)
+    draw.polygon([(32, 18), (46, 32), (32, 46), (18, 32)], fill=(0, 242, 254))
+    return img
+
+st.set_page_config(
+    page_title=f"{APP_NAME} | Executive Portal",
+    page_icon=get_cyber_favicon(),
+    layout="wide",
+    initial_sidebar_state="collapsed",
+)
 st.set_page_config(
     page_title=f"{APP_NAME} | Executive Portal",
     page_icon="💼",
