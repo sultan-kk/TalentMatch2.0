@@ -699,6 +699,26 @@ if not st.session_state.logged_in:
     
     st.markdown(f"""
         <div class="cyber-header-box">
+            <!-- Glowing Cyber Emblem Logo -->
+            <div style="display: flex; justify-content: center; margin-bottom: 12px;">
+                <div style="
+                    width: 70px; 
+                    height: 70px; 
+                    border-radius: 18px; 
+                    background: linear-gradient(135deg, rgba(0, 242, 254, 0.15) 0%, rgba(15, 23, 42, 0.9) 100%);
+                    border: 2px solid #00F2FE;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    box-shadow: 0 0 25px rgba(0, 242, 254, 0.4), inset 0 0 15px rgba(0, 242, 254, 0.2);
+                ">
+                    <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="#00F2FE" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                        <polyline points="2 17 12 22 22 17"></polyline>
+                        <polyline points="2 12 12 17 22 12"></polyline>
+                    </svg>
+                </div>
+            </div>
             <h1 class="cyber-title">HireMatrix <span class="cyber-title-pro">Pro</span></h1>
             <div class="cyber-badge">
                 <span>◈</span> {APP_TAGLINE} <span>◈</span>
