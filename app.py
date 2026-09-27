@@ -1,8 +1,8 @@
 """
-HireMatrix Pro — Enterprise Edition v11.5 (Adaptive Dual-Theme: Neon Blue & Executive Gold)
+HireMatrix Pro — Enterprise Edition v11.6 (Minimal Executive Indigo & Slate)
 ========================================================================
-Features: Automatic Light/Dark mode styling, enhanced dual-pass OCR,
-Supabase PostgreSQL cloud sync, and complete ATS recruitment workflow.
+Features: Native adaptive Streamlit theme matching, elegant Royal Indigo palette,
+dual-pass OCR for colored banners, and full Supabase cloud integration.
 """
 
 import io
@@ -47,7 +47,7 @@ def init_supabase():
         key = st.secrets["SUPABASE_KEY"]
         return create_client(url, key)
     except Exception as e:
-        st.error(f"⚠️ Supabase Connection Error: Please ensure SUPABASE_URL and SUPABASE_KEY are in Streamlit Secrets. Details: {e}")
+        st.error(f"⚠️ Supabase Connection Error: Please verify SUPABASE_URL and SUPABASE_KEY in Streamlit Secrets. Details: {e}")
         return None
 
 supabase: Client = init_supabase()
@@ -321,206 +321,162 @@ def generate_screening_excel(results_list) -> bytes:
     return buffer.getvalue()
 
 # ===========================================================================
-# 4. DYNAMIC ADAPTIVE THEME CSS (LIGHT: NEON BLUE | DARK: WARM AMBER GOLD)
+# 4. ELEGANT EXECUTIVE INDIGO CSS (CLEAN, MINIMAL & UNIVERSAL)
 # ===========================================================================
-ADAPTIVE_THEME_CSS = """
+ELEGANT_THEME_CSS = """
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
-html, body, [class*="css"] { font-family: 'Inter', sans-serif !important; }
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+html, body, [class*="css"] {
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif !important;
+}
 
 [data-testid="stSidebar"] { display: none !important; }
 [data-testid="collapsedControl"] { display: none !important; }
 
-/* -------------------------------------------------------------
-   DEFAULT / LIGHT MODE THEME: Vibrant Neon Blue
-   ------------------------------------------------------------- */
-:root {
-    --hm-primary: #0EA5E9;
-    --hm-secondary: #0284C7;
-    --hm-title-grad: linear-gradient(135deg, #0284C7 0%, #2563EB 50%, #7C3AED 100%);
-    --hm-header-bg: linear-gradient(135deg, rgba(14, 165, 233, 0.12) 0%, rgba(240, 249, 255, 0.8) 100%);
-    --hm-badge-bg: rgba(14, 165, 233, 0.15);
-    --hm-badge-border: #0EA5E9;
-    --hm-badge-text: #0284C7;
-    --hm-card-bg: linear-gradient(135deg, #FFFFFF 0%, #F0F9FF 60%, rgba(14, 165, 233, 0.15) 100%);
-    --hm-card-border: #0EA5E9;
-    --hm-card-shadow: 0 10px 30px rgba(14, 165, 233, 0.25);
-    --hm-card-title: #0F172A;
-    --hm-role-bg: rgba(14, 165, 233, 0.15);
-    --hm-role-border: #0EA5E9;
-    --hm-role-text: #0369A1;
-    --hm-email-code: #0284C7;
-    --hm-email-bg: rgba(14, 165, 233, 0.12);
-    --hm-avatar-bg: linear-gradient(135deg, #0EA5E9, #2563EB);
-    --hm-btn-bg: linear-gradient(135deg, #0EA5E9 0%, #0284C7 100%);
-    --hm-btn-border: #38BDF8;
-}
-
-/* -------------------------------------------------------------
-   DARK MODE ADAPTIVE THEME: Executive Royal Warm Gold & Charcoal
-   ------------------------------------------------------------- */
-@media (prefers-color-scheme: dark) {
-    :root {
-        --hm-primary: #F59E0B;
-        --hm-secondary: #D97706;
-        --hm-title-grad: linear-gradient(135deg, #FBBF24 0%, #F59E0B 50%, #FB7185 100%);
-        --hm-header-bg: linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(24, 24, 27, 0.8) 100%);
-        --hm-badge-bg: rgba(245, 158, 11, 0.2);
-        --hm-badge-border: #F59E0B;
-        --hm-badge-text: #FCD34D;
-        --hm-card-bg: linear-gradient(135deg, rgba(24, 24, 27, 0.95) 0%, rgba(39, 39, 42, 0.85) 60%, rgba(245, 158, 11, 0.18) 100%);
-        --hm-card-border: #F59E0B;
-        --hm-card-shadow: 0 10px 35px rgba(245, 158, 11, 0.22);
-        --hm-card-title: #FFFFFF;
-        --hm-role-bg: rgba(245, 158, 11, 0.22);
-        --hm-role-border: #F59E0B;
-        --hm-role-text: #FDE68A;
-        --hm-email-code: #FCD34D;
-        --hm-email-bg: rgba(245, 158, 11, 0.15);
-        --hm-avatar-bg: linear-gradient(135deg, #F59E0B, #D97706);
-        --hm-btn-bg: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
-        --hm-btn-border: #FCD34D;
-    }
-}
-
+/* Clean Minimal Header */
 .login-header-box {
     text-align: center;
-    padding: 2.2rem 1rem 1.6rem 1rem;
+    padding: 2.2rem 1rem 1.4rem 1rem;
     margin-bottom: 1.5rem;
 }
 
 .login-title-text {
-    font-size: 3.8rem;
-    font-weight: 900;
-    background: var(--hm-title-grad);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    margin: 0 0 14px 0;
-    letter-spacing: -1.2px;
+    font-size: 3.2rem;
+    font-weight: 800;
+    letter-spacing: -0.8px;
+    color: var(--text-color);
+    margin: 0 0 10px 0;
 }
 
 .login-subtitle-badge {
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    background: var(--hm-badge-bg);
-    border: 1.5px solid var(--hm-badge-border);
-    padding: 8px 24px;
-    border-radius: 30px;
-    font-size: 0.85rem;
-    font-weight: 800;
+    background: rgba(99, 102, 241, 0.08);
+    border: 1px solid rgba(99, 102, 241, 0.25);
+    padding: 6px 20px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 2px;
-    color: var(--hm-badge-text);
+    letter-spacing: 1.5px;
+    color: #4F46E5;
 }
 
+/* Polished Minimal Cards */
 .profiles-header-card {
-    background: var(--hm-header-bg);
-    border: 2px solid var(--hm-primary);
-    border-radius: 18px;
-    padding: 1.4rem 1.8rem;
-    margin-bottom: 1.6rem;
+    background: var(--secondary-background-color);
+    border: 1px solid rgba(99, 102, 241, 0.2);
+    border-radius: 14px;
+    padding: 1.2rem 1.6rem;
+    margin-bottom: 1.4rem;
 }
 
 .large-profile-card {
-    background: var(--hm-card-bg);
-    border: 2.5px solid var(--hm-card-border);
-    border-radius: 20px;
-    padding: 2.2rem 2.2rem;
-    min-height: 160px;
-    margin-bottom: 1.2rem;
-    box-shadow: var(--hm-card-shadow);
-    transition: all 0.3s ease;
+    background: var(--secondary-background-color);
+    border: 1.5px solid rgba(99, 102, 241, 0.25);
+    border-radius: 18px;
+    padding: 1.8rem 2rem;
+    min-height: 140px;
+    margin-bottom: 1rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+    transition: all 0.25s ease;
 }
 .large-profile-card:hover {
+    border-color: #6366F1;
+    box-shadow: 0 8px 25px rgba(99, 102, 241, 0.12);
     transform: translateY(-2px);
-    box-shadow: 0 14px 45px rgba(0, 0, 0, 0.35);
 }
 
 .profile-role-badge {
     display: inline-block;
-    background: var(--hm-role-bg);
-    border: 1px solid var(--hm-role-border);
-    color: var(--hm-role-text);
-    padding: 4px 14px;
-    border-radius: 12px;
-    font-size: 0.78rem;
-    font-weight: 800;
+    background: rgba(99, 102, 241, 0.1);
+    border: 1px solid rgba(99, 102, 241, 0.3);
+    color: #4F46E5;
+    padding: 3px 12px;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 1.2px;
-    margin-left: 10px;
+    letter-spacing: 1px;
+    margin-left: 8px;
 }
 
+/* Polished Indigo Buttons */
 .stButton > button {
-    background: var(--hm-btn-bg) !important;
+    background: #4F46E5 !important;
     color: #FFFFFF !important;
-    border: 2px solid var(--hm-btn-border) !important;
-    border-radius: 12px !important;
-    font-weight: 700 !important;
-    padding: 0.65rem 1.5rem !important;
+    border: 1px solid #4338CA !important;
+    border-radius: 10px !important;
+    font-weight: 600 !important;
+    padding: 0.6rem 1.4rem !important;
+    box-shadow: 0 2px 8px rgba(79, 70, 229, 0.25) !important;
     transition: all 0.2s ease-in-out;
 }
 .stButton > button:hover {
+    background: #4338CA !important;
+    border-color: #3730A3 !important;
+    box-shadow: 0 4px 14px rgba(79, 70, 229, 0.35) !important;
     transform: translateY(-1px);
-    filter: brightness(1.1);
 }
 
+/* Top Navbar */
 .top-navbar {
-    background: var(--hm-header-bg);
-    border: 2px solid var(--hm-primary);
-    border-radius: 16px;
-    padding: 1.2rem 2rem;
-    margin-bottom: 1.8rem;
+    background: var(--secondary-background-color);
+    border: 1px solid rgba(99, 102, 241, 0.2);
+    border-radius: 14px;
+    padding: 1.1rem 1.8rem;
+    margin-bottom: 1.6rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
 }
 .top-brand-title {
-    font-size: 1.6rem; font-weight: 800; color: var(--hm-primary); margin: 0;
-    display: flex; align-items: center; gap: 10px;
+    font-size: 1.5rem; font-weight: 800; color: #4F46E5; margin: 0;
+    display: flex; align-items: center; gap: 8px;
 }
 .top-brand-subtitle {
-    font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1.4px; font-weight: 700; opacity: 0.85; margin: 0;
+    font-size: 0.72rem; text-transform: uppercase; letter-spacing: 1.2px; font-weight: 600; opacity: 0.8; margin: 0;
 }
 
 .corp-hero {
-    background: var(--hm-header-bg);
-    border: 2px solid var(--hm-primary);
-    border-radius: 16px;
-    padding: 2.2rem 2.8rem;
-    margin-bottom: 2rem;
-    border-left: 6px solid var(--hm-primary);
+    background: var(--secondary-background-color);
+    border: 1px solid rgba(99, 102, 241, 0.2);
+    border-radius: 14px;
+    padding: 2rem 2.4rem;
+    margin-bottom: 1.8rem;
+    border-left: 5px solid #4F46E5;
 }
 .corp-badge {
-    display: inline-flex; align-items: center; gap: 8px; 
-    background: var(--hm-badge-bg); color: var(--hm-badge-text); 
-    padding: 6px 16px; border-radius: 8px;
-    font-size: 0.78rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 0.9rem;
-    border: 1px solid var(--hm-badge-border);
+    display: inline-flex; align-items: center; gap: 6px;
+    background: rgba(99, 102, 241, 0.08); color: #4F46E5;
+    padding: 4px 14px; border-radius: 6px;
+    font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.8rem;
+    border: 1px solid rgba(99, 102, 241, 0.2);
 }
 .corp-card {
     background: var(--background-color);
-    border: 2px solid rgba(14, 165, 233, 0.3);
-    border-radius: 16px;
-    padding: 1.8rem;
-    margin-bottom: 1.5rem;
+    border: 1px solid rgba(99, 102, 241, 0.18);
+    border-radius: 14px;
+    padding: 1.6rem;
+    margin-bottom: 1.4rem;
 }
 .metric-box {
     background: var(--secondary-background-color);
-    border: 2px solid var(--hm-primary);
-    border-radius: 14px;
-    padding: 1.2rem;
+    border: 1px solid rgba(99, 102, 241, 0.25);
+    border-radius: 12px;
+    padding: 1rem;
     text-align: center;
 }
-.metric-box .val { font-size: 1.8rem; font-weight: 800; color: var(--hm-primary); }
-.metric-box .lbl { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; font-weight: 700; opacity: 0.85; }
+.metric-box .val { font-size: 1.7rem; font-weight: 800; color: #4F46E5; }
+.metric-box .lbl { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; font-weight: 600; opacity: 0.8; }
 
-.score-high { color: #10B981 !important; font-weight: 800; }
-.score-mid { color: #D97706 !important; font-weight: 800; }
-.score-low { color: #DC2626 !important; font-weight: 800; }
+.score-high { color: #10B981 !important; font-weight: 700; }
+.score-mid { color: #F59E0B !important; font-weight: 700; }
+.score-low { color: #EF4444 !important; font-weight: 700; }
 </style>
 """
-st.markdown(ADAPTIVE_THEME_CSS, unsafe_allow_html=True)
+st.markdown(ELEGANT_THEME_CSS, unsafe_allow_html=True)
 
 # ===========================================================================
 # 5. SESSION STATE INITIALIZATION
@@ -600,8 +556,8 @@ if not st.session_state.logged_in:
         elif saved_profiles and not st.session_state.selected_profile_email:
             st.markdown("""
                 <div class="profiles-header-card">
-                    <h3 style="margin: 0 0 0.3rem 0; font-size: 1.35rem; font-weight: 800; color: var(--hm-primary);">👥 Saved Employee Profiles</h3>
-                    <p style="font-size: 0.85rem; opacity: 0.9; margin: 0;">Select your secure profile card below to sign in instantly:</p>
+                    <h3 style="margin: 0 0 0.3rem 0; font-size: 1.3rem; font-weight: 700; color: var(--text-color);">👥 Saved Employee Profiles</h3>
+                    <p style="font-size: 0.85rem; opacity: 0.85; margin: 0;">Select your secure profile card below to sign in instantly:</p>
                 </div>
             """, unsafe_allow_html=True)
             
@@ -609,15 +565,15 @@ if not st.session_state.logged_in:
                 st.markdown(f"""
                     <div class="large-profile-card">
                         <div style="display: flex; align-items: center; gap: 20px;">
-                            <div style="background: var(--hm-avatar-bg); width: 62px; height: 62px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.9rem; flex-shrink: 0; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);">
+                            <div style="background: linear-gradient(135deg, #4F46E5, #6366F1); width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; flex-shrink: 0; box-shadow: 0 4px 14px rgba(79, 70, 229, 0.25);">
                                 👤
                             </div>
                             <div style="flex-grow: 1;">
                                 <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-                                    <h3 style="margin: 0; font-size: 1.55rem; font-weight: 800; color: var(--hm-card-title);">{p_name}</h3>
+                                    <h3 style="margin: 0; font-size: 1.45rem; font-weight: 700; color: var(--text-color);">{p_name}</h3>
                                     <span class="profile-role-badge">{p_role}</span>
                                 </div>
-                                <p style="margin: 8px 0 0 0; font-size: 0.92rem; opacity: 0.85;">✉️ <code style="color: var(--hm-email-code); background: var(--hm-email-bg); padding: 3px 10px; border-radius: 6px; font-weight: 600;">{p_email}</code></p>
+                                <p style="margin: 6px 0 0 0; font-size: 0.9rem; opacity: 0.85;">✉️ <code style="color: #4F46E5; background: rgba(99, 102, 241, 0.08); padding: 3px 8px; border-radius: 6px; font-weight: 600;">{p_email}</code></p>
                             </div>
                         </div>
                     </div>
@@ -633,7 +589,7 @@ if not st.session_state.logged_in:
                         delete_employee_profile(p_email)
                         st.success("Profile removed.")
                         st.rerun()
-                st.markdown("<div style='margin-bottom: 16px;'></div>", unsafe_allow_html=True)
+                st.markdown("<div style='margin-bottom: 14px;'></div>", unsafe_allow_html=True)
             
             st.markdown("---")
             if st.button("➕ Register New Employee / Admin Profile", use_container_width=True, key="reg_new_emp_auth_btn"):
