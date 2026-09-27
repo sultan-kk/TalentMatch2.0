@@ -331,6 +331,18 @@ html, body, [class*="css"] { font-family: 'Inter', sans-serif !important; }
 [data-testid="stSidebar"] { display: none !important; }
 [data-testid="collapsedControl"] { display: none !important; }
 
+/* Completely Hide Empty or Blank Floating Notification Boxes */
+.stAlert:empty, [data-testid="stNotification"]:empty {
+    display: none !important;
+}
+
+.stAlert, [data-testid="stNotification"] {
+    background: rgba(15, 23, 42, 0.95) !important;
+    border: 1px solid #0EA5E9 !important;
+    color: #38BDF8 !important;
+    border-radius: 12px !important;
+}
+
 /* Glowing Header & Title Container */
 .login-header-container {
     text-align: center;
@@ -354,13 +366,7 @@ html, body, [class*="css"] { font-family: 'Inter', sans-serif !important; }
     0% { filter: drop-shadow(0 0 15px rgba(56, 189, 248, 0.4)); }
     100% { filter: drop-shadow(0 0 30px rgba(192, 132, 252, 0.7)); }
 }
-/* Fix for empty notification/status containers */
-.stAlert, [data-testid="stNotification"] {
-    background: rgba(15, 23, 42, 0.9) !important;
-    border: 1px solid #0EA5E9 !important;
-    color: #38BDF8 !important;
-    border-radius: 12px !important;
-}
+
 .login-tagline-badge {
     display: inline-flex;
     align-items: center;
@@ -485,7 +491,6 @@ html, body, [class*="css"] { font-family: 'Inter', sans-serif !important; }
 .score-mid { color: #D97706 !important; font-weight: 800; }
 .score-low { color: #DC2626 !important; font-weight: 800; }
 </style>
-"""
 st.markdown(ULTRA_NEON_CSS, unsafe_allow_html=True)
 
 # ===========================================================================
