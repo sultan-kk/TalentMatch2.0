@@ -1,8 +1,8 @@
 """
-HireMatrix Pro — Enterprise Edition v11.4 (Enhanced Dual-Pass OCR & Auto-Regex)
+HireMatrix Pro — Enterprise Edition v11.5 (Adaptive Dual-Theme: Neon Blue & Executive Gold)
 ========================================================================
-Features: Inverted contrast OCR for colored headers, automatic regex fallback
-for email/phone, Supabase PostgreSQL synchronization, and full ATS pipeline.
+Features: Automatic Light/Dark mode styling, enhanced dual-pass OCR,
+Supabase PostgreSQL cloud sync, and complete ATS recruitment workflow.
 """
 
 import io
@@ -321,15 +321,67 @@ def generate_screening_excel(results_list) -> bytes:
     return buffer.getvalue()
 
 # ===========================================================================
-# 4. EXECUTIVE CARD & NEON GLASSMORPHISM CSS
+# 4. DYNAMIC ADAPTIVE THEME CSS (LIGHT: NEON BLUE | DARK: WARM AMBER GOLD)
 # ===========================================================================
-EXECUTIVE_CSS = """
+ADAPTIVE_THEME_CSS = """
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
 html, body, [class*="css"] { font-family: 'Inter', sans-serif !important; }
 
 [data-testid="stSidebar"] { display: none !important; }
 [data-testid="collapsedControl"] { display: none !important; }
+
+/* -------------------------------------------------------------
+   DEFAULT / LIGHT MODE THEME: Vibrant Neon Blue
+   ------------------------------------------------------------- */
+:root {
+    --hm-primary: #0EA5E9;
+    --hm-secondary: #0284C7;
+    --hm-title-grad: linear-gradient(135deg, #0284C7 0%, #2563EB 50%, #7C3AED 100%);
+    --hm-header-bg: linear-gradient(135deg, rgba(14, 165, 233, 0.12) 0%, rgba(240, 249, 255, 0.8) 100%);
+    --hm-badge-bg: rgba(14, 165, 233, 0.15);
+    --hm-badge-border: #0EA5E9;
+    --hm-badge-text: #0284C7;
+    --hm-card-bg: linear-gradient(135deg, #FFFFFF 0%, #F0F9FF 60%, rgba(14, 165, 233, 0.15) 100%);
+    --hm-card-border: #0EA5E9;
+    --hm-card-shadow: 0 10px 30px rgba(14, 165, 233, 0.25);
+    --hm-card-title: #0F172A;
+    --hm-role-bg: rgba(14, 165, 233, 0.15);
+    --hm-role-border: #0EA5E9;
+    --hm-role-text: #0369A1;
+    --hm-email-code: #0284C7;
+    --hm-email-bg: rgba(14, 165, 233, 0.12);
+    --hm-avatar-bg: linear-gradient(135deg, #0EA5E9, #2563EB);
+    --hm-btn-bg: linear-gradient(135deg, #0EA5E9 0%, #0284C7 100%);
+    --hm-btn-border: #38BDF8;
+}
+
+/* -------------------------------------------------------------
+   DARK MODE ADAPTIVE THEME: Executive Royal Warm Gold & Charcoal
+   ------------------------------------------------------------- */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --hm-primary: #F59E0B;
+        --hm-secondary: #D97706;
+        --hm-title-grad: linear-gradient(135deg, #FBBF24 0%, #F59E0B 50%, #FB7185 100%);
+        --hm-header-bg: linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(24, 24, 27, 0.8) 100%);
+        --hm-badge-bg: rgba(245, 158, 11, 0.2);
+        --hm-badge-border: #F59E0B;
+        --hm-badge-text: #FCD34D;
+        --hm-card-bg: linear-gradient(135deg, rgba(24, 24, 27, 0.95) 0%, rgba(39, 39, 42, 0.85) 60%, rgba(245, 158, 11, 0.18) 100%);
+        --hm-card-border: #F59E0B;
+        --hm-card-shadow: 0 10px 35px rgba(245, 158, 11, 0.22);
+        --hm-card-title: #FFFFFF;
+        --hm-role-bg: rgba(245, 158, 11, 0.22);
+        --hm-role-border: #F59E0B;
+        --hm-role-text: #FDE68A;
+        --hm-email-code: #FCD34D;
+        --hm-email-bg: rgba(245, 158, 11, 0.15);
+        --hm-avatar-bg: linear-gradient(135deg, #F59E0B, #D97706);
+        --hm-btn-bg: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+        --hm-btn-border: #FCD34D;
+    }
+}
 
 .login-header-box {
     text-align: center;
@@ -340,60 +392,56 @@ html, body, [class*="css"] { font-family: 'Inter', sans-serif !important; }
 .login-title-text {
     font-size: 3.8rem;
     font-weight: 900;
-    background: linear-gradient(135deg, #38BDF8 0%, #818CF8 50%, #C084FC 100%);
+    background: var(--hm-title-grad);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     margin: 0 0 14px 0;
     letter-spacing: -1.2px;
-    filter: drop-shadow(0 0 25px rgba(56, 189, 248, 0.45));
 }
 
 .login-subtitle-badge {
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    background: rgba(14, 165, 233, 0.12);
-    border: 1.5px solid rgba(56, 189, 248, 0.5);
+    background: var(--hm-badge-bg);
+    border: 1.5px solid var(--hm-badge-border);
     padding: 8px 24px;
     border-radius: 30px;
     font-size: 0.85rem;
     font-weight: 800;
     text-transform: uppercase;
     letter-spacing: 2px;
-    color: #38BDF8;
-    box-shadow: 0 0 20px rgba(14, 165, 233, 0.25);
+    color: var(--hm-badge-text);
 }
 
 .profiles-header-card {
-    background: linear-gradient(135deg, rgba(14, 165, 233, 0.15) 0%, rgba(15, 23, 42, 0.7) 100%);
-    border: 2px solid #0EA5E9;
+    background: var(--hm-header-bg);
+    border: 2px solid var(--hm-primary);
     border-radius: 18px;
     padding: 1.4rem 1.8rem;
     margin-bottom: 1.6rem;
-    box-shadow: 0 0 20px rgba(14, 165, 233, 0.25);
 }
 
 .large-profile-card {
-    background: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.85) 60%, rgba(14, 165, 233, 0.2) 100%);
-    border: 2.5px solid #0EA5E9;
+    background: var(--hm-card-bg);
+    border: 2.5px solid var(--hm-card-border);
     border-radius: 20px;
     padding: 2.2rem 2.2rem;
     min-height: 160px;
     margin-bottom: 1.2rem;
-    box-shadow: 0 10px 30px rgba(14, 165, 233, 0.3), inset 0 0 20px rgba(14, 165, 233, 0.15);
+    box-shadow: var(--hm-card-shadow);
     transition: all 0.3s ease;
 }
 .large-profile-card:hover {
-    border-color: #38BDF8;
-    box-shadow: 0 12px 40px rgba(14, 165, 233, 0.5);
     transform: translateY(-2px);
+    box-shadow: 0 14px 45px rgba(0, 0, 0, 0.35);
 }
 
 .profile-role-badge {
     display: inline-block;
-    background: rgba(14, 165, 233, 0.25);
-    border: 1px solid #38BDF8;
-    color: #7DD3FC;
+    background: var(--hm-role-bg);
+    border: 1px solid var(--hm-role-border);
+    color: var(--hm-role-text);
     padding: 4px 14px;
     border-radius: 12px;
     font-size: 0.78rem;
@@ -403,82 +451,68 @@ html, body, [class*="css"] { font-family: 'Inter', sans-serif !important; }
     margin-left: 10px;
 }
 
-[data-testid="stForm"] {
-    background: rgba(15, 23, 42, 0.85) !important;
-    border: 2px solid #0EA5E9 !important;
-    border-radius: 20px !important;
-    padding: 2.5rem !important;
-    box-shadow: 0 0 35px rgba(14, 165, 233, 0.3) !important;
-}
-
 .stButton > button {
-    background: linear-gradient(135deg, #0EA5E9 0%, #0284C7 100%) !important;
+    background: var(--hm-btn-bg) !important;
     color: #FFFFFF !important;
-    border: 2px solid #38BDF8 !important;
+    border: 2px solid var(--hm-btn-border) !important;
     border-radius: 12px !important;
     font-weight: 700 !important;
     padding: 0.65rem 1.5rem !important;
-    box-shadow: 0 0 15px rgba(14, 165, 233, 0.35);
     transition: all 0.2s ease-in-out;
 }
 .stButton > button:hover {
-    border-color: #BAE6FD !important;
-    box-shadow: 0 0 25px rgba(14, 165, 233, 0.6);
     transform: translateY(-1px);
+    filter: brightness(1.1);
 }
 
 .top-navbar {
-    background: linear-gradient(135deg, rgba(14, 165, 233, 0.15) 0%, rgba(15, 23, 42, 0.85) 100%);
-    border: 2px solid #0EA5E9;
+    background: var(--hm-header-bg);
+    border: 2px solid var(--hm-primary);
     border-radius: 16px;
     padding: 1.2rem 2rem;
     margin-bottom: 1.8rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    box-shadow: 0 0 25px rgba(14, 165, 233, 0.35);
 }
 .top-brand-title {
-    font-size: 1.6rem; font-weight: 800; color: #38BDF8; margin: 0;
+    font-size: 1.6rem; font-weight: 800; color: var(--hm-primary); margin: 0;
     display: flex; align-items: center; gap: 10px;
-    text-shadow: 0 0 12px rgba(14, 165, 233, 0.5);
 }
 .top-brand-subtitle {
-    font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1.4px; font-weight: 700; color: #94A3B8; margin: 0;
+    font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1.4px; font-weight: 700; opacity: 0.85; margin: 0;
 }
 
 .corp-hero {
-    background: linear-gradient(135deg, rgba(14, 165, 233, 0.15) 0%, rgba(15, 23, 42, 0.6) 100%);
-    border: 2px solid #0EA5E9;
+    background: var(--hm-header-bg);
+    border: 2px solid var(--hm-primary);
     border-radius: 16px;
     padding: 2.2rem 2.8rem;
     margin-bottom: 2rem;
-    box-shadow: 0 0 30px rgba(14, 165, 233, 0.25);
-    border-left: 6px solid #0EA5E9;
+    border-left: 6px solid var(--hm-primary);
 }
 .corp-badge {
     display: inline-flex; align-items: center; gap: 8px; 
-    background: rgba(14, 165, 233, 0.25); color: #38BDF8; 
+    background: var(--hm-badge-bg); color: var(--hm-badge-text); 
     padding: 6px 16px; border-radius: 8px;
     font-size: 0.78rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 0.9rem;
-    border: 1px solid rgba(14, 165, 233, 0.5);
+    border: 1px solid var(--hm-badge-border);
 }
 .corp-card {
     background: var(--background-color);
-    border: 2px solid rgba(14, 165, 233, 0.4);
+    border: 2px solid rgba(14, 165, 233, 0.3);
     border-radius: 16px;
     padding: 1.8rem;
     margin-bottom: 1.5rem;
-    box-shadow: 0 0 20px rgba(14, 165, 233, 0.15);
 }
 .metric-box {
     background: var(--secondary-background-color);
-    border: 2px solid rgba(14, 165, 233, 0.4);
+    border: 2px solid var(--hm-primary);
     border-radius: 14px;
     padding: 1.2rem;
     text-align: center;
 }
-.metric-box .val { font-size: 1.8rem; font-weight: 800; color: #38BDF8; text-shadow: 0 0 10px rgba(14, 165, 233, 0.4); }
+.metric-box .val { font-size: 1.8rem; font-weight: 800; color: var(--hm-primary); }
 .metric-box .lbl { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; font-weight: 700; opacity: 0.85; }
 
 .score-high { color: #10B981 !important; font-weight: 800; }
@@ -486,7 +520,7 @@ html, body, [class*="css"] { font-family: 'Inter', sans-serif !important; }
 .score-low { color: #DC2626 !important; font-weight: 800; }
 </style>
 """
-st.markdown(EXECUTIVE_CSS, unsafe_allow_html=True)
+st.markdown(ADAPTIVE_THEME_CSS, unsafe_allow_html=True)
 
 # ===========================================================================
 # 5. SESSION STATE INITIALIZATION
@@ -566,7 +600,7 @@ if not st.session_state.logged_in:
         elif saved_profiles and not st.session_state.selected_profile_email:
             st.markdown("""
                 <div class="profiles-header-card">
-                    <h3 style="margin: 0 0 0.3rem 0; font-size: 1.35rem; font-weight: 800; color: #38BDF8;">👥 Saved Employee Profiles</h3>
+                    <h3 style="margin: 0 0 0.3rem 0; font-size: 1.35rem; font-weight: 800; color: var(--hm-primary);">👥 Saved Employee Profiles</h3>
                     <p style="font-size: 0.85rem; opacity: 0.9; margin: 0;">Select your secure profile card below to sign in instantly:</p>
                 </div>
             """, unsafe_allow_html=True)
@@ -575,15 +609,15 @@ if not st.session_state.logged_in:
                 st.markdown(f"""
                     <div class="large-profile-card">
                         <div style="display: flex; align-items: center; gap: 20px;">
-                            <div style="background: linear-gradient(135deg, #0EA5E9, #6366F1); width: 62px; height: 62px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.9rem; box-shadow: 0 0 18px rgba(14, 165, 233, 0.55); flex-shrink: 0;">
+                            <div style="background: var(--hm-avatar-bg); width: 62px; height: 62px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.9rem; flex-shrink: 0; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);">
                                 👤
                             </div>
                             <div style="flex-grow: 1;">
                                 <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-                                    <h3 style="margin: 0; font-size: 1.55rem; font-weight: 800; color: #FFFFFF; text-shadow: 0 0 12px rgba(56, 189, 248, 0.5);">{p_name}</h3>
+                                    <h3 style="margin: 0; font-size: 1.55rem; font-weight: 800; color: var(--hm-card-title);">{p_name}</h3>
                                     <span class="profile-role-badge">{p_role}</span>
                                 </div>
-                                <p style="margin: 8px 0 0 0; font-size: 0.92rem; color: #94A3B8;">✉️ <code style="color: #38BDF8; background: rgba(14, 165, 233, 0.15); padding: 3px 10px; border-radius: 6px; font-weight: 600;">{p_email}</code></p>
+                                <p style="margin: 8px 0 0 0; font-size: 0.92rem; opacity: 0.85;">✉️ <code style="color: var(--hm-email-code); background: var(--hm-email-bg); padding: 3px 10px; border-radius: 6px; font-weight: 600;">{p_email}</code></p>
                             </div>
                         </div>
                     </div>
@@ -670,15 +704,11 @@ def extract_text_from_image(file_bytes: bytes) -> str:
     import pytesseract
     try:
         img = Image.open(io.BytesIO(file_bytes)).convert("RGB")
-        
-        # 1. Normal Grayscale Pass (White background par black text)
         gray = img.convert("L")
         t1 = pytesseract.image_to_string(gray)
         
-        # 2. Inverted High-Contrast Pass (Colored/Dark header par light text pakadne ke liye)
         inverted = ImageOps.invert(gray)
-        enhancer = ImageEnhance.Contrast(inverted)
-        inv_contrasted = enhancer.enhance(2.2)
+        inv_contrasted = ImageEnhance.Contrast(inverted).enhance(2.2)
         t2 = pytesseract.image_to_string(inv_contrasted)
         
         return f"{t1}\n{t2}"
@@ -797,7 +827,6 @@ def extract_candidate_for_repo(client, resume_text: str, file_name: str):
         email = result.get("email", "Not Provided").strip()
         phone = result.get("phone", "Not Provided").strip()
 
-        # Regex Fallbacks (Agar AI ne colored banner ka email/phone miss kar diya ho)
         if email in ["Not Provided", "Not Found", "", "None"]:
             found_emails = re.findall(r'[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+', resume_text)
             if found_emails:
@@ -809,7 +838,6 @@ def extract_candidate_for_repo(client, resume_text: str, file_name: str):
                 phone = found_phones[0].strip()
 
         if name in ["Unknown", "Not Provided", "", "None"]:
-            # Fallback candidate name extraction from lines
             lines = [l.strip() for l in resume_text.splitlines() if len(l.strip()) > 3]
             for l in lines[:5]:
                 if not any(kw in l.lower() for kw in ["curriculum", "resume", "objective", "education", "experience", "skills", "profile"]):
