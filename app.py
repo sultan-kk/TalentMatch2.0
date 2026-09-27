@@ -273,67 +273,82 @@ def clear_candidate_database():
     except Exception:
         pass
         
-with tab3:
-        st.markdown('<div class="corp-card"><h4>🗄️ Live Database & Screening Grids</h4>', unsafe_allow_html=True)
-        st.caption("Real-time synchronized candidate records from Supabase Cloud.")
-        
-        sub_grid_1, sub_grid_2 = st.tabs(["🎯 Screened Candidates Grid", "📥 Master Talent Pool Grid"])
-        
-        with sub_grid_1:
-            df_screened = load_screened_database()
-            if df_screened.empty:
-                st.info("No candidates have been screened yet. Run AI Screening in Step 2 to populate this live cloud grid.")
-            else:
-                grid_s = df_screened.copy()
-                grid_s.insert(0, "Sr. No.", range(1, len(grid_s) + 1))
-                st.data_editor(grid_s, use_container_width=True, height=380, disabled=True, key="screened_grid_view_live")
-                st.markdown("---")
-                c_s1, c_s2 = st.columns([2, 1])
-                with c_s1:
-                    st.download_button(
-                        "📊 Download Screened Report (.xlsx)",
-                        data=generate_repository_excel(df_screened),
-                        file_name="Screened_Candidates_Master.xlsx",
-                        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                        use_container_width=True,
-                        key="dl_screened_master_grid_btn"
-                    )
-                with c_s2:
-                    if st.button("🗑️ Clear Screened History", type="secondary", key="clear_screened_btn_grid", use_container_width=True):
-                        clear_screened_database()
-                        st.success("Screened candidate records cleared successfully!")
-                        st.rerun()
+def save_screened_to_supabase(screened_list):
+    if not supabase or not screened_list:
+        return
+    current_timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    for r in screened_list:
+        skills_str = ", ".join(r.get("missing_skills", [])) if isinstance(r.get("missing_skills"), list) else str(r.get("missing_skills", ""))
+        payload = {
+            "job_title": r.get("job_title", "Not Specified"),
+            "candidate_name": r.get("name", "Unknown"),
+            "father_name": r.get("father_name", "Not Provided"),
+            "email": r.get("email", "Not Provided"),
+            "phone": r.get("phone", "Not Provided"),
+            "cgpa": r.get("cgpa", "Not Provided"),
+            "education": r.get("education", "Not Provided"),
+            "university_name": r.get("university_name", "Not Provided"),
+            "experience_years": str(r.get("experience_years", "0")),
+            "latest_experience": r.get("latest_experience", "Not Provided"),
+            "match_score": float(r.get("match_score", 0)),
+            "missing_skills": skills_str,
+            "pipeline_status": r.get("pipeline_status", "Shortlisted"),
+            "screened_at": current_timestamp
+        }
+        try:
+            supabase.table("screened_candidates").insert(payload).execute()
+        except Exception:
+            pass
 
-        with sub_grid_2:
-            df_db = load_database()
-            if df_db.empty:
-                st.info("Master database is currently empty. Upload resumes in Step 1.")
-            else:
-                grid_df = df_db.copy()
-                if "Job Title" in grid_df.columns:
-                    grid_df = grid_df.drop(columns=["Job Title"])
-                if "Extracted Skills" in grid_df.columns:
-                    grid_df = grid_df.drop(columns=["Extracted Skills"])
-                grid_df.insert(0, "Sr. No.", range(1, len(grid_df) + 1))
-                st.data_editor(grid_df, use_container_width=True, height=380, disabled=True, key="master_excel_grid_view")
-                st.markdown("---")
-                c_ex1, c_ex2 = st.columns([2, 1])
-                with c_ex1:
-                    st.download_button(
-                        "📊 Download Master Talent Repository Report (.xlsx)", 
-                        data=generate_repository_excel(df_db), 
-                        file_name="Master_Talent_Repository.xlsx", 
-                        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", 
-                        use_container_width=True, 
-                        key="download_live_grid_xlsx_btn"
-                    )
-                with c_ex2:
-                    if st.button("🗑️ Clear Entire Database", type="secondary", key="clear_db_btn_master_grid", use_container_width=True):
-                        clear_candidate_database()
-                        st.success("Repository cleared successfully!")
-                        st.rerun()
-                        
-        st.markdown("</div>", unsafe_allow_html=True)
+def load_screened_database():
+    expected_cols = [
+        "Job Title", "Candidate Name", "Match Score (%)", "Pipeline Status", 
+        "Email", "Phone", "CGPA", "Education", "University Name", 
+        "Experience Years", "Latest Experience", "Missing Skills", "Screened At"
+    ]
+    if not supabase:
+        return pd.DataFrame(columns=expected_cols)
+    try:
+        response = supabase.table("screened_candidates").select("*").order("id", desc=True).execute()
+        rows = response.data
+        if rows:
+            mapped = []
+            for r in rows:
+                mapped.append({
+                    "Job Title": r.get("job_title", "Not Specified"),
+                    "Candidate Name": r.get("candidate_name", "Unknown"),
+                    "Match Score (%)": r.get("match_score", 0),
+                    "Pipeline Status": r.get("pipeline_status", "Shortlisted"),
+                    "Email": r.get("email", "Not Provided"),
+                    "Phone": r.get("phone", "Not Provided"),
+                    "CGPA": r.get("cgpa", "Not Provided"),
+                    "Education": r.get("education", "Not Provided"),
+                    "University Name": r.get("university_name", "Not Provided"),
+                    "Experience Years": r.get("experience_years", "0"),
+                    "Latest Experience": r.get("latest_experience", "Not Provided"),
+                    "Missing Skills": r.get("missing_skills", "None"),
+                    "Screened At": r.get("screened_at", "")
+                })
+            return pd.DataFrame(mapped)
+    except Exception:
+        pass
+    return pd.DataFrame(columns=expected_cols)
+
+def update_screened_candidate_status(email, job_title, new_status):
+    if not supabase:
+        return
+    try:
+        supabase.table("screened_candidates").update({"pipeline_status": new_status}).ilike("email", email).ilike("job_title", job_title).execute()
+    except Exception:
+        pass
+
+def clear_screened_database():
+    if not supabase:
+        return
+    try:
+        supabase.table("screened_candidates").delete().neq("id", 0).execute()
+    except Exception:
+        pass
 def generate_repository_excel(df: pd.DataFrame) -> bytes:
     import openpyxl
     buffer = io.BytesIO()
@@ -1438,40 +1453,65 @@ with tab2:
         st.markdown("</div>", unsafe_allow_html=True)
 
 with tab3:
-    st.markdown('<div class="corp-card"><h4>🗄️ Live Master Excel Sheet Grid (Real-time Database View)</h4>', unsafe_allow_html=True)
-    st.caption("Interactive candidate database grid. All extracted talent pool records are synchronized in real-time.")
+    st.markdown('<div class="corp-card"><h4>🗄️ Live Database & Screening Grids</h4>', unsafe_allow_html=True)
+    st.caption("Real-time synchronized candidate records from Supabase Cloud.")
     
-    df_db = load_database()
+    sub_grid_1, sub_grid_2 = st.tabs(["🎯 Screened Candidates Grid", "📥 Master Talent Pool Grid"])
     
-    if df_db.empty:
-        st.info("Master database is currently empty. Upload resumes in Step 1.")
-    else:
-        grid_df = df_db.copy()
-        if "Job Title" in grid_df.columns:
-            grid_df = grid_df.drop(columns=["Job Title"])
-        if "Extracted Skills" in grid_df.columns:
-            grid_df = grid_df.drop(columns=["Extracted Skills"])
-        grid_df.insert(0, "Sr. No.", range(1, len(grid_df) + 1))
-        
-        st.data_editor(grid_df, use_container_width=True, height=400, disabled=True, key="master_excel_grid_view")
-        
-        st.markdown("---")
-        c_ex1, c_ex2 = st.columns([2, 1])
-        with c_ex1:
-            st.download_button(
-                "📊 Download Master Talent Repository Report (.xlsx)",
-                data=generate_repository_excel(df_db),
-                file_name="Master_Talent_Repository.xlsx",
-                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                use_container_width=True,
-                key="download_live_grid_xlsx_btn"
-            )
-        with c_ex2:
-            if st.button("🗑️ Clear Entire Database", type="secondary", key="clear_db_btn_master_grid", use_container_width=True):
-                clear_candidate_database()
-                st.success("Repository cleared successfully!")
-                st.rerun()
-                
+    with sub_grid_1:
+        df_screened = load_screened_database()
+        if df_screened.empty:
+            st.info("No candidates have been screened yet. Run AI Screening in Step 2 to populate this live cloud grid.")
+        else:
+            grid_s = df_screened.copy()
+            grid_s.insert(0, "Sr. No.", range(1, len(grid_s) + 1))
+            st.data_editor(grid_s, use_container_width=True, height=380, disabled=True, key="screened_grid_view_live")
+            st.markdown("---")
+            c_s1, c_s2 = st.columns([2, 1])
+            with c_s1:
+                st.download_button(
+                    "📊 Download Screened Report (.xlsx)",
+                    data=generate_repository_excel(df_screened),
+                    file_name="Screened_Candidates_Master.xlsx",
+                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    use_container_width=True,
+                    key="dl_screened_master_grid_btn"
+                )
+            with c_s2:
+                if st.button("🗑️ Clear Screened History", type="secondary", key="clear_screened_btn_grid", use_container_width=True):
+                    clear_screened_database()
+                    st.success("Screened candidate records cleared successfully!")
+                    st.rerun()
+
+    with sub_grid_2:
+        df_db = load_database()
+        if df_db.empty:
+            st.info("Master database is currently empty. Upload resumes in Step 1.")
+        else:
+            grid_df = df_db.copy()
+            if "Job Title" in grid_df.columns:
+                grid_df = grid_df.drop(columns=["Job Title"])
+            if "Extracted Skills" in grid_df.columns:
+                grid_df = grid_df.drop(columns=["Extracted Skills"])
+            grid_df.insert(0, "Sr. No.", range(1, len(grid_df) + 1))
+            st.data_editor(grid_df, use_container_width=True, height=380, disabled=True, key="master_excel_grid_view")
+            st.markdown("---")
+            c_ex1, c_ex2 = st.columns([2, 1])
+            with c_ex1:
+                st.download_button(
+                    "📊 Download Master Talent Repository Report (.xlsx)", 
+                    data=generate_repository_excel(df_db), 
+                    file_name="Master_Talent_Repository.xlsx", 
+                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", 
+                    use_container_width=True, 
+                    key="download_live_grid_xlsx_btn"
+                )
+            with c_ex2:
+                if st.button("🗑️ Clear Entire Database", type="secondary", key="clear_db_btn_master_grid", use_container_width=True):
+                    clear_candidate_database()
+                    st.success("Repository cleared successfully!")
+                    st.rerun()
+                    
     st.markdown("</div>", unsafe_allow_html=True)
 
 with tab4:
