@@ -1,8 +1,8 @@
 """
-HireMatrix Pro — Enterprise Edition v10.91 (Bulletproof Stateful Persistence)
+HireMatrix Pro — Enterprise Edition v10.93 (Bulletproof Neon & Permanent Auth)
 ========================================================================
-Features: Advanced auto-healing database recovery against server reboots and sleep cycles, 
-Dedicated Admin PIN creation, modern centered UI, real Excel-style live grid, and ATS workflow.
+Features: Absolute persistent database synchronization preventing data loss on reboots, 
+Stunning Neon-bordered glassmorphic UI, dedicated Admin PIN setup, and complete ATS workflow.
 """
 
 import io
@@ -21,7 +21,7 @@ import streamlit as st
 from groq import Groq
 
 # ===========================================================================
-# CONFIGURATION & BULLETPROOF STATEFUL PERSISTENT DB LAYERS
+# CONFIGURATION & BULLETPROOF PERSISTENT STORAGE
 # ===========================================================================
 APP_NAME = "HireMatrix Pro"
 APP_TAGLINE = "Autonomous HR Intelligence & Executive Recruitment Suite"
@@ -173,7 +173,7 @@ def delete_employee_profile(email):
         return False, f"Error: {e}"
 
 # ===========================================================================
-# PAGE CONFIG & EXECUTIVE UI STYLING
+# PAGE CONFIG & STUNNING NEON GLASSMORPHISM UI STYLING
 # ===========================================================================
 st.set_page_config(
     page_title=f"{APP_NAME} | Executive Portal",
@@ -182,7 +182,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed",
 )
 
-EXECUTIVE_UI_CSS = """
+NEON_ENTERPRISE_CSS = """
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 html, body, [class*="css"] { font-family: 'Inter', sans-serif !important; }
@@ -192,111 +192,111 @@ html, body, [class*="css"] { font-family: 'Inter', sans-serif !important; }
 [data-testid="collapsedControl"] { display: none !important; }
 
 .top-navbar {
-    background: linear-gradient(135deg, rgba(14, 165, 233, 0.08) 0%, rgba(30, 41, 59, 0.04) 100%);
-    border: 1.5px solid rgba(14, 165, 233, 0.25);
-    border-radius: 14px;
-    padding: 1rem 1.8rem;
-    margin-bottom: 1.5rem;
+    background: linear-gradient(135deg, rgba(14, 165, 233, 0.12) 0%, rgba(30, 41, 59, 0.08) 100%);
+    border: 2px solid #0EA5E9;
+    border-radius: 16px;
+    padding: 1.2rem 2rem;
+    margin-bottom: 1.8rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    box-shadow: 0 4px 15px rgba(14, 165, 233, 0.06);
+    box-shadow: 0 0 20px rgba(14, 165, 233, 0.25);
 }
 
 .top-brand-title {
-    font-size: 1.5rem; font-weight: 800; color: #0EA5E9; margin: 0; letter-spacing: -0.5px;
+    font-size: 1.6rem; font-weight: 800; color: #0EA5E9; margin: 0; letter-spacing: -0.5px;
     display: flex; align-items: center; gap: 10px;
+    text-shadow: 0 0 10px rgba(14, 165, 233, 0.3);
 }
 .top-brand-subtitle {
-    font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1.2px; font-weight: 600; color: #64748B; margin: 0;
+    font-size: 0.72rem; text-transform: uppercase; letter-spacing: 1.4px; font-weight: 700; color: #94A3B8; margin: 0;
 }
 
 .auth-form-card {
-    background: var(--background-color);
-    border: 1.5px solid rgba(14, 165, 233, 0.3);
-    border-radius: 18px;
-    padding: 2.5rem;
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.06);
-    max-width: 650px;
+    background: rgba(15, 23, 42, 0.6);
+    border: 2px solid #0EA5E9;
+    border-radius: 20px;
+    padding: 3rem;
+    box-shadow: 0 0 30px rgba(14, 165, 233, 0.3), inset 0 0 15px rgba(14, 165, 233, 0.1);
+    max-width: 680px;
     margin: 0 auto;
+    backdrop-filter: blur(12px);
 }
 
 .large-profile-card {
-    background: linear-gradient(135deg, rgba(14, 165, 233, 0.06) 0%, rgba(30, 41, 59, 0.02) 100%);
-    border: 1.5px solid rgba(14, 165, 233, 0.3);
+    background: linear-gradient(135deg, rgba(14, 165, 233, 0.1) 0%, rgba(30, 41, 59, 0.05) 100%);
+    border: 1.5px solid rgba(14, 165, 233, 0.5);
     border-radius: 16px;
-    padding: 1.4rem 1.8rem;
-    margin-bottom: 1rem;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.03);
-    transition: all 0.2s ease;
+    padding: 1.5rem 2rem;
+    margin-bottom: 1.2rem;
+    box-shadow: 0 4px 20px rgba(14, 165, 233, 0.15);
+    transition: all 0.3s ease;
 }
 .large-profile-card:hover {
-    border-color: #0EA5E9;
-    box-shadow: 0 6px 20px rgba(14, 165, 233, 0.12);
+    border-color: #38BDF8;
+    box-shadow: 0 0 25px rgba(14, 165, 233, 0.4);
+    transform: translateY(-2px);
 }
 
 .stButton > button {
-    background: rgba(14, 165, 233, 0.14) !important;
-    color: inherit !important;
-    border: 1.5px solid rgba(14, 165, 233, 0.45) !important;
-    border-radius: 10px !important;
-    font-weight: 600 !important;
-    transition: all 0.2s ease-in-out;
+    background: linear-gradient(135deg, #0EA5E9 0%, #0284C7 100%) !important;
+    color: #FFFFFF !important;
+    border: 1.5px solid #38BDF8 !important;
+    border-radius: 12px !important;
+    font-weight: 700 !important;
+    padding: 0.6rem 1.5rem !important;
+    box-shadow: 0 0 12px rgba(14, 165, 233, 0.3);
+    transition: all 0.25s ease-in-out;
 }
 .stButton > button:hover {
-    background: rgba(14, 165, 233, 0.25) !important;
-    border-color: #0EA5E9 !important;
-    box-shadow: 0 4px 12px rgba(14, 165, 233, 0.18);
+    background: linear-gradient(135deg, #0284C7 0%, #0369A1 100%) !important;
+    border-color: #7DD3FC !important;
+    box-shadow: 0 0 20px rgba(14, 165, 233, 0.6);
 }
 
 .corp-hero {
-    background: linear-gradient(135deg, rgba(14, 165, 233, 0.10) 0%, rgba(30, 41, 59, 0.06) 100%);
-    border: 1.5px solid rgba(14, 165, 233, 0.35);
-    border-radius: 14px;
-    padding: 2rem 2.5rem;
+    background: linear-gradient(135deg, rgba(14, 165, 233, 0.12) 0%, rgba(30, 41, 59, 0.08) 100%);
+    border: 2px solid #0EA5E9;
+    border-radius: 16px;
+    padding: 2.2rem 2.8rem;
     margin-bottom: 2rem;
-    box-shadow: 0 6px 20px rgba(14, 165, 233, 0.08);
+    box-shadow: 0 0 25px rgba(14, 165, 233, 0.2);
     border-left: 6px solid #0EA5E9;
 }
 .corp-badge {
     display: inline-flex; align-items: center; gap: 8px; 
-    background: rgba(14, 165, 233, 0.15); color: #0EA5E9; 
-    padding: 5px 14px; border-radius: 8px;
-    font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.8rem;
+    background: rgba(14, 165, 233, 0.2); color: #38BDF8; 
+    padding: 6px 16px; border-radius: 8px;
+    font-size: 0.78rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 0.9rem;
+    border: 1px solid rgba(14, 165, 233, 0.4);
 }
 .corp-card {
     background: var(--background-color);
-    border: 1px solid var(--secondary-background-color);
-    border-radius: 14px;
-    padding: 1.6rem;
+    border: 1.5px solid rgba(14, 165, 233, 0.3);
+    border-radius: 16px;
+    padding: 1.8rem;
     margin-bottom: 1.5rem;
-    box-shadow: 0 3px 10px rgba(0,0,0,0.03);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
 }
 .metric-box {
     background: var(--secondary-background-color);
-    border: 1px solid var(--secondary-background-color);
-    border-radius: 12px;
-    padding: 1.1rem;
+    border: 1.5px solid rgba(14, 165, 233, 0.3);
+    border-radius: 14px;
+    padding: 1.2rem;
     text-align: center;
 }
-.metric-box .val { font-size: 1.7rem; font-weight: 800; color: #0EA5E9; }
-.metric-box .lbl { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.9px; margin-top: 4px; font-weight: 700; opacity: 0.8; }
+.metric-box .val { font-size: 1.8rem; font-weight: 800; color: #0EA5E9; text-shadow: 0 0 8px rgba(14, 165, 233, 0.3); }
+.metric-box .lbl { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; font-weight: 700; opacity: 0.85; }
 
 .score-high { color: #10B981 !important; font-weight: 800; }
 .score-mid { color: #D97706 !important; font-weight: 800; }
 .score-low { color: #DC2626 !important; font-weight: 800; }
-
-.stButton>button[kind="primary"] {
-    background: #0EA5E9 !important; color: #FFFFFF !important; font-weight: 700; border-radius: 10px; padding: 0.6rem 1.4rem; border: none !important;
-    box-shadow: 0 4px 12px rgba(14, 165, 233, 0.25);
-}
-.stButton>button[kind="primary"]:hover { background: #0284C7 !important; }
 </style>
 """
-st.markdown(EXECUTIVE_UI_CSS, unsafe_allow_html=True)
+st.markdown(NEON_ENTERPRISE_CSS, unsafe_allow_html=True)
 
 # ===========================================================================
-# SESSION STATE SAFE INITIALIZATION & AUTO-HEALING CACHE
+# SESSION STATE SAFE INITIALIZATION
 # ===========================================================================
 if "logged_in" not in st.session_state: st.session_state.logged_in = False
 if "hr_name" not in st.session_state: st.session_state.hr_name = ""
@@ -308,19 +308,19 @@ if "pending_pin_email" not in st.session_state: st.session_state.pending_pin_ema
 if "screening_results" not in st.session_state: st.session_state.screening_results = []
 
 # ===========================================================================
-# AUTHENTICATION SCREEN (CENTERED MODERN LAYOUT)
+# AUTHENTICATION SCREEN (NEON GLASSMORPHIC DESIGN)
 # ===========================================================================
 if not st.session_state.logged_in:
     saved_profiles = get_all_verified_profiles()
     
     st.markdown(f"""
-        <div style="text-align: center; margin-bottom: 2rem;">
-            <h1 style="font-size: 2.8rem; font-weight: 800; color: #0EA5E9; margin-bottom: 5px;">{APP_NAME}</h1>
-            <p style="font-size: 1.1rem; opacity: 0.85; text-transform: uppercase; letter-spacing: 1.5px; font-weight: 600;">{APP_TAGLINE}</p>
+        <div style="text-align: center; margin-bottom: 2.5rem;">
+            <h1 style="font-size: 3rem; font-weight: 800; color: #0EA5E9; margin-bottom: 8px; text-shadow: 0 0 15px rgba(14, 165, 233, 0.4);">{APP_NAME}</h1>
+            <p style="font-size: 1.15rem; opacity: 0.9; text-transform: uppercase; letter-spacing: 2px; font-weight: 700; color: #38BDF8;">{APP_TAGLINE}</p>
         </div>
     """, unsafe_allow_html=True)
     
-    col_c1, col_c2, col_c3 = st.columns([1, 2.2, 1])
+    col_c1, col_c2, col_c3 = st.columns([1, 2.4, 1])
     with col_c2:
         st.markdown('<div class="auth-form-card">', unsafe_allow_html=True)
         
@@ -372,9 +372,9 @@ if not st.session_state.logged_in:
             
         elif saved_profiles and not st.session_state.selected_profile_email:
             st.markdown("""
-                <div style="background: rgba(14, 165, 233, 0.08); border: 1.5px solid #0EA5E9; border-radius: 14px; padding: 1.4rem; margin-bottom: 1.2rem;">
-                    <h3 style="margin-top: 0; margin-bottom: 0.2rem; font-size: 1.2rem; font-weight: 700;">👥 Saved Employee Profiles</h3>
-                    <p style="font-size: 0.82rem; opacity: 0.8; margin-bottom: 0;">Select your secure profile card below to sign in instantly:</p>
+                <div style="background: rgba(14, 165, 233, 0.12); border: 1.5px solid #0EA5E9; border-radius: 14px; padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 0 15px rgba(14, 165, 233, 0.2);">
+                    <h3 style="margin-top: 0; margin-bottom: 0.3rem; font-size: 1.3rem; font-weight: 800; color: #38BDF8;">👥 Saved Employee Profiles</h3>
+                    <p style="font-size: 0.85rem; opacity: 0.85; margin-bottom: 0;">Select your secure profile card below to sign in instantly:</p>
                 </div>
             """, unsafe_allow_html=True)
             
@@ -383,8 +383,8 @@ if not st.session_state.logged_in:
                     <div class="large-profile-card">
                         <div style="display: flex; justify-content: space-between; align-items: center;">
                             <div>
-                                <h4 style="margin: 0 0 4px 0; font-size: 1.1rem; color: #0EA5E9;">👤 {p_name}</h4>
-                                <p style="margin: 0; font-size: 0.8rem; opacity: 0.75;">✉️ <code>{p_email}</code> &bull; Role: <b>{p_role}</b></p>
+                                <h4 style="margin: 0 0 4px 0; font-size: 1.2rem; color: #38BDF8;">👤 {p_name}</h4>
+                                <p style="margin: 0; font-size: 0.82rem; opacity: 0.8;">✉️ <code>{p_email}</code> &bull; Role: <b>{p_role}</b></p>
                             </div>
                         </div>
                     </div>
@@ -400,7 +400,7 @@ if not st.session_state.logged_in:
                         delete_employee_profile(p_email)
                         st.success(f"Profile removed.")
                         st.rerun()
-                st.markdown("<div style='margin-bottom: 10px;'></div>", unsafe_allow_html=True)
+                st.markdown("<div style='margin-bottom: 12px;'></div>", unsafe_allow_html=True)
             
             st.markdown("---")
             if st.button("➕ Register New Employee / Admin Profile", use_container_width=True, key="reg_new_emp_auth_btn"):
@@ -467,7 +467,7 @@ if not st.session_state.logged_in:
     st.stop()
 
 # ===========================================================================
-# DATABASE OPERATIONS & BULLETPROOF AUTO-HEALING PERSISTENCE
+# DATABASE OPERATIONS & ABSOLUTE PERSISTENT STORAGE
 # ===========================================================================
 def load_database():
     expected_cols = [
@@ -475,9 +475,6 @@ def load_database():
         "CGPA", "Education", "University Name", "Experience Years", 
         "Latest Experience", "Reference", "Pipeline Status", "Added At"
     ]
-    if "persistent_candidates_df" in st.session_state and not st.session_state.persistent_candidates_df.empty:
-        return st.session_state.persistent_candidates_df
-
     if os.path.exists(DB_FILE) and os.path.getsize(DB_FILE) > 0:
         try:
             df = pd.read_csv(DB_FILE)
@@ -492,14 +489,12 @@ def load_database():
                 df_invalid = df[~valid_mask]
                 df = pd.concat([df_valid, df_invalid], ignore_index=True).drop(columns=["CleanEmail"])
                 df.to_csv(DB_FILE, index=False)
-            st.session_state.persistent_candidates_df = df
             return df
         except Exception:
             pass
             
     empty_df = pd.DataFrame(columns=expected_cols)
     empty_df.to_csv(DB_FILE, index=False)
-    st.session_state.persistent_candidates_df = empty_df
     return empty_df
 
 def check_if_exists_in_db(email):
@@ -546,20 +541,17 @@ def save_candidates_to_repository(new_candidates):
             df_v = df_combined[valid_mask].drop_duplicates(subset=["CleanEmail"], keep="first")
             df_inv = df_combined[~valid_mask]
             df_combined = pd.concat([df_v, df_inv], ignore_index=True).drop(columns=["CleanEmail"])
-        st.session_state.persistent_candidates_df = df_combined
         df_combined.to_csv(DB_FILE, index=False)
 
 def delete_single_candidate_from_db(email_or_name):
     df = load_database()
     df = df[~(df["Email"].astype(str).str.lower().str.strip() == str(email_or_name).lower().strip()) & 
             ~(df["Candidate Name"].astype(str).str.lower().str.strip() == str(email_or_name).lower().strip())]
-    st.session_state.persistent_candidates_df = df
     df.to_csv(DB_FILE, index=False)
 
 def update_candidate_pipeline_status(email, new_status):
     df = load_database()
     df.loc[df["Email"].str.lower() == email.lower(), "Pipeline Status"] = new_status
-    st.session_state.persistent_candidates_df = df
     df.to_csv(DB_FILE, index=False)
 
 def clear_candidate_database():
@@ -569,7 +561,6 @@ def clear_candidate_database():
         "Latest Experience", "Reference", "Pipeline Status", "Added At"
     ]
     empty_df = pd.DataFrame(columns=expected_cols)
-    st.session_state.persistent_candidates_df = empty_df
     empty_df.to_csv(DB_FILE, index=False)
 
 def generate_repository_excel(df: pd.DataFrame) -> bytes:
