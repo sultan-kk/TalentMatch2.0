@@ -1,7 +1,7 @@
 """
-HireMatrix Pro — Enterprise Edition v10.96 (Full Supabase Cloud Integration)
+HireMatrix Pro — Enterprise Edition v10.97 (Fixed Supabase & Page Config Order)
 ========================================================================
-Features: Direct Supabase PostgreSQL cloud synchronization preventing any data loss on reboots, 
+Features: Supabase PostgreSQL cloud integration, corrected page config sequence, 
 Stunning Neon glassmorphic form UI, dedicated Admin PIN creation, and complete ATS workflow.
 """
 
@@ -21,14 +21,23 @@ from groq import Groq
 from supabase import create_client, Client
 
 # ===========================================================================
-# CONFIGURATION & SUPABASE CLOUD DATABASE CONNECTION
+# PAGE CONFIG (MUST BE THE FIRST STREAMLIT COMMAND)
 # ===========================================================================
 APP_NAME = "HireMatrix Pro"
 APP_TAGLINE = "Autonomous HR Intelligence & Executive Recruitment Suite"
 GROQ_MODEL = "openai/gpt-oss-120b"
 ACCEPTED_TYPES = ["pdf", "docx", "png", "jpg", "jpeg"]
 
-# Initialize Supabase Client from Streamlit Secrets
+st.set_page_config(
+    page_title=f"{APP_NAME} | Executive Portal",
+    page_icon="💼",
+    layout="wide",
+    initial_sidebar_state="collapsed",
+)
+
+# ===========================================================================
+# SUPABASE CLOUD DATABASE CONNECTION
+# ===========================================================================
 @st.cache_resource
 def init_supabase():
     try:
@@ -40,15 +49,6 @@ def init_supabase():
         return None
 
 supabase: Client = init_supabase()
-
-def init_supabase_tables():
-    if not supabase:
-        return
-    # Supabase tables (hr_users and candidates) are created directly in Supabase SQL editor.
-    # We manage operations dynamically via Supabase PostgREST API.
-    pass
-
-init_supabase_tables()
 
 def hash_password(password):
     return hashlib.sha256(password.encode()).hexdigest()
@@ -256,15 +256,11 @@ def clear_candidate_database():
     if not supabase:
         return
     try:
-        # Delete all records from candidates table
-        supabase.table("candidates").delete().neq("id", 0).execute()
+        df = load_database()
+        for _, row in df.iterrows():
+            supabase.table("candidates").delete().eq("email", row["Email"]).execute()
     except Exception:
-        try:
-            df = load_database()
-            for _, row in df.iterrows():
-                supabase.table("candidates").delete().eq("email", row["Email"]).execute()
-        except Exception:
-            pass
+        pass
 
 def generate_repository_excel(df: pd.DataFrame) -> bytes:
     import openpyxl
@@ -325,21 +321,13 @@ def generate_screening_excel(results_list) -> bytes:
     return buffer.getvalue()
 
 # ===========================================================================
-# PAGE CONFIG & ULTRA-NEON GLASSMORPHISM STYLING
+# ULTRA-NEON GLASSMORPHISM STYLING
 # ===========================================================================
-st.set_page_config(
-    page_title=f"{APP_NAME} | Executive Portal",
-    page_icon="💼",
-    layout="wide",
-    initial_sidebar_state="collapsed",
-)
-
 ULTRA_NEON_CSS = """
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 html, body, [class*="css"] { font-family: 'Inter', sans-serif !important; }
 
-/* Hide default streamlit sidebar toggle & sidebar */
 [data-testid="stSidebar"] { display: none !important; }
 [data-testid="collapsedControl"] { display: none !important; }
 
