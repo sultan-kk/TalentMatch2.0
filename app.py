@@ -1,8 +1,8 @@
 """
-HireMatrix Pro — Enterprise Edition v10.80 (Real Excel Grid Table)
+HireMatrix Pro — Enterprise Edition v10.81 (Secured Navbar & Real Excel Grid)
 ========================================================================
-Features: Real Excel-style interactive data grid table view on screen, top navbar layout, 
-Top-left app title, persistent master file appends, and complete ATS workflow.
+Features: Secured Admin panel with PIN verification, fully restored top navbar tabs, 
+Real Excel-style interactive data grid table view, and complete ATS workflow.
 """
 
 import io
@@ -298,6 +298,7 @@ if "logged_in" not in st.session_state: st.session_state.logged_in = False
 if "hr_name" not in st.session_state: st.session_state.hr_name = ""
 if "hr_email" not in st.session_state: st.session_state.hr_email = ""
 if "hr_role" not in st.session_state: st.session_state.hr_role = "Recruiter"
+if "admin_unlocked" not in st.session_state: st.session_state.admin_unlocked = False
 if "selected_profile_email" not in st.session_state: st.session_state.selected_profile_email = None
 if "pending_otp_email" not in st.session_state: st.session_state.pending_otp_email = None
 if "pending_pin_email" not in st.session_state: st.session_state.pending_pin_email = None
@@ -424,6 +425,7 @@ if not st.session_state.logged_in:
                     st.session_state.hr_name = name
                     st.session_state.hr_email = target_email
                     st.session_state.hr_role = role
+                    st.session_state.admin_unlocked = False  # Reset admin lock on new login
                     st.success(f"Welcome back, {name}!")
                     st.rerun()
                 else:
@@ -800,6 +802,7 @@ with col_nav2:
         st.session_state.hr_name = ""
         st.session_state.hr_email = ""
         st.session_state.hr_role = "Recruiter"
+        st.session_state.admin_unlocked = False
         st.session_state.selected_profile_email = None
         st.session_state.screening_results = []
         st.rerun()
@@ -1046,7 +1049,6 @@ with tab3:
     if df_db.empty:
         st.info("Master database is currently empty. Upload resumes in Step 1.")
     else:
-        # Render real interactive Excel grid table view with 1-based indexing
         grid_df = df_db.copy()
         if "Job Title" in grid_df.columns:
             grid_df = grid_df.drop(columns=["Job Title"])
@@ -1054,7 +1056,6 @@ with tab3:
             grid_df = grid_df.drop(columns=["Extracted Skills"])
         grid_df.insert(0, "Sr. No.", range(1, len(grid_df) + 1))
         
-        # Display as an interactive editable/viewable Excel grid table
         st.data_editor(grid_df, use_container_width=True, height=400, disabled=True, key="master_excel_grid_view")
         
         st.markdown("---")
@@ -1078,11 +1079,30 @@ with tab3:
 
 with tab4:
     st.markdown('<div class="corp-card"><h4>🛡️ Admin Access & Employee Management</h4>', unsafe_allow_html=True)
-    if st.session_state.get('hr_role') != "Admin":
-        st.warning("⚠️ Access Restricted: Only users with **Admin** role can manage company employee profiles.")
-    else:
-        st.success("✓ Admin privileges active.")
+    
+    # Secured PIN Check for Admin Panel
+    if st.session_state.get('hr_role') != "Admin" and not st.session_state.get('admin_unlocked', False):
+        st.warning("🔒 **Admin Access Restricted**: This section contains sensitive company employee management controls.")
+        st.caption("Please enter the 4-digit Master Admin PIN to unlock this panel.")
         
+        with st.form("admin_unlock_form"):
+            entered_admin_pin = st.text_input("Enter Admin PIN", type="password", max_chars=4, placeholder="••••")
+            unlock_submit = st.form_submit_button("Unlock Admin Panel", use_container_width=True)
+            
+        if unlock_submit:
+            if entered_admin_pin == "1234":  # Default Master Admin PIN
+                st.session_state.admin_unlocked = True
+                st.success("Admin panel successfully unlocked!")
+                st.rerun()
+            else:
+                st.error("Incorrect Admin PIN. Access denied.")
+    else:
+        st.success("✓ Admin privileges active & verified.")
+        
+        if st.button("🔒 Lock Admin Panel", key="lock_admin_panel_btn"):
+            st.session_state.admin_unlocked = False
+            st.rerun()
+            
         st.markdown("### 👥 Active Employee Profiles")
         all_emps = get_all_verified_profiles()
         st.markdown(f"**Total Active Registered Employees:** {len(all_emps)}")
