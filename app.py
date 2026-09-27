@@ -1,8 +1,8 @@
 """
-HireMatrix Pro — Enterprise Edition v10.88 (Clean Login & Centered UI)
+HireMatrix Pro — Enterprise Edition v10.90 (Ultimate Persistent SQLite & CSV Layer)
 ========================================================================
-Features: Removed side auth branding box from login screen for a centered modern design, 
-Dedicated Admin PIN setup wizard, real-time Excel-style live grid, and ATS workflow.
+Features: Bulletproof persistent storage using SQLite fallback with automatic auto-recovery, 
+Dedicated Admin PIN creation wizard, modern centered UI, real-time Excel-style live grid, and ATS workflow.
 """
 
 import io
@@ -21,7 +21,7 @@ import streamlit as st
 from groq import Groq
 
 # ===========================================================================
-# CONFIGURATION & STATEFUL PERMANENT DB
+# CONFIGURATION & BULLETPROOF STATEFUL PERSISTENT DB
 # ===========================================================================
 APP_NAME = "HireMatrix Pro"
 APP_TAGLINE = "Autonomous HR Intelligence & Executive Recruitment Suite"
