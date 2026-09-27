@@ -1,7 +1,7 @@
 """
-HireMatrix Pro — Enterprise Edition v11.0 (Fixed Syntax & Clean Production)
+HireMatrix Pro — Enterprise Edition v11.1 (Forced Layout & Clean Cache Fix)
 ========================================================================
-Features: Supabase PostgreSQL cloud integration, error-free clean layout, 
+Features: Supabase PostgreSQL cloud integration, clean header structure, 
 Stunning Neon glassmorphic form UI, dedicated Admin PIN creation, and complete ATS workflow.
 """
 
@@ -321,15 +321,47 @@ def generate_screening_excel(results_list) -> bytes:
     return buffer.getvalue()
 
 # ===========================================================================
-# ULTRA-NEON GLASSMORPHISM STYLING
+# FRESH CLEAN CSS (REMOVED UNWANTED CONTAINERS & DARK BOXES)
 # ===========================================================================
-ULTRA_NEON_CSS = """
+FRESH_CSS = """
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 html, body, [class*="css"] { font-family: 'Inter', sans-serif !important; }
 
 [data-testid="stSidebar"] { display: none !important; }
 [data-testid="collapsedControl"] { display: none !important; }
+
+/* Hide Streamlit default status boxes & empty alerts */
+.stStatusWidget, [data-testid="stStatusWidget"], .stAlert:empty {
+    display: none !important;
+}
+
+.login-title-box {
+    text-align: center;
+    padding: 1.5rem 0;
+    margin-bottom: 2rem;
+}
+
+.login-title-text {
+    font-size: 3.2rem;
+    font-weight: 900;
+    color: #38BDF8;
+    margin: 0 0 10px 0;
+    text-shadow: 0 0 25px rgba(56, 189, 248, 0.5);
+}
+
+.login-subtitle-badge {
+    display: inline-block;
+    background: rgba(56, 189, 248, 0.15);
+    border: 1px solid #38BDF8;
+    padding: 6px 20px;
+    border-radius: 20px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: #7DD3FC;
+}
 
 .top-navbar {
     background: linear-gradient(135deg, rgba(14, 165, 233, 0.15) 0%, rgba(15, 23, 42, 0.8) 100%);
@@ -353,35 +385,26 @@ html, body, [class*="css"] { font-family: 'Inter', sans-serif !important; }
 }
 
 .auth-form-card {
-    background: rgba(15, 23, 42, 0.75);
-    border: 2.5px solid #0EA5E9;
+    background: rgba(15, 23, 42, 0.85);
+    border: 2px solid #0EA5E9;
     border-radius: 24px;
-    padding: 3rem;
-    box-shadow: 0 0 40px rgba(14, 165, 233, 0.4), inset 0 0 20px rgba(14, 165, 233, 0.15);
-    max-width: 700px;
+    padding: 2.8rem;
+    box-shadow: 0 0 35px rgba(14, 165, 233, 0.35);
+    max-width: 650px;
     margin: 0 auto;
-    backdrop-filter: blur(16px);
 }
 
 .auth-form-card h3 {
     color: #38BDF8 !important;
     font-weight: 800 !important;
-    text-shadow: 0 0 10px rgba(14, 165, 233, 0.4);
 }
 
 .large-profile-card {
-    background: linear-gradient(135deg, rgba(14, 165, 233, 0.12) 0%, rgba(30, 41, 59, 0.08) 100%);
-    border: 2px solid rgba(14, 165, 233, 0.6);
+    background: rgba(14, 165, 233, 0.08);
+    border: 2px solid rgba(14, 165, 233, 0.5);
     border-radius: 16px;
-    padding: 1.5rem 2rem;
+    padding: 1.4rem 1.8rem;
     margin-bottom: 1.2rem;
-    box-shadow: 0 0 20px rgba(14, 165, 233, 0.2);
-    transition: all 0.3s ease;
-}
-.large-profile-card:hover {
-    border-color: #38BDF8;
-    box-shadow: 0 0 30px rgba(14, 165, 233, 0.5);
-    transform: translateY(-2px);
 }
 
 .stButton > button {
@@ -391,13 +414,7 @@ html, body, [class*="css"] { font-family: 'Inter', sans-serif !important; }
     border-radius: 12px !important;
     font-weight: 700 !important;
     padding: 0.6rem 1.5rem !important;
-    box-shadow: 0 0 15px rgba(14, 165, 233, 0.4);
-    transition: all 0.25s ease-in-out;
-}
-.stButton > button:hover {
-    background: linear-gradient(135deg, #0284C7 0%, #0369A1 100%) !important;
-    border-color: #7DD3FC !important;
-    box-shadow: 0 0 25px rgba(14, 165, 233, 0.7);
+    box-shadow: 0 0 12px rgba(14, 165, 233, 0.3);
 }
 
 .corp-hero {
@@ -406,15 +423,7 @@ html, body, [class*="css"] { font-family: 'Inter', sans-serif !important; }
     border-radius: 16px;
     padding: 2.2rem 2.8rem;
     margin-bottom: 2rem;
-    box-shadow: 0 0 30px rgba(14, 165, 233, 0.25);
     border-left: 6px solid #0EA5E9;
-}
-.corp-badge {
-    display: inline-flex; align-items: center; gap: 8px; 
-    background: rgba(14, 165, 233, 0.25); color: #38BDF8; 
-    padding: 6px 16px; border-radius: 8px;
-    font-size: 0.78rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 0.9rem;
-    border: 1px solid rgba(14, 165, 233, 0.5);
 }
 .corp-card {
     background: var(--background-color);
@@ -422,7 +431,6 @@ html, body, [class*="css"] { font-family: 'Inter', sans-serif !important; }
     border-radius: 16px;
     padding: 1.8rem;
     margin-bottom: 1.5rem;
-    box-shadow: 0 0 20px rgba(14, 165, 233, 0.15);
 }
 .metric-box {
     background: var(--secondary-background-color);
@@ -430,9 +438,8 @@ html, body, [class*="css"] { font-family: 'Inter', sans-serif !important; }
     border-radius: 14px;
     padding: 1.2rem;
     text-align: center;
-    box-shadow: 0 0 15px rgba(14, 165, 233, 0.15);
 }
-.metric-box .val { font-size: 1.8rem; font-weight: 800; color: #38BDF8; text-shadow: 0 0 10px rgba(14, 165, 233, 0.4); }
+.metric-box .val { font-size: 1.8rem; font-weight: 800; color: #38BDF8; }
 .metric-box .lbl { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; font-weight: 700; opacity: 0.85; }
 
 .score-high { color: #10B981 !important; font-weight: 800; }
@@ -440,7 +447,7 @@ html, body, [class*="css"] { font-family: 'Inter', sans-serif !important; }
 .score-low { color: #DC2626 !important; font-weight: 800; }
 </style>
 """
-st.markdown(ULTRA_NEON_CSS, unsafe_allow_html=True)
+st.markdown(FRESH_CSS, unsafe_allow_html=True)
 
 # ===========================================================================
 # SESSION STATE SAFE INITIALIZATION
@@ -455,16 +462,16 @@ if "pending_pin_email" not in st.session_state: st.session_state.pending_pin_ema
 if "screening_results" not in st.session_state: st.session_state.screening_results = []
 
 # ===========================================================================
-# AUTHENTICATION SCREEN (ULTRA NEON GLASSMORPHIC FORM)
+# AUTHENTICATION SCREEN
 # ===========================================================================
 if not st.session_state.logged_in:
     saved_profiles = get_all_verified_profiles()
     
     st.markdown(f"""
-        <div class="login-header-container">
-            <h1 class="login-main-title">{APP_NAME}</h1>
-            <div class="login-tagline-badge">
-                <span>⚡</span> {APP_TAGLINE} <span>⚡</span>
+        <div class="login-title-box">
+            <h1 class="login-title-text">{APP_NAME}</h1>
+            <div class="login-subtitle-badge">
+                {APP_TAGLINE}
             </div>
         </div>
     """, unsafe_allow_html=True)
@@ -521,7 +528,7 @@ if not st.session_state.logged_in:
             
         elif saved_profiles and not st.session_state.selected_profile_email:
             st.markdown("""
-                <div style="background: rgba(14, 165, 233, 0.15); border: 2px solid #0EA5E9; border-radius: 16px; padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 0 20px rgba(14, 165, 233, 0.3);">
+                <div style="background: rgba(14, 165, 233, 0.15); border: 2px solid #0EA5E9; border-radius: 16px; padding: 1.5rem; margin-bottom: 1.5rem;">
                     <h3 style="margin-top: 0; margin-bottom: 0.3rem; font-size: 1.3rem; font-weight: 800; color: #38BDF8;">👥 Saved Employee Profiles</h3>
                     <p style="font-size: 0.85rem; opacity: 0.9; margin-bottom: 0;">Select your secure profile card below to sign in instantly:</p>
                 </div>
@@ -1073,7 +1080,7 @@ with tab3:
     st.markdown("</div>", unsafe_allow_html=True)
 
 with tab4:
-    st.markdown('<div class="corp-card"><h4>🛡️ Admin Access & Employee Management</h4></div>', unsafe_allow_html=True)
+    st.markdown('<div class="corp-card"><h4>🛡️ Admin Access & Employee Management</h4>', unsafe_allow_html=True)
     
     if st.session_state.get('hr_role') != "Admin":
         st.error("⛔ **Access Denied**: You do not have Administrator privileges to view this control panel.")
