@@ -1,8 +1,8 @@
 """
-HireMatrix Pro — Enterprise Edition v10.79 (Final Optimized Master)
+HireMatrix Pro — Enterprise Edition v10.80 (Real Excel Grid Table)
 ========================================================================
-Features: Top Navbar layout, Top-Left App Title, Live Embedded Excel Table Grid view, 
-Seamless data appending, and complete ATS workflow.
+Features: Real Excel-style interactive data grid table view on screen, top navbar layout, 
+Top-left app title, persistent master file appends, and complete ATS workflow.
 """
 
 import io
@@ -817,7 +817,7 @@ st.markdown(f"""
     </div>
 """, unsafe_allow_html=True)
 
-tab1, tab2, tab3, tab4 = st.tabs(["📥 1. Talent Repository (Upload)", "🎯 2. JD Screening & Matching", "🗄️ 3. Live Master Excel Table & Pipeline", "🛡️ 4. Admin Controls"])
+tab1, tab2, tab3, tab4 = st.tabs(["📥 1. Talent Repository (Upload)", "🎯 2. JD Screening & Matching", "🗄️ 3. Live Master Excel Sheet Grid", "🛡️ 4. Admin Controls"])
 
 with tab1:
     st.markdown('<div class="corp-card"><h4>📥 Step 1: Talent Repository Ingestion (Upload Resumes)</h4>', unsafe_allow_html=True)
@@ -1038,15 +1038,15 @@ with tab2:
         st.markdown("</div>", unsafe_allow_html=True)
 
 with tab3:
-    st.markdown('<div class="corp-card"><h4>🗄️ Live Master Excel Table (Real-time Database View)</h4>', unsafe_allow_html=True)
-    st.caption("Aapka saara naya data yahan live excel sheet table format mein update ho raha hai. Recruiter jab chahe neechay button se poori sheet download kar sakta hai.")
+    st.markdown('<div class="corp-card"><h4>🗄️ Live Master Excel Sheet Grid (Real-time Database View)</h4>', unsafe_allow_html=True)
+    st.caption("Yeh bilkul real Microsoft Excel sheet jaisa interactive grid hai. Saara naya data yahan live update ho raha hai aur aap ek click par poori sheet download kar sakte hain.")
     
     df_db = load_database()
     
     if df_db.empty:
         st.info("Master database is currently empty. Upload resumes in Step 1.")
     else:
-        # Render real interactive Excel grid view with 1-based indexing
+        # Render real interactive Excel grid table view with 1-based indexing
         grid_df = df_db.copy()
         if "Job Title" in grid_df.columns:
             grid_df = grid_df.drop(columns=["Job Title"])
@@ -1054,7 +1054,8 @@ with tab3:
             grid_df = grid_df.drop(columns=["Extracted Skills"])
         grid_df.insert(0, "Sr. No.", range(1, len(grid_df) + 1))
         
-        st.dataframe(grid_df, use_container_width=True, height=350)
+        # Display as an interactive editable/viewable Excel grid table
+        st.data_editor(grid_df, use_container_width=True, height=400, disabled=True, key="master_excel_grid_view")
         
         st.markdown("---")
         c_ex1, c_ex2 = st.columns([2, 1])
