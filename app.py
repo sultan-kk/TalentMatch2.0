@@ -577,6 +577,32 @@ html, body, [class*="css"] {
     margin-bottom: 1.5rem;
     box-shadow: 0 0 20px rgba(0, 242, 254, 0.1);
 }
+/* =========================================================
+   FUTURISTIC CYBER-NEON STEP HEADINGS (.corp-card h4)
+   ========================================================= */
+.corp-card h4 {
+    font-family: 'Space Grotesk', sans-serif !important;
+    font-size: 1.35rem !important;
+    font-weight: 800 !important;
+    letter-spacing: -0.3px !important;
+    color: #0096C7 !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    margin-top: 0 !important;
+    margin-bottom: 0.8rem !important;
+    padding-bottom: 0.6rem !important;
+    border-bottom: 1.5px dashed rgba(0, 180, 216, 0.35) !important;
+    text-shadow: 0 0 16px rgba(0, 180, 216, 0.25) !important;
+}
+
+@media (prefers-color-scheme: dark) {
+    .corp-card h4 {
+        color: #00F2FE !important;
+        border-bottom-color: rgba(0, 242, 254, 0.4) !important;
+        text-shadow: 0 0 22px rgba(0, 242, 254, 0.55) !important;
+    }
+}
 .metric-box {
     background: var(--secondary-background-color);
     border: 1.5px solid rgba(0, 242, 254, 0.35);
