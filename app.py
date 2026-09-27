@@ -331,9 +331,10 @@ html, body, [class*="css"] { font-family: 'Inter', sans-serif !important; }
 [data-testid="stSidebar"] { display: none !important; }
 [data-testid="collapsedControl"] { display: none !important; }
 
-/* Completely Hide Empty or Blank Floating Notification Boxes */
-.stAlert:empty, [data-testid="stNotification"]:empty {
+/* Completely Hide Empty Status Containers & Notifications */
+.stStatusWidget, [data-testid="stStatusWidget"], .stAlert:empty, [data-testid="stNotification"]:empty {
     display: none !important;
+    visibility: hidden !important;
 }
 
 .stAlert, [data-testid="stNotification"] {
