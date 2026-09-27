@@ -588,18 +588,23 @@ html, body, [class*="css"] {
 /* =========================================================
    FUTURISTIC CYBER-NEON STEP HEADINGS (.corp-card h4)
    ========================================================= */
+/* =========================================================
+   ADAPTIVE STEP HEADINGS (.corp-card h4)
+   ========================================================= */
 .corp-card h4 {
     font-family: 'Space Grotesk', sans-serif !important;
     font-size: 1.25rem !important;
     font-weight: 800 !important;
     letter-spacing: -0.2px !important;
-    color: #008DDA !important;
+    
+    /* Modern Adaptive Syntax: Light mode mein Deep Blue (#008DDA), Dark mode mein Pure White (#FFFFFF) */
+    color: light-dark(#008DDA, #FFFFFF) !important;
+    
     display: flex !important;
     align-items: center !important;
     gap: 10px !important;
     margin-top: 0 !important;
     margin-bottom: 1.2rem !important;
-    /* Cyber Accent Background Ribbon */
     background: linear-gradient(90deg, rgba(0, 180, 216, 0.12) 0%, rgba(0, 180, 216, 0.02) 100%) !important;
     border-left: 4px solid #00B4D8 !important;
     border-bottom: 1px solid rgba(0, 180, 216, 0.25) !important;
@@ -607,24 +612,6 @@ html, body, [class*="css"] {
     padding: 10px 16px !important;
     box-shadow: inset 0 0 15px rgba(0, 180, 216, 0.06) !important;
     text-shadow: 0 0 12px rgba(0, 180, 216, 0.2) !important;
-}
-
-@media (prefers-color-scheme: dark) {
-    .corp-card h4 {
-        color: #FFFFFF !important;
-        background: linear-gradient(90deg, rgba(0, 242, 254, 0.16) 0%, rgba(15, 23, 42, 0.6) 100%) !important;
-        border-left: 4px solid #00F2FE !important;
-        border-bottom: 1px solid rgba(0, 242, 254, 0.3) !important;
-        box-shadow: inset 0 0 20px rgba(0, 242, 254, 0.1), 0 4px 12px rgba(0, 0, 0, 0.25) !important;
-        text-shadow: 0 0 20px rgba(0, 242, 254, 0.5) !important;
-    }
-}
-.metric-box {
-    background: var(--secondary-background-color);
-    border: 1.5px solid rgba(0, 242, 254, 0.35);
-    border-radius: 14px;
-    padding: 1.2rem;
-    text-align: center;
 }
 .metric-box .val { font-size: 1.8rem; font-weight: 800; color: #00F2FE; text-shadow: 0 0 10px rgba(0, 242, 254, 0.4); }
 .metric-box .lbl { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; font-weight: 700; opacity: 0.85; }
