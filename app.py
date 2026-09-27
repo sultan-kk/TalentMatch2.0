@@ -334,7 +334,7 @@ html, body, [class*="css"] {
 [data-testid="stSidebar"] { display: none !important; }
 [data-testid="collapsedControl"] { display: none !important; }
 
-/* Futuristic Dual-Tone High-Contrast Header */
+/* Futuristic Cyber-Neon Header (Unified Glowing Cyan) */
 .cyber-header-box {
     text-align: center;
     padding: 2rem 1rem 1.4rem 1rem;
@@ -345,15 +345,17 @@ html, body, [class*="css"] {
     font-size: 3.6rem !important;
     font-weight: 900 !important;
     letter-spacing: -1.2px !important;
-    color: #0F172A !important;
+    color: #00B4D8 !important;
+    -webkit-text-fill-color: #00B4D8 !important;
     margin: 0 0 10px 0 !important;
     background: none !important;
-    -webkit-text-fill-color: initial !important;
+    text-shadow: 0 0 22px rgba(0, 180, 216, 0.5) !important;
 }
 
 .cyber-title-pro {
     color: #00B4D8 !important;
-    text-shadow: 0 0 20px rgba(0, 180, 216, 0.45) !important;
+    -webkit-text-fill-color: #00B4D8 !important;
+    text-shadow: 0 0 25px rgba(0, 180, 216, 0.6) !important;
 }
 
 .cyber-badge {
@@ -373,12 +375,10 @@ html, body, [class*="css"] {
 }
 
 @media (prefers-color-scheme: dark) {
-    .cyber-title {
-        color: #F8FAFC !important;
-    }
-    .cyber-title-pro {
+    .cyber-title, .cyber-title-pro {
         color: #00F2FE !important;
-        text-shadow: 0 0 25px rgba(0, 242, 254, 0.6) !important;
+        -webkit-text-fill-color: #00F2FE !important;
+        text-shadow: 0 0 28px rgba(0, 242, 254, 0.65) !important;
     }
     .cyber-badge {
         background: rgba(0, 242, 254, 0.12) !important;
@@ -387,7 +387,6 @@ html, body, [class*="css"] {
         box-shadow: 0 0 18px rgba(0, 242, 254, 0.3) !important;
     }
 }
-
 /* Profiles Section Header */
 .cyber-profiles-header {
     background: rgba(15, 23, 42, 0.7);
