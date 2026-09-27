@@ -1,13 +1,14 @@
 """
-HireMatrix Pro — Enterprise Edition v11.3 (Executive Profile Card UI & Supabase)
+HireMatrix Pro — Enterprise Edition v11.4 (Enhanced Dual-Pass OCR & Auto-Regex)
 ========================================================================
-Features: High-profile executive badge cards, deep-neon glassmorphism, 
-Supabase PostgreSQL cloud sync, and end-to-end ATS recruitment suite.
+Features: Inverted contrast OCR for colored headers, automatic regex fallback
+for email/phone, Supabase PostgreSQL synchronization, and full ATS pipeline.
 """
 
 import io
 import json
 import os
+import re
 import hashlib
 import random
 import smtplib
@@ -19,6 +20,7 @@ import pandas as pd
 import streamlit as st
 from groq import Groq
 from supabase import create_client, Client
+from PIL import Image, ImageOps, ImageEnhance
 
 # ===========================================================================
 # 1. PAGE CONFIGURATION
@@ -362,7 +364,6 @@ html, body, [class*="css"] { font-family: 'Inter', sans-serif !important; }
     box-shadow: 0 0 20px rgba(14, 165, 233, 0.25);
 }
 
-/* Executive Profile Card Styling */
 .profiles-header-card {
     background: linear-gradient(135deg, rgba(14, 165, 233, 0.15) 0%, rgba(15, 23, 42, 0.7) 100%);
     border: 2px solid #0EA5E9;
@@ -402,7 +403,6 @@ html, body, [class*="css"] { font-family: 'Inter', sans-serif !important; }
     margin-left: 10px;
 }
 
-/* Glassmorphism Forms */
 [data-testid="stForm"] {
     background: rgba(15, 23, 42, 0.85) !important;
     border: 2px solid #0EA5E9 !important;
@@ -411,7 +411,6 @@ html, body, [class*="css"] { font-family: 'Inter', sans-serif !important; }
     box-shadow: 0 0 35px rgba(14, 165, 233, 0.3) !important;
 }
 
-/* Styled Action Buttons */
 .stButton > button {
     background: linear-gradient(135deg, #0EA5E9 0%, #0284C7 100%) !important;
     color: #FFFFFF !important;
@@ -428,7 +427,6 @@ html, body, [class*="css"] { font-family: 'Inter', sans-serif !important; }
     transform: translateY(-1px);
 }
 
-/* Portal Navbar & Dashboard */
 .top-navbar {
     background: linear-gradient(135deg, rgba(14, 165, 233, 0.15) 0%, rgba(15, 23, 42, 0.85) 100%);
     border: 2px solid #0EA5E9;
@@ -666,14 +664,24 @@ if not st.session_state.logged_in:
     st.stop()
 
 # ===========================================================================
-# 7. TEXT EXTRACTION & OCR
+# 7. ENHANCED DUAL-PASS TEXT EXTRACTION & OCR
 # ===========================================================================
 def extract_text_from_image(file_bytes: bytes) -> str:
     import pytesseract
-    from PIL import Image
     try:
         img = Image.open(io.BytesIO(file_bytes)).convert("RGB")
-        return pytesseract.image_to_string(img)
+        
+        # 1. Normal Grayscale Pass (White background par black text)
+        gray = img.convert("L")
+        t1 = pytesseract.image_to_string(gray)
+        
+        # 2. Inverted High-Contrast Pass (Colored/Dark header par light text pakadne ke liye)
+        inverted = ImageOps.invert(gray)
+        enhancer = ImageEnhance.Contrast(inverted)
+        inv_contrasted = enhancer.enhance(2.2)
+        t2 = pytesseract.image_to_string(inv_contrasted)
+        
+        return f"{t1}\n{t2}"
     except Exception as e:
         st.error(f"⚠️ Image OCR failed: {e}")
         return ""
@@ -689,9 +697,12 @@ def extract_text_from_pdf(file_bytes: bytes) -> str:
                 text_parts.append(page_text)
             else:
                 try:
-                    pil_img = page.to_image(resolution=300).original
-                    ocr_text = pytesseract.image_to_string(pil_img)
-                    text_parts.append(ocr_text)
+                    pil_img = page.to_image(resolution=300).original.convert("RGB")
+                    gray = pil_img.convert("L")
+                    t1 = pytesseract.image_to_string(gray)
+                    inv = ImageEnhance.Contrast(ImageOps.invert(gray)).enhance(2.2)
+                    t2 = pytesseract.image_to_string(inv)
+                    text_parts.append(f"{t1}\n{t2}")
                 except Exception:
                     pass
     return "\n".join(text_parts)
@@ -723,15 +734,21 @@ def extract_resume_text(uploaded_file):
     return None
 
 # ===========================================================================
-# 8. GROQ AI INTEGRATION
+# 8. GROQ AI INTEGRATION & SMART FALLBACK EXTRACTION
 # ===========================================================================
 def build_repository_extraction_prompt(resume_text: str) -> str:
     return f"""You are an expert HR AI assistant. Extract candidate profile information from the following resume.
 
-RESUME TEXT:
-{resume_text[:12000]}
+CRITICAL INSTRUCTIONS:
+- Search carefully for the candidate's Full Name at the beginning or top header.
+- Locate the candidate's Email Address (look for words with '@' symbol).
+- Locate the candidate's Phone Number or Mobile digits.
+- Extract accurately without leaving fields as 'Not Provided' if visible anywhere in the text.
 
-Return ONLY a valid JSON object with exactly the following keys. Extract the information precisely. Do not include markdown fences or explanations.
+RESUME TEXT:
+{resume_text[:14000]}
+
+Return ONLY a valid JSON object with exactly the following keys:
 {{
   "name": "Candidate's full name",
   "father_name": "Father's name (if available, else 'Not Provided')",
@@ -748,7 +765,7 @@ Return ONLY a valid JSON object with exactly the following keys. Extract the inf
 """
 
 def build_jd_matching_prompt(candidate_text_summary: str, jd_text: str) -> str:
-    return f"""You are an expert HR recruiter AI. Evaluate the CANDIDATE PROFILE against the JOB DESCRIPTION. Determine if the candidate is relevant to the job description (e.g. matching domain, background, or skills).
+    return f"""You are an expert HR recruiter AI. Evaluate the CANDIDATE PROFILE against the JOB DESCRIPTION. Determine if the candidate is relevant to the job domain.
 
 CANDIDATE PROFILE SUMMARY:
 {candidate_text_summary}
@@ -756,11 +773,11 @@ CANDIDATE PROFILE SUMMARY:
 JOB DESCRIPTION:
 {jd_text}
 
-Return ONLY a valid JSON object with exactly the following keys. Do not include markdown fences.
+Return ONLY a valid JSON object:
 {{
-  "match_score": A number between 0 and 100 representing how well the candidate matches the JD,
-  "is_relevant": true if the candidate is relevant, else false,
-  "missing_skills": ["List", "of", "key JD skills", "missing from candidate profile"]
+  "match_score": A number between 0 and 100,
+  "is_relevant": true if the candidate has domain relevance, else false,
+  "missing_skills": ["List", "of", "key JD skills missing"]
 }}
 """
 
@@ -771,18 +788,41 @@ def extract_candidate_for_repo(client, resume_text: str, file_name: str):
             model=GROQ_MODEL,
             messages=[{"role": "user", "content": prompt}],
             response_format={"type": "json_object"},
-            temperature=0.2,
+            temperature=0.1,
         )
         raw_content = response.choices[0].message.content.strip()
         result = json.loads(raw_content)
-        email = result.get("email", "Not Provided")
+        
+        name = result.get("name", "Unknown").strip()
+        email = result.get("email", "Not Provided").strip()
+        phone = result.get("phone", "Not Provided").strip()
+
+        # Regex Fallbacks (Agar AI ne colored banner ka email/phone miss kar diya ho)
+        if email in ["Not Provided", "Not Found", "", "None"]:
+            found_emails = re.findall(r'[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+', resume_text)
+            if found_emails:
+                email = found_emails[0].strip()
+
+        if phone in ["Not Provided", "Not Found", "", "None"]:
+            found_phones = re.findall(r'(?:\+?\d{1,3}[-.\s]?)?\(?\d{2,4}\)?[-.\s]?\d{3,4}[-.\s]?\d{3,5}', resume_text)
+            if found_phones:
+                phone = found_phones[0].strip()
+
+        if name in ["Unknown", "Not Provided", "", "None"]:
+            # Fallback candidate name extraction from lines
+            lines = [l.strip() for l in resume_text.splitlines() if len(l.strip()) > 3]
+            for l in lines[:5]:
+                if not any(kw in l.lower() for kw in ["curriculum", "resume", "objective", "education", "experience", "skills", "profile"]):
+                    if len(l.split()) in [2, 3]:
+                        name = l.title()
+                        break
         
         return {
             "file_name": file_name,
-            "name": result.get("name", "Unknown"),
+            "name": name if name else "Unknown",
             "father_name": result.get("father_name", "Not Provided"),
             "email": email,
-            "phone": result.get("phone", "Not Provided"),
+            "phone": phone,
             "cgpa": result.get("cgpa", "Not Provided"),
             "education": result.get("education", "Not Provided"),
             "university_name": result.get("university_name", "Not Provided"),
