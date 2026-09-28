@@ -27,7 +27,7 @@ from PIL import Image, ImageOps, ImageEnhance, ImageDraw
 # ===========================================================================
 APP_NAME = "ARL HireMatrix Pro"
 APP_TAGLINE = "Attock Refinery Limited (ARL) • HR Intelligence & AI Screening Engine"
-GROQ_MODEL = "llama-3.3-70b-versatile"
+GROQ_MODEL = "openai/gpt-oss-120b"
 ACCEPTED_TYPES = ["pdf", "docx", "png", "jpg", "jpeg"]
 
 def get_cyber_favicon():
