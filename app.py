@@ -887,9 +887,11 @@ button[data-baseweb="tab"][aria-selected="true"] {
 }
 
 [data-testid="stVerticalBlock"] > [data-testid="stVerticalBlockBorderWrapper"]:first-child {
-    border: 1.5px solid #D1D5DB !important;
+    border: 1.5px solid rgba(22, 101, 52, 0.4) !important;
     border-radius: 24px !important;
-    padding: 2rem 2.2rem !important;
+    padding: 2.2rem 2.2rem !important;
+    background: rgba(22, 101, 52, 0.05) !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06) !important;
 }
 
 [data-testid="column"] [data-testid="stVerticalBlockBorderWrapper"], [data-testid="column"] > div {
@@ -900,8 +902,10 @@ button[data-baseweb="tab"][aria-selected="true"] {
 
 @media (prefers-color-scheme: dark) {
     [data-testid="stVerticalBlock"] > [data-testid="stVerticalBlockBorderWrapper"]:first-child {
-        border: 1.5px solid rgba(255, 255, 255, 0.15) !important;
-        background: #101214 !important;
+        border: 1.5px solid rgba(34, 197, 94, 0.35) !important;
+        background: linear-gradient(135deg, rgba(13, 35, 25, 0.82) 0%, rgba(9, 24, 17, 0.92) 100%) !important;
+        box-shadow: 0 16px 40px rgba(0, 0, 0, 0.55), inset 0 0 25px rgba(22, 101, 52, 0.15) !important;
+        backdrop-filter: blur(16px) !important;
     }
 }
 </style>
