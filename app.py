@@ -33,10 +33,8 @@ GROQ_MODEL = "openai/gpt-oss-120b"
 ACCEPTED_TYPES = ["pdf", "docx", "png", "jpg", "jpeg"]
 
 def get_arl_favicon():
-    # ARL Official Green Hexagonal Shield Favicon
     img = Image.new("RGBA", (64, 64), (255, 255, 255, 0))
     draw = ImageDraw.Draw(img)
-    # Hexagon outline
     draw.polygon([(32, 6), (58, 20), (58, 44), (32, 58), (6, 44), (6, 20)], outline=(22, 101, 52), width=5)
     draw.polygon([(32, 16), (46, 25), (46, 39), (32, 48), (18, 39), (18, 25)], fill=(22, 101, 52))
     return img
@@ -594,7 +592,7 @@ def generate_screening_excel(results_list) -> bytes:
     return buffer.getvalue()
 
 # ===========================================================================
-# 6. ARL CORPORATE COLOR PALETTE (OFFICIAL FOREST GREEN & CHARCOAL)
+# 6. ARL CHARCOAL BLACK & OFFICIAL GREEN ACCENTS CSS
 # ===========================================================================
 ARL_GREEN_CSS = """
 <style>
@@ -655,7 +653,7 @@ html, body, [class*="css"] {
     }
 }
 
-/* CLICKABLE ARL PROFILE BADGE CARD (OFFICIAL GREEN ACCENTS) */
+/* CLICKABLE PROFILE BADGE CARD (CHARCOAL BLACK WITH ARL GREEN ACCENT) */
 .arl-clickable-badge {
     text-decoration: none !important;
     color: inherit !important;
@@ -666,17 +664,19 @@ html, body, [class*="css"] {
 
 .cyber-badge-card {
     position: relative;
-    background: linear-gradient(135deg, #0D1F17 0%, #112A1F 100%);
-    border: 1.8px solid #166534;
-    border-radius: 18px;
-    padding: 1.5rem 2rem;
-    box-shadow: 0 10px 25px rgba(22, 101, 52, 0.25);
-    transition: all 0.25s ease-in-out;
+    background: linear-gradient(135deg, #181B1E 0%, #111315 100%) !important;
+    border: 1.5px solid #1E2328 !important;
+    border-left: 5px solid #166534 !important;
+    border-radius: 16px !important;
+    padding: 1.5rem 1.8rem !important;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.45) !important;
+    transition: all 0.25s ease-in-out !important;
 }
 
 .arl-clickable-badge:hover .cyber-badge-card {
     border-color: #22C55E !important;
-    box-shadow: 0 14px 35px rgba(34, 197, 94, 0.35), inset 0 0 20px rgba(34, 197, 94, 0.12) !important;
+    border-left-color: #22C55E !important;
+    box-shadow: 0 14px 35px rgba(0, 0, 0, 0.6), inset 0 0 15px rgba(34, 197, 94, 0.08) !important;
     transform: translateY(-3px) scale(1.01);
 }
 
@@ -685,7 +685,7 @@ html, body, [class*="css"] {
     justify-content: space-between;
     align-items: center;
     margin-bottom: 0.8rem;
-    border-bottom: 1px dashed rgba(34, 197, 94, 0.3);
+    border-bottom: 1px dashed rgba(255, 255, 255, 0.1);
     padding-bottom: 0.5rem;
 }
 
@@ -709,16 +709,16 @@ html, body, [class*="css"] {
 }
 
 .cyber-avatar-ring {
-    width: 62px;
-    height: 62px;
+    width: 58px;
+    height: 58px;
     border-radius: 50%;
-    background: linear-gradient(135deg, rgba(22, 101, 52, 0.3) 0%, rgba(13, 31, 23, 0.9) 100%);
-    border: 2px solid #22C55E;
+    background: #14171A;
+    border: 2px solid #166534;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.8rem;
-    box-shadow: 0 0 18px rgba(34, 197, 94, 0.3);
+    font-size: 1.7rem;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
     flex-shrink: 0;
 }
 
@@ -726,13 +726,13 @@ html, body, [class*="css"] {
     margin: 0;
     font-size: 1.45rem;
     font-weight: 800;
-    color: #FFFFFF;
+    color: #F8FAFC !important;
     letter-spacing: -0.3px;
 }
 
 .cyber-role-pill {
-    background: rgba(34, 197, 94, 0.15);
-    border: 1px solid #22C55E;
+    background: rgba(34, 197, 94, 0.12);
+    border: 1px solid #166534;
     color: #22C55E;
     padding: 2px 10px;
     border-radius: 6px;
@@ -746,12 +746,13 @@ html, body, [class*="css"] {
 .cyber-email-mono {
     font-family: 'JetBrains Mono', monospace;
     font-size: 0.84rem;
-    color: #CBD5E1;
-    background: rgba(0, 0, 0, 0.35);
+    color: #94A3B8;
+    background: #0E1012;
     padding: 4px 10px;
     border-radius: 6px;
     display: inline-block;
     margin-top: 5px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 /* ARL Green Corporate Buttons */
@@ -776,36 +777,37 @@ html, body, [class*="css"] {
 }
 
 [data-testid="stForm"] {
-    background: rgba(13, 31, 23, 0.95) !important;
-    border: 1.8px solid #166534 !important;
+    background: #14171A !important;
+    border: 1.5px solid #1E2328 !important;
     border-radius: 20px !important;
     padding: 2.2rem !important;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4) !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5) !important;
 }
 
 /* Navbar */
 .top-navbar {
-    background: linear-gradient(135deg, #0D1F17 0%, #143524 100%);
-    border: 1.5px solid #166534;
+    background: linear-gradient(135deg, #14171A 0%, #1A2026 100%);
+    border: 1.5px solid #1E2328;
+    border-bottom: 2px solid #166534;
     border-radius: 16px;
     padding: 1.1rem 2rem;
     margin-bottom: 1.8rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    box-shadow: 0 6px 20px rgba(22, 101, 52, 0.3);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
 }
 .top-brand-title {
     font-size: 1.55rem; font-weight: 800; color: #FFFFFF; margin: 0;
     display: flex; align-items: center; gap: 10px;
 }
 .top-brand-subtitle {
-    font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1.2px; font-weight: 700; color: #CBD5E1; margin: 0;
+    font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1.2px; font-weight: 700; color: #94A3B8; margin: 0;
 }
 
 .corp-hero {
-    background: linear-gradient(135deg, rgba(22, 101, 52, 0.12) 0%, rgba(13, 31, 23, 0.8) 100%);
-    border: 1.5px solid #166534;
+    background: linear-gradient(135deg, rgba(22, 101, 52, 0.12) 0%, rgba(20, 23, 26, 0.8) 100%);
+    border: 1.5px solid #1E2328;
     border-radius: 16px;
     padding: 2rem 2.5rem;
     margin-bottom: 2rem;
@@ -854,8 +856,8 @@ html, body, [class*="css"] {
 div[data-baseweb="tab-highlight"], div[data-baseweb="tab-border"] { display: none !important; }
 
 div[data-baseweb="tab-list"] {
-    background: rgba(13, 31, 23, 0.8) !important;
-    border: 1.5px solid #166534 !important;
+    background: #14171A !important;
+    border: 1.5px solid #1E2328 !important;
     border-radius: 16px !important;
     padding: 6px 10px !important;
     gap: 8px !important;
@@ -898,8 +900,8 @@ button[data-baseweb="tab"][aria-selected="true"] {
 
 @media (prefers-color-scheme: dark) {
     [data-testid="stVerticalBlock"] > [data-testid="stVerticalBlockBorderWrapper"]:first-child {
-        border: 1.5px solid rgba(34, 197, 94, 0.3) !important;
-        background: rgba(13, 31, 23, 0.6) !important;
+        border: 1.5px solid rgba(255, 255, 255, 0.15) !important;
+        background: #101214 !important;
     }
 }
 </style>
@@ -919,14 +921,13 @@ if "pending_pin_email" not in st.session_state: st.session_state.pending_pin_ema
 if "screening_results" not in st.session_state: st.session_state.screening_results = []
 
 # ===========================================================================
-# 8. AUTHENTICATION & LOGIN SCREEN (CLICKABLE CARDS)
+# 8. AUTHENTICATION & LOGIN SCREEN (CHARCOAL CARDS)
 # ===========================================================================
 if not st.session_state.logged_in:
     saved_profiles = get_all_verified_profiles()
     col_c1, col_c2, col_c3 = st.columns([1, 3.8, 1])
     with col_c2:
         with st.container(border=True):
-            # ARL Official Hexagon Emblem Header
             st.markdown(f"""
                 <div class="cyber-header-box">
                     <div style="display: flex; justify-content: center; margin-bottom: 12px;">
@@ -934,8 +935,8 @@ if not st.session_state.logged_in:
                             width: 68px; 
                             height: 68px; 
                             border-radius: 18px; 
-                            background: linear-gradient(135deg, rgba(34, 197, 94, 0.15) 0%, rgba(13, 31, 23, 0.95) 100%);
-                            border: 2.5px solid #166534;
+                            background: linear-gradient(135deg, rgba(34, 197, 94, 0.15) 0%, #14171A 100%);
+                            border: 2px solid #166534;
                             display: flex;
                             align-items: center;
                             justify-content: center;
@@ -1003,7 +1004,7 @@ if not st.session_state.logged_in:
                     </div>
                 """, unsafe_allow_html=True)
                 
-                # DIRECT CLICKABLE BADGES IN ARL GREEN & CHARCOAL
+                # CHARCOAL BLACK PROFILE BADGES
                 for p_email, p_name, p_pin, p_role in saved_profiles:
                     col_card, col_del = st.columns([8.6, 1.4], vertical_alignment="center")
                     with col_card:
@@ -1048,7 +1049,6 @@ if not st.session_state.logged_in:
                 with st.form("pin_login_form"):
                     pin_input = st.text_input("4-Digit PIN", type="password", max_chars=4, placeholder="••••")
                     submit_log = st.form_submit_button("Access Portal (Press Enter)", use_container_width=True)
-                    
                 col_b1, col_b2 = st.columns(2)
                 if submit_log:
                     success, name, role = verify_employee_pin(target_email, pin_input)
@@ -1248,7 +1248,7 @@ def extract_candidates_for_repo(client, resume_text: str, file_name: str):
                 "skills": cand.get("skills", "Not Provided").strip()
             })
 
-        # 🛡️ SMART PYTHON SAFEGUARD: Remove duplicate ghost candidates created from Father's Name
+        # Remove duplicate ghost candidates created from Father's Name
         final_candidates = []
         for cand in cleaned_candidates:
             is_ghost = False
@@ -1310,7 +1310,9 @@ def generate_ai_interview_questions(client, skills_text: str, job_title: str) ->
 # ===========================================================================
 df_all = load_database()
 total_repo_db = len(df_all)
-latest_candidate = df_all.iloc[-1]["Name"] if not df_all.empty else "None"
+
+# ✅ FIXED: iloc[0] represents the latest candidate in desc-ordered database
+latest_candidate = df_all.iloc[0]["Name"] if not df_all.empty else "None"
 
 col_n1, col_n2 = st.columns([8.2, 1.8], vertical_alignment="center")
 with col_n1:
@@ -1320,7 +1322,7 @@ with col_n1:
                 width: 48px; 
                 height: 48px; 
                 border-radius: 14px; 
-                background: linear-gradient(135deg, rgba(34, 197, 94, 0.25) 0%, rgba(13, 31, 23, 0.95) 100%);
+                background: linear-gradient(135deg, rgba(34, 197, 94, 0.25) 0%, #14171A 100%);
                 border: 2px solid #22C55E;
                 display: flex;
                 align-items: center;
