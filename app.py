@@ -53,12 +53,9 @@ if "profile" in st.query_params:
     selected_prof = st.query_params["profile"]
     if isinstance(selected_prof, list):
         selected_prof = selected_prof[0]
-    st.session_state.selected_profile_email = selected_prof
-    try:
-        del st.query_params["profile"]
-    except Exception:
-        pass
-    st.rerun()
+    del st.query_params["profile"]
+    if not st.session_state.get("selected_profile_email"):
+        st.session_state.selected_profile_email = selected_prof
 
 # ===========================================================================
 # 3. SUPABASE CLOUD DATABASE CONNECTION
@@ -105,27 +102,32 @@ def send_smtp_email(receiver_email, subject, body_text):
 def verify_employee_pin(email, entered_pin):
     clean_email = email.lower().strip()
     entered_str = str(entered_pin).strip()
+
+    # 1. Fast in-memory check (Instant 0ms match)
+    cached = get_all_verified_profiles()
+    for p_email, p_name, p_pin, p_role in cached:
+        if p_email.lower().strip() == clean_email:
+            if str(p_pin).strip() == entered_str:
+                return True, p_name, p_role
+
     if not supabase:
-        return True, "Admin", "Admin"
-    
-    # 1. Search hr_users table
+        return False, None, None
+
+    # 2. Database Fallback
     try:
         res = supabase.table("hr_users").select("*").ilike("email", clean_email).execute()
-        if res.data and len(res.data) > 0:
+        if res.data:
             rec = res.data[0]
-            db_pin = str(rec.get("pin", "")).strip()
-            if db_pin and db_pin == entered_str:
+            if str(rec.get("pin", "")).strip() == entered_str:
                 return True, rec.get("name", "Employee"), rec.get("role", "Recruiter")
     except Exception:
         pass
-        
-    # 2. Search employees table
+
     try:
-        res = supabase.table("employees").select("*").ilike("email", clean_email).execute()
-        if res.data and len(res.data) > 0:
-            rec = res.data[0]
-            db_pin = str(rec.get("pin", "")).strip()
-            if db_pin and db_pin == entered_str:
+        res2 = supabase.table("employees").select("*").ilike("email", clean_email).execute()
+        if res2.data:
+            rec = res2.data[0]
+            if str(rec.get("pin", "")).strip() == entered_str:
                 return True, rec.get("name", "Employee"), rec.get("role", "Recruiter")
     except Exception:
         pass
