@@ -776,12 +776,45 @@ html, body, [class*="css"] {
     transform: translateY(-2px);
 }
 
+/* PIN & Login Form Container */
 [data-testid="stForm"] {
     background: #14171A !important;
     border: 1.5px solid #1E2328 !important;
     border-radius: 20px !important;
     padding: 2.2rem !important;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5) !important;
+}
+
+/* PIN Screen Heading ('🔐 Sign In: ...') */
+[data-testid="stVerticalBlockBorderWrapper"] h3 {
+    color: #22C55E !important;
+    font-weight: 800 !important;
+    font-size: 1.5rem !important;
+    text-shadow: 0 0 12px rgba(34, 197, 94, 0.3) !important;
+    margin-bottom: 6px !important;
+}
+
+/* 'Enter 4-digit PIN for ...' Caption */
+[data-testid="stVerticalBlockBorderWrapper"] [data-testid="stCaptionContainer"] p,
+[data-testid="stVerticalBlockBorderWrapper"] [data-testid="stCaptionContainer"] {
+    color: #CBD5E1 !important;
+    font-size: 0.92rem !important;
+}
+
+/* Form Input Label ('4-Digit PIN') */
+[data-testid="stForm"] label,
+[data-testid="stWidgetLabel"] label,
+[data-testid="stWidgetLabel"] p,
+[data-testid="stForm"] label p {
+    color: #FFFFFF !important;
+    font-weight: 700 !important;
+    font-size: 1rem !important;
+    letter-spacing: 0.5px !important;
+}
+
+/* Character counter (0/4) color */
+[data-testid="stInputCounter"] {
+    color: #94A3B8 !important;
 }
 
 /* Navbar */
