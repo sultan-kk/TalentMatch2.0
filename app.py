@@ -1,8 +1,9 @@
 """
 ARL HireMatrix Pro — Enterprise Edition (Cyber-Neon Holographic Executive UI)
 =============================================================================
-Features: Pure Groq AI Engine, Multi-CV Extraction per PDF, Exact 13-Column ATS
-Sequence, ARL Corporate Cascading Job Catalog & Live Supabase Cloud Sync.
+Features: Pure Groq AI Engine (openai/gpt-oss-120b), Fast 150 DPI Scanned OCR,
+Safe Multi-CV Parsing per PDF, Exact 13-Column Sequence, ARL Corporate Job Catalog
+& Real-Time Supabase Cloud Synchronized Grids.
 """
 
 import io
@@ -546,7 +547,6 @@ html, body, [class*="css"] {
 [data-testid="stSidebar"] { display: none !important; }
 [data-testid="collapsedControl"] { display: none !important; }
 
-/* Futuristic Cyber-Neon Header (Unified Glowing Cyan) */
 .cyber-header-box {
     text-align: center;
     padding: 2rem 1rem 1.4rem 1rem;
@@ -600,7 +600,6 @@ html, body, [class*="css"] {
     }
 }
 
-/* Profiles Section Header */
 .cyber-profiles-header {
     background: rgba(15, 23, 42, 0.7);
     border: 1px solid rgba(0, 242, 254, 0.3);
@@ -610,7 +609,6 @@ html, body, [class*="css"] {
     backdrop-filter: blur(12px);
 }
 
-/* Holographic Executive Profile Badge */
 .cyber-badge-card {
     position: relative;
     background: linear-gradient(135deg, rgba(15, 23, 42, 0.85) 0%, rgba(13, 20, 36, 0.95) 100%);
@@ -629,7 +627,6 @@ html, body, [class*="css"] {
     transform: translateY(-2px);
 }
 
-/* Card Micro-Tags */
 .cyber-top-bar {
     display: flex;
     justify-content: space-between;
@@ -716,7 +713,6 @@ html, body, [class*="css"] {
     margin-top: 6px;
 }
 
-/* Buttons */
 .stButton > button {
     background: linear-gradient(135deg, #0284C7 0%, #0369A1 100%) !important;
     color: #FFFFFF !important;
@@ -734,7 +730,6 @@ html, body, [class*="css"] {
     transform: translateY(-2px);
 }
 
-/* Forms */
 [data-testid="stForm"] {
     background: rgba(15, 23, 42, 0.85) !important;
     border: 1.5px solid rgba(0, 242, 254, 0.4) !important;
@@ -744,7 +739,6 @@ html, body, [class*="css"] {
     backdrop-filter: blur(16px);
 }
 
-/* Portal Navbar */
 .top-navbar {
     background: rgba(15, 23, 42, 0.85);
     border: 1.5px solid rgba(0, 242, 254, 0.4);
@@ -790,9 +784,6 @@ html, body, [class*="css"] {
     box-shadow: 0 0 20px rgba(0, 242, 254, 0.1);
 }
 
-/* =========================================================
-   ADAPTIVE STEP HEADINGS (.corp-card h4)
-   ========================================================= */
 .corp-card h4 {
     font-family: 'Space Grotesk', sans-serif !important;
     font-size: 1.25rem !important;
@@ -819,11 +810,7 @@ html, body, [class*="css"] {
 .score-mid { color: #F59E0B !important; font-weight: 800; }
 .score-low { color: #EF4444 !important; font-weight: 800; }
 
-/* Tabs container */
-div[data-baseweb="tab-highlight"],
-div[data-baseweb="tab-border"] {
-    display: none !important;
-}
+div[data-baseweb="tab-highlight"], div[data-baseweb="tab-border"] { display: none !important; }
 
 div[data-baseweb="tab-list"] {
     background: rgba(15, 23, 42, 0.75) !important;
@@ -863,7 +850,6 @@ button[data-baseweb="tab"][aria-selected="true"] {
     text-shadow: 0 0 10px rgba(0, 242, 254, 0.5) !important;
 }
 
-/* Outer Border Wrapper */
 [data-testid="stVerticalBlock"] > [data-testid="stVerticalBlockBorderWrapper"]:first-child {
     border: 1.5px solid #D1D5DB !important;
     border-radius: 24px !important;
@@ -872,8 +858,7 @@ button[data-baseweb="tab"][aria-selected="true"] {
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04) !important;
 }
 
-[data-testid="column"] [data-testid="stVerticalBlockBorderWrapper"],
-[data-testid="column"] > div {
+[data-testid="column"] [data-testid="stVerticalBlockBorderWrapper"], [data-testid="column"] > div {
     border: none !important;
     background: transparent !important;
     padding: 0 !important;
@@ -909,7 +894,6 @@ if "screening_results" not in st.session_state: st.session_state.screening_resul
 # ===========================================================================
 if not st.session_state.logged_in:
     saved_profiles = get_all_verified_profiles()
-    
     col_c1, col_c2, col_c3 = st.columns([1, 3.8, 1])
     with col_c2:
         with st.container(border=True):
@@ -944,12 +928,10 @@ if not st.session_state.logged_in:
             if st.session_state.pending_pin_email:
                 st.markdown("### 🔐 Dedicated Admin & Employee PIN Setup")
                 st.info(f"Email verified for **{st.session_state.pending_pin_email}**. Please create your confidential 4-digit security PIN.")
-                
                 with st.form("pin_setup_form"):
                     new_pin = st.text_input("Create 4-Digit PIN", type="password", max_chars=4, placeholder="••••")
                     confirm_pin = st.text_input("Confirm 4-Digit PIN", type="password", max_chars=4, placeholder="••••")
                     submit_pin = st.form_submit_button("Save PIN & Enter Portal", use_container_width=True)
-                    
                 if submit_pin:
                     if not new_pin or len(new_pin) != 4 or not new_pin.isdigit():
                         st.warning("Please enter an exact 4-digit numeric PIN.")
@@ -963,15 +945,13 @@ if not st.session_state.logged_in:
                             st.rerun()
                         else:
                             st.error(msg)
-
+                            
             elif st.session_state.pending_otp_email:
                 st.markdown("### 📬 Email Verification")
                 st.info(f"Enter the 6-digit security code sent to **{st.session_state.pending_otp_email}**.")
-                
                 with st.form("otp_form"):
                     otp_input = st.text_input("Enter 6-Digit OTP", placeholder="123456")
                     submit_otp = st.form_submit_button("Verify OTP", use_container_width=True)
-                    
                 col_o1, col_o2 = st.columns(2)
                 if submit_otp:
                     success, nag = verify_otp_code(st.session_state.pending_otp_email, otp_input)
@@ -986,7 +966,7 @@ if not st.session_state.logged_in:
                     if st.button("Cancel", use_container_width=True, key="cancel_otp_btn"):
                         st.session_state.pending_otp_email = None
                         st.rerun()
-                
+                        
             elif saved_profiles and not st.session_state.selected_profile_email:
                 st.markdown("""
                     <div class="cyber-profiles-header">
@@ -1031,18 +1011,15 @@ if not st.session_state.logged_in:
                 if st.button("➕ Register New Employee / Admin Profile", use_container_width=True, key="reg_new_emp_auth_btn"):
                     st.session_state.selected_profile_email = "new"
                     st.rerun()
-                
+                    
             elif st.session_state.selected_profile_email and st.session_state.selected_profile_email != "new":
                 target_email = st.session_state.selected_profile_email
                 p_match = next((p for p in saved_profiles if p[0] == target_email), ("Employee", "", "", "Recruiter"))
-                
                 st.markdown(f"### 🔐 Sign In: {p_match[1]}")
                 st.caption("Enter your 4-digit security PIN to access portal.")
-                
                 with st.form("pin_login_form"):
                     pin_input = st.text_input("4-Digit PIN", type="password", max_chars=4, placeholder="••••")
                     submit_log = st.form_submit_button("Sign In (Press Enter)", use_container_width=True)
-                    
                 col_b1, col_b2 = st.columns(2)
                 if submit_log:
                     success, name, role = verify_employee_pin(target_email, pin_input)
@@ -1059,17 +1036,14 @@ if not st.session_state.logged_in:
                     if st.button("Switch Profile", use_container_width=True, key="switch_prof_auth_btn"):
                         st.session_state.selected_profile_email = None
                         st.rerun()
-                
             else:
                 st.markdown("### 📝 Employee / Admin Registration")
                 st.caption("Enter your credentials. First registered user automatically becomes Admin with dedicated PIN creation.")
-                
                 with st.form("registration_form"):
                     reg_name = st.text_input("Full Name", placeholder="Alex Mercer")
                     reg_email = st.text_input("Company Email (@arl.com.pk)", placeholder="employee@arl.com.pk")
                     reg_pass = st.text_input("Master Password", type="password")
                     submit_reg = st.form_submit_button("Send Verification OTP", use_container_width=True)
-                    
                 col_r1, col_r2 = st.columns(2)
                 if submit_reg:
                     if not reg_name.strip() or not reg_email.strip() or not reg_pass.strip():
@@ -1086,24 +1060,16 @@ if not st.session_state.logged_in:
                     if saved_profiles and st.button("Back to Profiles", use_container_width=True, key="back_to_prof_auth_btn"):
                         st.session_state.selected_profile_email = None
                         st.rerun()
-                
     st.stop()
 
 # ===========================================================================
-# 8. ENHANCED TEXT EXTRACTION & OCR
+# 8. OPTIMIZED FAST TEXT EXTRACTION & OCR (150 DPI)
 # ===========================================================================
 def extract_text_from_image(file_bytes: bytes) -> str:
     import pytesseract
     try:
-        img = Image.open(io.BytesIO(file_bytes)).convert("RGB")
-        gray = img.convert("L")
-        t1 = pytesseract.image_to_string(gray)
-        
-        inverted = ImageOps.invert(gray)
-        inv_contrasted = ImageEnhance.Contrast(inverted).enhance(2.2)
-        t2 = pytesseract.image_to_string(inv_contrasted)
-        
-        return f"{t1}\n{t2}"
+        img = Image.open(io.BytesIO(file_bytes)).convert("L")
+        return pytesseract.image_to_string(img)
     except Exception as e:
         st.error(f"⚠️ Image OCR failed: {e}")
         return ""
@@ -1118,13 +1084,12 @@ def extract_text_from_pdf(file_bytes: bytes) -> str:
             if page_text.strip():
                 text_parts.append(page_text)
             else:
+                # Fast 150 DPI Single-Pass Grayscale OCR (Prevents Streamlit Freezing)
                 try:
-                    pil_img = page.to_image(resolution=300).original.convert("RGB")
-                    gray = pil_img.convert("L")
-                    t1 = pytesseract.image_to_string(gray)
-                    inv = ImageEnhance.Contrast(ImageOps.invert(gray)).enhance(2.2)
-                    t2 = pytesseract.image_to_string(inv)
-                    text_parts.append(f"{t1}\n{t2}")
+                    pil_img = page.to_image(resolution=150).original.convert("L")
+                    t1 = pytesseract.image_to_string(pil_img)
+                    if t1.strip():
+                        text_parts.append(t1)
                 except Exception:
                     pass
     return "\n".join(text_parts)
@@ -1156,42 +1121,42 @@ def extract_resume_text(uploaded_file):
     return None
 
 # ===========================================================================
-# 9. GROQ AI: MULTI-CANDIDATES PARSING PER PDF & MATCHING
+# 9. GROQ AI: SAFE MULTI-CANDIDATES PARSING PER PDF & MATCHING
 # ===========================================================================
 def build_multi_candidate_extraction_prompt(resume_text: str) -> str:
     return f"""You are an expert HR Data Extraction Specialist for Attock Refinery Limited (ARL).
-Analyze the following document text carefully. 
-The document may contain ONE single resume or MULTIPLE candidate resumes/CVs merged together.
+Analyze the following document text carefully. The document may contain ONE single resume or MULTIPLE candidate resumes/CVs merged together.
 
-Identify EACH candidate distinctly. For every candidate found, extract their information.
+Identify EACH candidate distinctly and return a valid JSON object containing a "candidates" array.
 
-Return a strictly valid JSON ARRAY of objects. Even if there is only 1 candidate, return a JSON array with 1 item.
 Format:
-[
-  {{
-    "name": "Candidate Full Name",
-    "father_name": "Father Name or Not Provided",
-    "education": "Qualification / Degree Title (e.g. BS Chemical / Mechanical Engineering)",
-    "cgpa": "CGPA / GPA / Percentage or Not Provided",
-    "passing_year": "Passing / Graduation Year (e.g. 2023) or Not Provided",
-    "university_name": "Institute / University Name or Not Provided",
-    "dob": "Date of Birth (e.g. 1998-05-12) or Not Provided",
-    "email": "Candidate Email Address or Not Provided",
-    "phone": "Candidate Phone Number or Not Provided",
-    "experience_years": "Total Experience (e.g. 3 Years, Fresh)",
-    "latest_experience": "Latest job role and company or Not Provided",
-    "reference": "Reference contacts or Not Provided",
-    "skills": "Key technical refinery/engineering skills comma-separated"
-  }}
-]
+{{
+  "candidates": [
+    {{
+      "name": "Candidate Full Name",
+      "father_name": "Father Name or Not Provided",
+      "education": "Qualification / Degree Title (e.g. BS Chemical / Mechanical Engineering)",
+      "cgpa": "CGPA / GPA / Percentage or Not Provided",
+      "passing_year": "Passing / Graduation Year (e.g. 2023) or Not Provided",
+      "university_name": "Institute / University Name or Not Provided",
+      "dob": "Date of Birth (e.g. 1998-05-12) or Not Provided",
+      "email": "Candidate Email Address or Not Provided",
+      "phone": "Candidate Phone Number or Not Provided",
+      "experience_years": "Total Experience (e.g. 3 Years, Fresh)",
+      "latest_experience": "Latest job role and company or Not Provided",
+      "reference": "Reference contacts or Not Provided",
+      "skills": "Key technical refinery/engineering skills"
+    }}
+  ]
+}}
 
 Rules:
-- Never merge two different people into one object.
-- If a field is not mentioned, use 'Not Provided'.
-- Respond ONLY with the JSON array, no conversational text or markdown codeblocks.
+- If a field is not found, write 'Not Provided'.
+- Do not use raw unescaped double quotes inside strings.
+- Return ONLY the JSON object, without conversational prose.
 
 DOCUMENT TEXT:
-{resume_text[:28000]}
+{resume_text[:25000]}
 """
 
 def extract_candidates_for_repo(client, resume_text: str, file_name: str):
@@ -1200,18 +1165,23 @@ def extract_candidates_for_repo(client, resume_text: str, file_name: str):
         response = client.chat.completions.create(
             model=GROQ_MODEL,
             messages=[{"role": "user", "content": prompt}],
+            response_format={"type": "json_object"},
+            max_tokens=4096,
             temperature=0.1,
         )
         raw_content = response.choices[0].message.content.strip()
-        if raw_content.startswith("```"):
-            raw_content = raw_content.split("```")[1]
-            if raw_content.startswith("json"):
-                raw_content = raw_content[4:]
-        raw_content = raw_content.strip("` \n")
-        
         parsed = json.loads(raw_content)
-        candidates_list = [parsed] if isinstance(parsed, dict) else parsed
         
+        # Safely unwrap list of candidates
+        if isinstance(parsed, dict):
+            candidates_list = parsed.get("candidates", [])
+            if not candidates_list and "name" in parsed:
+                candidates_list = [parsed]
+        elif isinstance(parsed, list):
+            candidates_list = parsed
+        else:
+            candidates_list = []
+
         cleaned_candidates = []
         for cand in candidates_list:
             name = cand.get("name", "Unknown").strip()
@@ -1357,7 +1327,7 @@ with tab1:
     if st.button("⚡ Extract & Save All Candidates to Master Database", type="primary", use_container_width=True, disabled=not (uploaded_repo_files and g_key)):
         client = Groq(api_key=g_key)
         extracted_batch = []
-        progress = st.progress(0.0, text="Reading and extracting profiles via Groq LLaMA-3.3...")
+        progress = st.progress(0.0, text="Reading and extracting profiles via Groq...")
         
         for i, file in enumerate(uploaded_repo_files):
             progress.progress((i + 1) / (len(uploaded_repo_files) + 1), text=f"Processing {file.name}...")
@@ -1408,7 +1378,6 @@ with tab2:
     st.markdown('<div class="corp-card"><h4>🎯 Step 2: Job Description Screening & Smart Matching</h4>', unsafe_allow_html=True)
     st.caption("Select Target Position from ARL Department & Job Titles hierarchy, or customize on the fly.")
     
-    # Load ARL Catalog
     arl_catalog = load_arl_job_catalog()
     dept_options = list(arl_catalog.keys())
     
@@ -1429,12 +1398,11 @@ with tab2:
         
     st.info(f"Target Position Selected: **{jd_title_input}** *(Department: {chosen_dept})*")
     
-    # ⚙️ LIVE ARL JOB CATALOG MANAGER (ADD / EDIT / DELETE)
+    # Live Catalog Manager (Add / Edit / Delete)
     with st.expander("⚙️ Manage ARL Job Catalog (Add, Edit, or Remove Jobs & Departments)"):
         st.caption("Permanently modify or add job positions in the ARL database hierarchy.")
         m_tab1, m_tab2, m_tab3 = st.tabs(["➕ Add New Job", "✏️ Edit / Rename Job", "🗑️ Delete Job"])
         
-        # 1. Add New Job
         with m_tab1:
             col_ad1, col_ad2 = st.columns(2)
             with col_ad1:
@@ -1454,7 +1422,6 @@ with tab2:
                     else:
                         st.warning("Please specify both department and job title.")
 
-        # 2. Edit / Rename Job
         with m_tab2:
             col_ed1, col_ed2 = st.columns(2)
             with col_ed1:
@@ -1470,7 +1437,6 @@ with tab2:
                             st.success("Designation updated successfully!")
                             st.rerun()
 
-        # 3. Delete Job
         with m_tab3:
             col_del1, col_del2 = st.columns(2)
             with col_del1:
