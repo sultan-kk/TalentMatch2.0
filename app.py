@@ -1079,20 +1079,19 @@ def extract_text_from_pdf(file_bytes: bytes) -> str:
     import pytesseract
     text_parts = []
     with pdfplumber.open(io.BytesIO(file_bytes)) as pdf:
-        for page in pdf.pages:
+        for idx, page in enumerate(pdf.pages, start=1):
             page_text = page.extract_text() or ""
-            if page_text.strip():
-                text_parts.append(page_text)
+            if len(page_text.strip()) > 40:
+                text_parts.append(f"\n--- [PAGE {idx}] ---\n" + page_text)
             else:
-                # Fast 150 DPI Single-Pass Grayscale OCR (Prevents Streamlit Freezing)
                 try:
                     pil_img = page.to_image(resolution=150).original.convert("L")
                     t1 = pytesseract.image_to_string(pil_img)
                     if t1.strip():
-                        text_parts.append(t1)
+                        text_parts.append(f"\n--- [PAGE {idx} (OCR)] ---\n" + t1)
                 except Exception:
                     pass
-    return "\n".join(text_parts)
+    return "\n\n".join(text_parts)
 
 def extract_text_from_docx(file_bytes: bytes) -> str:
     import docx
@@ -1121,42 +1120,49 @@ def extract_resume_text(uploaded_file):
     return None
 
 # ===========================================================================
-# 9. GROQ AI: SAFE MULTI-CANDIDATES PARSING PER PDF & MATCHING
+# 9. GROQ AI: SAFE EXTRACTION & GHOST CANDIDATE FILTER
 # ===========================================================================
 def build_multi_candidate_extraction_prompt(resume_text: str) -> str:
     return f"""You are an expert HR Data Extraction Specialist for Attock Refinery Limited (ARL).
-Analyze the following document text carefully. The document may contain ONE single resume or MULTIPLE candidate resumes/CVs merged together.
+Analyze the following document text carefully. The document contains candidate CVs/resumes.
 
-Identify EACH candidate distinctly and return a valid JSON object containing a "candidates" array.
+CRITICAL RULES TO AVOID ERRORS:
+1. FATHER IS NOT A CANDIDATE:
+   - NEVER create a candidate entry for a Father, Mother, or Guardian!
+   - Words like 'Father Name', 'S/O', 'D/O', or 'W/O' belong strictly inside the candidate's "father_name" field.
+2. FULL NAMES ONLY:
+   - Extract the COMPLETE name of the applicant (e.g. 'Dawood Hussain', do NOT truncate to 'Hussain').
+3. NO DUPLICATE CLONES:
+   - Do NOT split one applicant's CV into two candidates. If a resume lists 'Dawood Hussain s/o Hussain Ali', it is ONE single candidate.
+   - Do not copy or duplicate identical education/degrees under multiple names.
 
-Format:
+Return a strictly valid JSON object matching this schema:
 {{
   "candidates": [
     {{
-      "name": "Candidate Full Name",
-      "father_name": "Father Name or Not Provided",
-      "education": "Qualification / Degree Title (e.g. BS Chemical / Mechanical Engineering)",
+      "name": "Complete Candidate Name (e.g. Dawood Hussain)",
+      "father_name": "Father Name (e.g. Hussain Ali) or Not Provided",
+      "education": "Qualification / Degree Title (e.g. DAE Chemical / Matric Science)",
       "cgpa": "CGPA / GPA / Percentage or Not Provided",
-      "passing_year": "Passing / Graduation Year (e.g. 2023) or Not Provided",
-      "university_name": "Institute / University Name or Not Provided",
-      "dob": "Date of Birth (e.g. 1998-05-12) or Not Provided",
+      "passing_year": "Passing / Graduation Year or Not Provided",
+      "university_name": "Institute / Board / University Name or Not Provided",
+      "dob": "Date of Birth or Not Provided",
       "email": "Candidate Email Address or Not Provided",
       "phone": "Candidate Phone Number or Not Provided",
-      "experience_years": "Total Experience (e.g. 3 Years, Fresh)",
-      "latest_experience": "Latest job role and company or Not Provided",
+      "experience_years": "Total Experience (e.g. Fresh, 2 Years)",
+      "latest_experience": "Latest job role or company or Not Provided",
       "reference": "Reference contacts or Not Provided",
-      "skills": "Key technical refinery/engineering skills"
+      "skills": "Key technical / engineering skills"
     }}
   ]
 }}
 
 Rules:
-- If a field is not found, write 'Not Provided'.
-- Do not use raw unescaped double quotes inside strings.
-- Return ONLY the JSON object, without conversational prose.
+- If a field is not mentioned, use 'Not Provided'.
+- Return ONLY the JSON object.
 
 DOCUMENT TEXT:
-{resume_text[:25000]}
+{resume_text[:28000]}
 """
 
 def extract_candidates_for_repo(client, resume_text: str, file_name: str):
@@ -1172,7 +1178,6 @@ def extract_candidates_for_repo(client, resume_text: str, file_name: str):
         raw_content = response.choices[0].message.content.strip()
         parsed = json.loads(raw_content)
         
-        # Safely unwrap list of candidates
         if isinstance(parsed, dict):
             candidates_list = parsed.get("candidates", [])
             if not candidates_list and "name" in parsed:
@@ -1188,34 +1193,37 @@ def extract_candidates_for_repo(client, resume_text: str, file_name: str):
             email = cand.get("email", "Not Provided").strip()
             phone = cand.get("phone", "Not Provided").strip()
 
-            if email in ["Not Provided", "Not Found", "", "None"]:
-                found_emails = re.findall(r'[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+', resume_text)
-                if found_emails:
-                    email = found_emails[0].strip()
-
-            if phone in ["Not Provided", "Not Found", "", "None"]:
-                found_phones = re.findall(r'(?:\+?\d{1,3}[-.\s]?)?\(?\d{2,4}\)?[-.\s]?\d{3,4}[-.\s]?\d{3,5}', resume_text)
-                if found_phones:
-                    phone = found_phones[0].strip()
-
             cleaned_candidates.append({
                 "file_name": file_name,
                 "name": name if name else "Unknown",
-                "father_name": cand.get("father_name", "Not Provided"),
-                "education": cand.get("education", "Not Provided"),
-                "cgpa": cand.get("cgpa", "Not Provided"),
-                "passing_year": cand.get("passing_year", "Not Provided"),
-                "university_name": cand.get("university_name", "Not Provided"),
-                "dob": cand.get("dob", "Not Provided"),
+                "father_name": cand.get("father_name", "Not Provided").strip(),
+                "education": cand.get("education", "Not Provided").strip(),
+                "cgpa": cand.get("cgpa", "Not Provided").strip(),
+                "passing_year": cand.get("passing_year", "Not Provided").strip(),
+                "university_name": cand.get("university_name", "Not Provided").strip(),
+                "dob": cand.get("dob", "Not Provided").strip(),
                 "email": email,
                 "phone": phone,
-                "experience_years": str(cand.get("experience_years", "0")),
-                "latest_experience": cand.get("latest_experience", "Not Provided"),
-                "reference": cand.get("reference", "Not Provided"),
-                "skills": cand.get("skills", "Not Provided")
+                "experience_years": str(cand.get("experience_years", "0")).strip(),
+                "latest_experience": cand.get("latest_experience", "Not Provided").strip(),
+                "reference": cand.get("reference", "Not Provided").strip(),
+                "skills": cand.get("skills", "Not Provided").strip()
             })
-            
-        return cleaned_candidates
+
+        # 🛡️ SMART PYTHON SAFEGUARD: Remove duplicate ghost candidates created from Father's Name
+        final_candidates = []
+        for cand in cleaned_candidates:
+            is_ghost = False
+            for existing in final_candidates:
+                same_edu = (cand["education"] != "Not Provided" and cand["education"].lower() == existing["education"].lower())
+                name_is_father = (cand["name"].lower() == existing["father_name"].lower())
+                if same_edu and name_is_father:
+                    is_ghost = True
+                    break
+            if not is_ghost:
+                final_candidates.append(cand)
+
+        return final_candidates
     except Exception as exc:
         st.error(f"⚠️ Extraction failed for **{file_name}**: {exc}")
         return []
