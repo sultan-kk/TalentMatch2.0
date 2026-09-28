@@ -1,9 +1,10 @@
 """
-ARL HireMatrix Pro — Enterprise Edition (Cyber-Neon Holographic Executive UI)
+ARL HireMatrix Pro — Corporate Enterprise Edition
 =============================================================================
-Features: Pure Groq AI Engine (openai/gpt-oss-120b), Fast 150 DPI Scanned OCR,
-Safe Multi-CV Parsing per PDF, Exact 13-Column Sequence, ARL Corporate Job Catalog
-& Real-Time Supabase Cloud Synchronized Grids.
+Branding: Attock Refinery Limited (ARL) Corporate Identity (Navy Blue & Attock Gold)
+Features: Clickable Executive Profile Cards, Pure Groq AI (openai/gpt-oss-120b),
+Fast 150 DPI OCR, Safe Multi-CV Extraction, Exact 13-Column Sequence,
+ARL Cascading Job Hierarchy & Real-Time Supabase Cloud Synchronized Grids.
 """
 
 import io
@@ -24,29 +25,44 @@ from supabase import create_client, Client
 from PIL import Image, ImageOps, ImageEnhance, ImageDraw
 
 # ===========================================================================
-# 1. PAGE CONFIGURATION & CYBER FAVICON GENERATOR
+# 1. PAGE CONFIGURATION & ARL CORPORATE FAVICON
 # ===========================================================================
 APP_NAME = "ARL HireMatrix Pro"
 APP_TAGLINE = "Attock Refinery Limited (ARL) • HR Intelligence & AI Screening Engine"
 GROQ_MODEL = "openai/gpt-oss-120b"
 ACCEPTED_TYPES = ["pdf", "docx", "png", "jpg", "jpeg"]
 
-def get_cyber_favicon():
-    img = Image.new("RGBA", (64, 64), (11, 19, 43, 255))
+def get_arl_favicon():
+    # ARL Deep Navy with Golden Flame Emblem
+    img = Image.new("RGBA", (64, 64), (10, 25, 47, 255))
     draw = ImageDraw.Draw(img)
-    draw.polygon([(32, 6), (58, 32), (32, 58), (6, 32)], outline=(0, 242, 254), width=4)
-    draw.polygon([(32, 18), (46, 32), (32, 46), (18, 32)], fill=(0, 242, 254))
+    draw.polygon([(32, 6), (58, 32), (32, 58), (6, 32)], outline=(255, 184, 0), width=4)
+    draw.polygon([(32, 18), (46, 32), (32, 46), (18, 32)], fill=(255, 184, 0))
     return img
 
 st.set_page_config(
-    page_title=f"{APP_NAME} | Executive Portal",
-    page_icon=get_cyber_favicon(),
+    page_title=f"{APP_NAME} | Corporate Portal",
+    page_icon=get_arl_favicon(),
     layout="wide",
     initial_sidebar_state="collapsed",
 )
 
 # ===========================================================================
-# 2. SUPABASE CLOUD DATABASE CONNECTION
+# 2. CLICKABLE PROFILE CARD DETECTOR (URL QUERY PARAMETERS)
+# ===========================================================================
+if "profile" in st.query_params:
+    selected_prof = st.query_params["profile"]
+    if isinstance(selected_prof, list):
+        selected_prof = selected_prof[0]
+    st.session_state.selected_profile_email = selected_prof
+    try:
+        del st.query_params["profile"]
+    except Exception:
+        pass
+    st.rerun()
+
+# ===========================================================================
+# 3. SUPABASE CLOUD DATABASE CONNECTION
 # ===========================================================================
 @st.cache_resource
 def init_supabase():
@@ -72,7 +88,7 @@ def send_smtp_email(receiver_email, subject, body_text):
 
     try:
         msg = MIMEMultipart()
-        msg['From'] = formataddr(("ARL HireMatrix Notifications", sender_email))
+        msg['From'] = formataddr(("ARL Recruitment Notifications", sender_email))
         msg['To'] = receiver_email
         msg['Subject'] = subject
         msg.attach(MIMEText(body_text, 'plain'))
@@ -174,7 +190,7 @@ def delete_employee_profile(email):
         return False, f"Error: {e}"
 
 # ===========================================================================
-# 3. ARL CORPORATE JOB CATALOG & SUPABASE HIERARCHY
+# 4. ARL CORPORATE JOB CATALOG & SUPABASE HIERARCHY
 # ===========================================================================
 DEFAULT_ARL_CATALOG = {
     "Operations & Refining": [
@@ -291,7 +307,7 @@ def delete_arl_job_from_db(department, job_title):
     return True, "Removed locally."
 
 # ===========================================================================
-# 4. CANDIDATE REPOSITORY & SCREENED STORAGE (13-COLUMN SEQUENCE)
+# 5. CANDIDATE REPOSITORY & SCREENED STORAGE (13-COLUMN SEQUENCE)
 # ===========================================================================
 def load_database():
     expected_cols = [
@@ -534,114 +550,107 @@ def generate_screening_excel(results_list) -> bytes:
     return buffer.getvalue()
 
 # ===========================================================================
-# 5. CYBER-NEON HOLOGRAPHIC EXECUTIVE CSS
+# 6. ARL CORPORATE COLOR PALETTE & LUXURY STYLING (NAVY & ATTOCK GOLD)
 # ===========================================================================
-CYBER_NEON_CSS = """
+ARL_CORPORATE_CSS = """
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap');
 
 html, body, [class*="css"] {
-    font-family: 'Space Grotesk', sans-serif !important;
+    font-family: 'Plus Jakarta Sans', sans-serif !important;
 }
 
 [data-testid="stSidebar"] { display: none !important; }
 [data-testid="collapsedControl"] { display: none !important; }
 
+/* ARL Corporate Header */
 .cyber-header-box {
     text-align: center;
-    padding: 2rem 1rem 1.4rem 1rem;
+    padding: 1.8rem 1rem 1.2rem 1rem;
     margin-bottom: 1.2rem;
 }
 
 .cyber-title {
-    font-size: 3.4rem !important;
-    font-weight: 900 !important;
-    letter-spacing: -1.2px !important;
-    color: #00B4D8 !important;
-    -webkit-text-fill-color: #00B4D8 !important;
-    margin: 0 0 10px 0 !important;
-    background: none !important;
-    text-shadow: 0 0 22px rgba(0, 180, 216, 0.5) !important;
+    font-size: 3.2rem !important;
+    font-weight: 800 !important;
+    letter-spacing: -0.8px !important;
+    color: #002D62 !important;
+    margin: 0 0 8px 0 !important;
 }
 
 .cyber-title-pro {
-    color: #00B4D8 !important;
-    -webkit-text-fill-color: #00B4D8 !important;
-    text-shadow: 0 0 25px rgba(0, 180, 216, 0.6) !important;
+    color: #D97706 !important;
+    background: linear-gradient(135deg, #FFB800 0%, #D97706 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
 }
 
 .cyber-badge {
     display: inline-flex !important;
     align-items: center !important;
     gap: 8px !important;
-    background: rgba(0, 180, 216, 0.08) !important;
-    border: 1.5px solid #00B4D8 !important;
-    padding: 6px 22px !important;
+    background: rgba(255, 184, 0, 0.1) !important;
+    border: 1.5px solid #FFB800 !important;
+    padding: 5px 20px !important;
     border-radius: 30px !important;
-    font-size: 0.8rem !important;
+    font-size: 0.78rem !important;
     font-weight: 800 !important;
     text-transform: uppercase !important;
-    letter-spacing: 2px !important;
-    color: #0284C7 !important;
-    box-shadow: 0 2px 12px rgba(0, 180, 216, 0.15) !important;
+    letter-spacing: 1.5px !important;
+    color: #B45309 !important;
 }
 
 @media (prefers-color-scheme: dark) {
-    .cyber-title, .cyber-title-pro {
-        color: #00F2FE !important;
-        -webkit-text-fill-color: #00F2FE !important;
-        text-shadow: 0 0 28px rgba(0, 242, 254, 0.65) !important;
+    .cyber-title {
+        color: #F8FAFC !important;
     }
     .cyber-badge {
-        background: rgba(0, 242, 254, 0.12) !important;
-        border-color: #00F2FE !important;
-        color: #00F2FE !important;
-        box-shadow: 0 0 18px rgba(0, 242, 254, 0.3) !important;
+        background: rgba(255, 184, 0, 0.12) !important;
+        border-color: #FFB800 !important;
+        color: #FFB800 !important;
     }
 }
 
-.cyber-profiles-header {
-    background: rgba(15, 23, 42, 0.7);
-    border: 1px solid rgba(0, 242, 254, 0.3);
-    border-radius: 16px;
-    padding: 1.2rem 1.6rem;
-    margin-bottom: 1.4rem;
-    backdrop-filter: blur(12px);
+/* CLICKABLE ARL PROFILE BADGE CARD (NO BUTTON REQUIRED) */
+.arl-clickable-badge {
+    text-decoration: none !important;
+    color: inherit !important;
+    display: block !important;
+    cursor: pointer !important;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
 .cyber-badge-card {
     position: relative;
-    background: linear-gradient(135deg, rgba(15, 23, 42, 0.85) 0%, rgba(13, 20, 36, 0.95) 100%);
-    border: 1.5px solid rgba(0, 242, 254, 0.45);
-    border-radius: 20px;
-    padding: 1.8rem 2.2rem;
-    margin-bottom: 1.2rem;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), inset 0 0 20px rgba(0, 242, 254, 0.08);
-    backdrop-filter: blur(16px);
-    transition: all 0.3s ease;
+    background: linear-gradient(135deg, #07172C 0%, #0B2545 100%);
+    border: 1.5px solid rgba(255, 184, 0, 0.4);
+    border-radius: 18px;
+    padding: 1.5rem 2rem;
+    box-shadow: 0 10px 25px rgba(0, 36, 71, 0.35);
+    transition: all 0.25s ease-in-out;
 }
 
-.cyber-badge-card:hover {
-    border-color: #00F2FE;
-    box-shadow: 0 14px 40px rgba(0, 242, 254, 0.25), inset 0 0 30px rgba(0, 242, 254, 0.15);
-    transform: translateY(-2px);
+.arl-clickable-badge:hover .cyber-badge-card {
+    border-color: #FFB800 !important;
+    box-shadow: 0 14px 35px rgba(255, 184, 0, 0.25), inset 0 0 20px rgba(255, 184, 0, 0.1) !important;
+    transform: translateY(-3px) scale(1.01);
 }
 
 .cyber-top-bar {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 1rem;
-    border-bottom: 1px dashed rgba(0, 242, 254, 0.2);
-    padding-bottom: 0.6rem;
+    margin-bottom: 0.8rem;
+    border-bottom: 1px dashed rgba(255, 184, 0, 0.25);
+    padding-bottom: 0.5rem;
 }
 
 .cyber-access-id {
     font-family: 'JetBrains Mono', monospace;
-    font-size: 0.7rem;
+    font-size: 0.72rem;
     font-weight: 700;
-    color: #64748B;
-    letter-spacing: 1.5px;
+    color: #94A3B8;
+    letter-spacing: 1px;
 }
 
 .cyber-status-dot {
@@ -651,51 +660,40 @@ html, body, [class*="css"] {
     font-family: 'JetBrains Mono', monospace;
     font-size: 0.72rem;
     font-weight: 700;
-    color: #10B981;
+    color: #FFB800;
     letter-spacing: 1px;
 }
 
-.cyber-status-dot::before {
-    content: '';
-    display: inline-block;
-    width: 7px;
-    height: 7px;
-    background-color: #10B981;
-    border-radius: 50%;
-    box-shadow: 0 0 10px #10B981;
-}
-
 .cyber-avatar-ring {
-    width: 66px;
-    height: 66px;
+    width: 62px;
+    height: 62px;
     border-radius: 50%;
-    background: linear-gradient(135deg, rgba(0, 242, 254, 0.2) 0%, rgba(79, 172, 254, 0.3) 100%);
-    border: 2px solid #00F2FE;
+    background: linear-gradient(135deg, rgba(255, 184, 0, 0.2) 0%, rgba(11, 37, 69, 0.8) 100%);
+    border: 2px solid #FFB800;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 2rem;
-    box-shadow: 0 0 20px rgba(0, 242, 254, 0.35);
+    font-size: 1.8rem;
+    box-shadow: 0 0 18px rgba(255, 184, 0, 0.3);
     flex-shrink: 0;
 }
 
 .cyber-name-title {
     margin: 0;
-    font-size: 1.6rem;
+    font-size: 1.45rem;
     font-weight: 800;
     color: #FFFFFF;
-    letter-spacing: -0.5px;
-    text-shadow: 0 0 14px rgba(0, 242, 254, 0.4);
+    letter-spacing: -0.3px;
 }
 
 .cyber-role-pill {
-    background: rgba(0, 242, 254, 0.15);
-    border: 1px solid #00F2FE;
-    color: #00F2FE;
-    padding: 3px 12px;
-    border-radius: 8px;
+    background: rgba(255, 184, 0, 0.15);
+    border: 1px solid #FFB800;
+    color: #FFB800;
+    padding: 2px 10px;
+    border-radius: 6px;
     font-family: 'JetBrains Mono', monospace;
-    font-size: 0.75rem;
+    font-size: 0.72rem;
     font-weight: 700;
     letter-spacing: 1px;
     text-transform: uppercase;
@@ -703,108 +701,107 @@ html, body, [class*="css"] {
 
 .cyber-email-mono {
     font-family: 'JetBrains Mono', monospace;
-    font-size: 0.88rem;
-    color: #94A3B8;
-    background: rgba(15, 23, 42, 0.6);
+    font-size: 0.84rem;
+    color: #CBD5E1;
+    background: rgba(0, 0, 0, 0.25);
     padding: 4px 10px;
     border-radius: 6px;
-    border: 1px solid rgba(148, 163, 184, 0.15);
     display: inline-block;
-    margin-top: 6px;
+    margin-top: 5px;
 }
 
+/* ARL Standard Corporate Buttons */
 .stButton > button {
-    background: linear-gradient(135deg, #0284C7 0%, #0369A1 100%) !important;
+    background: linear-gradient(135deg, #002D62 0%, #07172C 100%) !important;
     color: #FFFFFF !important;
-    border: 1.5px solid #00F2FE !important;
+    border: 1.5px solid #FFB800 !important;
     border-radius: 12px !important;
     font-weight: 700 !important;
     white-space: nowrap !important;
-    padding: 0.65rem 1rem !important;
+    padding: 0.65rem 1.2rem !important;
+    box-shadow: 0 4px 15px rgba(0, 45, 98, 0.3) !important;
+    transition: all 0.25s ease-in-out !important;
 }
 
 .stButton > button:hover {
-    background: linear-gradient(135deg, #00C6FF 0%, #0072FF 100%) !important;
+    background: linear-gradient(135deg, #FFB800 0%, #D97706 100%) !important;
+    color: #002D62 !important;
     border-color: #FFFFFF !important;
-    box-shadow: 0 0 25px rgba(0, 242, 254, 0.6) !important;
+    box-shadow: 0 6px 20px rgba(255, 184, 0, 0.45) !important;
     transform: translateY(-2px);
 }
 
 [data-testid="stForm"] {
-    background: rgba(15, 23, 42, 0.85) !important;
-    border: 1.5px solid rgba(0, 242, 254, 0.4) !important;
+    background: rgba(7, 23, 44, 0.95) !important;
+    border: 1.5px solid rgba(255, 184, 0, 0.4) !important;
     border-radius: 20px !important;
-    padding: 2.5rem !important;
-    box-shadow: 0 0 35px rgba(0, 242, 254, 0.2) !important;
-    backdrop-filter: blur(16px);
+    padding: 2.2rem !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4) !important;
 }
 
+/* Navbar */
 .top-navbar {
-    background: rgba(15, 23, 42, 0.85);
-    border: 1.5px solid rgba(0, 242, 254, 0.4);
+    background: linear-gradient(135deg, #07172C 0%, #002D62 100%);
+    border: 1.5px solid rgba(255, 184, 0, 0.4);
     border-radius: 16px;
-    padding: 1.2rem 2rem;
+    padding: 1.1rem 2rem;
     margin-bottom: 1.8rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    box-shadow: 0 0 25px rgba(0, 242, 254, 0.2);
+    box-shadow: 0 6px 20px rgba(0, 45, 98, 0.35);
 }
 .top-brand-title {
-    font-size: 1.6rem; font-weight: 800; color: #00F2FE; margin: 0;
+    font-size: 1.55rem; font-weight: 800; color: #FFFFFF; margin: 0;
     display: flex; align-items: center; gap: 10px;
-    text-shadow: 0 0 15px rgba(0, 242, 254, 0.4);
 }
 .top-brand-subtitle {
-    font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1.4px; font-weight: 700; color: #94A3B8; margin: 0;
+    font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1.2px; font-weight: 700; color: #CBD5E1; margin: 0;
 }
 
 .corp-hero {
-    background: linear-gradient(135deg, rgba(0, 242, 254, 0.12) 0%, rgba(15, 23, 42, 0.8) 100%);
-    border: 1.5px solid rgba(0, 242, 254, 0.4);
+    background: linear-gradient(135deg, rgba(0, 45, 98, 0.12) 0%, rgba(7, 23, 44, 0.8) 100%);
+    border: 1.5px solid rgba(255, 184, 0, 0.35);
     border-radius: 16px;
-    padding: 2.2rem 2.8rem;
+    padding: 2rem 2.5rem;
     margin-bottom: 2rem;
-    border-left: 6px solid #00F2FE;
-    box-shadow: 0 0 30px rgba(0, 242, 254, 0.2);
+    border-left: 6px solid #FFB800;
 }
 .corp-badge {
     display: inline-flex; align-items: center; gap: 8px; 
-    background: rgba(0, 242, 254, 0.15); color: #00F2FE; 
-    padding: 6px 16px; border-radius: 8px;
-    font-size: 0.78rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 0.9rem;
-    border: 1px solid rgba(0, 242, 254, 0.4);
+    background: rgba(255, 184, 0, 0.15); color: #FFB800; 
+    padding: 5px 14px; border-radius: 6px;
+    font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.8rem;
+    border: 1px solid rgba(255, 184, 0, 0.4);
 }
+
 .corp-card {
     background: var(--background-color);
-    border: 1.5px solid rgba(0, 242, 254, 0.3);
+    border: 1.5px solid rgba(0, 45, 98, 0.25);
     border-radius: 16px;
     padding: 1.8rem;
     margin-bottom: 1.5rem;
-    box-shadow: 0 0 20px rgba(0, 242, 254, 0.1);
 }
 
 .corp-card h4 {
-    font-family: 'Space Grotesk', sans-serif !important;
     font-size: 1.25rem !important;
     font-weight: 800 !important;
     letter-spacing: -0.2px !important;
-    color: light-dark(#008DDA, #FFFFFF) !important;
+    color: light-dark(#002D62, #FFFFFF) !important;
     display: flex !important;
     align-items: center !important;
     gap: 10px !important;
     margin-top: 0 !important;
     margin-bottom: 1.2rem !important;
-    background: linear-gradient(90deg, rgba(0, 180, 216, 0.12) 0%, rgba(0, 180, 216, 0.02) 100%) !important;
-    border-left: 4px solid #00B4D8 !important;
-    border-bottom: 1px solid rgba(0, 180, 216, 0.25) !important;
+    background: linear-gradient(90deg, rgba(255, 184, 0, 0.12) 0%, rgba(0, 45, 98, 0.04) 100%) !important;
+    border-left: 4px solid #FFB800 !important;
+    border-bottom: 1px solid rgba(255, 184, 0, 0.25) !important;
     border-radius: 8px 12px 12px 8px !important;
     padding: 10px 16px !important;
-    box-shadow: inset 0 0 15px rgba(0, 180, 216, 0.06) !important;
-    text-shadow: 0 0 12px rgba(0, 180, 216, 0.2) !important;
 }
-.metric-box .val { font-size: 1.8rem; font-weight: 800; color: #00F2FE; text-shadow: 0 0 10px rgba(0, 242, 254, 0.4); }
-.metric-box .lbl { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; font-weight: 700; opacity: 0.85; }
+
+.metric-box .val { font-size: 1.8rem; font-weight: 800; color: #FFB800; }
+.metric-box .lbl { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; font-weight: 700; opacity: 0.85; }
 
 .score-high { color: #10B981 !important; font-weight: 800; }
 .score-mid { color: #F59E0B !important; font-weight: 800; }
@@ -813,13 +810,11 @@ html, body, [class*="css"] {
 div[data-baseweb="tab-highlight"], div[data-baseweb="tab-border"] { display: none !important; }
 
 div[data-baseweb="tab-list"] {
-    background: rgba(15, 23, 42, 0.75) !important;
-    border: 1.5px solid rgba(0, 242, 254, 0.35) !important;
+    background: rgba(7, 23, 44, 0.8) !important;
+    border: 1.5px solid rgba(255, 184, 0, 0.3) !important;
     border-radius: 16px !important;
     padding: 6px 10px !important;
     gap: 8px !important;
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.35), inset 0 0 15px rgba(0, 242, 254, 0.06) !important;
-    backdrop-filter: blur(12px) !important;
     margin-bottom: 1.8rem !important;
 }
 
@@ -831,54 +826,44 @@ button[data-baseweb="tab"] {
     color: #94A3B8 !important;
     font-size: 0.92rem !important;
     font-weight: 700 !important;
-    letter-spacing: 0.5px !important;
     transition: all 0.25s ease-in-out !important;
 }
 
 button[data-baseweb="tab"]:hover {
-    color: #00F2FE !important;
-    background: rgba(0, 242, 254, 0.1) !important;
-    border-color: rgba(0, 242, 254, 0.4) !important;
-    transform: translateY(-1px) !important;
+    color: #FFB800 !important;
+    background: rgba(255, 184, 0, 0.08) !important;
 }
 
 button[data-baseweb="tab"][aria-selected="true"] {
-    background: linear-gradient(135deg, rgba(2, 132, 199, 0.35) 0%, rgba(0, 242, 254, 0.2) 100%) !important;
-    border: 1.5px solid #00F2FE !important;
-    color: #00F2FE !important;
-    box-shadow: 0 0 18px rgba(0, 242, 254, 0.4) !important;
-    text-shadow: 0 0 10px rgba(0, 242, 254, 0.5) !important;
+    background: linear-gradient(135deg, rgba(0, 45, 98, 0.6) 0%, rgba(255, 184, 0, 0.2) 100%) !important;
+    border: 1.5px solid #FFB800 !important;
+    color: #FFB800 !important;
 }
 
 [data-testid="stVerticalBlock"] > [data-testid="stVerticalBlockBorderWrapper"]:first-child {
     border: 1.5px solid #D1D5DB !important;
     border-radius: 24px !important;
     padding: 2rem 2.2rem !important;
-    background: rgba(255, 255, 255, 0.02) !important;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04) !important;
 }
 
 [data-testid="column"] [data-testid="stVerticalBlockBorderWrapper"], [data-testid="column"] > div {
     border: none !important;
     background: transparent !important;
     padding: 0 !important;
-    box-shadow: none !important;
 }
 
 @media (prefers-color-scheme: dark) {
     [data-testid="stVerticalBlock"] > [data-testid="stVerticalBlockBorderWrapper"]:first-child {
-        border: 1.5px solid rgba(255, 255, 255, 0.2) !important;
-        background: rgba(15, 23, 42, 0.55) !important;
-        box-shadow: 0 14px 40px rgba(0, 0, 0, 0.35) !important;
-        backdrop-filter: blur(14px) !important;
+        border: 1.5px solid rgba(255, 184, 0, 0.3) !important;
+        background: rgba(7, 23, 44, 0.6) !important;
     }
 }
 </style>
 """
-st.markdown(CYBER_NEON_CSS, unsafe_allow_html=True)
+st.markdown(ARL_CORPORATE_CSS, unsafe_allow_html=True)
 
 # ===========================================================================
-# 6. SESSION STATE INITIALIZATION
+# 7. SESSION STATE INITIALIZATION
 # ===========================================================================
 if "logged_in" not in st.session_state: st.session_state.logged_in = False
 if "hr_name" not in st.session_state: st.session_state.hr_name = ""
@@ -890,7 +875,7 @@ if "pending_pin_email" not in st.session_state: st.session_state.pending_pin_ema
 if "screening_results" not in st.session_state: st.session_state.screening_results = []
 
 # ===========================================================================
-# 7. AUTHENTICATION & LOGIN SCREEN (CYBER-NEON)
+# 8. AUTHENTICATION & LOGIN SCREEN (CLICKABLE CARDS)
 # ===========================================================================
 if not st.session_state.logged_in:
     saved_profiles = get_all_verified_profiles()
@@ -898,20 +883,20 @@ if not st.session_state.logged_in:
     with col_c2:
         with st.container(border=True):
             st.markdown(f"""
-                <div class="cyber-header-box" style="padding-top: 0.5rem; margin-bottom: 1.4rem;">
+                <div class="cyber-header-box">
                     <div style="display: flex; justify-content: center; margin-bottom: 12px;">
                         <div style="
                             width: 68px; 
                             height: 68px; 
                             border-radius: 18px; 
-                            background: linear-gradient(135deg, rgba(0, 242, 254, 0.15) 0%, rgba(15, 23, 42, 0.9) 100%);
-                            border: 2px solid #00F2FE;
+                            background: linear-gradient(135deg, rgba(255, 184, 0, 0.2) 0%, rgba(7, 23, 44, 0.9) 100%);
+                            border: 2px solid #FFB800;
                             display: flex;
                             align-items: center;
                             justify-content: center;
-                            box-shadow: 0 0 25px rgba(0, 242, 254, 0.4), inset 0 0 15px rgba(0, 242, 254, 0.2);
+                            box-shadow: 0 0 25px rgba(255, 184, 0, 0.35);
                         ">
-                            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#00F2FE" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#FFB800" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
                                 <polyline points="2 17 12 22 22 17"></polyline>
                                 <polyline points="2 12 12 17 22 12"></polyline>
@@ -926,7 +911,7 @@ if not st.session_state.logged_in:
             """, unsafe_allow_html=True)
             
             if st.session_state.pending_pin_email:
-                st.markdown("### 🔐 Dedicated Admin & Employee PIN Setup")
+                st.markdown("### 🔐 Dedicated Security PIN Setup")
                 st.info(f"Email verified for **{st.session_state.pending_pin_email}**. Please create your confidential 4-digit security PIN.")
                 with st.form("pin_setup_form"):
                     new_pin = st.text_input("Create 4-Digit PIN", type="password", max_chars=4, placeholder="••••")
@@ -969,43 +954,42 @@ if not st.session_state.logged_in:
                         
             elif saved_profiles and not st.session_state.selected_profile_email:
                 st.markdown("""
-                    <div class="cyber-profiles-header">
-                        <h3 style="margin: 0 0 0.3rem 0; font-size: 1.35rem; font-weight: 700; color: #00F2FE;">👥 Active Executive Profiles</h3>
-                        <p style="font-size: 0.85rem; opacity: 0.85; margin: 0; color: #94A3B8;">Select your digital access badge to sign in:</p>
+                    <div style="margin-bottom: 14px;">
+                        <h3 style="margin: 0 0 0.2rem 0; font-size: 1.3rem; font-weight: 700; color: #FFB800;">👥 Active Executive Profiles</h3>
+                        <p style="font-size: 0.85rem; color: #94A3B8; margin: 0;">Click on your profile card to sign in:</p>
                     </div>
                 """, unsafe_allow_html=True)
                 
+                # DIRECT CLICKABLE BADGES WITHOUT SEPARATE SIGN-IN BUTTONS
                 for p_email, p_name, p_pin, p_role in saved_profiles:
-                    st.markdown(f"""
-                        <div class="cyber-badge-card">
-                            <div class="cyber-top-bar">
-                                <span class="cyber-access-id">ARL // {hashlib.md5(p_email.encode()).hexdigest()[:8].upper()}</span>
-                                <span class="cyber-status-dot">ONLINE</span>
-                            </div>
-                            <div style="display: flex; align-items: center; gap: 20px;">
-                                <div class="cyber-avatar-ring">👤</div>
-                                <div style="flex-grow: 1;">
-                                    <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-                                        <h3 class="cyber-name-title">{p_name}</h3>
-                                        <span class="cyber-role-pill">{p_role}</span>
+                    col_card, col_del = st.columns([8.6, 1.4], vertical_alignment="center")
+                    with col_card:
+                        st.markdown(f"""
+                            <a href="?profile={p_email}" target="_self" class="arl-clickable-badge">
+                                <div class="cyber-badge-card">
+                                    <div class="cyber-top-bar">
+                                        <span class="cyber-access-id">ARL // {hashlib.md5(p_email.encode()).hexdigest()[:8].upper()}</span>
+                                        <span class="cyber-status-dot">ONLINE ◈ CLICK TO SIGN IN ➔</span>
                                     </div>
-                                    <div class="cyber-email-mono">✉ {p_email}</div>
+                                    <div style="display: flex; align-items: center; gap: 18px;">
+                                        <div class="cyber-avatar-ring">👤</div>
+                                        <div style="flex-grow: 1;">
+                                            <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                                                <h3 class="cyber-name-title">{p_name}</h3>
+                                                <span class="cyber-role-pill">{p_role}</span>
+                                            </div>
+                                            <div class="cyber-email-mono">✉ {p_email}</div>
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
-                        </div>
-                    """, unsafe_allow_html=True)
-                    
-                    c_btn1, c_btn2 = st.columns([3, 1.2])
-                    with c_btn1:
-                        if st.button(f"🔐 Sign In as {p_name}", use_container_width=True, key=f"sel_card_{p_email}"):
-                            st.session_state.selected_profile_email = p_email
-                            st.rerun()
-                    with c_btn2:
-                        if st.button("🗑️ Delete", use_container_width=True, key=f"del_card_{p_email}"):
+                            </a>
+                        """, unsafe_allow_html=True)
+                    with col_del:
+                        if st.button("🗑️", key=f"del_card_{p_email}", help=f"Delete {p_name}'s profile", use_container_width=True):
                             delete_employee_profile(p_email)
                             st.success("Profile removed.")
                             st.rerun()
-                    st.markdown("<div style='margin-bottom: 16px;'></div>", unsafe_allow_html=True)
+                    st.markdown("<div style='margin-bottom: 12px;'></div>", unsafe_allow_html=True)
                 
                 st.markdown("---")
                 if st.button("➕ Register New Employee / Admin Profile", use_container_width=True, key="reg_new_emp_auth_btn"):
@@ -1016,10 +1000,10 @@ if not st.session_state.logged_in:
                 target_email = st.session_state.selected_profile_email
                 p_match = next((p for p in saved_profiles if p[0] == target_email), ("Employee", "", "", "Recruiter"))
                 st.markdown(f"### 🔐 Sign In: {p_match[1]}")
-                st.caption("Enter your 4-digit security PIN to access portal.")
+                st.caption(f"Enter 4-digit PIN for {target_email}")
                 with st.form("pin_login_form"):
                     pin_input = st.text_input("4-Digit PIN", type="password", max_chars=4, placeholder="••••")
-                    submit_log = st.form_submit_button("Sign In (Press Enter)", use_container_width=True)
+                    submit_log = st.form_submit_button("Access Portal (Press Enter)", use_container_width=True)
                 col_b1, col_b2 = st.columns(2)
                 if submit_log:
                     success, name, role = verify_employee_pin(target_email, pin_input)
@@ -1038,7 +1022,7 @@ if not st.session_state.logged_in:
                         st.rerun()
             else:
                 st.markdown("### 📝 Employee / Admin Registration")
-                st.caption("Enter your credentials. First registered user automatically becomes Admin with dedicated PIN creation.")
+                st.caption("First registered user automatically becomes Admin with dedicated PIN creation.")
                 with st.form("registration_form"):
                     reg_name = st.text_input("Full Name", placeholder="Alex Mercer")
                     reg_email = st.text_input("Company Email (@arl.com.pk)", placeholder="employee@arl.com.pk")
@@ -1063,7 +1047,7 @@ if not st.session_state.logged_in:
     st.stop()
 
 # ===========================================================================
-# 8. OPTIMIZED FAST TEXT EXTRACTION & OCR (150 DPI)
+# 9. OPTIMIZED FAST TEXT EXTRACTION & OCR (150 DPI)
 # ===========================================================================
 def extract_text_from_image(file_bytes: bytes) -> str:
     import pytesseract
@@ -1120,7 +1104,7 @@ def extract_resume_text(uploaded_file):
     return None
 
 # ===========================================================================
-# 9. GROQ AI: SAFE EXTRACTION & GHOST CANDIDATE FILTER
+# 10. GROQ AI: SAFE EXTRACTION & GHOST CANDIDATE FILTER
 # ===========================================================================
 def build_multi_candidate_extraction_prompt(resume_text: str) -> str:
     return f"""You are an expert HR Data Extraction Specialist for Attock Refinery Limited (ARL).
@@ -1268,7 +1252,7 @@ def generate_ai_interview_questions(client, skills_text: str, job_title: str) ->
         return f"Could not generate interview questions: {e}"
 
 # ===========================================================================
-# 10. PORTAL NAVIGATION BAR & DASHBOARD
+# 11. PORTAL NAVIGATION BAR & DASHBOARD
 # ===========================================================================
 df_all = load_database()
 total_repo_db = len(df_all)
@@ -1282,22 +1266,22 @@ with col_n1:
                 width: 48px; 
                 height: 48px; 
                 border-radius: 14px; 
-                background: linear-gradient(135deg, rgba(0, 242, 254, 0.18) 0%, rgba(15, 23, 42, 0.9) 100%);
-                border: 2px solid #00F2FE;
+                background: linear-gradient(135deg, rgba(255, 184, 0, 0.25) 0%, rgba(7, 23, 44, 0.9) 100%);
+                border: 2px solid #FFB800;
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                box-shadow: 0 0 20px rgba(0, 242, 254, 0.45), inset 0 0 10px rgba(0, 242, 254, 0.2);
+                box-shadow: 0 0 20px rgba(255, 184, 0, 0.35);
                 flex-shrink: 0;
             ">
-                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#00F2FE" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#FFB800" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
                     <polyline points="2 17 12 22 22 17"></polyline>
                     <polyline points="2 12 12 17 22 12"></polyline>
                 </svg>
             </div>
             <div>
-                <h2 class="top-brand-title" style="margin: 0; font-size: 1.55rem; color: #00F2FE; text-shadow: 0 0 16px rgba(0, 242, 254, 0.5);">ARL HireMatrix <span style="color: #38BDF8;">Pro</span></h2>
+                <h2 class="top-brand-title" style="margin: 0; font-size: 1.55rem; color: #FFFFFF;">ARL HireMatrix <span style="color: #FFB800;">Pro</span></h2>
                 <p class="top-brand-subtitle" style="margin: 4px 0 0 0;">Attock Refinery Limited &bull; Active: <b>{st.session_state.get('hr_name', 'Recruiter')}</b> ({st.session_state.get('hr_email', 'admin@arl.com.pk')}) &bull; Role: <b>{st.session_state.get('hr_role', 'Recruiter')}</b></p>
             </div>
         </div>
@@ -1406,7 +1390,6 @@ with tab2:
         
     st.info(f"Target Position Selected: **{jd_title_input}** *(Department: {chosen_dept})*")
     
-    # Live Catalog Manager (Add / Edit / Delete)
     with st.expander("⚙️ Manage ARL Job Catalog (Add, Edit, or Remove Jobs & Departments)"):
         st.caption("Permanently modify or add job positions in the ARL database hierarchy.")
         m_tab1, m_tab2, m_tab3 = st.tabs(["➕ Add New Job", "✏️ Edit / Rename Job", "🗑️ Delete Job"])
