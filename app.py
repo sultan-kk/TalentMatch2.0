@@ -3,7 +3,7 @@ ARL HireMatrix Pro — Official Corporate Edition
 =============================================================================
 Branding: Attock Refinery Limited (ARL Official Forest Green & Charcoal Palette)
 Features: Clickable Executive Badges, Bulletproof PIN Authentication,
-Fast 150 DPI OCR, Safe Multi-CV Extraction, Exact 13-Column Sequence,
+Fast 150 DPI OCR, Safe Multi-CV Extraction, Ascending Serial Numbers (1, 2, 3...),
 ARL Cascading Job Hierarchy & Real-Time Supabase Cloud Synchronized Grids.
 """
 
@@ -98,7 +98,7 @@ def send_smtp_email(receiver_email, subject, body_text):
     except Exception as e:
         return False, f"Failed to send email: {e}"
 
-# ----------------- BULLETPROOF PIN AUTHENTICATION -----------------
+# ----------------- BULLETPROOF INSTANT PIN AUTHENTICATION -----------------
 def verify_employee_pin(email, entered_pin):
     clean_email = email.lower().strip()
     entered_str = str(entered_pin).strip()
@@ -113,19 +113,20 @@ def verify_employee_pin(email, entered_pin):
     if not supabase:
         return False, None, None
 
-    # 2. Database Fallback
+    # 2. Database Fallback (hr_users)
     try:
         res = supabase.table("hr_users").select("*").ilike("email", clean_email).execute()
-        if res.data:
+        if res.data and len(res.data) > 0:
             rec = res.data[0]
             if str(rec.get("pin", "")).strip() == entered_str:
                 return True, rec.get("name", "Employee"), rec.get("role", "Recruiter")
     except Exception:
         pass
-
+        
+    # 3. Database Fallback (employees)
     try:
         res2 = supabase.table("employees").select("*").ilike("email", clean_email).execute()
-        if res2.data:
+        if res2.data and len(res2.data) > 0:
             rec = res2.data[0]
             if str(rec.get("pin", "")).strip() == entered_str:
                 return True, rec.get("name", "Employee"), rec.get("role", "Recruiter")
@@ -351,7 +352,7 @@ def delete_arl_job_from_db(department, job_title):
     return True, "Removed locally."
 
 # ===========================================================================
-# 5. CANDIDATE REPOSITORY & SCREENED STORAGE (13-COLUMN SEQUENCE)
+# 5. CANDIDATE REPOSITORY & SCREENED STORAGE (ASCENDING 1, 2, 3...)
 # ===========================================================================
 def load_database():
     expected_cols = [
@@ -362,7 +363,8 @@ def load_database():
     if not supabase:
         return pd.DataFrame(columns=expected_cols)
     try:
-        response = supabase.table("candidates").select("*").order("id", desc=True).execute()
+        # ✅ desc=False: 1st candidate stays at row 1, new candidates append below (2, 3, 4...)
+        response = supabase.table("candidates").select("*").order("id", desc=False).execute()
         rows = response.data
         if rows:
             mapped_rows = []
@@ -490,7 +492,8 @@ def load_screened_database():
     if not supabase:
         return pd.DataFrame(columns=expected_cols)
     try:
-        response = supabase.table("screened_candidates").select("*").order("id", desc=True).execute()
+        # ✅ desc=False: Screened table also follows ascending order
+        response = supabase.table("screened_candidates").select("*").order("id", desc=False).execute()
         rows = response.data
         if rows:
             mapped = []
@@ -778,7 +781,7 @@ html, body, [class*="css"] {
     transform: translateY(-2px);
 }
 
-/* PIN & Login Form Container */
+/* PIN Screen Form & High Contrast Typography */
 [data-testid="stForm"] {
     background: #14171A !important;
     border: 1.5px solid #1E2328 !important;
@@ -787,7 +790,6 @@ html, body, [class*="css"] {
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5) !important;
 }
 
-/* PIN Screen Heading ('🔐 Sign In: ...') */
 [data-testid="stVerticalBlockBorderWrapper"] h3 {
     color: #22C55E !important;
     font-weight: 800 !important;
@@ -796,14 +798,12 @@ html, body, [class*="css"] {
     margin-bottom: 6px !important;
 }
 
-/* 'Enter 4-digit PIN for ...' Caption */
 [data-testid="stVerticalBlockBorderWrapper"] [data-testid="stCaptionContainer"] p,
 [data-testid="stVerticalBlockBorderWrapper"] [data-testid="stCaptionContainer"] {
     color: #CBD5E1 !important;
     font-size: 0.92rem !important;
 }
 
-/* Form Input Label ('4-Digit PIN') */
 [data-testid="stForm"] label,
 [data-testid="stWidgetLabel"] label,
 [data-testid="stWidgetLabel"] p,
@@ -814,7 +814,6 @@ html, body, [class*="css"] {
     letter-spacing: 0.5px !important;
 }
 
-/* Character counter (0/4) color */
 [data-testid="stInputCounter"] {
     color: #94A3B8 !important;
 }
@@ -921,6 +920,7 @@ button[data-baseweb="tab"][aria-selected="true"] {
     color: #22C55E !important;
 }
 
+/* Faded ARL Green Outer Box Container */
 [data-testid="stVerticalBlock"] > [data-testid="stVerticalBlockBorderWrapper"]:first-child {
     border: 1.5px solid rgba(22, 101, 52, 0.4) !important;
     border-radius: 24px !important;
@@ -1097,10 +1097,6 @@ if not st.session_state.logged_in:
                         st.session_state.hr_email = target_email
                         st.session_state.hr_role = role if role else "Recruiter"
                         st.session_state.selected_profile_email = None
-                        try:
-                            st.query_params.clear()
-                        except Exception:
-                            pass
                         st.success(f"Welcome back, {st.session_state.hr_name}!")
                         st.rerun()
                     else:
@@ -1108,10 +1104,6 @@ if not st.session_state.logged_in:
                 with col_b2:
                     if st.button("Switch Profile", use_container_width=True, key="switch_prof_auth_btn"):
                         st.session_state.selected_profile_email = None
-                        try:
-                            st.query_params.clear()
-                        except Exception:
-                            pass
                         st.rerun()
             else:
                 st.markdown("### 📝 Employee / Admin Registration")
@@ -1350,8 +1342,8 @@ def generate_ai_interview_questions(client, skills_text: str, job_title: str) ->
 df_all = load_database()
 total_repo_db = len(df_all)
 
-# ✅ FIXED: iloc[0] represents the latest candidate in desc-ordered database
-latest_candidate = df_all.iloc[0]["Name"] if not df_all.empty else "None"
+# ✅ FIXED: In ascending order (desc=False), latest added candidate is at iloc[-1]
+latest_candidate = df_all.iloc[-1]["Name"] if not df_all.empty else "None"
 
 col_n1, col_n2 = st.columns([8.2, 1.8], vertical_alignment="center")
 with col_n1:
