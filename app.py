@@ -4,7 +4,7 @@ ARL HireMatrix Pro — Official Corporate Edition
 Branding: Attock Refinery Limited (ARL Official Forest Green & Charcoal Palette)
 Features: Clickable Executive Badges, Bulletproof PIN Authentication,
 Fast 150 DPI OCR, Safe Multi-CV Extraction, Ascending Serial Numbers (1, 2, 3...),
-ARL Cascading Job Hierarchy & Real-Time Supabase Cloud Synchronized Grids.
+Safe Inversion Logic for Existing Data, ARL Job Hierarchy & Supabase Sync.
 """
 
 import io
@@ -67,7 +67,7 @@ def init_supabase():
         key = st.secrets["SUPABASE_KEY"]
         return create_client(url, key)
     except Exception as e:
-        st.error(f"⚠️ Supabase Connection Error: {e}")
+        st.error(f"⚠️️ Supabase Connection Error: {e}")
         return None
 
 supabase: Client = init_supabase()
@@ -352,8 +352,45 @@ def delete_arl_job_from_db(department, job_title):
     return True, "Removed locally."
 
 # ===========================================================================
-# 5. CANDIDATE REPOSITORY & SCREENED STORAGE (ASCENDING 1, 2, 3...)
+# 5. CANDIDATE REPOSITORY & SAFE INVERSION LOGIC
 # ===========================================================================
+def safe_invert_candidates_database():
+    """Purane data ko zero data-loss risk ke sath invert karke seedha 1, 2, 3 karta hai"""
+    if not supabase:
+        return False, "Database connection error"
+    try:
+        res = supabase.table("candidates").select("*").execute()
+        rows = res.data
+        if not rows or len(rows) <= 1:
+            return True, "Data pehle se theek hai ya sirf 1 hi record hai."
+
+        reversed_rows = rows[::-1]
+        clean_batch = []
+        for r in reversed_rows:
+            clean_batch.append({
+                "candidate_name": r.get("candidate_name") or r.get("name", "Unknown"),
+                "father_name": r.get("father_name", "Not Provided"),
+                "education": r.get("education", "Not Provided"),
+                "cgpa": r.get("cgpa", "Not Provided"),
+                "passing_year": r.get("passing_year", "Not Provided"),
+                "university_name": r.get("university_name", "Not Provided"),
+                "dob": r.get("dob", "Not Provided"),
+                "email": r.get("email", "Not Provided"),
+                "phone": r.get("phone", "Not Provided"),
+                "experience_years": str(r.get("experience_years", "0")),
+                "latest_experience": r.get("latest_experience", "Not Provided"),
+                "reference": r.get("reference", "Not Provided"),
+                "pipeline_status": r.get("pipeline_status", "Talent Pool"),
+                "added_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            })
+
+        # Safe swap
+        supabase.table("candidates").delete().neq("id", 0).execute()
+        supabase.table("candidates").insert(clean_batch).execute()
+        return True, f"🎉 Success! Tamam {len(clean_batch)} candidates ka sequence seedha (1, 2, 3...) ho gaya!"
+    except Exception as e:
+        return False, f"Error: {e}"
+
 def load_database():
     expected_cols = [
         "Name", "Father Name", "Qualification", "CGPA", 
@@ -363,7 +400,6 @@ def load_database():
     if not supabase:
         return pd.DataFrame(columns=expected_cols)
     try:
-        # ✅ desc=False: 1st candidate stays at row 1, new candidates append below (2, 3, 4...)
         response = supabase.table("candidates").select("*").order("id", desc=False).execute()
         rows = response.data
         if rows:
@@ -492,7 +528,6 @@ def load_screened_database():
     if not supabase:
         return pd.DataFrame(columns=expected_cols)
     try:
-        # ✅ desc=False: Screened table also follows ascending order
         response = supabase.table("screened_candidates").select("*").order("id", desc=False).execute()
         rows = response.data
         if rows:
@@ -1342,7 +1377,7 @@ def generate_ai_interview_questions(client, skills_text: str, job_title: str) ->
 df_all = load_database()
 total_repo_db = len(df_all)
 
-# ✅ FIXED: In ascending order (desc=False), latest added candidate is at iloc[-1]
+# In ascending order (desc=False), latest added candidate is at iloc[-1]
 latest_candidate = df_all.iloc[-1]["Name"] if not df_all.empty else "None"
 
 col_n1, col_n2 = st.columns([8.2, 1.8], vertical_alignment="center")
@@ -1745,6 +1780,16 @@ with tab3:
                     key="download_live_grid_xlsx_btn"
                 )
             with c_ex2:
+                # 🔄 SAFE 1-CLICK INVERSION BUTTON FOR EXISTING DATA
+                if st.button("🔄 Invert Existing Data Sequence (1-Click Fix)", use_container_width=True, key="invert_seq_btn"):
+                    with st.spinner("Sequence seedha ho raha hai..."):
+                        ok, msg = safe_invert_candidates_database()
+                        if ok:
+                            st.success(msg)
+                            st.rerun()
+                        else:
+                            st.error(msg)
+                
                 if st.button("🗑️ Clear Entire Database", type="secondary", key="clear_db_btn_master_grid", use_container_width=True):
                     clear_candidate_database()
                     st.success("Repository cleared successfully!")
