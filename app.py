@@ -5,7 +5,8 @@ Branding: Attock Refinery Limited (ARL Official Forest Green & Charcoal Palette)
 Features: Clickable Executive Badges, Bulletproof PIN Authentication,
 Fast 150 DPI OCR, Safe Multi-CV Extraction, Exact 13-Column Sequence,
 ARL Cascading Job Hierarchy & Real-Time Supabase Cloud Synchronized Grids.
-Now with: Built-in MovieBox-Style Windows Desktop (.exe) Download Landing Page.
+Now with: Built-in MovieBox-Style Windows Desktop (.exe) Download Landing Page
+and Smart Desktop Mode Detection (Hides download CTA inside Desktop Client).
 """
 
 import io
@@ -33,7 +34,7 @@ APP_TAGLINE = "Attock Refinery Limited (ARL) • HR Intelligence & AI Screening 
 GROQ_MODEL = "openai/gpt-oss-120b"
 ACCEPTED_TYPES = ["pdf", "docx", "png", "jpg", "jpeg"]
 
-# ⬇️ Paste your hosted .exe link here (GitHub Release, Google Drive, or Cloud Storage)
+# ⬇️ Hosted .msi / .exe release link
 EXE_DOWNLOAD_URL = "https://github.com/sultan-kk/TalentMatch2.0/releases/download/v1.0/ARL-HireMatrix-Pro_1.0.0_x64_en-US.msi"
 
 def get_arl_favicon():
@@ -71,7 +72,7 @@ def init_supabase():
         key = st.secrets["SUPABASE_KEY"]
         return create_client(url, key)
     except Exception as e:
-        st.error(f"⚠️️ Supabase Connection Error: {e}")
+        st.error(f"⚠ Supabase Connection Error: {e}")
         return None
 
 supabase: Client = init_supabase()
@@ -982,7 +983,7 @@ button[data-baseweb="tab"][aria-selected="true"] {
 st.markdown(ARL_GREEN_CSS, unsafe_allow_html=True)
 
 # ===========================================================================
-# 7. SESSION STATE INITIALIZATION
+# 7. SESSION STATE INITIALIZATION & DESKTOP DETECTION
 # ===========================================================================
 if "logged_in" not in st.session_state: st.session_state.logged_in = False
 if "hr_name" not in st.session_state: st.session_state.hr_name = ""
@@ -993,6 +994,11 @@ if "pending_otp_email" not in st.session_state: st.session_state.pending_otp_ema
 if "pending_pin_email" not in st.session_state: st.session_state.pending_pin_email = None
 if "screening_results" not in st.session_state: st.session_state.screening_results = []
 if "show_download_page" not in st.session_state: st.session_state.show_download_page = False
+
+# Smart Desktop Mode check: Persists across profile switches and logins
+if "is_desktop_mode" not in st.session_state:
+    st.session_state.is_desktop_mode = (st.query_params.get("mode") == "desktop")
+is_desktop_mode = st.session_state.is_desktop_mode or (st.query_params.get("mode") == "desktop")
 
 # ===========================================================================
 # 7.1 MOVIEBOX-STYLE DEDICATED DESKTOP DOWNLOAD LANDING PAGE
@@ -1112,7 +1118,7 @@ def render_download_landing_page(exe_direct_url: str):
             <h1 class="dl-title">ARL HireMatrix Pro for Windows</h1>
             <p class="dl-subtitle">Run Attock Refinery Limited's enterprise candidate extraction, AI matching, and cloud recruitment pipeline as a dedicated, high-speed desktop software.</p>
             <a href="{exe_direct_url}" target="_blank" class="dl-main-btn">
-                <span>⬇️</span> Download for Windows · ARL-HireMatrix-Pro.exe (Free)
+                <span>⬇️</span> Download for Windows · ARL-HireMatrix-Pro.msi (Free)
             </a>
             <div style="margin-top: 18px; color: #94A3B8; font-size: 0.85rem; font-family: 'JetBrains Mono', monospace;">
                 Official Windows Installer &bull; 64-bit Architecture &bull; Instant Cloud Sync
@@ -1127,8 +1133,8 @@ def render_download_landing_page(exe_direct_url: str):
         st.markdown("""
             <div class="step-card">
                 <div class="step-num">01</div>
-                <div class="step-title">Download the EXE</div>
-                <div class="step-desc">Click the primary download button above and save the standalone Windows executable file to your PC.</div>
+                <div class="step-title">Download the Installer</div>
+                <div class="step-desc">Click the primary download button above and save the standalone Windows installer package to your PC.</div>
             </div>
         """, unsafe_allow_html=True)
     with col2:
@@ -1136,7 +1142,7 @@ def render_download_landing_page(exe_direct_url: str):
             <div class="step-card">
                 <div class="step-num">02</div>
                 <div class="step-title">Run Installer</div>
-                <div class="step-desc">Double click the .exe. If prompted by Windows SmartScreen, click <i>More Info &rarr; Run Anyway</i>.</div>
+                <div class="step-desc">Double click the .msi package. If prompted by Windows SmartScreen, click <i>More Info &rarr; Run Anyway</i>.</div>
             </div>
         """, unsafe_allow_html=True)
     with col3:
@@ -1168,14 +1174,15 @@ if not st.session_state.logged_in:
     saved_profiles = get_all_verified_profiles()
     col_c1, col_c2, col_c3 = st.columns([1, 3.8, 1])
     with col_c2:
-        # Desktop Download CTA Banner on Login Page
-        c_banner_l, c_banner_r = st.columns([7, 3], vertical_alignment="center")
-        with c_banner_l:
-            st.caption("Prefer a standalone PC software?")
-        with c_banner_r:
-            if st.button("💻 Get Desktop App", key="dl_btn_login_top", use_container_width=True):
-                st.session_state.show_download_page = True
-                st.rerun()
+        # Desktop Download CTA Banner on Login Page (Hidden if running in Desktop mode)
+        if not is_desktop_mode:
+            c_banner_l, c_banner_r = st.columns([7, 3], vertical_alignment="center")
+            with c_banner_l:
+                st.caption("Prefer a standalone PC software?")
+            with c_banner_r:
+                if st.button("💻 Get Desktop App", key="dl_btn_login_top", use_container_width=True):
+                    st.session_state.show_download_page = True
+                    st.rerun()
 
         with st.container(border=True):
             st.markdown(f"""
@@ -1259,7 +1266,7 @@ if not st.session_state.logged_in:
                     col_card, col_del = st.columns([8.6, 1.4], vertical_alignment="center")
                     with col_card:
                         st.markdown(f"""
-                            <a href="?profile={p_email}" target="_self" class="arl-clickable-badge">
+                            <a href="?profile={p_email}{'&mode=desktop' if is_desktop_mode else ''}" target="_self" class="arl-clickable-badge">
                                 <div class="cyber-badge-card">
                                     <div class="cyber-top-bar">
                                         <span class="cyber-access-id">ARL // {hashlib.md5(p_email.encode()).hexdigest()[:8].upper()}</span>
@@ -1310,6 +1317,8 @@ if not st.session_state.logged_in:
                         st.session_state.selected_profile_email = None
                         try:
                             st.query_params.clear()
+                            if is_desktop_mode:
+                                st.query_params["mode"] = "desktop"
                         except Exception:
                             pass
                         st.success(f"Welcome back, {st.session_state.hr_name}!")
@@ -1321,6 +1330,8 @@ if not st.session_state.logged_in:
                         st.session_state.selected_profile_email = None
                         try:
                             st.query_params.clear()
+                            if is_desktop_mode:
+                                st.query_params["mode"] = "desktop"
                         except Exception:
                             pass
                         st.rerun()
@@ -1591,13 +1602,30 @@ with col_n1:
         </div>
     """, unsafe_allow_html=True)
 with col_n2:
-    col_dl_top, col_lock_top = st.columns(2)
-    with col_dl_top:
-        if st.button("💻 App", use_container_width=True, key="btn_open_dl_page_top", help="Download Windows Desktop App"):
-            st.session_state.show_download_page = True
-            st.rerun()
-    with col_lock_top:
-        if st.button("🚪 Lock", use_container_width=True, key="lock_portal_btn_top", help="Lock Session"):
+    if not is_desktop_mode:
+        col_dl_top, col_lock_top = st.columns(2)
+        with col_dl_top:
+            if st.button("💻 App", use_container_width=True, key="btn_open_dl_page_top", help="Download Windows Desktop App"):
+                st.session_state.show_download_page = True
+                st.rerun()
+        with col_lock_top:
+            if st.button("🚪 Lock", use_container_width=True, key="lock_portal_btn_top", help="Lock Session"):
+                st.session_state.logged_in = False
+                st.session_state.hr_name = ""
+                st.session_state.hr_email = ""
+                st.session_state.hr_role = "Recruiter"
+                st.session_state.selected_profile_email = None
+                st.session_state.screening_results = []
+                try:
+                    st.query_params.clear()
+                    if is_desktop_mode:
+                        st.query_params["mode"] = "desktop"
+                except Exception:
+                    pass
+                st.rerun()
+    else:
+        # Standalone Desktop Mode: Display only the clean Lock button
+        if st.button("🚪 Lock Portal", use_container_width=True, key="lock_portal_btn_top_desktop", help="Lock Session"):
             st.session_state.logged_in = False
             st.session_state.hr_name = ""
             st.session_state.hr_email = ""
@@ -1606,6 +1634,8 @@ with col_n2:
             st.session_state.screening_results = []
             try:
                 st.query_params.clear()
+                if is_desktop_mode:
+                    st.query_params["mode"] = "desktop"
             except Exception:
                 pass
             st.rerun()
@@ -1893,7 +1923,7 @@ with tab2:
                         st.error("Groq API key required.")
 
                 if cand['email'] not in ["Not Provided", "Not Found", ""] and cand['email']:
-                    st.markdown("#### ✉️ Conditional Email Dispatcher")
+                    st.markdown("#### ✉️️ Conditional Email Dispatcher")
                     
                     if cand["pipeline_status"] in ["Shortlisted", "Interview Scheduled"]:
                         default_msg = f"Dear {cand['name']},\n\nWe were deeply impressed by your credentials and match score ({cand['match_score']}%) for the {cand['job_title']} position at Attock Refinery Limited (ARL). We would love to invite you for an interview round.\n\nBest Regards,\nTeam ARL HR"
@@ -1906,7 +1936,7 @@ with tab2:
                     else:
                         default_msg = f"Dear {cand['name']},\n\nThank you for your interest in the {cand['job_title']} position at Attock Refinery Limited (ARL). Although your background is notable, we have decided to move forward with other candidates. We wish you the best.\n\nBest Regards,\nTeam ARL HR"
                         email_subject = f"Application Status Update - {cand['job_title']}"
-                        st.warning("⚠️ Stage is **Rejected**: Regret template loaded.")
+                        st.warning("⚠️️ Stage is **Rejected**: Regret template loaded.")
 
                     msg_key = f"inv_msg_{rank}_{cand_hash}"
                     invite_msg = st.text_area("Email Message", value=default_msg, key=msg_key)
