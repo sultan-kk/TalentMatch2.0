@@ -6,7 +6,7 @@ Features: Clickable Executive Badges, Bulletproof PIN Authentication,
 Fast 150 DPI OCR, Safe Multi-CV Extraction, Exact 13-Column Sequence,
 ARL Cascading Job Hierarchy & Real-Time Supabase Cloud Synchronized Grids.
 Now with: Built-in MovieBox-Style Windows Desktop (.exe) Download Landing Page
-and Smart Desktop Mode Detection (Hides download CTA inside Desktop Client).
+and One-Click Desktop Mode Dismissal (Hide CTA inside Desktop Client).
 """
 
 import io
@@ -108,7 +108,6 @@ def verify_employee_pin(email, entered_pin):
     clean_email = email.lower().strip()
     entered_str = str(entered_pin).strip()
 
-    # 1. Fast in-memory check (Instant 0ms match)
     cached = get_all_verified_profiles()
     for p_email, p_name, p_pin, p_role in cached:
         if p_email.lower().strip() == clean_email:
@@ -118,7 +117,6 @@ def verify_employee_pin(email, entered_pin):
     if not supabase:
         return False, None, None
 
-    # 2. Database Fallback
     try:
         res = supabase.table("hr_users").select("*").ilike("email", clean_email).execute()
         if res.data:
@@ -995,7 +993,6 @@ if "pending_pin_email" not in st.session_state: st.session_state.pending_pin_ema
 if "screening_results" not in st.session_state: st.session_state.screening_results = []
 if "show_download_page" not in st.session_state: st.session_state.show_download_page = False
 
-# Smart Desktop Mode check: Persists across profile switches and logins
 if "is_desktop_mode" not in st.session_state:
     st.session_state.is_desktop_mode = (st.query_params.get("mode") == "desktop")
 is_desktop_mode = st.session_state.is_desktop_mode or (st.query_params.get("mode") == "desktop")
@@ -1174,14 +1171,18 @@ if not st.session_state.logged_in:
     saved_profiles = get_all_verified_profiles()
     col_c1, col_c2, col_c3 = st.columns([1, 3.8, 1])
     with col_c2:
-        # Desktop Download CTA Banner on Login Page (Hidden if running in Desktop mode)
+        # Desktop Download CTA Banner on Login Page with ✕ Dismiss Button
         if not is_desktop_mode:
-            c_banner_l, c_banner_r = st.columns([7, 3], vertical_alignment="center")
+            c_banner_l, c_banner_r, c_banner_x = st.columns([6.8, 2.5, 0.7], vertical_alignment="center")
             with c_banner_l:
                 st.caption("Prefer a standalone PC software?")
             with c_banner_r:
-                if st.button("💻 Get Desktop App", key="dl_btn_login_top", use_container_width=True):
+                if st.button("💻 Get App", key="dl_btn_login_top", use_container_width=True):
                     st.session_state.show_download_page = True
+                    st.rerun()
+            with c_banner_x:
+                if st.button("✕", key="dismiss_desktop_banner", help="Hide in Desktop App"):
+                    st.session_state.is_desktop_mode = True
                     st.rerun()
 
         with st.container(border=True):
@@ -1261,7 +1262,6 @@ if not st.session_state.logged_in:
                     </div>
                 """, unsafe_allow_html=True)
                 
-                # CHARCOAL BLACK PROFILE BADGES
                 for p_email, p_name, p_pin, p_role in saved_profiles:
                     col_card, col_del = st.columns([8.6, 1.4], vertical_alignment="center")
                     with col_card:
@@ -1509,7 +1509,6 @@ def extract_candidates_for_repo(client, resume_text: str, file_name: str):
                 "skills": cand.get("skills", "Not Provided").strip()
             })
 
-        # Remove duplicate ghost candidates created from Father's Name
         final_candidates = []
         for cand in cleaned_candidates:
             is_ghost = False
@@ -1572,7 +1571,6 @@ def generate_ai_interview_questions(client, skills_text: str, job_title: str) ->
 df_all = load_database()
 total_repo_db = len(df_all)
 
-# iloc[-1] represents the newest candidate appended to the end of the database
 latest_candidate = df_all.iloc[-1]["Name"] if not df_all.empty else "None"
 
 col_n1, col_n2 = st.columns([7.8, 2.2], vertical_alignment="center")
@@ -1624,7 +1622,6 @@ with col_n2:
                     pass
                 st.rerun()
     else:
-        # Standalone Desktop Mode: Display only the clean Lock button
         if st.button("🚪 Lock Portal", use_container_width=True, key="lock_portal_btn_top_desktop", help="Lock Session"):
             st.session_state.logged_in = False
             st.session_state.hr_name = ""
@@ -1873,7 +1870,7 @@ with tab2:
                 c1, c2 = st.columns([1.3, 1])
                 with c1:
                     st.markdown(f"**💼 Target Role:** `{cand.get('job_title', 'Not Specified')}`")
-                    st.markdown(f"**✉️ Email:** `{cand['email']}` | **📞 Phone:** `{cand['phone']}`")
+                    st.markdown(f"**✉️️ Email:** `{cand['email']}` | **📞 Phone:** `{cand['phone']}`")
                     st.markdown(f"**👤 Father's Name:** {cand['father_name']}")
                     st.markdown(f"**🎓 Qualification:** {cand['education']} (CGPA: {cand['cgpa']} | Year: {cand['passing_year']})")
                     st.markdown(f"**🏫 Institute:** {cand['university_name']}")
@@ -1923,7 +1920,7 @@ with tab2:
                         st.error("Groq API key required.")
 
                 if cand['email'] not in ["Not Provided", "Not Found", ""] and cand['email']:
-                    st.markdown("#### ✉️️ Conditional Email Dispatcher")
+                    st.markdown("#### ✉ Conditional Email Dispatcher")
                     
                     if cand["pipeline_status"] in ["Shortlisted", "Interview Scheduled"]:
                         default_msg = f"Dear {cand['name']},\n\nWe were deeply impressed by your credentials and match score ({cand['match_score']}%) for the {cand['job_title']} position at Attock Refinery Limited (ARL). We would love to invite you for an interview round.\n\nBest Regards,\nTeam ARL HR"
@@ -1936,7 +1933,7 @@ with tab2:
                     else:
                         default_msg = f"Dear {cand['name']},\n\nThank you for your interest in the {cand['job_title']} position at Attock Refinery Limited (ARL). Although your background is notable, we have decided to move forward with other candidates. We wish you the best.\n\nBest Regards,\nTeam ARL HR"
                         email_subject = f"Application Status Update - {cand['job_title']}"
-                        st.warning("⚠️️ Stage is **Rejected**: Regret template loaded.")
+                        st.warning("⚠ Stage is **Rejected**: Regret template loaded.")
 
                     msg_key = f"inv_msg_{rank}_{cand_hash}"
                     invite_msg = st.text_area("Email Message", value=default_msg, key=msg_key)
