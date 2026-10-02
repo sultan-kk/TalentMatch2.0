@@ -34,7 +34,7 @@ GROQ_MODEL = "openai/gpt-oss-120b"
 ACCEPTED_TYPES = ["pdf", "docx", "png", "jpg", "jpeg"]
 
 # ⬇️ Paste your hosted .exe link here (GitHub Release, Google Drive, or Cloud Storage)
-EXE_DOWNLOAD_URL = "https://github.com/sultan-kk/TalentMatch2.0/releases/download/v1.0/ARL-HireMatrix-Pro.exe"
+EXE_DOWNLOAD_URL = "https://github.com/sultan-kk/TalentMatch2.0/releases/download/v1.0/ARL-HireMatrix-Pro_1.0.0_x64_en-US.msi"
 
 def get_arl_favicon():
     img = Image.new("RGBA", (64, 64), (255, 255, 255, 0))
