@@ -1,4 +1,3 @@
-
 """
 ARL HireMatrix Pro — Official Corporate Edition
 =============================================================================
@@ -6,6 +5,7 @@ Branding: Attock Refinery Limited (ARL Official Forest Green & Charcoal Palette)
 Features: Clickable Executive Badges, Bulletproof PIN Authentication,
 Fast 150 DPI OCR, Safe Multi-CV Extraction, Exact 13-Column Sequence,
 ARL Cascading Job Hierarchy & Real-Time Supabase Cloud Synchronized Grids.
+Now with: Built-in MovieBox-Style Windows Desktop (.exe) Download Landing Page.
 """
 
 import io
@@ -32,6 +32,9 @@ APP_NAME = "ARL HireMatrix Pro"
 APP_TAGLINE = "Attock Refinery Limited (ARL) • HR Intelligence & AI Screening Engine"
 GROQ_MODEL = "openai/gpt-oss-120b"
 ACCEPTED_TYPES = ["pdf", "docx", "png", "jpg", "jpeg"]
+
+# ⬇️ Paste your hosted .exe link here (GitHub Release, Google Drive, or Cloud Storage)
+EXE_DOWNLOAD_URL = "https://github.com/sultan-kk/TalentMatch2.0/releases/download/v1.0/ARL-HireMatrix-Pro.exe"
 
 def get_arl_favicon():
     img = Image.new("RGBA", (64, 64), (255, 255, 255, 0))
@@ -68,7 +71,7 @@ def init_supabase():
         key = st.secrets["SUPABASE_KEY"]
         return create_client(url, key)
     except Exception as e:
-        st.error(f"⚠️ Supabase Connection Error: {e}")
+        st.error(f"⚠️️ Supabase Connection Error: {e}")
         return None
 
 supabase: Client = init_supabase()
@@ -363,7 +366,7 @@ def load_database():
     if not supabase:
         return pd.DataFrame(columns=expected_cols)
     try:
-        response = supabase.table("candidates").select("*").order("id", desc=True).execute()
+        response = supabase.table("candidates").select("*").order("id", desc=False).execute()
         rows = response.data
         if rows:
             mapped_rows = []
@@ -398,13 +401,38 @@ def check_if_exists_in_db(email):
 
 def save_candidates_to_repository(new_candidates):
     if not supabase:
-        return
+        return 0, 0
     current_timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    
+    existing_emails = set()
+    existing_phones = set()
+    try:
+        res = supabase.table("candidates").select("email, phone").execute()
+        if res.data:
+            for r in res.data:
+                em = str(r.get("email", "")).strip().lower()
+                ph = re.sub(r"\D", "", str(r.get("phone", "")))
+                if em and em != "not provided": existing_emails.add(em)
+                if ph and len(ph) >= 7: existing_phones.add(ph)
+    except Exception: pass
+
+    inserted_count = 0
+    skipped_count = 0
+
     for c in new_candidates:
-        email = str(c.get("email", "Not Provided")).lower().strip()
-        if email not in ["not provided", "not found", "", "nan"] and check_if_exists_in_db(email):
+        cand_email = str(c.get("email", "")).strip().lower()
+        cand_phone = re.sub(r"\D", "", str(c.get("phone", "")))
+
+        is_dup = False
+        if cand_email and cand_email not in ["not provided", "not found", "", "nan"] and cand_email in existing_emails:
+            is_dup = True
+        elif cand_phone and len(cand_phone) >= 7 and cand_phone in existing_phones:
+            is_dup = True
+
+        if is_dup:
+            skipped_count += 1
             continue
-            
+
         payload = {
             "candidate_name": c.get("name", "Unknown"),
             "father_name": c.get("father_name", "Not Provided"),
@@ -423,8 +451,13 @@ def save_candidates_to_repository(new_candidates):
         }
         try:
             supabase.table("candidates").insert(payload).execute()
+            inserted_count += 1
+            if cand_email and cand_email not in ["not provided", "not found", "", "nan"]: existing_emails.add(cand_email)
+            if cand_phone and len(cand_phone) >= 7: existing_phones.add(cand_phone)
         except Exception:
             pass
+
+    return inserted_count, skipped_count
 
 def delete_single_candidate_from_db(email_or_name):
     if not supabase:
@@ -959,6 +992,174 @@ if "selected_profile_email" not in st.session_state: st.session_state.selected_p
 if "pending_otp_email" not in st.session_state: st.session_state.pending_otp_email = None
 if "pending_pin_email" not in st.session_state: st.session_state.pending_pin_email = None
 if "screening_results" not in st.session_state: st.session_state.screening_results = []
+if "show_download_page" not in st.session_state: st.session_state.show_download_page = False
+
+# ===========================================================================
+# 7.1 MOVIEBOX-STYLE DEDICATED DESKTOP DOWNLOAD LANDING PAGE
+# ===========================================================================
+def render_download_landing_page(exe_direct_url: str):
+    st.markdown("""
+    <style>
+    .dl-hero-box {
+        text-align: center;
+        padding: 3rem 1.5rem 2.2rem 1.5rem;
+        background: linear-gradient(180deg, rgba(22, 101, 52, 0.18) 0%, rgba(20, 23, 26, 0.9) 100%);
+        border: 1.5px solid #1E2328;
+        border-top: 3px solid #22C55E;
+        border-radius: 24px;
+        margin-bottom: 2.5rem;
+        box-shadow: 0 16px 40px rgba(0, 0, 0, 0.55);
+    }
+    .dl-badge {
+        display: inline-block;
+        background: rgba(34, 197, 94, 0.15);
+        color: #22C55E;
+        border: 1px solid #166534;
+        padding: 6px 18px;
+        border-radius: 30px;
+        font-size: 0.78rem;
+        font-weight: 800;
+        letter-spacing: 1.5px;
+        margin-bottom: 1.2rem;
+        text-transform: uppercase;
+    }
+    .dl-title {
+        font-size: 3.2rem;
+        font-weight: 800;
+        color: #FFFFFF;
+        margin: 0 0 1rem 0;
+        line-height: 1.15;
+    }
+    .dl-subtitle {
+        color: #94A3B8;
+        font-size: 1.15rem;
+        max-width: 680px;
+        margin: 0 auto 2.2rem auto;
+        line-height: 1.6;
+    }
+    .dl-main-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+        background: linear-gradient(135deg, #166534 0%, #15803D 100%);
+        color: #FFFFFF !important;
+        font-size: 1.18rem;
+        font-weight: 800;
+        padding: 1.1rem 2.8rem;
+        border-radius: 14px;
+        text-decoration: none;
+        box-shadow: 0 10px 30px rgba(22, 101, 52, 0.45);
+        border: 1.5px solid #22C55E;
+        transition: all 0.25s ease-in-out;
+    }
+    .dl-main-btn:hover {
+        background: linear-gradient(135deg, #15803D 0%, #166534 100%);
+        transform: translateY(-3px) scale(1.02);
+        box-shadow: 0 14px 35px rgba(34, 197, 94, 0.6);
+        border-color: #FFFFFF;
+    }
+    .step-card {
+        background: #14171A;
+        border: 1.5px solid #1E2328;
+        border-radius: 18px;
+        padding: 2rem 1.5rem;
+        text-align: center;
+        height: 100%;
+        box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        transition: all 0.25s ease;
+    }
+    .step-card:hover {
+        border-color: #22C55E;
+        transform: translateY(-4px);
+    }
+    .step-num {
+        display: inline-block;
+        width: 48px;
+        height: 48px;
+        line-height: 48px;
+        border-radius: 50%;
+        background: rgba(34, 197, 94, 0.15);
+        color: #22C55E;
+        font-weight: 800;
+        font-size: 1.2rem;
+        border: 1.5px solid #166534;
+        margin-bottom: 1.2rem;
+        font-family: 'JetBrains Mono', monospace;
+    }
+    .step-title {
+        color: #FFFFFF;
+        font-size: 1.2rem;
+        font-weight: 700;
+        margin-bottom: 0.6rem;
+    }
+    .step-desc {
+        color: #94A3B8;
+        font-size: 0.92rem;
+        line-height: 1.55;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+    c_back, _ = st.columns([2.5, 7.5])
+    with c_back:
+        if st.button("⬅️ Back to Web Portal", use_container_width=True, key="back_to_portal_from_dl"):
+            st.session_state.show_download_page = False
+            st.rerun()
+
+    st.markdown(f"""
+        <div class="dl-hero-box">
+            <div class="dl-badge">🪟 BUILT FOR WINDOWS 10 / 11</div>
+            <h1 class="dl-title">ARL HireMatrix Pro for Windows</h1>
+            <p class="dl-subtitle">Run Attock Refinery Limited's enterprise candidate extraction, AI matching, and cloud recruitment pipeline as a dedicated, high-speed desktop software.</p>
+            <a href="{exe_direct_url}" target="_blank" class="dl-main-btn">
+                <span>⬇️</span> Download for Windows · ARL-HireMatrix-Pro.exe (Free)
+            </a>
+            <div style="margin-top: 18px; color: #94A3B8; font-size: 0.85rem; font-family: 'JetBrains Mono', monospace;">
+                Official Windows Installer &bull; 64-bit Architecture &bull; Instant Cloud Sync
+            </div>
+        </div>
+    """, unsafe_allow_html=True)
+
+    st.markdown("<h3 style='text-align: center; color: #FFFFFF; margin-bottom: 2rem;'>⚡ From Download to Screening in Three Steps</h3>", unsafe_allow_html=True)
+    
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.markdown("""
+            <div class="step-card">
+                <div class="step-num">01</div>
+                <div class="step-title">Download the EXE</div>
+                <div class="step-desc">Click the primary download button above and save the standalone Windows executable file to your PC.</div>
+            </div>
+        """, unsafe_allow_html=True)
+    with col2:
+        st.markdown("""
+            <div class="step-card">
+                <div class="step-num">02</div>
+                <div class="step-title">Run Installer</div>
+                <div class="step-desc">Double click the .exe. If prompted by Windows SmartScreen, click <i>More Info &rarr; Run Anyway</i>.</div>
+            </div>
+        """, unsafe_allow_html=True)
+    with col3:
+        st.markdown("""
+            <div class="step-card">
+                <div class="step-num">03</div>
+                <div class="step-title">Open Portal</div>
+                <div class="step-desc">Launch ARL HireMatrix Pro from your desktop and enter your 4-digit PIN to begin candidate screening.</div>
+            </div>
+        """, unsafe_allow_html=True)
+
+    st.markdown("<div style='margin-top: 3.5rem;'></div>", unsafe_allow_html=True)
+    st.markdown("<h4 style='color: #22C55E; margin-bottom: 1rem;'>❓ Desktop App FAQs & Guidance</h4>", unsafe_allow_html=True)
+    with st.expander("❓ What should I do if Windows SmartScreen shows a warning?"):
+        st.write("Since this is a custom internal enterprise package without an expensive commercial EV certificate, Windows SmartScreen may show a security prompt. Simply click **'More info'** and then click **'Run anyway'**. The application is 100% virus-free and verified.")
+    with st.expander("❓ Will my screened candidate data sync between Desktop and Web?"):
+        st.write("Yes! Both the Desktop application and the Web portal connect directly to the same Supabase Cloud database. Any resume uploaded or candidate screened on the desktop app is immediately available in real-time on the web version.")
+    with st.expander("❓ What are the system requirements?"):
+        st.write("Windows 10 or 11 (64-bit), minimum 4 GB RAM, and an active internet connection for Groq AI screening and Supabase synchronization.")
+
+if st.session_state.show_download_page:
+    render_download_landing_page(EXE_DOWNLOAD_URL)
+    st.stop()
 
 # ===========================================================================
 # 8. AUTHENTICATION & LOGIN SCREEN (CHARCOAL CARDS)
@@ -967,6 +1168,15 @@ if not st.session_state.logged_in:
     saved_profiles = get_all_verified_profiles()
     col_c1, col_c2, col_c3 = st.columns([1, 3.8, 1])
     with col_c2:
+        # Desktop Download CTA Banner on Login Page
+        c_banner_l, c_banner_r = st.columns([7, 3], vertical_alignment="center")
+        with c_banner_l:
+            st.caption("Prefer a standalone PC software?")
+        with c_banner_r:
+            if st.button("💻 Get Desktop App", key="dl_btn_login_top", use_container_width=True):
+                st.session_state.show_download_page = True
+                st.rerun()
+
         with st.container(border=True):
             st.markdown(f"""
                 <div class="cyber-header-box">
@@ -1351,10 +1561,10 @@ def generate_ai_interview_questions(client, skills_text: str, job_title: str) ->
 df_all = load_database()
 total_repo_db = len(df_all)
 
-# ✅ FIXED: iloc[0] represents the latest candidate in desc-ordered database
-latest_candidate = df_all.iloc[0]["Name"] if not df_all.empty else "None"
+# iloc[-1] represents the newest candidate appended to the end of the database
+latest_candidate = df_all.iloc[-1]["Name"] if not df_all.empty else "None"
 
-col_n1, col_n2 = st.columns([8.2, 1.8], vertical_alignment="center")
+col_n1, col_n2 = st.columns([7.8, 2.2], vertical_alignment="center")
 with col_n1:
     st.markdown(f"""
         <div class="top-navbar" style="display: flex; align-items: center; gap: 16px;">
@@ -1381,18 +1591,24 @@ with col_n1:
         </div>
     """, unsafe_allow_html=True)
 with col_n2:
-    if st.button("🚪 Lock Portal", use_container_width=True, key="lock_portal_btn_top"):
-        st.session_state.logged_in = False
-        st.session_state.hr_name = ""
-        st.session_state.hr_email = ""
-        st.session_state.hr_role = "Recruiter"
-        st.session_state.selected_profile_email = None
-        st.session_state.screening_results = []
-        try:
-            st.query_params.clear()
-        except Exception:
-            pass
-        st.rerun()
+    col_dl_top, col_lock_top = st.columns(2)
+    with col_dl_top:
+        if st.button("💻 App", use_container_width=True, key="btn_open_dl_page_top", help="Download Windows Desktop App"):
+            st.session_state.show_download_page = True
+            st.rerun()
+    with col_lock_top:
+        if st.button("🚪 Lock", use_container_width=True, key="lock_portal_btn_top", help="Lock Session"):
+            st.session_state.logged_in = False
+            st.session_state.hr_name = ""
+            st.session_state.hr_email = ""
+            st.session_state.hr_role = "Recruiter"
+            st.session_state.selected_profile_email = None
+            st.session_state.screening_results = []
+            try:
+                st.query_params.clear()
+            except Exception:
+                pass
+            st.rerun()
 
 st.markdown(f"""
     <div class="corp-hero">
@@ -1429,8 +1645,11 @@ with tab1:
                     
         progress.empty()
         if extracted_batch:
-            save_candidates_to_repository(extracted_batch)
-            st.success(f"🎉 Successfully extracted **{len(extracted_batch)} candidate(s)** and saved to Supabase cloud repository!")
+            ins, skp = save_candidates_to_repository(extracted_batch)
+            if skp > 0:
+                st.success(f"🎉 Successfully extracted **{ins} new candidate(s)**! (Skipped **{skp} duplicate profiles**)")
+            else:
+                st.success(f"🎉 Successfully extracted **{ins} candidate(s)** and appended to Supabase repository!")
             st.rerun()
             
     st.markdown("</div>", unsafe_allow_html=True)
