@@ -30,8 +30,8 @@ from PIL import Image, ImageOps, ImageEnhance, ImageDraw
 # ===========================================================================
 # 1. PAGE CONFIGURATION & ARL GREEN HEXAGON FAVICON
 # ===========================================================================
-APP_NAME = "ARL HireMatrix Pro"
-APP_TAGLINE = "Attock Refinery Limited (ARL) • HR Intelligence & AI Screening Engine"
+APP_NAME = "ARL TalentMatch "
+APP_TAGLINE = "Attock Refinery Limited (ARL) • AI-Driven Automated CV Parser & JD Screener"
 GROQ_MODEL = "openai/gpt-oss-120b"
 ACCEPTED_TYPES = ["pdf", "docx", "png", "jpg", "jpeg"]
 
