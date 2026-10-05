@@ -2,8 +2,8 @@
 ARL TalentMatch — Official Corporate Edition (Full-Proof Enterprise Suite)
 =============================================================================
 Branding: Attock Refinery Limited (ARL Forest Green & Adaptive Theme Palette)
-Features: True Netflix Clickable Profile Cards, Zero Ugly Sub-Buttons,
-Clean Login Flow, Supabase Live Pipeline, Tab 2 Clear View & Instant App Sync.
+Features: True Netflix Square Profile Badges, External Sub-Titles, Direct Click,
+Supabase Live Pipeline, Tab 2 Clear View & Instant App Sync.
 """
 
 import io
@@ -396,7 +396,7 @@ def clear_screened_database():
     if supabase: supabase.table("screened_candidates").delete().neq("id", 0).execute()
 
 # ===========================================================================
-# 5. HIGH-END CORPORATE CSS (CLICKABLE PROFILE CARD OVERLAY)
+# 5. HIGH-END CORPORATE CSS (SQUARE NETFLIX CARDS WITH EXTERNAL LABELS)
 # ===========================================================================
 ADAPTIVE_CSS = """
 <style>
@@ -409,47 +409,47 @@ html, body, [class*="css"], .stApp {
 [data-testid="stSidebar"] { display: none !important; }
 [data-testid="collapsedControl"] { display: none !important; }
 
-/* Clickable Profile Card Button Styling */
-div[data-testid="stColumn"] div.stButton > button.profile-card-btn {
-    width: 100% !important;
-    min-height: 180px !important;
+/* 2x2 Square Rounded Button (Passport size se thoda bada) */
+div[data-testid="stColumn"] div.stButton > button {
+    width: 135px !important;
+    height: 135px !important;
+    margin: 0 auto !important;
+    border-radius: 22px !important;
     background: linear-gradient(145deg, #0F3622 0%, #081F13 100%) !important;
-    border: 2px solid #15803D !important;
-    border-radius: 20px !important;
-    color: #FFFFFF !important;
-    padding: 1.2rem 0.5rem !important;
-    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4) !important;
+    border: 2px solid #166534 !important;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.45) !important;
+    font-size: 3.5rem !important;
     display: flex !important;
-    flex-direction: column !important;
     align-items: center !important;
     justify-content: center !important;
-    white-space: pre-wrap !important;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
-div[data-testid="stColumn"] div.stButton > button.profile-card-btn:hover {
-    transform: translateY(-5px) scale(1.02) !important;
+div[data-testid="stColumn"] div.stButton > button:hover {
+    transform: translateY(-5px) scale(1.04) !important;
     border-color: #4ADE80 !important;
-    box-shadow: 0 12px 24px rgba(34, 197, 94, 0.35) !important;
+    box-shadow: 0 14px 28px rgba(34, 197, 94, 0.4) !important;
     background: linear-gradient(145deg, #13452B 0%, #0A291A 100%) !important;
 }
 
-div[data-testid="stColumn"] div.stButton > button.profile-add-btn {
-    width: 100% !important;
-    min-height: 180px !important;
-    background: linear-gradient(145deg, rgba(15, 54, 34, 0.4) 0%, rgba(8, 31, 19, 0.4) 100%) !important;
-    border: 2px dashed #22C55E !important;
-    border-radius: 20px !important;
-    color: #FFFFFF !important;
-    padding: 1.2rem 0.5rem !important;
-    transition: all 0.25s ease !important;
-    white-space: pre-wrap !important;
+/* External Profile Name & Role Caption */
+.profile-meta-title {
+    text-align: center;
+    margin-top: 8px;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #FFFFFF;
+    line-height: 1.2;
 }
 
-div[data-testid="stColumn"] div.stButton > button.profile-add-btn:hover {
-    transform: translateY(-5px) scale(1.02) !important;
-    border-color: #86EFAC !important;
-    background: linear-gradient(145deg, rgba(22, 101, 52, 0.5) 0%, rgba(10, 35, 21, 0.6) 100%) !important;
+.profile-meta-role {
+    text-align: center;
+    margin-top: 2px;
+    font-size: 0.72rem;
+    font-family: 'JetBrains Mono', monospace;
+    color: #4ADE80;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .top-navbar {
@@ -520,7 +520,7 @@ def show_pin_dialog(email, name, role):
             st.error("❌ Invalid 4-Digit PIN.")
 
 # ===========================================================================
-# 8. AUTHENTICATION & TRUE CLICKABLE NETFLIX PROFILE GRID SCREEN
+# 8. AUTHENTICATION & SQUARE NETFLIX PROFILE GRID SCREEN
 # ===========================================================================
 if not st.session_state.logged_in:
     saved_profiles = get_all_verified_profiles()
@@ -604,13 +604,13 @@ if not st.session_state.logged_in:
         st.stop()
 
     st.markdown(f"""
-        <div style="text-align: center; padding: 2rem 1rem 1.5rem 1rem;">
+        <div style="text-align: center; padding: 2.5rem 1rem 1.8rem 1rem;">
             <h1 style="font-size: 2.8rem; font-weight: 800; margin-bottom: 6px;">Who's Screening?</h1>
             <p style="color: #4ADE80; font-size: 1.05rem;">{APP_TAGLINE}</p>
         </div>
     """, unsafe_allow_html=True)
 
-    # Clean, Fully Clickable Profile Grid (No visible ugly buttons)
+    # Netflix-Style Square Cards with Name Below
     all_items = list(saved_profiles) + [("REGISTER_CARD", "New Profile", "", "Register")]
     cols_per_row = 4
     
@@ -620,16 +620,27 @@ if not st.session_state.logged_in:
         for idx, item in enumerate(row_items):
             with cols[idx]:
                 if item[0] == "REGISTER_CARD":
-                    add_label = f"➕\n\nNew Profile\n[REGISTER ACCOUNT]"
-                    if st.button(add_label, key=f"add_profile_card_{i}", use_container_width=True):
+                    # Only badge/icon inside card
+                    if st.button("➕", key=f"add_profile_card_{i}", use_container_width=True):
                         st.session_state.show_registration = True
                         st.rerun()
+                    # Name below card
+                    st.markdown("""
+                        <div class="profile-meta-title">New Profile</div>
+                        <div class="profile-meta-role">Register Account</div>
+                    """, unsafe_allow_html=True)
                 else:
                     p_email, p_name, p_pin, p_role = item
                     avatar_sticker = get_user_avatar(p_email)
-                    card_label = f"{avatar_sticker}\n\n{p_name}\n[{p_role.upper()}]"
-                    if st.button(card_label, key=f"user_card_{i}_{idx}", use_container_width=True):
+                    
+                    # Only sticker/badge inside card
+                    if st.button(avatar_sticker, key=f"user_card_{i}_{idx}", use_container_width=True):
                         show_pin_dialog(p_email, p_name, p_role)
+                    # Name & role below card
+                    st.markdown(f"""
+                        <div class="profile-meta-title">{p_name}</div>
+                        <div class="profile-meta-role">{p_role}</div>
+                    """, unsafe_allow_html=True)
 
     st.markdown("<br><hr style='border-color: rgba(34,197,94,0.2);'>", unsafe_allow_html=True)
     col_dl1, col_dl2 = st.columns([7.5, 2.5], vertical_alignment="center")
@@ -875,7 +886,7 @@ with tab3:
         s_df = load_screened_database()
         if not s_df.empty: 
             st.dataframe(s_df, use_container_width=True)
-            if st.button("🗑️️ Clear All Screened Records", type="secondary", key="clear_screened_btn"):
+            if st.button("🗑️ Clear All Screened Records", type="secondary", key="clear_screened_btn"):
                 clear_screened_database()
                 st.success("All screened records have been cleared.")
                 st.rerun()
@@ -894,7 +905,7 @@ with tab3:
     st.markdown('</div>', unsafe_allow_html=True)
 
 with tab4:
-    st.markdown('<div class="corp-card"><h4>🛡️️ Admin Controls</h4>', unsafe_allow_html=True)
+    st.markdown('<div class="corp-card"><h4>🛡️ Admin Controls</h4>', unsafe_allow_html=True)
     profiles = get_all_verified_profiles()
     for p_em, p_nm, p_p, p_r in profiles:
         c1, c2, c3 = st.columns([2, 1, 1])
