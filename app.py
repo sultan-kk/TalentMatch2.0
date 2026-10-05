@@ -599,38 +599,122 @@ def generate_screening_excel(results_list) -> bytes:
 # ===========================================================================
 # 5. NETFLIX-STYLE ARL FOREST GREEN BACKGROUND & TILE CSS
 # ===========================================================================
-st.markdown(f"""
-        <div class="netflix-header-box">
-            <h1 class="netflix-heading">Who's Screening?</h1>
-            <p class="netflix-subtext">{APP_TAGLINE}</p>
-        </div>
-    """, unsafe_allow_html=True)
+ARL_GREEN_CSS = """
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap');
 
-    total_profiles = len(saved_profiles)
-    card_cols = st.columns(max(total_profiles, 1))
+html, body, [class*="css"], .stApp {
+    font-family: 'Plus Jakarta Sans', sans-serif !important;
+    background: linear-gradient(135deg, #061A10 0%, #0B2517 50%, #05140D 100%) !important;
+    color: #F8FAFC !important;
+}
 
-    for idx, (p_email, p_name, p_pin, p_role) in enumerate(saved_profiles):
-        with card_cols[idx]:
-            avatar_sticker = get_user_avatar(p_email)
-            
-            # Poora card ab direct clickable button hai (Netflix style)
-            card_label = f"{avatar_sticker}\n\n{p_name}\n{p_role}"
-            if st.button(card_label, key=f"netflix_card_btn_{idx}_{p_email}", use_container_width=True):
-                show_pin_dialog(p_email, p_name, p_role)
-                
-            # Chota sa button sticker/badge change karne ke liye
-            if st.button("✏️ Change Badge", key=f"btn_stk_{idx}_{p_email}", use_container_width=True):
-                show_sticker_picker_dialog(p_email, p_name)
+[data-testid="stSidebar"] { display: none !important; }
+[data-testid="collapsedControl"] { display: none !important; }
 
-    st.markdown("<div style='margin-top: 3.5rem;'></div>", unsafe_allow_html=True)
-    
-    _, b_mid, _ = st.columns([2, 1.8, 2])
-    with b_mid:
-        if st.button("➕ Add New Profile", use_container_width=True, key="netflix_add_profile_btn"):
-            st.session_state.show_registration = True
-            st.rerun()
+div[data-testid="stModal"] {
+    background-color: rgba(4, 18, 10, 0.85) !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+}
 
-    st.stop()
+div[data-testid="stDialog"] {
+    background: #0D2819 !important;
+    border: 2px solid #22C55E !important;
+    border-radius: 20px !important;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.9), 0 0 35px rgba(34, 197, 94, 0.3) !important;
+    color: #FFFFFF !important;
+}
+
+.netflix-header-box {
+    text-align: center;
+    padding: 2.5rem 1rem 1.8rem 1rem;
+}
+
+.netflix-heading {
+    font-size: 3rem !important;
+    font-weight: 800 !important;
+    color: #FFFFFF !important;
+    margin-bottom: 8px !important;
+}
+
+.netflix-subtext {
+    font-size: 1.05rem !important;
+    color: #86EFAC !important;
+}
+
+/* NETFLIX ROUNDED-SQUARE PROFILE TILES (DIRECT CLICKABLE CARDS) */
+div[data-testid="stColumn"] button {
+    background: linear-gradient(145deg, #0F3622 0%, #081F13 100%) !important;
+    border: 3px solid #15803D !important;
+    border-radius: 24px !important;
+    height: 160px !important;
+    width: 100% !important;
+    color: #FFFFFF !important;
+    font-size: 1.1rem !important;
+    font-weight: 700 !important;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6) !important;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+div[data-testid="stColumn"] button:hover {
+    transform: translateY(-8px) scale(1.04) !important;
+    border-color: #4ADE80 !important;
+    box-shadow: 0 16px 35px rgba(34, 197, 94, 0.45), inset 0 0 20px rgba(74, 222, 128, 0.2) !important;
+}
+
+/* General Buttons */
+.stButton > button {
+    background: linear-gradient(135deg, #15803D 0%, #166534 100%) !important;
+    color: #FFFFFF !important;
+    border: 1.5px solid #4ADE80 !important;
+    border-radius: 12px !important;
+    font-weight: 700 !important;
+    padding: 0.65rem 1.2rem !important;
+    box-shadow: 0 4px 15px rgba(22, 101, 52, 0.4) !important;
+}
+
+[data-testid="stDialog"] input {
+    background-color: #061A10 !important;
+    color: #FFFFFF !important;
+    border: 2px solid #22C55E !important;
+    border-radius: 12px !important;
+    font-size: 1.4rem !important;
+    text-align: center !important;
+    letter-spacing: 8px !important;
+}
+
+.top-navbar {
+    background: linear-gradient(135deg, #0A2315 0%, #0F3622 100%);
+    border: 1.5px solid #166534;
+    border-bottom: 2px solid #22C55E;
+    border-radius: 16px;
+    padding: 1.1rem 2rem;
+    margin-bottom: 1.8rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.corp-hero {
+    background: linear-gradient(135deg, rgba(22, 101, 52, 0.25) 0%, rgba(10, 35, 21, 0.9) 100%);
+    border: 1.5px solid #166534;
+    border-radius: 16px;
+    padding: 2rem 2.5rem;
+    margin-bottom: 2rem;
+    border-left: 6px solid #4ADE80;
+}
+
+.corp-card {
+    background: #0B2517;
+    border: 1.5px solid rgba(34, 197, 94, 0.35);
+    border-radius: 16px;
+    padding: 1.8rem;
+    margin-bottom: 1.5rem;
+}
+</style>
+"""
+st.markdown(ARL_GREEN_CSS, unsafe_allow_html=True)
 
 # ===========================================================================
 # 6. SESSION STATE INITIALIZATION
@@ -797,22 +881,14 @@ if not st.session_state.logged_in:
         with card_cols[idx]:
             avatar_sticker = get_user_avatar(p_email)
             
-            # Proper Netflix Rounded-Square Visual Tile with click trigger via st.button inside container
-            st.markdown(f"""
-                <div class="netflix-profile-tile">
-                    <div style="font-size: 3.5rem; margin-bottom: 8px;">{avatar_sticker}</div>
-                    <div style="font-size: 1.1rem; font-weight: 800; color: #FFFFFF; margin-bottom: 2px;">{p_name}</div>
-                    <div style="font-size: 0.75rem; font-family: 'JetBrains Mono', monospace; font-weight: 700; color: #4ADE80; text-transform: uppercase; letter-spacing: 1px;">{p_role}</div>
-                </div>
-            """, unsafe_allow_html=True)
-            
-            c_act1, c_act2 = st.columns(2)
-            with c_act1:
-                if st.button("🔐 Sign In", key=f"signin_card_{idx}_{p_email}", use_container_width=True):
-                    show_pin_dialog(p_email, p_name, p_role)
-            with c_act2:
-                if st.button("✏️ Badge", key=f"btn_stk_{idx}_{p_email}", use_container_width=True, help="Change Badge"):
-                    show_sticker_picker_dialog(p_email, p_name)
+            # Poora card direct clickable button hai (Netflix style)
+            card_label = f"{avatar_sticker}\n\n{p_name}\n{p_role}"
+            if st.button(card_label, key=f"netflix_card_btn_{idx}_{p_email}", use_container_width=True):
+                show_pin_dialog(p_email, p_name, p_role)
+                
+            # Chota sa button sticker/badge change karne ke liye
+            if st.button("✏️ Badge", key=f"btn_stk_{idx}_{p_email}", use_container_width=True, help="Change Badge"):
+                show_sticker_picker_dialog(p_email, p_name)
 
     st.markdown("<div style='margin-top: 3.5rem;'></div>", unsafe_allow_html=True)
     
