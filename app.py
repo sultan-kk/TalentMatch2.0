@@ -366,7 +366,6 @@ def load_database():
                     "Added At": r.get("added_at", "Not Provided")
                 })
             df = pd.DataFrame(mapped_rows)
-            # Ensure exact column sequence
             return df[expected_cols]
     except Exception:
         pass
@@ -1154,7 +1153,7 @@ with tab1:
                     st.success(f"🎉 Processed: {ins} new candidate(s) appended, {skp} duplicate(s) skipped!")
                     st.rerun()
                 else:
-                    st.warning("⚠️️ No candidate data could be parsed from the uploaded files. Check file format or text clarity.")
+                    st.warning("⚠ No candidate data could be parsed from the uploaded files. Check file format or text clarity.")
             except Exception as extraction_err:
                 st.error(f"❌ Error during extraction process: {extraction_err}")
                 
