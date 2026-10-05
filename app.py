@@ -2,7 +2,7 @@
 ARL TalentMatch — Official Corporate Edition (Full-Proof Enterprise Suite)
 =============================================================================
 Branding: Forest Green Background + Charcoal Black Netflix Profile Cards
-Features: Large Fitted Emoji Badges, 2x2 Square Rounded Buttons, External Captions,
+Features: Large Fitted Emoji Badges, 2x2 Square Rounded Buttons, Change Badge Dialog,
 Direct Click Sign-In, Supabase Live Pipeline, Tab 2 Clear View & Fast Sync.
 """
 
@@ -396,7 +396,7 @@ def clear_screened_database():
     if supabase: supabase.table("screened_candidates").delete().neq("id", 0).execute()
 
 # ===========================================================================
-# 5. FOREST GREEN BACKGROUND + CHARCOAL BLACK CARDS + LARGE FITTED EMOJIS
+# 5. FOREST GREEN BACKGROUND + CHARCOAL BLACK CARDS + BIG FITTED EMOJIS
 # ===========================================================================
 ADAPTIVE_CSS = """
 <style>
@@ -410,23 +410,28 @@ html, body, [class*="css"], .stApp {
 [data-testid="stSidebar"] { display: none !important; }
 [data-testid="collapsedControl"] { display: none !important; }
 
-/* 2x2 Square Charcoal Black Card with Large Fitted Badge */
+/* 2x2 Square Charcoal Black Card Button with Big Fitted Badge */
 div[data-testid="stColumn"] div.stButton > button {
-    width: 150px !important;
-    height: 150px !important;
+    width: 145px !important;
+    height: 145px !important;
     margin: 0 auto !important;
     border-radius: 26px !important;
     background: linear-gradient(145deg, #1C1E22 0%, #111215 100%) !important;
     border: 2px solid #2A2E33 !important;
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
-    font-size: 5rem !important;
-    line-height: 1 !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
     padding: 0 !important;
     transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
-    color: #FFFFFF !important;
+}
+
+/* Force Big Emoji Size Inside Button */
+div[data-testid="stColumn"] div.stButton > button p {
+    font-size: 5.2rem !important;
+    line-height: 1 !important;
+    margin: 0 !important;
+    padding: 0 !important;
 }
 
 div[data-testid="stColumn"] div.stButton > button:hover {
@@ -439,7 +444,7 @@ div[data-testid="stColumn"] div.stButton > button:hover {
 /* External Profile Name & Role Caption */
 .profile-meta-title {
     text-align: center;
-    margin-top: 12px;
+    margin-top: 10px;
     font-size: 1.08rem;
     font-weight: 700;
     color: #FFFFFF;
@@ -523,8 +528,19 @@ def show_pin_dialog(email, name, role):
         else:
             st.error("❌ Invalid 4-Digit PIN.")
 
+@st.dialog("🎨 Choose Executive Badge")
+def show_sticker_picker_dialog(email, name):
+    st.write(f"Select a corporate avatar badge for **{name}**:")
+    cols = st.columns(4)
+    for idx, badge in enumerate(AVAILABLE_BADGES):
+        with cols[idx % 4]:
+            if st.button(badge, key=f"stk_btn_{email}_{idx}", use_container_width=True):
+                set_user_avatar(email, badge)
+                st.success("Badge updated!")
+                st.rerun()
+
 # ===========================================================================
-# 8. AUTHENTICATION & FITTED CHARCOAL CARDS ON FOREST GREEN BACKGROUND
+# 8. AUTHENTICATION & CHARCOAL PROFILE CARDS ON FOREST GREEN BACKGROUND
 # ===========================================================================
 if not st.session_state.logged_in:
     saved_profiles = get_all_verified_profiles()
@@ -614,7 +630,7 @@ if not st.session_state.logged_in:
         </div>
     """, unsafe_allow_html=True)
 
-    # Netflix-Style Square Cards with Name Below
+    # Netflix-Style Square Cards with Name & Badge Edit Below
     all_items = list(saved_profiles) + [("REGISTER_CARD", "New Profile", "", "Register")]
     cols_per_row = 4
     
@@ -637,10 +653,17 @@ if not st.session_state.logged_in:
                     
                     if st.button(avatar_sticker, key=f"user_card_{i}_{idx}", use_container_width=True):
                         show_pin_dialog(p_email, p_name, p_role)
-                    st.markdown(f"""
-                        <div class="profile-meta-title">{p_name}</div>
-                        <div class="profile-meta-role">{p_role}</div>
-                    """, unsafe_allow_html=True)
+                    
+                    # Title & Edit Button Row
+                    c_title, c_edit = st.columns([4, 1])
+                    with c_title:
+                        st.markdown(f"""
+                            <div class="profile-meta-title" style="text-align: left; margin-left: 10px;">{p_name}</div>
+                            <div class="profile-meta-role" style="text-align: left; margin-left: 10px;">{p_role}</div>
+                        """, unsafe_allow_html=True)
+                    with c_edit:
+                        if st.button("✏️", key=f"edit_btn_{i}_{idx}", help="Change Avatar Badge"):
+                            show_sticker_picker_dialog(p_email, p_name)
 
     st.markdown("<br><hr style='border-color: rgba(52, 211, 153, 0.2);'>", unsafe_allow_html=True)
     col_dl1, col_dl2 = st.columns([7.5, 2.5], vertical_alignment="center")
