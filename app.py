@@ -2,8 +2,8 @@
 ARL TalentMatch — Official Corporate Edition (Adaptive Enterprise Suite)
 =============================================================================
 Branding: Attock Refinery Limited (ARL Forest Green & Native Adaptive Theme)
-Features: Multi-Resume Single-PDF Segmentation, Live Bulk Extraction Progress,
-Permanent Supabase Badges, Responsive High-Contrast Theme Sync.
+Features: Deduplication Engine, Chronological Bottom-Append Display (Last Candidate at End),
+Multi-Resume Segmentation, Permanent Supabase Badges, High-Contrast Grids.
 """
 
 import io
@@ -273,9 +273,13 @@ def load_arl_job_catalog():
     return DEFAULT_ARL_CATALOG
 
 # ===========================================================================
-# 4. DATABASE & REPOSITORY STORAGE
+# 4. DATABASE STORAGE (DEDUPLICATION & CHRONOLOGICAL APPEND)
 # ===========================================================================
 def load_database():
+    """
+    Loads candidates in ascending chronological order (order by ID ASC)
+    Purane pehle aayenge aur last uploaded candidate hamesha aakhir mein aayega.
+    """
     expected_cols = [
         "Name", "Father Name", "Qualification", "CGPA", 
         "Passing Year", "Institute", "DOB", "Email", 
@@ -304,18 +308,60 @@ def load_database():
                     "Pipeline Status": r.get("pipeline_status", "Talent Pool"),
                     "Added At": r.get("added_at", "Not Provided")
                 })
-            return pd.DataFrame(mapped)[expected_cols]
+            df = pd.DataFrame(mapped)[expected_cols]
+            df.index = range(1, len(df) + 1)
+            return df
     except Exception:
         pass
     return pd.DataFrame(columns=expected_cols)
 
 def save_candidates_to_repository(new_candidates):
+    """
+    Deduplication Engine:
+    Pehle Supabase se existing records check karta hai. Agar Name, Email ya Phone
+    already match ho jaye to duplicate ko ignore kar deta hai.
+    """
     if not supabase: return 0, 0
     current_timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    
+    # Existing profiles fetch karein
+    existing_emails = set()
+    existing_phones = set()
+    existing_names = set()
+    try:
+        curr_res = supabase.table("candidates").select("candidate_name, email, phone").execute()
+        if curr_res.data:
+            for rec in curr_res.data:
+                em = str(rec.get("email", "")).strip().lower()
+                ph = str(rec.get("phone", "")).strip()
+                nm = str(rec.get("candidate_name", "")).strip().lower()
+                if em and "not" not in em: existing_emails.add(em)
+                if ph and "not" not in ph: existing_phones.add(ph)
+                if nm and "not" not in nm and "unknown" not in nm: existing_names.add(nm)
+    except Exception:
+        pass
+
     inserted, skipped = 0, 0
     for c in new_candidates:
+        c_name = str(c.get("name", "Unknown")).strip()
+        c_email = str(c.get("email", "Not Provided")).strip().lower()
+        c_phone = str(c.get("phone", "Not Provided")).strip()
+        
+        # Deduplication check
+        is_dup = False
+        if c_email and "not" not in c_email and c_email in existing_emails:
+            is_dup = True
+        elif c_phone and "not" not in c_phone and c_phone in existing_phones:
+            is_dup = True
+        elif c_name and c_name.lower() in existing_names and c_name.lower() not in ["unknown", "not provided"]:
+            is_dup = True
+
+        if is_dup:
+            skipped += 1
+            continue
+
         payload = {
-            "candidate_name": c.get("name", "Unknown"),
+            "candidate_name": c_name,
             "father_name": c.get("father_name", "Not Provided"),
             "education": c.get("education", "Not Provided"),
             "cgpa": c.get("cgpa", "Not Provided"),
@@ -333,8 +379,12 @@ def save_candidates_to_repository(new_candidates):
         try:
             supabase.table("candidates").insert(payload).execute()
             inserted += 1
+            if c_email and "not" not in c_email: existing_emails.add(c_email)
+            if c_phone and "not" not in c_phone: existing_phones.add(c_phone)
+            if c_name: existing_names.add(c_name.lower())
         except Exception:
             skipped += 1
+
     return inserted, skipped
 
 def save_screened_to_supabase(screened_list):
@@ -376,7 +426,7 @@ def load_screened_database():
     ]
     if not supabase: return pd.DataFrame(columns=expected_cols)
     try:
-        response = supabase.table("screened_candidates").select("*").order("id", desc=True).execute()
+        response = supabase.table("screened_candidates").select("*").order("id", desc=False).execute()
         rows = response.data
         if rows:
             mapped = []
@@ -400,7 +450,9 @@ def load_screened_database():
                     "Missing Skills": r.get("missing_skills", "None"),
                     "Screened At": r.get("screened_at", "")
                 })
-            return pd.DataFrame(mapped)[expected_cols]
+            df = pd.DataFrame(mapped)[expected_cols]
+            df.index = range(1, len(df) + 1)
+            return df
     except Exception:
         pass
     return pd.DataFrame(columns=expected_cols)
@@ -418,9 +470,8 @@ def clear_candidate_database():
 def clear_screened_database():
     if supabase: supabase.table("screened_candidates").delete().neq("id", 0).execute()
 
-
 # ===========================================================================
-# 5. ISOLATED CSS (STRICT 135x135px SQUARE PROFILE CARDS)
+# 5. ADAPTIVE STYLING CSS
 # ===========================================================================
 ADAPTIVE_CSS = """
 <style>
@@ -434,70 +485,7 @@ html, body, [class*="css"], .stApp {
     display: none !important; 
 }
 
-/* ==========================================================================
-   STRICT SQUARE 135px x 135px PROFILE CARDS (PREVENTS RECTANGLE STRETCH)
-   ========================================================================== */
-div[data-testid="stColumn"] > div:has(.square-profile-card) {
-    display: flex !important;
-    justify-content: center !important;
-    align-items: center !important;
-}
-
-div[data-testid="stColumn"] > div:has(.square-profile-card) div.stButton > button {
-    width: 160px !important;
-    height: 160px !important;
-    min-width: 160px !important;
-    max-width: 160px !important;
-    min-height: 160px !important;
-    max-height: 160px !important;
-    margin: 0 auto !important;
-    border-radius: 24px !important;
-    background: #181B20 !important;
-    border: 2px solid #2D333B !important;
-    box-shadow: 0 10px 22px rgba(0, 0, 0, 0.45) !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    padding: 0 !important;
-    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
-}
-
-div[data-testid="stColumn"] > div:has(.square-profile-card) div.stButton > button p {
-    font-size: 4.2rem !important;
-    line-height: 1 !important;
-    margin: 0 !important;
-    padding: 0 !important;
-}
-
-div[data-testid="stColumn"] > div:has(.square-profile-card) div.stButton > button:hover {
-    transform: translateY(-5px) scale(1.04) !important;
-    border-color: #10B981 !important;
-    box-shadow: 0 14px 28px rgba(16, 185, 129, 0.4) !important;
-    background: #22262E !important;
-}
-
-/* Titles and Role below cards */
-.profile-meta-title {
-    text-align: center;
-    font-size: 1.3rem;
-    font-weight: 600;
-    line-height: 1.2;
-    margin-top: 8px;
-}
-
-.profile-meta-role {
-    text-align: center;
-    font-size: 0.7rem;
-    font-family: 'JetBrains Mono', monospace;
-    color: #10B981 !important;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-top: 2px;
-}
-
-/* ==========================================================================
-   PORTAL INTERIOR: CLEAN, BALANCED & THEME ADAPTIVE
-   ========================================================================== */
+/* Interior Dashboard Styling */
 .top-navbar {
     background: var(--secondary-background-color);
     border: 1px solid rgba(16, 185, 129, 0.35);
@@ -536,7 +524,6 @@ div[data-testid="stColumn"] > div:has(.square-profile-card) div.stButton > butto
     color: #10B981;
 }
 
-/* Standard Buttons Inside Dashboard */
 div.stButton > button {
     border-radius: 10px !important;
     font-weight: 600 !important;
@@ -553,6 +540,25 @@ div.stButton > button[kind="primary"] {
 div.stButton > button[kind="primary"]:hover {
     background: #059669 !important;
     border-color: #10B981 !important;
+}
+
+/* Scoped Netflix Profile Card */
+.profile-meta-title {
+    text-align: center;
+    font-size: 1.1rem;
+    font-weight: 700;
+    line-height: 1.2;
+    margin-top: 10px;
+}
+
+.profile-meta-role {
+    text-align: center;
+    font-size: 0.72rem;
+    font-family: 'JetBrains Mono', monospace;
+    color: #10B981 !important;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    margin-top: 3px;
 }
 </style>
 """
@@ -805,8 +811,8 @@ DOCUMENT TEXT:
                 cand_email = str(cand.get("email", "")).strip().lower()
                 cand_phone = str(cand.get("phone", "")).strip()
                 
-                # Deduplication key within the same merged document
-                uid = cand_email if cand_email and "not" not in cand_email else f"{cand_name}_{cand_phone}"
+                # Deduplication key within the same file stream
+                uid = cand_email if cand_email and "not" not in cand_email else f"{cand_name.lower()}_{cand_phone}"
                 if cand_name and cand_name.lower() not in ["unknown", "name"] and uid not in seen_identifiers:
                     seen_identifiers.add(uid)
                     all_extracted_candidates.append(cand)
@@ -883,7 +889,7 @@ tab1, tab2, tab3, tab4 = st.tabs([
     "📥 1. Talent Repository (Upload)", 
     "🎯 2. JD Screening & Matching", 
     "🗄️ 3. Live Database Grids", 
-    "🛡️️ 4. Admin Controls"
+    "🛡️ 4. Admin Controls"
 ])
 
 with tab1:
@@ -920,7 +926,10 @@ with tab1:
         
         if batch:
             ins, skp = save_candidates_to_repository(batch)
-            st.success(f"🎉 Success: Detected & Extracted {len(batch)} candidate(s) across uploaded file(s). Added {ins} new profile(s) to Supabase Talent Pool!")
+            msg = f"🎉 Processed {len(batch)} candidate(s): **{ins} new candidate(s) appended to bottom of list**."
+            if skp > 0:
+                msg += f" ({skp} duplicate(s) automatically skipped)."
+            st.success(msg)
             st.rerun()
         else:
             st.error("No candidate profiles could be extracted from the uploaded file(s). Please verify the contents.")
@@ -960,7 +969,7 @@ with tab2:
     if display_results:
         st.markdown("### 📋 Screened Candidates")
         
-        if st.button("🗑️️ Clear Screening View", type="secondary", key="clear_screening_view_btn"):
+        if st.button("🗑️ Clear Screening View", type="secondary", key="clear_screening_view_btn"):
             st.session_state.screening_results = []
             st.success("Screening view reset.")
             st.rerun()
@@ -994,13 +1003,13 @@ with tab2:
     st.markdown('</div>', unsafe_allow_html=True)
 
 with tab3:
-    st.markdown('<div class="corp-card"><h4>🗄️ Real-Time Synchronized Database Grids</h4>', unsafe_allow_html=True)
+    st.markdown('<div class="corp-card"><h4>🗄️️ Real-Time Synchronized Database Grids</h4>', unsafe_allow_html=True)
     g1, g2 = st.tabs(["Screened Candidates", "Master Talent Pool"])
     with g1:
         s_df = load_screened_database()
         if not s_df.empty: 
             st.dataframe(s_df, use_container_width=True)
-            if st.button("🗑️ Clear Screened Candidates Table", type="secondary", key="clear_screened_btn"):
+            if st.button("🗑️️ Clear Screened Candidates Table", type="secondary", key="clear_screened_btn"):
                 clear_screened_database()
                 st.success("Screened candidates records cleared from Supabase.")
                 st.rerun()
@@ -1010,7 +1019,7 @@ with tab3:
         m_df = load_database()
         if not m_df.empty: 
             st.dataframe(m_df, use_container_width=True)
-            if st.button("🗑️ Clear Master Talent Pool", type="secondary", key="clear_pool_btn"):
+            if st.button("🗑️️ Clear Master Talent Pool", type="secondary", key="clear_pool_btn"):
                 clear_candidate_database()
                 st.success("Master talent pool cleared.")
                 st.rerun()
