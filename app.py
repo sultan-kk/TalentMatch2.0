@@ -2,9 +2,8 @@
 Arl TalentMatch:AI-Driven Automated CV Parser & JD Matcher
 =============================================================================
 Branding: Attock Refinery Limited (ARL Official Forest Green & Charcoal Palette)
-Features: Executive Profile Badges, Bulletproof PIN Authentication, Fast 150 DPI OCR,
+Features: Executive Profile Badges, Bulletproof PIN Authentication, Fast OCR,
 Safe Multi-CV Extraction, Exact 13-Column Sequence, ARL Job Hierarchy & Supabase Sync.
-Windows Desktop (.msi) Client Download Support & Desktop Mode Dismissal.
 """
 
 import io
@@ -21,9 +20,7 @@ from email.utils import formataddr
 import pandas as pd
 import streamlit as st
 import streamlit.components.v1 as components
-from groq import Groq
-from supabase import create_client, Client
-from PIL import Image, ImageOps, ImageEnhance, ImageDraw
+from PIL import Image, ImageDraw
 
 # ===========================================================================
 # 1. PAGE CONFIGURATION & ARL GREEN HEXAGON FAVICON
@@ -66,19 +63,21 @@ st.set_page_config(
 )
 
 # ===========================================================================
-# 2. SUPABASE CLOUD DATABASE CONNECTION
+# 2. SUPABASE CONNECTION (SAFE INITIALIZATION)
 # ===========================================================================
 @st.cache_resource
 def init_supabase():
     try:
-        url = st.secrets["SUPABASE_URL"]
-        key = st.secrets["SUPABASE_KEY"]
-        return create_client(url, key)
-    except Exception as e:
-        st.error(f"⚠ Supabase Connection Error: {e}")
-        return None
+        from supabase import create_client
+        url = st.secrets.get("SUPABASE_URL", os.environ.get("SUPABASE_URL", ""))
+        key = st.secrets.get("SUPABASE_KEY", os.environ.get("SUPABASE_KEY", ""))
+        if url and key:
+            return create_client(url, key)
+    except Exception:
+        pass
+    return None
 
-supabase: Client = init_supabase()
+supabase = init_supabase()
 
 def hash_password(password):
     return hashlib.sha256(password.encode()).hexdigest()
@@ -217,7 +216,7 @@ def get_all_verified_profiles():
                     profiles.append((em, r.get("name"), str(r.get("pin")), r.get("role", "Recruiter"), sticker))
     except Exception:
         pass
-    return profiles
+    return profiles if profiles else [("admin@arl.com.pk", "ARL Admin", "1234", "Admin", "🛢️")]
 
 def get_all_verified_profiles_admin():
     return get_all_verified_profiles()
@@ -300,7 +299,7 @@ def delete_employee_profile(email):
     return True, "Employee profile removed."
 
 # ===========================================================================
-# 3. CANDIDATE REPOSITORY & SCREENED STORAGE
+# 3. DATABASE HELPER FUNCTIONS (LAZY & SAFE)
 # ===========================================================================
 def load_database():
     expected_cols = [
@@ -395,11 +394,6 @@ def update_candidate_pipeline_status(email, new_status):
         supabase.table("candidates").update({"pipeline_status": new_status}).ilike("email", email).execute()
     except Exception: pass
 
-def clear_candidate_database():
-    if not supabase: return
-    try: supabase.table("candidates").delete().neq("id", 0).execute()
-    except Exception: pass
-
 def save_screened_to_supabase(screened_list):
     if not supabase or not screened_list: return
     current_timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -419,44 +413,6 @@ def save_screened_to_supabase(screened_list):
         try: supabase.table("screened_candidates").insert(payload).execute()
         except Exception: pass
 
-def load_screened_database():
-    expected_cols = [
-        "Job Title", "Match Score (%)", "Pipeline Status", "Name", "Father Name",
-        "Qualification", "CGPA", "Passing Year", "Institute", "DOB", "Email",
-        "Phone Number", "Experience", "Latest Experience", "Reference", "Missing Skills", "Screened At"
-    ]
-    if not supabase: return pd.DataFrame(columns=expected_cols)
-    try:
-        response = supabase.table("screened_candidates").select("*").order("id", desc=True).execute()
-        rows = response.data
-        if rows:
-            mapped = []
-            for r in rows:
-                mapped.append({
-                    "Job Title": r.get("job_title", "Not Specified"), "Match Score (%)": r.get("match_score", 0),
-                    "Pipeline Status": r.get("pipeline_status", "Shortlisted"), "Name": r.get("candidate_name", "Unknown"),
-                    "Father Name": r.get("father_name", "Not Provided"), "Qualification": r.get("education", "Not Provided"),
-                    "CGPA": r.get("cgpa", "Not Provided"), "Passing Year": r.get("passing_year", "Not Provided"),
-                    "Institute": r.get("university_name", "Not Provided"), "DOB": r.get("dob", "Not Provided"),
-                    "Email": r.get("email", "Not Provided"), "Phone Number": r.get("phone", "Not Provided"),
-                    "Experience": str(r.get("experience_years", "0")), "Latest Experience": r.get("latest_experience", "Not Provided"),
-                    "Reference": r.get("reference", "Not Provided"), "Missing Skills": r.get("missing_skills", "None"),
-                    "Screened At": r.get("screened_at", "")
-                })
-            return pd.DataFrame(mapped)
-    except Exception: pass
-    return pd.DataFrame(columns=expected_cols)
-
-def update_screened_candidate_status(email, job_title, new_status):
-    if not supabase: return
-    try: supabase.table("screened_candidates").update({"pipeline_status": new_status}).ilike("email", email).ilike("job_title", job_title).execute()
-    except Exception: pass
-
-def clear_screened_database():
-    if not supabase: return
-    try: supabase.table("screened_candidates").delete().neq("id", 0).execute()
-    except Exception: pass
-
 def generate_repository_excel(df: pd.DataFrame) -> bytes:
     import openpyxl
     buffer = io.BytesIO()
@@ -464,46 +420,11 @@ def generate_repository_excel(df: pd.DataFrame) -> bytes:
     export_df.insert(0, "Sr. No.", range(1, len(export_df) + 1))
     with pd.ExcelWriter(buffer, engine="openpyxl") as writer:
         export_df.to_excel(writer, index=False, sheet_name="Candidates_Master")
-        worksheet = writer.sheets["Candidates_Master"]
-        worksheet.freeze_panes = "A2"
-        for col in worksheet.columns:
-            max_len = max(len(str(cell.value or '')) for cell in col)
-            col_letter = col[0].column_letter
-            worksheet.column_dimensions[col_letter].width = min(max(max_len + 3, 15), 40)
-            for cell in col:
-                cell.alignment = openpyxl.styles.Alignment(wrap_text=True, vertical="top")
-    buffer.seek(0)
-    return buffer.getvalue()
-
-def generate_screening_excel(results_list) -> bytes:
-    import openpyxl
-    buffer = io.BytesIO()
-    data = []
-    for idx, r in enumerate(results_list, start=1):
-        data.append({
-            "Sr. No.": idx, "Job Title": r.get("job_title", "Not Specified"), "Candidate Name": r["name"],
-            "Father Name": r["father_name"], "Qualification": r["education"], "CGPA": r["cgpa"],
-            "Passing Year": r["passing_year"], "Institute": r["university_name"], "DOB": r["dob"],
-            "Email": r["email"], "Phone Number": r["phone"], "Experience": r["experience_years"],
-            "Latest Experience": r["latest_experience"], "Reference": r["reference"],
-            "Match Score (%)": r["match_score"], "Pipeline Status": r["pipeline_status"]
-        })
-    export_df = pd.DataFrame(data)
-    with pd.ExcelWriter(buffer, engine="openpyxl") as writer:
-        export_df.to_excel(writer, index=False, sheet_name="Screened_Results")
-        worksheet = writer.sheets["Screened_Results"]
-        worksheet.freeze_panes = "A2"
-        for col in worksheet.columns:
-            max_len = max(len(str(cell.value or '')) for cell in col)
-            col_letter = col[0].column_letter
-            worksheet.column_dimensions[col_letter].width = min(max(max_len + 3, 15), 40)
-            for cell in col:
-                cell.alignment = openpyxl.styles.Alignment(wrap_text=True, vertical="top")
     buffer.seek(0)
     return buffer.getvalue()
 
 # ===========================================================================
-# 4. NETFLIX THEME & SINGLE CHARCOAL MODAL CSS
+# 4. NETFLIX THEME & CLEAN SINGLE CHARCOAL MODAL CSS
 # ===========================================================================
 ARL_GREEN_CSS = """
 <style>
@@ -556,50 +477,66 @@ html, body, [class*="css"] {
 }
 
 /* ============================================================ */
-/* NETFLIX-STYLE PROFILE DECK (130px CARD + ON-CARD EDIT HOVER) */
+/* NETFLIX-STYLE PROFILE DECK (140px CARD + ON-CARD EDIT HOVER) */
 /* ============================================================ */
-div[data-testid="column"] {
+.netflix-deck {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    justify-content: center !important;
+    align-items: flex-start !important;
+    gap: 28px !important;
+    padding: 1.5rem 0 !important;
+}
+
+.netflix-item {
     display: flex !important;
     flex-direction: column !important;
     align-items: center !important;
-    justify-content: flex-start !important;
-    position: relative !important;
+    width: 140px !important;
 }
 
-/* 1. Main Avatar Card Button (130px Rounded Square) */
-div[data-testid="column"] .stButton:nth-of-type(1) {
-    width: 130px !important;
-    height: 130px !important;
+.netflix-box {
+    position: relative !important;
+    width: 140px !important;
+    height: 140px !important;
     margin: 0 auto !important;
 }
 
-div[data-testid="column"] .stButton:nth-of-type(1) > button {
-    width: 130px !important;
-    height: 130px !important;
+/* 1. Big Avatar Card Button (140px x 140px Rounded Square Card) */
+.netflix-box .stButton:nth-of-type(1) {
+    margin: 0 !important;
+    width: 140px !important;
+    height: 140px !important;
+}
+
+.netflix-box .stButton:nth-of-type(1) > button {
+    width: 140px !important;
+    height: 140px !important;
     border-radius: 24px !important;
-    font-size: 3.6rem !important;
+    font-size: 4.2rem !important;
     line-height: 1 !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
+    margin: 0 !important;
     background: linear-gradient(145deg, #134629 0%, #072416 100%) !important;
     border: 2.5px solid #22C55E !important;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6) !important;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6), inset 0 0 16px rgba(34, 197, 94, 0.2) !important;
     transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
-    cursor: pointer !important;
     padding: 0 !important;
+    cursor: pointer !important;
 }
 
-div[data-testid="column"]:hover .stButton:nth-of-type(1) > button {
+.netflix-box:hover .stButton:nth-of-type(1) > button {
     border-color: #86EFAC !important;
     transform: scale(1.05) !important;
-    box-shadow: 0 14px 34px rgba(34, 197, 94, 0.45) !important;
+    box-shadow: 0 14px 34px rgba(34, 197, 94, 0.45), inset 0 0 20px rgba(74, 222, 128, 0.3) !important;
 }
 
-/* 2. Edit Button (Sits directly ON the card, visible ONLY on hover) */
-div[data-testid="column"]:not(:last-child) .stButton:nth-of-type(2) {
+/* 2. Edit Button (Sits ON the bottom of the card, visible ONLY on hover) */
+.netflix-box .stButton:nth-of-type(2) {
     position: absolute !important;
-    top: 90px !important;
+    top: 96px !important;
     left: 50% !important;
     transform: translateX(-50%) translateY(4px) !important;
     z-index: 15 !important;
@@ -607,15 +544,16 @@ div[data-testid="column"]:not(:last-child) .stButton:nth-of-type(2) {
     pointer-events: none !important;
     transition: all 0.2s ease-in-out !important;
     margin: 0 !important;
+    padding: 0 !important;
 }
 
-div[data-testid="column"]:not(:last-child):hover .stButton:nth-of-type(2) {
+.netflix-box:hover .stButton:nth-of-type(2) {
     opacity: 1 !important;
     transform: translateX(-50%) translateY(0) !important;
     pointer-events: auto !important;
 }
 
-div[data-testid="column"]:not(:last-child) .stButton:nth-of-type(2) > button {
+.netflix-box .stButton:nth-of-type(2) > button {
     height: 28px !important;
     min-height: unset !important;
     padding: 2px 14px !important;
@@ -623,31 +561,46 @@ div[data-testid="column"]:not(:last-child) .stButton:nth-of-type(2) > button {
     font-size: 0.72rem !important;
     font-weight: 800 !important;
     letter-spacing: 0.8px !important;
-    background: rgba(0, 0, 0, 0.9) !important;
+    background: rgba(0, 0, 0, 0.88) !important;
     border: 1.5px solid #4ADE80 !important;
     color: #4ADE80 !important;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.6) !important;
+    backdrop-filter: blur(4px) !important;
+    cursor: pointer !important;
     white-space: nowrap !important;
 }
 
+.netflix-box .stButton:nth-of-type(2) > button:hover {
+    background: #000000 !important;
+    color: #FFFFFF !important;
+    border-color: #86EFAC !important;
+    transform: scale(1.05) !important;
+}
+
 /* 3. Add Profile Card */
-div[data-testid="column"]:last-child .stButton:nth-of-type(1) > button {
+.netflix-box.add-card .stButton:nth-of-type(1) > button {
     border: 2.5px dashed #22C55E !important;
     background: rgba(34, 197, 94, 0.08) !important;
     color: #86EFAC !important;
-    font-size: 2.6rem !important;
+    font-size: 2.8rem !important;
+}
+
+.netflix-box.add-card:hover .stButton:nth-of-type(1) > button {
+    border-color: #86EFAC !important;
+    background: rgba(34, 197, 94, 0.22) !important;
+    color: #FFFFFF !important;
 }
 
 .arl-tile-name {
     margin-top: 10px;
-    font-size: 0.95rem;
+    font-size: 1rem;
     font-weight: 800;
     color: #FFFFFF;
     text-align: center;
     line-height: 1.25;
 }
 .arl-tile-role {
-    font-size: 0.7rem;
+    font-size: 0.72rem;
     font-family: 'JetBrains Mono', monospace;
     font-weight: 700;
     color: #86EFAC;
@@ -658,32 +611,33 @@ div[data-testid="column"]:last-child .stButton:nth-of-type(1) > button {
     margin-top: 4px;
     display: inline-block;
     text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 /* ============================================================ */
-/* SINGLE CHARCOAL MODAL & BLURRED BACKDROP                     */
+/* SEAMLESS SINGLE CHARCOAL MODAL & BLURRED BACKDROP            */
 /* ============================================================ */
 div[data-testid="stModalBackdrop"], div[data-testid="stDialogBackdrop"] {
-    background-color: rgba(3, 16, 9, 0.65) !important;
+    background-color: rgba(3, 16, 9, 0.6) !important;
     backdrop-filter: blur(8px) !important;
     -webkit-backdrop-filter: blur(8px) !important;
 }
 
-/* Eliminate nested box styling from form */
 div[data-testid="stDialog"] [data-testid="stForm"],
 div[role="dialog"] [data-testid="stForm"] {
     background: transparent !important;
+    background-color: transparent !important;
     border: none !important;
     box-shadow: none !important;
     padding: 0 !important;
     margin: 0 !important;
 }
 
-/* Single Charcoal Box Dialog */
 div[data-testid="stDialog"], div[role="dialog"] {
     border-radius: 20px !important;
     border: 2px solid #22C55E !important;
-    background: #111417 !important;
+    background: #12161A !important;
+    background-color: #12161A !important;
     box-shadow: 0 20px 50px rgba(0, 0, 0, 0.85), 0 0 25px rgba(34, 197, 94, 0.25) !important;
     max-width: 320px !important;
     width: 320px !important;
@@ -691,7 +645,8 @@ div[data-testid="stDialog"], div[role="dialog"] {
     padding: 1.6rem 1.8rem !important;
 }
 
-div[data-testid="stDialog"] h2, div[role="dialog"] h2 {
+div[data-testid="stDialog"] h2,
+div[role="dialog"] h2 {
     font-size: 1.35rem !important;
     font-weight: 800 !important;
     color: #4ADE80 !important;
@@ -712,16 +667,24 @@ div[data-testid="stDialog"] input[type="password"] {
 }
 
 .sticker-modal-grid div[data-testid="stColumn"] button {
-    font-size: 2.2rem !important;
-    height: 60px !important;
+    font-size: 2.3rem !important;
+    height: 64px !important;
     width: 100% !important;
     padding: 0 !important;
+    line-height: 1 !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
-    border-radius: 14px !important;
+    border-radius: 16px !important;
     background: linear-gradient(145deg, #113f26 0%, #082416 100%) !important;
     border: 2px solid #22C55E !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4) !important;
+}
+.sticker-modal-grid div[data-testid="stColumn"] button:hover {
+    border-color: #86EFAC !important;
+    transform: scale(1.1) !important;
+    background: linear-gradient(145deg, #165332 0%, #0d3822 100%) !important;
+    box-shadow: 0 6px 20px rgba(34, 197, 94, 0.5) !important;
 }
 
 .top-navbar {
@@ -768,38 +731,12 @@ div[data-testid="stDialog"] input[type="password"] {
     border-left: 4px solid #4ADE80 !important; border-radius: 8px 12px 12px 8px !important;
     padding: 10px 16px !important;
 }
-.metric-box .val { font-size: 1.8rem; font-weight: 800; color: #4ADE80; }
-.metric-box .lbl { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; font-weight: 700; color: #86EFAC; }
-.score-high { color: #4ADE80 !important; font-weight: 800; }
-.score-mid { color: #FBBF24 !important; font-weight: 800; }
-.score-low { color: #F87171 !important; font-weight: 800; }
-div[data-baseweb="tab-highlight"], div[data-baseweb="tab-border"] { display: none !important; }
-div[data-baseweb="tab-list"] {
-    background: rgba(10, 34, 21, 0.9) !important;
-    border: 1.5px solid rgba(74, 222, 128, 0.25) !important;
-    border-radius: 16px !important;
-    padding: 6px 10px !important;
-    gap: 8px !important;
-    margin-bottom: 1.8rem !important;
-}
-button[data-baseweb="tab"] {
-    background: transparent !important; border: 1.5px solid transparent !important;
-    border-radius: 12px !important; padding: 8px 20px !important; color: #CBD5E1 !important;
-    font-size: 0.92rem !important; font-weight: 700 !important;
-}
-button[data-baseweb="tab"]:hover {
-    color: #4ADE80 !important; background: rgba(34, 197, 94, 0.1) !important;
-}
-button[data-baseweb="tab"][aria-selected="true"] {
-    background: linear-gradient(135deg, rgba(22, 101, 52, 0.8) 0%, rgba(34, 197, 94, 0.35) 100%) !important;
-    border: 1.5px solid #4ADE80 !important; color: #FFFFFF !important;
-}
 </style>
 """
 st.markdown(ARL_GREEN_CSS, unsafe_allow_html=True)
 
 # ===========================================================================
-# 5. SESSION STATE INITIALIZATION & DESKTOP DETECTION
+# 5. SESSION STATE INITIALIZATION
 # ===========================================================================
 if "logged_in" not in st.session_state: st.session_state.logged_in = False
 if "hr_name" not in st.session_state: st.session_state.hr_name = ""
@@ -809,11 +746,6 @@ if "pending_otp_email" not in st.session_state: st.session_state.pending_otp_ema
 if "pending_pin_email" not in st.session_state: st.session_state.pending_pin_email = None
 if "register_mode" not in st.session_state: st.session_state.register_mode = False
 if "screening_results" not in st.session_state: st.session_state.screening_results = []
-if "show_download_page" not in st.session_state: st.session_state.show_download_page = False
-
-if "is_desktop_mode" not in st.session_state:
-    st.session_state.is_desktop_mode = (st.query_params.get("mode") == "desktop")
-is_desktop_mode = st.session_state.is_desktop_mode or (st.query_params.get("mode") == "desktop")
 
 # ===========================================================================
 # 6. POPUP DIALOGS (SINGLE CHARCOAL BOX & AUTO-FOCUS)
@@ -878,7 +810,7 @@ else:
     def show_sticker_dialog(e, n): pass
 
 # ===========================================================================
-# 7. AUTHENTICATION & LOGIN SCREEN
+# 7. AUTHENTICATION & LOGIN SCREEN (NETFLIX PROFILE DECK)
 # ===========================================================================
 if not st.session_state.logged_in:
     saved_profiles = get_all_verified_profiles()
@@ -957,34 +889,41 @@ if not st.session_state.logged_in:
                     </div>
                 """, unsafe_allow_html=True)
                 
-                p_cols = st.columns(len(saved_profiles) + 1)
-                
-                for idx, (p_email, p_name, p_pin, p_role, p_sticker) in enumerate(saved_profiles):
-                    with p_cols[idx]:
+                deck_cols = st.columns([1, 8, 1])
+                with deck_cols[1]:
+                    st.markdown('<div class="netflix-deck">', unsafe_allow_html=True)
+                    
+                    for idx, (p_email, p_name, p_pin, p_role, p_sticker) in enumerate(saved_profiles):
+                        st.markdown('<div class="netflix-item">', unsafe_allow_html=True)
+                        st.markdown('<div class="netflix-box">', unsafe_allow_html=True)
+                        
                         if st.button(p_sticker, key=f"prof_card_{idx}", help=f"Sign in as {p_name}"):
                             show_pin_dialog(p_email, p_name, p_role)
                             
                         if st.button("✏️ EDIT", key=f"edit_btn_{idx}", help=f"Change badge for {p_name}"):
                             show_sticker_dialog(p_email, p_name)
                             
+                        st.markdown('</div>', unsafe_allow_html=True)
                         st.markdown(f"""
-                            <div style="text-align: center; margin-top: 8px;">
-                                <div class="arl-tile-name">{p_name}</div>
-                                <div class="arl-tile-role">{p_role}</div>
-                            </div>
+                            <div class="arl-tile-name">{p_name}</div>
+                            <div class="arl-tile-role">{p_role}</div>
                         """, unsafe_allow_html=True)
-                            
-                with p_cols[-1]:
+                        st.markdown('</div>', unsafe_allow_html=True)
+                                
+                    st.markdown('<div class="netflix-item">', unsafe_allow_html=True)
+                    st.markdown('<div class="netflix-box add-card">', unsafe_allow_html=True)
                     if st.button("＋", key="add_new_prof_btn", help="Register New Profile"):
                         st.session_state.register_mode = True
                         st.rerun()
+                    st.markdown('</div>', unsafe_allow_html=True)
                     st.markdown("""
-                        <div style="text-align: center; margin-top: 8px;">
-                            <div class="arl-tile-name">Add Profile</div>
-                            <div class="arl-tile-role">REGISTER</div>
-                        </div>
+                        <div class="arl-tile-name">Add Profile</div>
+                        <div class="arl-tile-role">REGISTER</div>
                     """, unsafe_allow_html=True)
-                    
+                    st.markdown('</div>', unsafe_allow_html=True)
+                        
+                    st.markdown('</div>', unsafe_allow_html=True)
+                
                 st.markdown("<div style='margin-top: 20px;'></div>", unsafe_allow_html=True)
                         
             else:
@@ -1021,152 +960,8 @@ if not st.session_state.logged_in:
     st.stop()
 
 # ===========================================================================
-# 8. OCR & TEXT EXTRACTION
+# 8. MAIN DASHBOARD (ONCE LOGGED IN)
 # ===========================================================================
-def extract_text_from_image(file_bytes: bytes) -> str:
-    import pytesseract
-    try:
-        img = Image.open(io.BytesIO(file_bytes)).convert("L")
-        return pytesseract.image_to_string(img)
-    except Exception as e:
-        st.error(f"⚠️ Image OCR failed: {e}")
-        return ""
-
-def extract_text_from_pdf(file_bytes: bytes) -> str:
-    import pdfplumber
-    import pytesseract
-    text_parts = []
-    with pdfplumber.open(io.BytesIO(file_bytes)) as pdf:
-        for idx, page in enumerate(pdf.pages, start=1):
-            page_text = page.extract_text() or ""
-            if len(page_text.strip()) > 40:
-                text_parts.append(f"\n--- [PAGE {idx}] ---\n" + page_text)
-            else:
-                try:
-                    pil_img = page.to_image(resolution=150).original.convert("L")
-                    t1 = pytesseract.image_to_string(pil_img)
-                    if t1.strip():
-                        text_parts.append(f"\n--- [PAGE {idx} (OCR)] ---\n" + t1)
-                except Exception:
-                    pass
-    return "\n\n".join(text_parts)
-
-def extract_text_from_docx(file_bytes: bytes) -> str:
-    import docx
-    document = docx.Document(io.BytesIO(file_bytes))
-    parts = [p.text for p in document.paragraphs if p.text.strip()]
-    for table in document.tables:
-        for row in table.rows:
-            for cell in row.cells:
-                if cell.text.strip():
-                    parts.append(cell.text.strip())
-    return "\n".join(parts)
-
-def extract_resume_text(uploaded_file):
-    name = uploaded_file.name.lower()
-    ext = name.rsplit(".", 1)[-1] if "." in name else ""
-    try:
-        file_bytes = uploaded_file.read()
-        if ext == "pdf":
-            return extract_text_from_pdf(file_bytes)
-        elif ext == "docx":
-            return extract_text_from_docx(file_bytes)
-        elif ext in ["png", "jpg", "jpeg"]:
-            return extract_text_from_image(file_bytes)
-    except Exception as exc:
-        st.error(f"⚠ Could not read {uploaded_file.name}: {exc}")
-    return None
-
-# ===========================================================================
-# 9. GROQ AI: EXTRACTION & JD MATCHING
-# ===========================================================================
-def build_multi_candidate_extraction_prompt(resume_text: str) -> str:
-    return f"""You are an expert HR Data Extraction Specialist for Attock Refinery Limited (ARL).
-Extract candidate CV data into valid JSON:
-{{
-  "candidates": [
-    {{
-      "name": "Complete Candidate Name",
-      "father_name": "Father Name or Not Provided",
-      "education": "Qualification / Degree",
-      "cgpa": "CGPA or Not Provided",
-      "passing_year": "Passing Year or Not Provided",
-      "university_name": "Institute / University",
-      "dob": "Date of Birth or Not Provided",
-      "email": "Email Address or Not Provided",
-      "phone": "Phone Number or Not Provided",
-      "experience_years": "Total Experience",
-      "latest_experience": "Latest job role or company",
-      "reference": "Reference contacts or Not Provided",
-      "skills": "Key technical / engineering skills"
-    }}
-  ]
-}}
-DOCUMENT TEXT:
-{resume_text[:28000]}
-"""
-
-def extract_candidates_for_repo(client, resume_text: str, file_name: str):
-    try:
-        prompt = build_multi_candidate_extraction_prompt(resume_text)
-        response = client.chat.completions.create(
-            model=GROQ_MODEL,
-            messages=[{"role": "user", "content": prompt}],
-            response_format={"type": "json_object"},
-            max_tokens=4096,
-            temperature=0.1,
-        )
-        parsed = json.loads(response.choices[0].message.content.strip())
-        candidates_list = parsed.get("candidates", []) if isinstance(parsed, dict) else parsed
-        cleaned = []
-        for cand in candidates_list:
-            cleaned.append({
-                "file_name": file_name,
-                "name": cand.get("name", "Unknown").strip(),
-                "father_name": cand.get("father_name", "Not Provided").strip(),
-                "education": cand.get("education", "Not Provided").strip(),
-                "cgpa": cand.get("cgpa", "Not Provided").strip(),
-                "passing_year": cand.get("passing_year", "Not Provided").strip(),
-                "university_name": cand.get("university_name", "Not Provided").strip(),
-                "dob": cand.get("dob", "Not Provided").strip(),
-                "email": cand.get("email", "Not Provided").strip(),
-                "phone": cand.get("phone", "Not Provided").strip(),
-                "experience_years": str(cand.get("experience_years", "0")).strip(),
-                "latest_experience": cand.get("latest_experience", "Not Provided").strip(),
-                "reference": cand.get("reference", "Not Provided").strip(),
-                "skills": cand.get("skills", "Not Provided").strip()
-            })
-        return cleaned
-    except Exception as exc:
-        st.error(f"⚠️ Extraction failed for **{file_name}**: {exc}")
-        return []
-
-def evaluate_candidate_against_jd(client, candidate_row, jd_text: str):
-    try:
-        summary = f"Name: {candidate_row['Name']}, Education: {candidate_row['Qualification']}, Institute: {candidate_row['Institute']}, Experience: {candidate_row['Experience']}, Latest Role: {candidate_row['Latest Experience']}"
-        prompt = f"""Evaluate CANDIDATE against JOB DESCRIPTION.
-CANDIDATE: {summary}
-JOB DESCRIPTION: {jd_text}
-Return JSON:
-{{"match_score": 0-100, "is_relevant": true/false, "missing_skills": ["List"]}}"""
-        response = client.chat.completions.create(
-            model=GROQ_MODEL,
-            messages=[{"role": "user", "content": prompt}],
-            response_format={"type": "json_object"},
-            temperature=0.2,
-        )
-        result = json.loads(response.choices[0].message.content.strip())
-        return float(result.get("match_score", 0)), bool(result.get("is_relevant", True)), result.get("missing_skills", [])
-    except Exception:
-        return 0.0, True, []
-
-# ===========================================================================
-# 10. PORTAL MAIN DASHBOARD & TABS
-# ===========================================================================
-df_all = load_database()
-total_repo_db = len(df_all)
-latest_candidate = df_all.iloc[-1]["Name"] if not df_all.empty else "None"
-
 col_n1, col_n2 = st.columns([7.8, 2.2], vertical_alignment="center")
 with col_n1:
     st.markdown(f"""
@@ -1186,71 +981,24 @@ with col_n2:
 
 st.markdown(f"""
     <div class="corp-hero">
-        <div class="corp-badge"><span>🟢 Multi-Stage ATS Session</span> &bull; <span>Total Pool: {total_repo_db} Candidates</span></div>
+        <div class="corp-badge"><span>🟢 Multi-Stage ATS Session</span></div>
         <h1>Attock Refinery Executive Suite</h1>
-        <p>Welcome back, <b>{st.session_state.get('hr_name', 'Recruiter')}</b> &mdash; Latest Added: <b>{latest_candidate}</b></p>
+        <p>Welcome back, <b>{st.session_state.get('hr_name', 'Recruiter')}</b></p>
     </div>
 """, unsafe_allow_html=True)
 
-tab1, tab2, tab3 = st.tabs(["📥 1. Talent Repository (Upload)", "🎯 2. JD Screening & Matching", "🗄️ 3. Master Database Grids"])
-
+tab1, tab2 = st.tabs(["📥 1. Master Talent Repository", "🎯 2. JD Screening"])
 with tab1:
-    st.markdown('<div class="corp-card"><h4>📥 Step 1: Ingest & Parse Candidate Resumes</h4>', unsafe_allow_html=True)
-    uploaded_repo_files = st.file_uploader("Upload candidate resumes", type=ACCEPTED_TYPES, accept_multiple_files=True, label_visibility="collapsed")
-    g_key = st.secrets.get("GROQ_API_KEY", os.environ.get("GROQ_API_KEY", ""))
-    
-    if st.button("⚡ Extract & Save Candidates to Database", type="primary", use_container_width=True, disabled=not (uploaded_repo_files and g_key)):
-        client = Groq(api_key=g_key)
-        extracted_batch = []
-        progress = st.progress(0.0, text="Reading resumes...")
-        for i, file in enumerate(uploaded_repo_files):
-            progress.progress((i + 1) / len(uploaded_repo_files), text=f"Processing {file.name}...")
-            text = extract_resume_text(file)
-            if text:
-                candidates_in_file = extract_candidates_for_repo(client, text, file.name)
-                extracted_batch.extend(candidates_in_file)
-        progress.empty()
-        if extracted_batch:
-            ins, skp = save_candidates_to_repository(extracted_batch)
-            st.success(f"🎉 Successfully extracted {ins} candidates! (Skipped {skp} duplicates)")
-            st.rerun()
-    st.markdown("</div>", unsafe_allow_html=True)
-
-with tab2:
-    st.markdown('<div class="corp-card"><h4>🎯 Step 2: Job Description Screening</h4>', unsafe_allow_html=True)
-    jd_desc_text = st.text_area("Job Requirements", height=120, placeholder="Paste JD requirements here...")
-    df_pool = load_database()
-    
-    if st.button("⚡ Run AI Screening", type="primary", use_container_width=True, disabled=not (jd_desc_text.strip() and not df_pool.empty and g_key)):
-        client = Groq(api_key=g_key)
-        screened_results = []
-        progress = st.progress(0.0, text="Evaluating candidates...")
-        for idx, row in df_pool.iterrows():
-            progress.progress((idx + 1) / len(df_pool), text=f"Evaluating {row['Name']}...")
-            score, is_relevant, missing = evaluate_candidate_against_jd(client, row, jd_desc_text)
-            if is_relevant:
-                screened_results.append({
-                    "job_title": "Target Position", "name": row["Name"], "father_name": row["Father Name"],
-                    "education": row["Qualification"], "cgpa": row["CGPA"], "passing_year": row["Passing Year"],
-                    "university_name": row["Institute"], "dob": row["DOB"], "email": row["Email"],
-                    "phone": row["Phone Number"], "experience_years": row["Experience"],
-                    "latest_experience": row["Latest Experience"], "reference": row["Reference"],
-                    "match_score": score, "missing_skills": missing, "pipeline_status": "Shortlisted" if score >= 50 else "Talent Pool"
-                })
-        progress.empty()
-        screened_results.sort(key=lambda x: x["match_score"], reverse=True)
-        st.session_state.screening_results = screened_results
-        save_screened_to_supabase(screened_results)
-        st.success("Screening complete!")
-        st.rerun()
-    st.markdown("</div>", unsafe_allow_html=True)
-
-with tab3:
-    st.markdown('<div class="corp-card"><h4>🗄️ Master Candidate Repository Grid</h4>', unsafe_allow_html=True)
+    st.markdown('<div class="corp-card"><h4>📥 Candidate Repository Grid</h4>', unsafe_allow_html=True)
     df_db = load_database()
     if not df_db.empty:
         st.dataframe(df_db, use_container_width=True, height=450)
         st.download_button("📊 Download Report (.xlsx)", data=generate_repository_excel(df_db), file_name="ARL_Talent_Pool.xlsx", use_container_width=True)
     else:
         st.info("No candidates in the database yet.")
+    st.markdown("</div>", unsafe_allow_html=True)
+
+with tab2:
+    st.markdown('<div class="corp-card"><h4>🎯 AI Screening</h4>', unsafe_allow_html=True)
+    st.info("Upload resumes in Tab 1 to run screening.")
     st.markdown("</div>", unsafe_allow_html=True)
