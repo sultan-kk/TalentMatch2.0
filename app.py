@@ -507,12 +507,12 @@ div.stButton > button[kind="primary"] {
 
 /* Exact Square Dimensions & Large Centered Emoji */
 .profile-card-box div[data-testid="stButton"]:first-child > button {
-    width: 150px !important;
-    height: 150px !important;
-    min-width: 150px !important;
-    max-width: 150px !important;
-    min-height: 150px !important;
-    max-height: 150px !important;
+    width: 170px !important;
+    height: 170px !important;
+    min-width: 170px !important;
+    max-width: 170px !important;
+    min-height: 170px !important;
+    max-height: 170px !important;
     border-radius: 26px !important;
     background: #181B20 !important;
     border: 2px solid #2D333B !important;
