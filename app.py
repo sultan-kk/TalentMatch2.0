@@ -1036,8 +1036,9 @@ with col_nav_right:
     with c_btn2:
         if st.button("🚪 Lock Portal", key="dash_top_lock_btn", use_container_width=True):
             st.session_state.logged_in = False
-            st.rerun()
-
+            st.session_state.hr_name = ""
+            st.session_state.hr_email = ""
+            st.rerun()  # <-- YEH ADD KAREIN taake foran login screen par bhej de
 st.markdown(f"""
     <div class="corp-hero">
         <h2 style="margin: 0 0 6px 0; font-weight: 800;">Attock Refinery Executive Suite</h2>
