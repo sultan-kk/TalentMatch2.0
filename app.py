@@ -478,8 +478,8 @@ div[data-testid="stColumn"] > div:has(.square-profile-card) div.stButton > butto
 /* Titles and Role below cards */
 .profile-meta-title {
     text-align: center;
-    font-size: 1.7rem;
-    font-weight: 700;
+    font-size: 1.5rem;
+    font-weight: 650;
     line-height: 1.2;
     margin-top: 8px;
 }
