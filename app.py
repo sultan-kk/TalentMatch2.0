@@ -30,8 +30,7 @@ APP_NAME = "ARL TalentMatch"
 APP_TAGLINE = "Attock Refinery Limited (ARL) • AI-Driven Automated CV Parser & JD Screener"
 GROQ_MODEL = "openai/gpt-oss-120b"
 ACCEPTED_TYPES = ["pdf", "docx", "png", "jpg", "jpeg"]
-EXE_DIRECT_DOWNLOAD_URL = "https://github.com/sultan-kk/TalentMatch2.0/releases/download/v1.0/ARL-HireMatrix-Pro_1.0.0_x64_en-US.msi"
-
+EXE_DIRECT_DOWNLOAD_URL = "hsha256:f57ea29fb9bfb93be50bf6367f0cd5f6f4d8487b7b2a5560f82f7023b52cbff5"
 AVAILABLE_BADGES = [
     "👔", "💼", "🛡️", "🎖️", "⚡", "🔬", "🛢️", "⚙️", 
     "📈", "🎯", "👑", "🚀", "💡", "💻", "💎", "🏛️"
