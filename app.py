@@ -33,7 +33,7 @@ APP_TAGLINE = "Attock Refinery Limited (ARL) • HR Intelligence & AI Screening 
 GROQ_MODEL = "openai/gpt-oss-120b"
 ACCEPTED_TYPES = ["pdf", "docx", "png", "jpg", "jpeg"]
 
-# Professional Executive Stickers & Avatars (Clean Curated List)
+# Professional Executive Stickers & Avatars
 PROFESSIONAL_STICKERS = {
     "👔": "Executive / HR Lead",
     "🛢️": "Refinery Operations",
@@ -669,45 +669,48 @@ div[data-testid="stButton"] button {
 }
 
 /* ============================================================ */
-/* NETFLIX-STYLE PROFILE TILES (135px CARD + ON-CARD HOVER EDIT)*/
+/* NETFLIX-STYLE FLEX PROFILE DECK (140px CARD + ON-CARD EDIT)  */
 /* ============================================================ */
-.profile-deck-container {
-    padding: 1.5rem 0;
+.netflix-deck {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    justify-content: center !important;
+    align-items: flex-start !important;
+    gap: 28px !important;
+    padding: 1.5rem 0 !important;
 }
 
-div[data-testid="column"] {
-    position: relative !important;
+.netflix-item {
     display: flex !important;
     flex-direction: column !important;
     align-items: center !important;
-    justify-content: flex-start !important;
+    width: 140px !important;
 }
 
-div[data-testid="column"] > div {
-    width: 100% !important;
-    display: flex !important;
-    flex-direction: column !important;
-    align-items: center !important;
+.netflix-box {
     position: relative !important;
-}
-
-/* 1. Main Avatar Button (135px x 135px Rounded Square Card) */
-div[data-testid="column"] .stButton:nth-of-type(1) {
+    width: 140px !important;
+    height: 140px !important;
     margin: 0 auto !important;
-    width: 135px !important;
-    height: 135px !important;
 }
 
-div[data-testid="column"] .stButton:nth-of-type(1) > button {
-    width: 135px !important;
-    height: 135px !important;
+/* 1. Big Avatar Card Button (140px x 140px Rounded Square Card) */
+.netflix-box .stButton:nth-of-type(1) {
+    margin: 0 !important;
+    width: 140px !important;
+    height: 140px !important;
+}
+
+.netflix-box .stButton:nth-of-type(1) > button {
+    width: 140px !important;
+    height: 140px !important;
     border-radius: 24px !important;
-    font-size: 3.8rem !important;
+    font-size: 4.2rem !important;
     line-height: 1 !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
-    margin: 0 auto !important;
+    margin: 0 !important;
     background: linear-gradient(145deg, #134629 0%, #072416 100%) !important;
     border: 2.5px solid #22C55E !important;
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6), inset 0 0 16px rgba(34, 197, 94, 0.2) !important;
@@ -716,16 +719,16 @@ div[data-testid="column"] .stButton:nth-of-type(1) > button {
     cursor: pointer !important;
 }
 
-div[data-testid="column"] .stButton:nth-of-type(1) > button:hover {
+.netflix-box:hover .stButton:nth-of-type(1) > button {
     border-color: #86EFAC !important;
     transform: scale(1.05) !important;
-    box-shadow: 0 14px 32px rgba(34, 197, 94, 0.45), inset 0 0 20px rgba(74, 222, 128, 0.3) !important;
+    box-shadow: 0 14px 34px rgba(34, 197, 94, 0.45), inset 0 0 20px rgba(74, 222, 128, 0.3) !important;
 }
 
 /* 2. Edit Button (Positioned directly ON the bottom of the card, visible ONLY on hover) */
-div[data-testid="column"]:not(:last-child) .stButton:nth-of-type(2) {
+.netflix-box .stButton:nth-of-type(2) {
     position: absolute !important;
-    top: 92px !important;
+    top: 96px !important;
     left: 50% !important;
     transform: translateX(-50%) translateY(4px) !important;
     z-index: 15 !important;
@@ -736,13 +739,13 @@ div[data-testid="column"]:not(:last-child) .stButton:nth-of-type(2) {
     padding: 0 !important;
 }
 
-div[data-testid="column"]:not(:last-child):hover .stButton:nth-of-type(2) {
+.netflix-box:hover .stButton:nth-of-type(2) {
     opacity: 1 !important;
     transform: translateX(-50%) translateY(0) !important;
     pointer-events: auto !important;
 }
 
-div[data-testid="column"]:not(:last-child) .stButton:nth-of-type(2) > button {
+.netflix-box .stButton:nth-of-type(2) > button {
     height: 28px !important;
     min-height: unset !important;
     padding: 2px 14px !important;
@@ -759,22 +762,22 @@ div[data-testid="column"]:not(:last-child) .stButton:nth-of-type(2) > button {
     white-space: nowrap !important;
 }
 
-div[data-testid="column"]:not(:last-child) .stButton:nth-of-type(2) > button:hover {
+.netflix-box .stButton:nth-of-type(2) > button:hover {
     background: #000000 !important;
     color: #FFFFFF !important;
     border-color: #86EFAC !important;
     transform: scale(1.05) !important;
 }
 
-/* 3. Add Profile Card in Last Column */
-div[data-testid="column"]:last-child .stButton:nth-of-type(1) > button {
+/* 3. Add Profile Card */
+.netflix-box.add-card .stButton:nth-of-type(1) > button {
     border: 2.5px dashed #22C55E !important;
     background: rgba(34, 197, 94, 0.08) !important;
     color: #86EFAC !important;
     font-size: 2.8rem !important;
 }
 
-div[data-testid="column"]:last-child .stButton:nth-of-type(1) > button:hover {
+.netflix-box.add-card:hover .stButton:nth-of-type(1) > button {
     border-color: #86EFAC !important;
     background: rgba(34, 197, 94, 0.22) !important;
     color: #FFFFFF !important;
@@ -812,17 +815,18 @@ div[data-testid="stModalBackdrop"], div[data-testid="stDialogBackdrop"] {
     -webkit-backdrop-filter: blur(8px) !important;
 }
 
-/* Eliminate nested box styling from st.form */
+/* Completely remove nested form styling inside dialog */
 div[data-testid="stDialog"] [data-testid="stForm"],
 div[role="dialog"] [data-testid="stForm"] {
     background: transparent !important;
+    background-color: transparent !important;
     border: none !important;
     box-shadow: none !important;
     padding: 0 !important;
     margin: 0 !important;
 }
 
-/* Single Charcoal Box Dialog */
+/* Single Charcoal Box Dialog (No double borders or nested boxes) */
 div[data-testid="stDialog"], div[role="dialog"] {
     border-radius: 20px !important;
     border: 2px solid #22C55E !important;
@@ -1191,7 +1195,7 @@ if not st.session_state.logged_in:
                         st.session_state.pending_otp_email = None
                         st.rerun()
                         
-            # --- VIEW C: SEAMLESS ROUNDED SQUARE PROFILE TILES ---
+            # --- VIEW C: SEAMLESS ROUNDED SQUARE PROFILE TILES (NETFLIX DECK) ---
             elif saved_profiles and not st.session_state.register_mode:
                 st.markdown("""
                     <div style="text-align: center; margin: 15px 0 20px 0;">
@@ -1202,11 +1206,16 @@ if not st.session_state.logged_in:
                     </div>
                 """, unsafe_allow_html=True)
                 
-                st.markdown('<div class="profile-deck-container">', unsafe_allow_html=True)
-                p_cols = st.columns(len(saved_profiles) + 1)
-                
-                for idx, (p_email, p_name, p_pin, p_role, p_sticker) in enumerate(saved_profiles):
-                    with p_cols[idx]:
+                # Pure CSS Flexbox Deck (Cards always stay large 140px, never squeeze)
+                deck_cols = st.columns([1, 8, 1])
+                with deck_cols[1]:
+                    st.markdown('<div class="netflix-deck">', unsafe_allow_html=True)
+                    
+                    # Profiles
+                    for idx, (p_email, p_name, p_pin, p_role, p_sticker) in enumerate(saved_profiles):
+                        st.markdown('<div class="netflix-item">', unsafe_allow_html=True)
+                        st.markdown('<div class="netflix-box">', unsafe_allow_html=True)
+                        
                         # 1. Main Avatar Card Button (Directly triggers PIN modal on click)
                         if st.button(p_sticker, key=f"prof_card_{idx}", help=f"Sign in as {p_name}"):
                             show_pin_dialog(p_email, p_name, p_role)
@@ -1215,27 +1224,30 @@ if not st.session_state.logged_in:
                         if st.button("✏️ EDIT", key=f"edit_btn_{idx}", help=f"Change badge for {p_name}"):
                             show_sticker_dialog(p_email, p_name)
                             
+                        st.markdown('</div>', unsafe_allow_html=True)
+                        
                         # 3. Name & Role below the card
                         st.markdown(f"""
-                            <div style="text-align: center; margin-top: 8px;">
-                                <div class="arl-tile-name">{p_name}</div>
-                                <div class="arl-tile-role">{p_role}</div>
-                            </div>
+                            <div class="arl-tile-name">{p_name}</div>
+                            <div class="arl-tile-role">{p_role}</div>
                         """, unsafe_allow_html=True)
-                            
-                with p_cols[-1]:
+                        st.markdown('</div>', unsafe_allow_html=True)
+                                
                     # Add Profile Card
+                    st.markdown('<div class="netflix-item">', unsafe_allow_html=True)
+                    st.markdown('<div class="netflix-box add-card">', unsafe_allow_html=True)
                     if st.button("＋", key="add_new_prof_btn", help="Register New Profile"):
                         st.session_state.register_mode = True
                         st.rerun()
+                    st.markdown('</div>', unsafe_allow_html=True)
                     st.markdown("""
-                        <div style="text-align: center; margin-top: 8px;">
-                            <div class="arl-tile-name">Add Profile</div>
-                            <div class="arl-tile-role">REGISTER</div>
-                        </div>
+                        <div class="arl-tile-name">Add Profile</div>
+                        <div class="arl-tile-role">REGISTER</div>
                     """, unsafe_allow_html=True)
-                    
-                st.markdown('</div>', unsafe_allow_html=True)
+                    st.markdown('</div>', unsafe_allow_html=True)
+                        
+                    st.markdown('</div>', unsafe_allow_html=True)
+                
                 st.markdown("<div style='margin-top: 20px;'></div>", unsafe_allow_html=True)
                         
             # --- VIEW D: REGISTER NEW PROFILE WITH STICKER PICKER ---
@@ -1329,7 +1341,7 @@ def extract_resume_text(uploaded_file):
         elif ext in ["png", "jpg", "jpeg"]:
             return extract_text_from_image(file_bytes)
     except Exception as exc:
-        st.error(f"⚠️ Could not read {uploaded_file.name}: {exc}")
+        st.error(f"⚠️️ Could not read {uploaded_file.name}: {exc}")
     return None
 
 # ===========================================================================
@@ -1642,7 +1654,7 @@ with tab2:
     
     with st.expander("⚙️ Manage ARL Job Catalog (Add, Edit, or Remove Jobs & Departments)"):
         st.caption("Permanently modify or add job positions in the ARL database hierarchy.")
-        m_tab1, m_tab2, m_tab3 = st.tabs(["➕ Add New Job", "✏️ Edit / Rename Job", "🗑️ Delete Job"])
+        m_tab1, m_tab2, m_tab3 = st.tabs(["➕ Add New Job", "✏️ Edit / Rename Job", "🗑️️ Delete Job"])
         
         with m_tab1:
             col_ad1, col_ad2 = st.columns(2)
