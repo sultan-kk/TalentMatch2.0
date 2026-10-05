@@ -599,196 +599,38 @@ def generate_screening_excel(results_list) -> bytes:
 # ===========================================================================
 # 5. NETFLIX-STYLE ARL FOREST GREEN BACKGROUND & TILE CSS
 # ===========================================================================
-ARL_GREEN_CSS = """
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap');
+st.markdown(f"""
+        <div class="netflix-header-box">
+            <h1 class="netflix-heading">Who's Screening?</h1>
+            <p class="netflix-subtext">{APP_TAGLINE}</p>
+        </div>
+    """, unsafe_allow_html=True)
 
-html, body, [class*="css"], .stApp {
-    font-family: 'Plus Jakarta Sans', sans-serif !important;
-    background: linear-gradient(135deg, #061A10 0%, #0B2517 50%, #05140D 100%) !important;
-    color: #F8FAFC !important;
-}
+    total_profiles = len(saved_profiles)
+    card_cols = st.columns(max(total_profiles, 1))
 
-[data-testid="stSidebar"] { display: none !important; }
-[data-testid="collapsedControl"] { display: none !important; }
+    for idx, (p_email, p_name, p_pin, p_role) in enumerate(saved_profiles):
+        with card_cols[idx]:
+            avatar_sticker = get_user_avatar(p_email)
+            
+            # Poora card ab direct clickable button hai (Netflix style)
+            card_label = f"{avatar_sticker}\n\n{p_name}\n{p_role}"
+            if st.button(card_label, key=f"netflix_card_btn_{idx}_{p_email}", use_container_width=True):
+                show_pin_dialog(p_email, p_name, p_role)
+                
+            # Chota sa button sticker/badge change karne ke liye
+            if st.button("✏️ Change Badge", key=f"btn_stk_{idx}_{p_email}", use_container_width=True):
+                show_sticker_picker_dialog(p_email, p_name)
 
-/* Backdrop blur when Streamlit modal dialog is open */
-div[data-testid="stModal"] {
-    background-color: rgba(4, 18, 10, 0.85) !important;
-    backdrop-filter: blur(12px) !important;
-    -webkit-backdrop-filter: blur(12px) !important;
-}
+    st.markdown("<div style='margin-top: 3.5rem;'></div>", unsafe_allow_html=True)
+    
+    _, b_mid, _ = st.columns([2, 1.8, 2])
+    with b_mid:
+        if st.button("➕ Add New Profile", use_container_width=True, key="netflix_add_profile_btn"):
+            st.session_state.show_registration = True
+            st.rerun()
 
-div[data-testid="stDialog"] {
-    background: #0D2819 !important;
-    border: 2px solid #22C55E !important;
-    border-radius: 20px !important;
-    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.9), 0 0 35px rgba(34, 197, 94, 0.3) !important;
-    color: #FFFFFF !important;
-}
-
-/* Netflix Heading */
-.netflix-header-box {
-    text-align: center;
-    padding: 2.5rem 1rem 1.8rem 1rem;
-}
-
-.netflix-heading {
-    font-size: 3rem !important;
-    font-weight: 800 !important;
-    letter-spacing: -0.5px !important;
-    color: #FFFFFF !important;
-    margin-bottom: 8px !important;
-}
-
-.netflix-subtext {
-    font-size: 1.05rem !important;
-    color: #86EFAC !important;
-    letter-spacing: 0.5px !important;
-}
-
-/* NETFLIX ROUNDED-SQUARE PROFILE CARDS (DIRECT CLICKABLE TILES) */
-.netflix-profile-tile {
-    background: linear-gradient(145deg, #0F3622 0%, #081F13 100%) !important;
-    border: 3px solid #15803D !important;
-    border-radius: 22px !important;
-    padding: 1.8rem 1rem !important;
-    text-align: center !important;
-    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6) !important;
-    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
-    cursor: pointer !important;
-    margin-bottom: 8px !important;
-}
-
-.netflix-profile-tile:hover {
-    transform: translateY(-8px) scale(1.03) !important;
-    border-color: #4ADE80 !important;
-    box-shadow: 0 16px 35px rgba(34, 197, 94, 0.45), inset 0 0 20px rgba(74, 222, 128, 0.2) !important;
-}
-
-/* Compact Edit Button for Badges */
-.stButton > button {
-    background: linear-gradient(135deg, #15803D 0%, #166534 100%) !important;
-    color: #FFFFFF !important;
-    border: 1.5px solid #4ADE80 !important;
-    border-radius: 10px !important;
-    font-weight: 700 !important;
-    font-size: 0.82rem !important;
-    padding: 0.35rem 0.8rem !important;
-    box-shadow: 0 4px 12px rgba(22, 101, 52, 0.3) !important;
-    transition: all 0.2s ease-in-out !important;
-}
-
-.stButton > button:hover {
-    background: linear-gradient(135deg, #16a34a 0%, #15803D 100%) !important;
-    border-color: #FFFFFF !important;
-    box-shadow: 0 6px 18px rgba(74, 222, 128, 0.5) !important;
-    transform: translateY(-2px);
-}
-
-/* Inside Dialog Styling */
-[data-testid="stDialog"] input {
-    background-color: #061A10 !important;
-    color: #FFFFFF !important;
-    border: 2px solid #22C55E !important;
-    border-radius: 12px !important;
-    font-size: 1.4rem !important;
-    text-align: center !important;
-    letter-spacing: 8px !important;
-}
-
-/* Top Navbar */
-.top-navbar {
-    background: linear-gradient(135deg, #0A2315 0%, #0F3622 100%);
-    border: 1.5px solid #166534;
-    border-bottom: 2px solid #22C55E;
-    border-radius: 16px;
-    padding: 1.1rem 2rem;
-    margin-bottom: 1.8rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
-}
-.top-brand-title {
-    font-size: 1.55rem; font-weight: 800; color: #FFFFFF; margin: 0;
-    display: flex; align-items: center; gap: 10px;
-}
-.top-brand-subtitle {
-    font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1.2px; font-weight: 700; color: #86EFAC; margin: 0;
-}
-
-.corp-hero {
-    background: linear-gradient(135deg, rgba(22, 101, 52, 0.25) 0%, rgba(10, 35, 21, 0.9) 100%);
-    border: 1.5px solid #166534;
-    border-radius: 16px;
-    padding: 2rem 2.5rem;
-    margin-bottom: 2rem;
-    border-left: 6px solid #4ADE80;
-}
-.corp-badge {
-    display: inline-flex; align-items: center; gap: 8px; 
-    background: rgba(34, 197, 94, 0.2); color: #4ADE80; 
-    padding: 5px 14px; border-radius: 6px;
-    font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.8rem;
-    border: 1px solid rgba(34, 197, 94, 0.4);
-}
-
-.corp-card {
-    background: #0B2517;
-    border: 1.5px solid rgba(34, 197, 94, 0.35);
-    border-radius: 16px;
-    padding: 1.8rem;
-    margin-bottom: 1.5rem;
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
-}
-
-.corp-card h4 {
-    font-size: 1.25rem !important;
-    font-weight: 800 !important;
-    color: #FFFFFF !important;
-    margin-top: 0 !important;
-    margin-bottom: 1.2rem !important;
-    background: linear-gradient(90deg, rgba(34, 197, 94, 0.25) 0%, rgba(22, 101, 52, 0.05) 100%) !important;
-    border-left: 4px solid #4ADE80 !important;
-    padding: 10px 16px !important;
-    border-radius: 6px 12px 12px 6px !important;
-}
-
-.metric-box .val { font-size: 1.8rem; font-weight: 800; color: #4ADE80; }
-.metric-box .lbl { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; font-weight: 700; opacity: 0.85; }
-
-.score-high { color: #4ADE80 !important; font-weight: 800; }
-.score-mid { color: #FBBF24 !important; font-weight: 800; }
-.score-low { color: #F87171 !important; font-weight: 800; }
-
-div[data-baseweb="tab-list"] {
-    background: #0B2517 !important;
-    border: 1.5px solid #166534 !important;
-    border-radius: 16px !important;
-    padding: 6px 10px !important;
-    gap: 8px !important;
-    margin-bottom: 1.8rem !important;
-}
-
-button[data-baseweb="tab"] {
-    background: transparent !important;
-    border: 1.5px solid transparent !important;
-    border-radius: 12px !important;
-    padding: 8px 20px !important;
-    color: #86EFAC !important;
-    font-size: 0.92rem !important;
-    font-weight: 700 !important;
-}
-
-button[data-baseweb="tab"][aria-selected="true"] {
-    background: linear-gradient(135deg, rgba(22, 101, 52, 0.7) 0%, rgba(34, 197, 94, 0.3) 100%) !important;
-    border: 1.5px solid #4ADE80 !important;
-    color: #FFFFFF !important;
-}
-</style>
-"""
-st.markdown(ARL_GREEN_CSS, unsafe_allow_html=True)
+    st.stop()
 
 # ===========================================================================
 # 6. SESSION STATE INITIALIZATION
