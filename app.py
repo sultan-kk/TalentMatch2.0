@@ -7,7 +7,7 @@ Instant Logout/Lock, Permanent Supabase Badges, Deduplication Engine, Bottom App
 """
 
 import io
-import jsonF
+import json
 import os
 import re
 import hashlib
