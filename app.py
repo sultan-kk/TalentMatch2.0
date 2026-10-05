@@ -530,6 +530,39 @@ def show_pin_dialog(email, name, role):
 
 @st.dialog("🎨 Choose Executive Badge")
 def show_sticker_picker_dialog(email, name):
+    st.markdown("""
+        <style>
+        /* Dialog ke andar grid spacing aur clean badge styling */
+        div[data-testid="stDialog"] div[data-testid="stColumn"] {
+            padding: 4px !important;
+        }
+        div[data-testid="stDialog"] div.stButton > button {
+            width: 100% !important;
+            height: 60px !important;
+            border-radius: 14px !important;
+            background: #18191C !important;
+            border: 1.5px solid #2A2E33 !important;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4) !important;
+            padding: 0 !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            transition: all 0.2s ease !important;
+        }
+        div[data-testid="stDialog"] div.stButton > button:hover {
+            transform: translateY(-2px) scale(1.05) !important;
+            border-color: #34D399 !important;
+            background: #24272D !important;
+        }
+        div[data-testid="stDialog"] div.stButton > button p {
+            font-size: 2.2rem !important;
+            line-height: 1 !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+        </style>
+    """, unsafe_allow_html=True)
+    
     st.write(f"Select a corporate avatar badge for **{name}**:")
     cols = st.columns(4)
     for idx, badge in enumerate(AVAILABLE_BADGES):
