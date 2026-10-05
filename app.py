@@ -2,8 +2,8 @@
 ARL TalentMatch — Official Corporate Edition (Adaptive Enterprise Suite)
 =============================================================================
 Branding: Attock Refinery Limited (ARL Forest Green & Native Adaptive Theme)
-Features: True Square Netflix Profile Cards (170x170px), In-Card Top-Right Edit Badge,
-Supabase Permanent Badge Sync, Deduplication, Chronological Bottom-Append.
+Features: Guaranteed 160x160px Square Profile Cards, In-Card Top-Right Edit Badge,
+Supabase Permanent Badge Sync, Deduplication Engine, Bottom Append.
 """
 
 import io
@@ -460,7 +460,7 @@ def clear_screened_database():
     if supabase: supabase.table("screened_candidates").delete().neq("id", 0).execute()
 
 # ===========================================================================
-# 5. ISOLATED CSS (STRICT 135x135px SQUARE PROFILE CARDS)
+# 5. CSS (DIRECT & BULLETPROOF SQUARE CARDS)
 # ===========================================================================
 ADAPTIVE_CSS = """
 <style>
@@ -474,70 +474,123 @@ html, body, [class*="css"], .stApp {
     display: none !important; 
 }
 
-/* ==========================================================================
-   STRICT SQUARE 135px x 135px PROFILE CARDS (PREVENTS RECTANGLE STRETCH)
-   ========================================================================== */
-div[data-testid="stColumn"] > div:has(.square-profile-card) {
-    display: flex !important;
-    justify-content: center !important;
-    align-items: center !important;
+/* Base button styling inside Dashboard */
+div.stButton > button {
+    border-radius: 10px !important;
+    font-weight: 600 !important;
+    padding: 0.45rem 1.1rem !important;
+    transition: all 0.2s ease !important;
 }
 
-div[data-testid="stColumn"] > div:has(.square-profile-card) div.stButton > button {
+div.stButton > button[kind="primary"] {
+    background: #047857 !important;
+    border-color: #059669 !important;
+    color: #FFFFFF !important;
+}
+
+/* ==========================================================================
+   SOLID 160x160 SQUARE PROFILE CARD ENFORCEMENT
+   ========================================================================== */
+.netflix-card-outer {
+    position: relative;
+    width: 160px;
+    height: 160px;
+    margin: 0 auto;
+}
+
+/* Enforce EXACT 160px x 160px Square on Main Button */
+.netflix-card-outer div[data-testid="stButton"]:first-child > button {
     width: 160px !important;
     height: 160px !important;
     min-width: 160px !important;
     max-width: 160px !important;
     min-height: 160px !important;
     max-height: 160px !important;
-    margin: 0 auto !important;
-    border-radius: 24px !important;
+    border-radius: 26px !important;
     background: #181B20 !important;
     border: 2px solid #2D333B !important;
-    box-shadow: 0 10px 22px rgba(0, 0, 0, 0.45) !important;
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.5) !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
     padding: 0 !important;
+    margin: 0 !important;
     transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
-div[data-testid="stColumn"] > div:has(.square-profile-card) div.stButton > button p {
-    font-size: 4.2rem !important;
+.netflix-card-outer div[data-testid="stButton"]:first-child > button p {
+    font-size: 5rem !important;
     line-height: 1 !important;
     margin: 0 !important;
     padding: 0 !important;
 }
 
-div[data-testid="stColumn"] > div:has(.square-profile-card) div.stButton > button:hover {
+.netflix-card-outer div[data-testid="stButton"]:first-child > button:hover {
     transform: translateY(-5px) scale(1.04) !important;
     border-color: #10B981 !important;
-    box-shadow: 0 14px 28px rgba(16, 185, 129, 0.4) !important;
+    box-shadow: 0 14px 28px rgba(16, 185, 129, 0.45) !important;
     background: #22262E !important;
 }
 
-/* Titles and Role below cards */
+/* Floating Corner Edit Pencil inside the 160x160 Square */
+.netflix-edit-icon {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    z-index: 99;
+}
+
+.netflix-edit-icon div[data-testid="stButton"] > button {
+    width: 34px !important;
+    height: 34px !important;
+    min-width: 34px !important;
+    max-width: 34px !important;
+    min-height: 34px !important;
+    max-height: 34px !important;
+    border-radius: 50% !important;
+    background: #23272F !important;
+    border: 1.5px solid #10B981 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5) !important;
+}
+
+.netflix-edit-icon div[data-testid="stButton"] > button p {
+    font-size: 0.95rem !important;
+    line-height: 1 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.netflix-edit-icon div[data-testid="stButton"] > button:hover {
+    background: #10B981 !important;
+    border-color: #34D399 !important;
+    transform: scale(1.15) !important;
+}
+
+/* Captions Below Card */
 .profile-meta-title {
     text-align: center;
-    font-size: 1.3rem;
-    font-weight: 600;
+    font-size: 1.1rem;
+    font-weight: 700;
     line-height: 1.2;
-    margin-top: 8px;
+    margin-top: 12px;
 }
 
 .profile-meta-role {
     text-align: center;
-    font-size: 0.7rem;
+    font-size: 0.72rem;
     font-family: 'JetBrains Mono', monospace;
     color: #10B981 !important;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-top: 2px;
+    letter-spacing: 0.6px;
+    margin-top: 3px;
 }
 
-/* ==========================================================================
-   PORTAL INTERIOR: CLEAN, BALANCED & THEME ADAPTIVE
-   ========================================================================== */
+/* Interior Dashboard Styling */
 .top-navbar {
     background: var(--secondary-background-color);
     border: 1px solid rgba(16, 185, 129, 0.35);
@@ -574,25 +627,6 @@ div[data-testid="stColumn"] > div:has(.square-profile-card) div.stButton > butto
     margin-bottom: 1rem;
     font-weight: 700;
     color: #10B981;
-}
-
-/* Standard Buttons Inside Dashboard */
-div.stButton > button {
-    border-radius: 10px !important;
-    font-weight: 600 !important;
-    padding: 0.45rem 1.1rem !important;
-    transition: all 0.2s ease !important;
-}
-
-div.stButton > button[kind="primary"] {
-    background: #047857 !important;
-    border-color: #059669 !important;
-    color: #FFFFFF !important;
-}
-
-div.stButton > button[kind="primary"]:hover {
-    background: #059669 !important;
-    border-color: #10B981 !important;
 }
 </style>
 """
@@ -660,13 +694,13 @@ def show_sticker_picker_dialog(email, name):
     cols = st.columns(4)
     for idx, badge in enumerate(AVAILABLE_BADGES):
         with cols[idx % 4]:
-            if st.button(badge, key=f"stk_btn_{email}_{idx}", use_column_width=True):
+            if st.button(badge, key=f"stk_btn_{email}_{idx}", use_container_width=True):
                 set_user_avatar(email, badge)
                 st.success("Badge permanently saved!")
                 st.rerun()
 
 # ===========================================================================
-# 8. AUTHENTICATION & LOGIN SCREEN (PROPER SQUARE PROFILE CARDS)
+# 8. AUTHENTICATION & LOGIN SCREEN (PROPER 160x160 SQUARE PROFILE CARDS)
 # ===========================================================================
 if not st.session_state.logged_in:
     saved_profiles = get_all_verified_profiles()
@@ -738,7 +772,7 @@ if not st.session_state.logged_in:
         </div>
     """, unsafe_allow_html=True)
 
-    # Scoped Netflix-Style Square Cards (Strict 170x170 Box)
+    # Scoped Netflix-Style Square Cards (Strict 160x160 Box)
     all_items = list(saved_profiles) + [("REGISTER_CARD", "New Profile", "", "Register")]
     cols_per_row = 4
     
@@ -749,8 +783,8 @@ if not st.session_state.logged_in:
             with cols[idx]:
                 if item[0] == "REGISTER_CARD":
                     st.markdown("""
-                        <div class="profile-cell">
-                            <div class="profile-card-box">
+                        <div style="display:flex; flex-direction:column; align-items:center; margin-bottom:1.5rem;">
+                            <div class="netflix-card-outer">
                     """, unsafe_allow_html=True)
                     if st.button("➕", key=f"add_profile_card_{i}"):
                         st.session_state.show_registration = True
@@ -766,16 +800,16 @@ if not st.session_state.logged_in:
                     avatar_sticker = get_user_avatar(p_email)
                     
                     st.markdown("""
-                        <div class="profile-cell">
-                            <div class="profile-card-box">
+                        <div style="display:flex; flex-direction:column; align-items:center; margin-bottom:1.5rem;">
+                            <div class="netflix-card-outer">
                     """, unsafe_allow_html=True)
                     
-                    # Main Square Avatar Card
+                    # Main 160x160 Square Card Button
                     if st.button(avatar_sticker, key=f"user_card_{i}_{idx}"):
                         show_pin_dialog(p_email, p_name, p_role)
                     
-                    # Corner Edit Pencil inside the card box
-                    st.markdown('<div class="profile-corner-edit">', unsafe_allow_html=True)
+                    # Floating Corner Edit Pencil inside card box
+                    st.markdown('<div class="netflix-edit-icon">', unsafe_allow_html=True)
                     if st.button("✏️", key=f"edit_btn_{i}_{idx}", help="Change Badge"):
                         show_sticker_picker_dialog(p_email, p_name)
                     st.markdown('</div>', unsafe_allow_html=True)
@@ -968,7 +1002,7 @@ st.markdown(f"""
 tab1, tab2, tab3, tab4 = st.tabs([
     "📥 1. Talent Repository (Upload)", 
     "🎯 2. JD Screening & Matching", 
-    "🗄️️ 3. Live Database Grids", 
+    "🗄 3. Live Database Grids", 
     "🛡️ 4. Admin Controls"
 ])
 
