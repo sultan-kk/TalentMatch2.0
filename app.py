@@ -475,7 +475,13 @@ html, body, [class*="css"], .stApp {
     background: #22262E !important;
 }
 
-
+   /* Integrated In-Card Edit Pencil Icon (Top Right of Card) */
+.in-card-edit-btn {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    z-index: 10;
+}
 
 .in-card-edit-btn div.stButton > button {
     width: 170px !important;
@@ -495,13 +501,7 @@ html, body, [class*="css"], .stApp {
     transition: all 0.2s ease !important;
     
     
-    /* Integrated In-Card Edit Pencil Icon (Top Right of Card) */
-.in-card-edit-btn {
-    position: absolute;
-    top: 6px;
-    right: 6px;
-    z-index: 10;
-}
+ 
 }
 
 .in-card-edit-btn div.stButton > button p {
