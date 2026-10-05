@@ -20,6 +20,7 @@ from email.mime.multipart import MIMEMultipart
 from email.utils import formataddr
 import pandas as pd
 import streamlit as st
+import streamlit.components.v1 as components
 from groq import Groq
 from supabase import create_client, Client
 from PIL import Image, ImageOps, ImageEnhance, ImageDraw
@@ -49,7 +50,6 @@ PROFESSIONAL_STICKERS = {
 }
 
 AVATAR_STORAGE_FILE = "user_avatars.json"
-
 EXE_DOWNLOAD_URL = "https://github.com/sultan-kk/TalentMatch2.0/releases/download/v1.0/ARL-HireMatrix-Pro_1.0.0_x64_en-US.msi"
 
 def get_arl_favicon():
@@ -460,7 +460,7 @@ def check_if_exists_in_db(email):
         response = supabase.table("candidates").select("email").ilike("email", email.lower().strip()).execute()
         return len(response.data) > 0
     except Exception:
-        return False
+        pass
 
 def save_candidates_to_repository(new_candidates):
     if not supabase:
@@ -745,7 +745,7 @@ html, body, [class*="css"] {
     box-shadow: 0 0 15px rgba(34, 197, 94, 0.2) !important;
 }
 
-/* OVERRIDE STREAMLIT WHITE BUTTON STYLING ACROSS THE ENTIRE PORTAL */
+/* Override default Streamlit white button styles */
 button,
 button[kind="secondary"],
 button[kind="primary"],
@@ -769,18 +769,21 @@ div[data-testid="stButton"] button:hover {
 }
 
 /* ============================================================ */
-/* SEAMLESS PROFILE TILES (AVATAR CARD + BLACK FADE EDIT PILL)  */
+/* SEAMLESS PROFILE TILES (140px CARD + ON-CARD HOVER EDIT PILL)*/
 /* ============================================================ */
-.profile-deck-container {
-    padding: 1rem 0;
+.profile-card-tile {
+    position: relative;
+    width: 140px;
+    height: 140px;
+    margin: 0 auto;
 }
 
-/* Big Avatar Rounded Square Card */
-.profile-deck-container div[data-testid="stColumn"] .stButton:first-of-type button {
-    width: 110px !important;
-    height: 110px !important;
-    border-radius: 22px !important;
-    font-size: 3.2rem !important;
+/* 1. Main Avatar Button (140x140 Rounded Square Card) */
+.profile-card-tile .stButton:nth-of-type(1) button {
+    width: 140px !important;
+    height: 140px !important;
+    border-radius: 24px !important;
+    font-size: 4rem !important;
     line-height: 1 !important;
     margin: 0 auto !important;
     display: flex !important;
@@ -788,61 +791,91 @@ div[data-testid="stButton"] button:hover {
     justify-content: center !important;
     background: linear-gradient(145deg, #124328 0%, #072516 100%) !important;
     border: 2.5px solid #22C55E !important;
-    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.65), inset 0 0 16px rgba(34, 197, 94, 0.2) !important;
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.65), inset 0 0 18px rgba(34, 197, 94, 0.2) !important;
     transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+    cursor: pointer !important;
+    position: relative !important;
 }
 
-.profile-deck-container div[data-testid="stColumn"] .stButton:first-of-type button:hover {
+.profile-card-tile:hover .stButton:nth-of-type(1) button {
     border-color: #86EFAC !important;
-    transform: translateY(-6px) scale(1.06) !important;
-    box-shadow: 0 16px 36px rgba(34, 197, 94, 0.45), inset 0 0 22px rgba(74, 222, 128, 0.3) !important;
+    transform: scale(1.04) !important;
+    box-shadow: 0 16px 36px rgba(34, 197, 94, 0.45), inset 0 0 24px rgba(74, 222, 128, 0.3) !important;
 }
 
-/* Add Profile Button in Last Column */
-.profile-deck-container div[data-testid="stColumn"]:last-child .stButton:first-of-type button {
-    border: 2.5px dashed #22C55E !important;
-    background: rgba(34, 197, 94, 0.08) !important;
-    color: #86EFAC !important;
-    font-size: 2.4rem !important;
+/* 2. Edit Overlay Button (Positioned over bottom half of card, hidden until hover) */
+.profile-card-tile .stButton:nth-of-type(2) {
+    position: absolute !important;
+    bottom: 8px !important;
+    left: 12px !important;
+    right: 12px !important;
+    z-index: 10 !important;
+    opacity: 0 !important;
+    transform: translateY(6px) !important;
+    transition: all 0.2s ease-in-out !important;
+    pointer-events: none !important;
 }
 
-.profile-deck-container div[data-testid="stColumn"]:last-child .stButton:first-of-type button:hover {
-    border-color: #86EFAC !important;
-    background: rgba(34, 197, 94, 0.22) !important;
-    color: #FFFFFF !important;
-}
-
-/* Black Fade Edit Pill */
-.profile-deck-container div[data-testid="stColumn"] .stButton:nth-of-type(2) button {
-    width: auto !important;
-    height: 28px !important;
+.profile-card-tile .stButton:nth-of-type(2) button {
+    width: 100% !important;
+    height: 32px !important;
     min-height: unset !important;
-    margin: 6px auto 0 auto !important;
-    padding: 2px 14px !important;
-    border-radius: 20px !important;
-    font-size: 0.72rem !important;
+    padding: 0 !important;
+    border-radius: 12px !important;
+    font-size: 0.74rem !important;
     font-weight: 800 !important;
     letter-spacing: 0.8px !important;
-    background: linear-gradient(180deg, rgba(0, 0, 0, 0.75) 0%, rgba(0, 0, 0, 0.98) 100%) !important;
-    border: 1px solid rgba(74, 222, 128, 0.4) !important;
-    color: #A7F3D0 !important;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.5) !important;
+    background: rgba(0, 0, 0, 0.88) !important;
+    border: 1.5px solid #4ADE80 !important;
+    color: #4ADE80 !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6) !important;
+    backdrop-filter: blur(4px) !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
+    cursor: pointer !important;
 }
 
-.profile-deck-container div[data-testid="stColumn"] .stButton:nth-of-type(2) button:hover {
+/* When mouse enters the profile card, reveal the Edit button! */
+.profile-card-tile:hover .stButton:nth-of-type(2) {
+    opacity: 1 !important;
+    transform: translateY(0) !important;
+    pointer-events: auto !important;
+}
+
+.profile-card-tile .stButton:nth-of-type(2) button:hover {
     background: #000000 !important;
-    border-color: #4ADE80 !important;
-    color: #4ADE80 !important;
-    transform: translateY(-2px) !important;
-    box-shadow: 0 6px 14px rgba(34, 197, 94, 0.35) !important;
+    color: #FFFFFF !important;
+    border-color: #86EFAC !important;
+    transform: scale(1.02) !important;
+}
+
+/* Add Profile Button in Last Column */
+.profile-card-tile.add-card .stButton:first-of-type button {
+    width: 140px !important;
+    height: 140px !important;
+    border-radius: 24px !important;
+    border: 2.5px dashed #22C55E !important;
+    background: rgba(34, 197, 94, 0.08) !important;
+    color: #86EFAC !important;
+    font-size: 2.8rem !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    transition: all 0.25s ease !important;
+}
+
+.profile-card-tile.add-card:hover .stButton:first-of-type button {
+    border-color: #86EFAC !important;
+    background: rgba(34, 197, 94, 0.22) !important;
+    color: #FFFFFF !important;
+    transform: scale(1.04) !important;
+    box-shadow: 0 14px 32px rgba(34, 197, 94, 0.35) !important;
 }
 
 .arl-tile-name {
     margin-top: 10px;
-    font-size: 0.95rem;
+    font-size: 1rem;
     font-weight: 800;
     color: #FFFFFF;
     text-align: center;
@@ -865,26 +898,37 @@ div[data-testid="stButton"] button:hover {
 }
 
 /* ============================================================ */
-/* MODAL DIALOGS & PURE STICKER BUTTONS (NO OVERFLOW)           */
+/* CHARCOAL POPUP MODALS & BLURRED BACKDROP                     */
 /* ============================================================ */
+div[data-testid="stModalBackdrop"], div[data-testid="stDialogBackdrop"] {
+    background-color: rgba(3, 16, 9, 0.68) !important;
+    backdrop-filter: blur(8px) !important;
+    -webkit-backdrop-filter: blur(8px) !important;
+}
+
 div[data-testid="stDialog"], div[role="dialog"] {
-    border-radius: 24px !important;
+    border-radius: 22px !important;
     border: 1.5px solid #22C55E !important;
-    background: linear-gradient(145deg, #0e3520 0%, #061c10 100%) !important;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.85) !important;
+    background: #12161A !important;
+    background-color: #12161A !important;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.9), 0 0 25px rgba(34, 197, 94, 0.25) !important;
+    max-width: 460px !important;
+    margin: auto !important;
+    color: #FFFFFF !important;
 }
-div[data-testid="stDialog"] > div {
+
+div[data-testid="stDialog"] > div,
+div[role="dialog"] > div,
+div[data-testid="stDialog"] [data-testid="stVerticalBlock"] {
     background: transparent !important;
-}
-div[data-testid="stModalBackdrop"] {
-    backdrop-filter: blur(14px) !important;
-    background: rgba(3, 16, 9, 0.82) !important;
+    background-color: transparent !important;
+    color: #FFFFFF !important;
 }
 
 /* Modal Pure Sticker Grid Buttons */
 .sticker-modal-grid div[data-testid="stColumn"] button {
-    font-size: 2.4rem !important;
-    height: 68px !important;
+    font-size: 2.3rem !important;
+    height: 64px !important;
     width: 100% !important;
     padding: 0 !important;
     line-height: 1 !important;
@@ -1071,9 +1115,28 @@ if st.session_state.show_download_page:
 if hasattr(st, "dialog"):
     @st.dialog("🔐 Security PIN Verification")
     def show_pin_dialog(target_email, p_name, p_role, p_sticker):
+        # Auto-focus the password field so user can type immediately
+        components.html("""
+        <script>
+        function autoFocusPin() {
+            try {
+                const doc = window.parent.document;
+                const pinInput = doc.querySelector('div[role="dialog"] input[type="password"], div[data-testid="stDialog"] input[type="password"]');
+                if (pinInput) {
+                    pinInput.focus();
+                    pinInput.select();
+                } else {
+                    setTimeout(autoFocusPin, 40);
+                }
+            } catch(e) {}
+        }
+        setTimeout(autoFocusPin, 60);
+        </script>
+        """, height=0, width=0)
+
         st.markdown(f"""
-            <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 12px;">
-                <div style="font-size: 2.6rem; background: #082416; border: 2px solid #4ADE80; border-radius: 16px; width: 62px; height: 62px; display: flex; align-items: center; justify-content: center;">
+            <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 14px;">
+                <div style="font-size: 2.6rem; background: #082416; border: 2px solid #4ADE80; border-radius: 16px; width: 62px; height: 62px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(0,0,0,0.5);">
                     {p_sticker}
                 </div>
                 <div>
@@ -1084,7 +1147,7 @@ if hasattr(st, "dialog"):
         """, unsafe_allow_html=True)
         
         with st.form("pin_login_form_dialog"):
-            pin_input = st.text_input("Enter 4-Digit PIN", type="password", max_chars=4, placeholder="••••", key="dialog_pin_val")
+            pin_input = st.text_input("Enter 4-Digit Security PIN", type="password", max_chars=4, placeholder="••••", key="dialog_pin_val")
             submit = st.form_submit_button("Access Portal ➔ (Press Enter)", use_container_width=True)
             
         col_c1, col_c2 = st.columns([1, 1])
@@ -1104,26 +1167,16 @@ if hasattr(st, "dialog"):
                 st.session_state.active_pin_user = None
                 st.rerun()
 
-        # Direct DOM Autofocus Script (No white screen, zero iframe gap)
-        st.markdown("""
-            <script>
-            setTimeout(() => {
-                const inp = window.parent.document.querySelector('div[data-testid="stDialog"] input[type="password"]');
-                if (inp) { inp.focus(); }
-            }, 60);
-            </script>
-        """, unsafe_allow_html=True)
-
     @st.dialog("🎨 Choose Executive Badge")
     def show_sticker_dialog(target_email, p_name, p_role, p_sticker):
         st.markdown(f"""
-            <div style="margin-bottom: 12px; text-align: center;">
+            <div style="margin-bottom: 14px; text-align: center;">
                 <h4 style="margin: 0; color: #FFFFFF; font-size: 1.2rem; font-weight: 800;">Select Badge for <span style="color: #4ADE80;">{p_name}</span></h4>
                 <p style="font-size: 0.85rem; color: #86EFAC; margin: 4px 0 0 0;">Click on any sticker to update instantly:</p>
             </div>
         """, unsafe_allow_html=True)
         
-        # PURE STICKER GRID ONLY (6 Columns x 2 Rows, No text overlap!)
+        # PURE STICKER GRID ONLY (6 Columns x 2 Rows)
         st.markdown('<div class="sticker-modal-grid">', unsafe_allow_html=True)
         cols = st.columns(6)
         for idx, (stk, title) in enumerate(PROFESSIONAL_STICKERS.items()):
@@ -1151,7 +1204,7 @@ else:
     def show_sticker_dialog(e, n, r, s): pass
 
 # ===========================================================================
-# 8. AUTHENTICATION & LOGIN SCREEN
+# 8. AUTHENTICATION & LOGIN SCREEN (SEAMLESS PROFILE TILES)
 # ===========================================================================
 if not st.session_state.logged_in:
     saved_profiles = get_all_verified_profiles()
@@ -1246,55 +1299,59 @@ if not st.session_state.logged_in:
                         st.session_state.pending_otp_email = None
                         st.rerun()
                         
-            # --- VIEW C: SEAMLESS ROUNDED SQUARE PROFILE TILES ---
+            # --- VIEW C: SEAMLESS ROUNDED SQUARE PROFILE TILES (140px + HOVER EDIT OVERLAY) ---
             elif saved_profiles and not st.session_state.register_mode:
                 st.markdown("""
-                    <div style="text-align: center; margin: 15px 0 16px 0;">
-                        <h2 style="font-size: 1.7rem; font-weight: 800; color: #FFFFFF; letter-spacing: -0.5px; margin-bottom: 4px;">
+                    <div style="text-align: center; margin: 15px 0 20px 0;">
+                        <h2 style="font-size: 1.75rem; font-weight: 800; color: #FFFFFF; letter-spacing: -0.5px; margin-bottom: 4px;">
                             Select Executive Profile
                         </h2>
-                        <p style="font-size: 0.88rem; color: #86EFAC; margin: 0;">Click your profile to enter PIN, or click <b>EDIT</b> to change badge:</p>
+                        <p style="font-size: 0.9rem; color: #86EFAC; margin: 0;">Click your profile to enter PIN, or hover to click <b>EDIT</b>:</p>
                     </div>
                 """, unsafe_allow_html=True)
                 
                 # Column Grid for Profiles (No page reload)
-                st.markdown('<div class="profile-deck-container">', unsafe_allow_html=True)
                 p_cols = st.columns(len(saved_profiles) + 1)
                 
                 for idx, (p_email, p_name, p_pin, p_role, p_sticker) in enumerate(saved_profiles):
                     with p_cols[idx]:
-                        # 1. Big Avatar Card Button -> Opens PIN Modal
+                        st.markdown('<div class="profile-card-tile">', unsafe_allow_html=True)
+                        
+                        # 1. Main Avatar Button (Clicking opens PIN)
                         if st.button(p_sticker, key=f"prof_card_{idx}", help=f"Sign in as {p_name}"):
                             st.session_state.active_pin_user = (p_email, p_name, p_role, p_sticker)
                             st.rerun()
-                        
-                        # 2. Candidate Name & Role
-                        st.markdown(f"""
-                            <div style="text-align: center; margin: 4px 0 2px 0;">
-                                <div class="arl-tile-name">{p_name}</div>
-                                <div class="arl-tile-role">{p_role}</div>
-                            </div>
-                        """, unsafe_allow_html=True)
-                        
-                        # 3. Black Fade Edit Pill -> Opens Sticker Modal
+                            
+                        # 2. Edit Hover Button (Overlay directly on top of the card)
                         if st.button("✏️ EDIT", key=f"edit_btn_{idx}", help=f"Change badge for {p_name}"):
                             st.session_state.active_sticker_user = (p_email, p_name, p_role, p_sticker)
                             st.rerun()
                             
+                        st.markdown('</div>', unsafe_allow_html=True)
+                        
+                        # 3. Name & Role below the card
+                        st.markdown(f"""
+                            <div style="text-align: center; margin-top: 8px;">
+                                <div class="arl-tile-name">{p_name}</div>
+                                <div class="arl-tile-role">{p_role}</div>
+                            </div>
+                        """, unsafe_allow_html=True)
+                            
                 with p_cols[-1]:
                     # Add Profile Card
+                    st.markdown('<div class="profile-card-tile add-card">', unsafe_allow_html=True)
                     if st.button("＋", key="add_new_prof_btn", help="Register New Profile"):
                         st.session_state.register_mode = True
                         st.rerun()
+                    st.markdown('</div>', unsafe_allow_html=True)
                     st.markdown("""
-                        <div style="text-align: center; margin: 4px 0 2px 0;">
+                        <div style="text-align: center; margin-top: 8px;">
                             <div class="arl-tile-name">Add Profile</div>
                             <div class="arl-tile-role">REGISTER</div>
                         </div>
                     """, unsafe_allow_html=True)
                     
-                st.markdown('</div>', unsafe_allow_html=True)
-                st.markdown("<div style='margin-top: 15px;'></div>", unsafe_allow_html=True)
+                st.markdown("<div style='margin-top: 20px;'></div>", unsafe_allow_html=True)
                         
             # --- VIEW D: REGISTER NEW PROFILE WITH STICKER PICKER ---
             else:
