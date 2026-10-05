@@ -643,27 +643,42 @@ div[data-testid="stDialog"] {
     color: #86EFAC !important;
 }
 
-/* NETFLIX ROUNDED-SQUARE PROFILE TILES (DIRECT CLICKABLE CARDS) */
-div[data-testid="stColumn"] button {
-    background: linear-gradient(145deg, #0F3622 0%, #081F13 100%) !important;
-    border: 3px solid #15803D !important;
-    border-radius: 24px !important;
-    height: 160px !important;
-    width: 100% !important;
+/* NETFLIX ROUNDED-SQUARE PROFILE TILES CONTAINER */
+.netflix-card-box {
+    background: linear-gradient(145deg, #0F3622 0%, #081F13 100%);
+    border: 3px solid #15803D;
+    border-radius: 24px;
+    padding: 1.8rem 1rem;
+    text-align: center;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    margin-bottom: 8px;
+}
+
+.netflix-card-box:hover {
+    transform: translateY(-6px) scale(1.02);
+    border-color: #4ADE80;
+    box-shadow: 0 16px 35px rgba(34, 197, 94, 0.45), inset 0 0 20px rgba(74, 222, 128, 0.2);
+}
+
+/* Specific Compact Badge Button Styling */
+div[data-testid="column"] button {
+    background: #0A2315 !important;
+    border: 1px solid #166534 !important;
+    color: #86EFAC !important;
+    border-radius: 8px !important;
+    font-size: 0.78rem !important;
+    padding: 0.2rem 0.6rem !important;
+    min-height: unset !important;
+}
+
+div[data-testid="column"] button:hover {
+    background: #166534 !important;
     color: #FFFFFF !important;
-    font-size: 1.1rem !important;
-    font-weight: 700 !important;
-    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6) !important;
-    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
-}
-
-div[data-testid="stColumn"] button:hover {
-    transform: translateY(-8px) scale(1.04) !important;
     border-color: #4ADE80 !important;
-    box-shadow: 0 16px 35px rgba(34, 197, 94, 0.45), inset 0 0 20px rgba(74, 222, 128, 0.2) !important;
 }
 
-/* General Buttons */
+/* General Primary Action Buttons */
 .stButton > button {
     background: linear-gradient(135deg, #15803D 0%, #166534 100%) !important;
     color: #FFFFFF !important;
@@ -881,14 +896,23 @@ if not st.session_state.logged_in:
         with card_cols[idx]:
             avatar_sticker = get_user_avatar(p_email)
             
-            # Poora card direct clickable button hai (Netflix style)
-            card_label = f"{avatar_sticker}\n\n{p_name}\n{p_role}"
-            if st.button(card_label, key=f"netflix_card_btn_{idx}_{p_email}", use_container_width=True):
-                show_pin_dialog(p_email, p_name, p_role)
-                
-            # Chota sa button sticker/badge change karne ke liye
-            if st.button("✏️ Badge", key=f"btn_stk_{idx}_{p_email}", use_container_width=True, help="Change Badge"):
-                show_sticker_picker_dialog(p_email, p_name)
+            # Clean Netflix-style profile container box with clickable sign-in trigger
+            st.markdown(f"""
+                <div class="netflix-card-box">
+                    <div style="font-size: 3.5rem; margin-bottom: 8px;">{avatar_sticker}</div>
+                    <div style="font-size: 1.15rem; font-weight: 800; color: #FFFFFF; margin-bottom: 2px;">{p_name}</div>
+                    <div style="font-size: 0.72rem; font-family: 'JetBrains Mono', monospace; font-weight: 700; color: #4ADE80; text-transform: uppercase; letter-spacing: 1px;">{p_role}</div>
+                </div>
+            """, unsafe_allow_html=True)
+            
+            # Action buttons: Sign In & Compact Badge Editor
+            c_act1, c_act2 = st.columns([2, 1])
+            with c_act1:
+                if st.button("🔐 Sign In", key=f"signin_card_{idx}_{p_email}", use_container_width=True):
+                    show_pin_dialog(p_email, p_name, p_role)
+            with c_act2:
+                if st.button("✏️ Badge", key=f"btn_stk_{idx}_{p_email}", use_container_width=True, help="Change Badge"):
+                    show_sticker_picker_dialog(p_email, p_name)
 
     st.markdown("<div style='margin-top: 3.5rem;'></div>", unsafe_allow_html=True)
     
