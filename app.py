@@ -2,8 +2,8 @@
 ARL TalentMatch — Official Corporate Edition (Full-Proof Enterprise Suite)
 =============================================================================
 Branding: Attock Refinery Limited (ARL Forest Green & Adaptive Theme Palette)
-Features: Responsive Compact Netflix Grid, Direct Card Click Sign-In, 
-Hover Badge Editor, Integrated Register Card, Supabase Live Pipeline & Tab 2 Clear View.
+Features: Fully Responsive Netflix Grid, Direct Card Click Sign-In, Clean Hover Badge Editor,
+Integrated Register Card, Supabase Live Pipeline, Tab 2 Clear View & Corporate Footer.
 """
 
 import io
@@ -396,7 +396,7 @@ def clear_screened_database():
     if supabase: supabase.table("screened_candidates").delete().neq("id", 0).execute()
 
 # ===========================================================================
-# 5. HIGH-END CORPORATE CSS (RESPONSIVE COMPACT NETFLIX CARDS & HOVER EDIT)
+# 5. HIGH-END CORPORATE CSS (RESPONSIVE NETFLIX CARDS WITH HOVER EDIT)
 # ===========================================================================
 ADAPTIVE_CSS = """
 <style>
@@ -415,11 +415,11 @@ html, body, [class*="css"], .stApp {
     background: linear-gradient(145deg, #0F3622 0%, #081F13 100%);
     border: 2px solid #15803D;
     border-radius: 18px;
-    padding: 1.2rem 0.8rem;
+    padding: 1.5rem 1rem;
     text-align: center;
     box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
     transition: all 0.25s ease;
-    margin-bottom: 10px;
+    margin-bottom: 12px;
     cursor: pointer;
     color: #FFFFFF !important;
 }
@@ -436,14 +436,14 @@ html, body, [class*="css"], .stApp {
 
 .hover-edit-badge {
     position: absolute;
-    top: 8px;
-    right: 10px;
+    top: 10px;
+    right: 12px;
     opacity: 0;
     transition: opacity 0.2s ease;
     background: rgba(16, 185, 129, 0.3);
     border-radius: 50%;
-    padding: 3px 6px;
-    font-size: 0.8rem;
+    padding: 4px 8px;
+    font-size: 0.85rem;
 }
 
 .top-navbar {
@@ -492,6 +492,8 @@ if "show_registration" not in st.session_state: st.session_state.show_registrati
 if "pending_pin_email" not in st.session_state: st.session_state.pending_pin_email = None
 if "pending_otp_email" not in st.session_state: st.session_state.pending_otp_email = None
 if "show_download_page" not in st.session_state: st.session_state.show_download_page = False
+if "show_policy" not in st.session_state: st.session_state.show_policy = False
+if "show_contact" not in st.session_state: st.session_state.show_contact = False
 
 # ===========================================================================
 # 7. DIALOGS (PIN & BADGE)
@@ -530,7 +532,32 @@ def show_sticker_picker_dialog(email, name):
 if not st.session_state.logged_in:
     saved_profiles = get_all_verified_profiles()
     
-    # Check if user clicked Download Desktop App
+    # Privacy Policy Page
+    if st.session_state.get("show_policy", False):
+        st.markdown("---")
+        st.markdown("### 🔒 Privacy Policy & Corporate Compliance")
+        st.write("Attock Refinery Limited (ARL) values your privacy and ensures that all recruitment data, candidate resumes, and recruiter credentials processed through TalentMatch Pro are secured under strict enterprise data governance standards.")
+        st.write("- **Data Encryption:** All records stored in Supabase are encrypted at rest and in transit.")
+        st.write("- **Access Control:** Role-based access control (RBAC) ensures only authorized HR personnel can view candidate pipelines.")
+        if st.button("⬅ Back to Portal Login", use_container_width=True):
+            st.session_state.show_policy = False
+            st.rerun()
+        st.stop()
+
+    # Contact Us Page
+    if st.session_state.get("show_contact", False):
+        st.markdown("---")
+        st.markdown("### 📞 Contact Human Resources")
+        st.write("For technical assistance, system access, or recruitment inquiries, please reach out to the ARL HR Digital Transformation Cell:")
+        st.write("- **Organization:** Attock Refinery Limited (ARL)")
+        st.write("- **Email:** recruitment@arl.com.pk / hr@arl.com.pk")
+        st.write("- **Location:** Morgah, Rawalpindi, Pakistan")
+        if st.button("⬅ Back to Portal Login", use_container_width=True):
+            st.session_state.show_contact = False
+            st.rerun()
+        st.stop()
+
+    # Download Desktop App Page
     if st.session_state.show_download_page:
         st.markdown("---")
         st.markdown("""
@@ -609,13 +636,13 @@ if not st.session_state.logged_in:
         st.stop()
 
     st.markdown(f"""
-        <div style="text-align: center; padding: 1.5rem 1rem 0.5rem 1rem;">
+        <div style="text-align: center; padding: 1.5rem 1rem 1rem 1rem;">
             <h1 style="font-size: 2.8rem; font-weight: 800;">Who's Screening?</h1>
             <p style="color: #4ADE80; font-size: 1rem;">{APP_TAGLINE}</p>
         </div>
     """, unsafe_allow_html=True)
 
-    # Responsive Compact Profile Grid (Max 4 per row, direct click & hover edit)
+    # Fully Responsive Profile Grid (Clickable Cards with hover badge)
     all_items = list(saved_profiles) + [("REGISTER_CARD", "Register Profile", "", "Action")]
     cols_per_row = 4
     
@@ -625,38 +652,36 @@ if not st.session_state.logged_in:
         for idx, item in enumerate(row_items):
             with cols[idx]:
                 if item[0] == "REGISTER_CARD":
-                    # Register Card
                     st.markdown("""
                         <div class="profile-card-container" style="border-style: dashed; border-color: #22C55E;">
-                            <div style="font-size: 2.5rem; margin-bottom: 4px;">➕</div>
-                            <div style="font-size: 1rem; font-weight: 800; margin-bottom: 2px;">New Profile</div>
-                            <div style="font-size: 0.65rem; font-family: 'JetBrains Mono', monospace; color: #4ADE80; text-transform: uppercase;">Register Account</div>
+                            <div style="font-size: 2.5rem; margin-bottom: 6px;">➕</div>
+                            <div style="font-size: 1.05rem; font-weight: 800; margin-bottom: 2px;">New Profile</div>
+                            <div style="font-size: 0.7rem; font-family: 'JetBrains Mono', monospace; color: #4ADE80; text-transform: uppercase;">Register Account</div>
                         </div>
                     """, unsafe_allow_html=True)
-                    if st.button("➕ Register", key=f"reg_card_btn_{i}", use_container_width=True):
+                    if st.button("➕ Create Profile", key=f"reg_card_btn_{i}", use_container_width=True):
                         st.session_state.show_registration = True
                         st.rerun()
                 else:
                     p_email, p_name, p_pin, p_role = item
                     avatar_sticker = get_user_avatar(p_email)
                     
-                    # Container with hover badge
                     st.markdown(f"""
                         <div class="profile-card-container">
-                            <div class="hover-edit-badge" title="Edit Badge">⚙️</div>
-                            <div style="font-size: 2.5rem; margin-bottom: 4px;">{avatar_sticker}</div>
-                            <div style="font-size: 1rem; font-weight: 800; margin-bottom: 2px;">{p_name}</div>
-                            <div style="font-size: 0.65rem; font-family: 'JetBrains Mono', monospace; color: #4ADE80; text-transform: uppercase;">{p_role}</div>
+                            <div class="hover-edit-badge" title="Change Badge">⚙️</div>
+                            <div style="font-size: 2.8rem; margin-bottom: 6px;">{avatar_sticker}</div>
+                            <div style="font-size: 1.05rem; font-weight: 800; margin-bottom: 2px;">{p_name}</div>
+                            <div style="font-size: 0.7rem; font-family: 'JetBrains Mono', monospace; color: #4ADE80; text-transform: uppercase;">{p_role}</div>
                         </div>
                     """, unsafe_allow_html=True)
                     
-                    # Inline tiny triggers for Sign In & Badge Change
-                    c_click, c_badge = st.columns([3, 1])
-                    with c_click:
-                        if st.button("🔐 Sign In", key=f"signin_grid_{i}_{idx}", use_container_width=True):
+                    # Direct action triggers (Clean & Minimal)
+                    c_in, c_badge = st.columns([3, 1])
+                    with c_in:
+                        if st.button("Select", key=f"sel_card_{i}_{idx}", use_container_width=True):
                             show_pin_dialog(p_email, p_name, p_role)
                     with c_badge:
-                        if st.button("✏️", key=f"edit_grid_{i}_{idx}", use_container_width=True, help="Change Badge"):
+                        if st.button("⚙️", key=f"badge_card_{i}_{idx}", use_container_width=True, help="Change Badge"):
                             show_sticker_picker_dialog(p_email, p_name)
 
     st.markdown("<br><hr style='border-color: rgba(34,197,94,0.2);'>", unsafe_allow_html=True)
@@ -667,6 +692,24 @@ if not st.session_state.logged_in:
         if st.button("📥 Download & FAQs", key="dl_portal_bottom", use_container_width=True):
             st.session_state.show_download_page = True
             st.rerun()
+
+    # ===========================================================================
+    # PROFESSIONAL SMALL FONT FOOTER
+    # ===========================================================================
+    st.markdown("<br>", unsafe_allow_html=True)
+    f_col1, f_col2, f_col3, f_col4 = st.columns([3, 2, 2, 3])
+    with f_col1:
+        st.markdown("<p style='font-size: 0.75rem; color: #9CA3AF; margin: 0;'>© 2026 Attock Refinery Limited (ARL)</p>", unsafe_allow_html=True)
+    with f_col2:
+        if st.button("Privacy Policy", key="footer_privacy_btn", type="tertiary"):
+            st.session_state.show_policy = True
+            st.rerun()
+    with f_col3:
+        if st.button("Contact Us", key="footer_contact_btn", type="tertiary"):
+            st.session_state.show_contact = True
+            st.rerun()
+    with f_col4:
+        st.markdown("<p style='font-size: 0.75rem; color: #9CA3AF; text-align: right; margin: 0;'>Enterprise HR Portal v2.0</p>", unsafe_allow_html=True)
 
     st.stop()
 
