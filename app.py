@@ -2,8 +2,8 @@
 ARL TalentMatch — Official Corporate Edition (Adaptive Enterprise Suite)
 =============================================================================
 Branding: Attock Refinery Limited (ARL Forest Green & Native Adaptive Theme)
-Features: Deduplication Engine, Chronological Bottom-Append Display (Last Candidate at End),
-Multi-Resume Segmentation, Permanent Supabase Badges, High-Contrast Grids.
+Features: True Square Netflix Profile Cards (150x150px), In-Card Top-Right Edit Badge,
+Supabase Permanent Badge Sync, Deduplication, Chronological Bottom-Append.
 """
 
 import io
@@ -276,10 +276,6 @@ def load_arl_job_catalog():
 # 4. DATABASE STORAGE (DEDUPLICATION & CHRONOLOGICAL APPEND)
 # ===========================================================================
 def load_database():
-    """
-    Loads candidates in ascending chronological order (order by ID ASC)
-    Purane pehle aayenge aur last uploaded candidate hamesha aakhir mein aayega.
-    """
     expected_cols = [
         "Name", "Father Name", "Qualification", "CGPA", 
         "Passing Year", "Institute", "DOB", "Email", 
@@ -316,15 +312,9 @@ def load_database():
     return pd.DataFrame(columns=expected_cols)
 
 def save_candidates_to_repository(new_candidates):
-    """
-    Deduplication Engine:
-    Pehle Supabase se existing records check karta hai. Agar Name, Email ya Phone
-    already match ho jaye to duplicate ko ignore kar deta hai.
-    """
     if not supabase: return 0, 0
     current_timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     
-    # Existing profiles fetch karein
     existing_emails = set()
     existing_phones = set()
     existing_names = set()
@@ -347,7 +337,6 @@ def save_candidates_to_repository(new_candidates):
         c_email = str(c.get("email", "Not Provided")).strip().lower()
         c_phone = str(c.get("phone", "Not Provided")).strip()
         
-        # Deduplication check
         is_dup = False
         if c_email and "not" not in c_email and c_email in existing_emails:
             is_dup = True
@@ -471,7 +460,7 @@ def clear_screened_database():
     if supabase: supabase.table("screened_candidates").delete().neq("id", 0).execute()
 
 # ===========================================================================
-# 5. ADAPTIVE STYLING CSS
+# 5. STRICT 150x150 SQUARE CARD CSS (NO STRETCH, LARGE CENTERED BADGE)
 # ===========================================================================
 ADAPTIVE_CSS = """
 <style>
@@ -485,7 +474,130 @@ html, body, [class*="css"], .stApp {
     display: none !important; 
 }
 
-/* Interior Dashboard Styling */
+/* Base button styling inside Dashboard */
+div.stButton > button {
+    border-radius: 10px !important;
+    font-weight: 600 !important;
+    padding: 0.45rem 1.1rem !important;
+    transition: all 0.2s ease !important;
+}
+
+div.stButton > button[kind="primary"] {
+    background: #047857 !important;
+    border-color: #059669 !important;
+    color: #FFFFFF !important;
+}
+
+/* ==========================================================================
+   TARGETED 150x150 SQUARE PROFILE BUTTONS
+   ========================================================================== */
+.profile-cell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1.5rem;
+}
+
+.profile-card-box {
+    position: relative;
+    width: 150px;
+    height: 150px;
+}
+
+/* Exact Square Dimensions & Large Centered Emoji */
+.profile-card-box div[data-testid="stButton"]:first-child > button {
+    width: 150px !important;
+    height: 150px !important;
+    min-width: 150px !important;
+    max-width: 150px !important;
+    min-height: 150px !important;
+    max-height: 150px !important;
+    border-radius: 26px !important;
+    background: #181B20 !important;
+    border: 2px solid #2D333B !important;
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.45) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.profile-card-box div[data-testid="stButton"]:first-child > button p {
+    font-size: 5rem !important;
+    line-height: 1 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.profile-card-box div[data-testid="stButton"]:first-child > button:hover {
+    transform: translateY(-5px) scale(1.04) !important;
+    border-color: #10B981 !important;
+    box-shadow: 0 14px 28px rgba(16, 185, 129, 0.4) !important;
+    background: #22262E !important;
+}
+
+/* Floating Corner Edit Pencil Button */
+.profile-corner-edit {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    z-index: 99;
+}
+
+.profile-corner-edit div[data-testid="stButton"] > button {
+    width: 34px !important;
+    height: 34px !important;
+    min-width: 34px !important;
+    max-width: 34px !important;
+    min-height: 34px !important;
+    max-height: 34px !important;
+    border-radius: 50% !important;
+    background: #23272F !important;
+    border: 1.5px solid #10B981 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5) !important;
+}
+
+.profile-corner-edit div[data-testid="stButton"] > button p {
+    font-size: 1rem !important;
+    line-height: 1 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.profile-corner-edit div[data-testid="stButton"] > button:hover {
+    background: #10B981 !important;
+    border-color: #34D399 !important;
+    transform: scale(1.15) !important;
+}
+
+/* Captions Below Card */
+.profile-meta-title {
+    text-align: center;
+    font-size: 1.1rem;
+    font-weight: 700;
+    line-height: 1.2;
+    margin-top: 12px;
+}
+
+.profile-meta-role {
+    text-align: center;
+    font-size: 0.75rem;
+    font-family: 'JetBrains Mono', monospace;
+    color: #10B981 !important;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    margin-top: 3px;
+}
+
+/* Top Navbar & Cards in Dashboard */
 .top-navbar {
     background: var(--secondary-background-color);
     border: 1px solid rgba(16, 185, 129, 0.35);
@@ -522,53 +634,6 @@ html, body, [class*="css"], .stApp {
     margin-bottom: 1rem;
     font-weight: 700;
     color: #10B981;
-}
-
-div[data-testid="stColumn"] div[style*="width:160px; height:160px"] div.stButton > button {
-    width: 160px !important;
-    height: 160px !important;
-    border-radius: 24px !important;
-    background: #181B20 !important;
-    border: 2px solid #2D333B !important;
-    box-shadow: 0 10px 22px rgba(0, 0, 0, 0.45) !important;
-    padding: 0 !important;
-    margin: 0 !important;
-}
-
-div[data-testid="stColumn"] div[style*="width:150px; height:150px"] div.stButton > button p {
-    font-size: 4.8rem !important;
-    line-height: 1 !important;
-    margin: 0 !important;
-}
-
-div.stButton > button[kind="primary"] {
-    background: #047857 !important;
-    border-color: #059669 !important;
-    color: #FFFFFF !important;
-}
-
-div.stButton > button[kind="primary"]:hover {
-    background: #059669 !important;
-    border-color: #10B981 !important;
-}
-
-/* Scoped Netflix Profile Card */
-.profile-meta-title {
-    text-align: center;
-    font-size: 1.1rem;
-    font-weight: 700;
-    line-height: 1.2;
-    margin-top: 10px;
-}
-
-.profile-meta-role {
-    text-align: center;
-    font-size: 0.72rem;
-    font-family: 'JetBrains Mono', monospace;
-    color: #10B981 !important;
-    text-transform: uppercase;
-    letter-spacing: 0.6px;
-    margin-top: 3px;
 }
 </style>
 """
@@ -610,6 +675,28 @@ def show_pin_dialog(email, name, role):
 
 @st.dialog("🎨 Choose Executive Badge")
 def show_sticker_picker_dialog(email, name):
+    st.markdown("""
+        <style>
+        div[data-testid="stDialog"] div[data-testid="stColumn"] {
+            padding: 3px !important;
+        }
+        div[data-testid="stDialog"] div.stButton > button {
+            width: 100% !important;
+            height: 55px !important;
+            border-radius: 12px !important;
+            background: #18191C !important;
+            border: 1.5px solid #2A2E33 !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            padding: 0 !important;
+        }
+        div[data-testid="stDialog"] div.stButton > button p {
+            font-size: 2rem !important;
+            margin: 0 !important;
+        }
+        </style>
+    """, unsafe_allow_html=True)
     st.write(f"Select a corporate avatar badge for **{name}**:")
     cols = st.columns(4)
     for idx, badge in enumerate(AVAILABLE_BADGES):
@@ -620,7 +707,7 @@ def show_sticker_picker_dialog(email, name):
                 st.rerun()
 
 # ===========================================================================
-# 8. AUTHENTICATION & LOGIN SCREEN
+# 8. AUTHENTICATION & LOGIN SCREEN (PROPER SQUARE PROFILE CARDS)
 # ===========================================================================
 if not st.session_state.logged_in:
     saved_profiles = get_all_verified_profiles()
@@ -692,7 +779,7 @@ if not st.session_state.logged_in:
         </div>
     """, unsafe_allow_html=True)
 
-# Scoped Netflix-Style Square Cards (150x150px)
+    # Scoped Netflix-Style Square Cards (Strict 150x150 Box)
     all_items = list(saved_profiles) + [("REGISTER_CARD", "New Profile", "", "Register")]
     cols_per_row = 4
     
@@ -703,15 +790,15 @@ if not st.session_state.logged_in:
             with cols[idx]:
                 if item[0] == "REGISTER_CARD":
                     st.markdown("""
-                        <div style="display:flex; flex-direction:column; align-items:center; margin-bottom:1.5rem;">
-                            <div style="width:150px; height:150px;">
+                        <div class="profile-cell">
+                            <div class="profile-card-box">
                     """, unsafe_allow_html=True)
-                    if st.button("➕", key=f"add_profile_card_{i}", use_container_width=True):
+                    if st.button("➕", key=f"add_profile_card_{i}"):
                         st.session_state.show_registration = True
                         st.rerun()
                     st.markdown("""
                             </div>
-                            <div class="profile-meta-title" style="margin-top:10px;">New Profile</div>
+                            <div class="profile-meta-title">New Profile</div>
                             <div class="profile-meta-role">Register Account</div>
                         </div>
                     """, unsafe_allow_html=True)
@@ -720,29 +807,29 @@ if not st.session_state.logged_in:
                     avatar_sticker = get_user_avatar(p_email)
                     
                     st.markdown("""
-                        <div style="display:flex; flex-direction:column; align-items:center; margin-bottom:1.5rem;">
-                            <div style="position:relative; width:150px; height:150px;">
+                        <div class="profile-cell">
+                            <div class="profile-card-box">
                     """, unsafe_allow_html=True)
                     
-                    # Main Square Avatar Card (Sirf Badge)
-                    if st.button(avatar_sticker, key=f"user_card_{i}_{idx}", use_container_width=True):
+                    # Main Square Avatar Card
+                    if st.button(avatar_sticker, key=f"user_card_{i}_{idx}"):
                         show_pin_dialog(p_email, p_name, p_role)
                     
-                    # Corner Edit Pencil Icon (Inside Card)
-                    st.markdown("""
-                        <div style="position:absolute; top:8px; right:8px; z-index:10; width:30px; height:30px;">
-                    """, unsafe_allow_html=True)
+                    # Corner Edit Pencil inside the card box
+                    st.markdown('<div class="profile-corner-edit">', unsafe_allow_html=True)
                     if st.button("✏️", key=f"edit_btn_{i}_{idx}", help="Change Badge"):
                         show_sticker_picker_dialog(p_email, p_name)
                     st.markdown('</div>', unsafe_allow_html=True)
                     
-                    # Name aur Role Card ke neechay
+                    # Name & Role below card
                     st.markdown(f"""
                             </div>
-                            <div class="profile-meta-title" style="margin-top:10px;">{p_name}</div>
-                            <div class="profile-meta-role">({p_role})</div>
+                            <div class="profile-meta-title">{p_name}</div>
+                            <div class="profile-meta-role">{p_role}</div>
                         </div>
                     """, unsafe_allow_html=True)
+
+    st.markdown("<br><hr style='opacity: 0.25;'>", unsafe_allow_html=True)
     col_dl1, col_dl2 = st.columns([7.5, 2.5], vertical_alignment="center")
     with col_dl1:
         st.markdown("🖥️ **Need desktop offline execution?** Download our standalone Windows MSI app.")
@@ -791,9 +878,6 @@ def extract_resume_text(uploaded_file):
     return ""
 
 def parse_multiple_candidates_from_text(client, full_text):
-    """
-    Splits merged/compilation PDFs into distinct candidates and parses each.
-    """
     chunk_size = 14000
     overlap = 500
     chunks = []
@@ -849,7 +933,6 @@ DOCUMENT TEXT:
                 cand_email = str(cand.get("email", "")).strip().lower()
                 cand_phone = str(cand.get("phone", "")).strip()
                 
-                # Deduplication key within the same file stream
                 uid = cand_email if cand_email and "not" not in cand_email else f"{cand_name.lower()}_{cand_phone}"
                 if cand_name and cand_name.lower() not in ["unknown", "name"] and uid not in seen_identifiers:
                     seen_identifiers.add(uid)
@@ -926,7 +1009,7 @@ st.markdown(f"""
 tab1, tab2, tab3, tab4 = st.tabs([
     "📥 1. Talent Repository (Upload)", 
     "🎯 2. JD Screening & Matching", 
-    "🗄️ 3. Live Database Grids", 
+    "🗄️️ 3. Live Database Grids", 
     "🛡️ 4. Admin Controls"
 ])
 
@@ -1041,13 +1124,13 @@ with tab2:
     st.markdown('</div>', unsafe_allow_html=True)
 
 with tab3:
-    st.markdown('<div class="corp-card"><h4>🗄️️ Real-Time Synchronized Database Grids</h4>', unsafe_allow_html=True)
+    st.markdown('<div class="corp-card"><h4>🗄️ Real-Time Synchronized Database Grids</h4>', unsafe_allow_html=True)
     g1, g2 = st.tabs(["Screened Candidates", "Master Talent Pool"])
     with g1:
         s_df = load_screened_database()
         if not s_df.empty: 
             st.dataframe(s_df, use_container_width=True)
-            if st.button("🗑️️ Clear Screened Candidates Table", type="secondary", key="clear_screened_btn"):
+            if st.button("🗑️ Clear Screened Candidates Table", type="secondary", key="clear_screened_btn"):
                 clear_screened_database()
                 st.success("Screened candidates records cleared from Supabase.")
                 st.rerun()
@@ -1057,7 +1140,7 @@ with tab3:
         m_df = load_database()
         if not m_df.empty: 
             st.dataframe(m_df, use_container_width=True)
-            if st.button("🗑️️ Clear Master Talent Pool", type="secondary", key="clear_pool_btn"):
+            if st.button("🗑️ Clear Master Talent Pool", type="secondary", key="clear_pool_btn"):
                 clear_candidate_database()
                 st.success("Master talent pool cleared.")
                 st.rerun()
