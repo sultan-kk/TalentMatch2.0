@@ -2,8 +2,8 @@
 ARL TalentMatch — Official Corporate Edition (Adaptive Enterprise Suite)
 =============================================================================
 Branding: Attock Refinery Limited (ARL Forest Green & Native Adaptive Theme)
-Features: In-Card Badge Editor Icon, Strict 140x140px Square Cards, Center Captions,
-Direct Click PIN, Supabase Live Pipeline, Tab 2 Clean Sync.
+Features: True 175x175px Square Netflix Cards, In-Card Top-Right Edit Badge,
+Centered Captions, Supabase Permanent Badge Sync, Tab 2 Clean Sync.
 """
 
 import io
@@ -33,7 +33,7 @@ ACCEPTED_TYPES = ["pdf", "docx", "png", "jpg", "jpeg"]
 EXE_DIRECT_DOWNLOAD_URL = "https://github.com/sultan-kk/TalentMatch2.0/releases/download/v1.0/ARL-HireMatrix-Pro_1.0.0_x64_en-US.msi"
 
 AVAILABLE_BADGES = [
-    "👔", "💼", "🛡️", "🎖️", "⚡", "🔬", "🛢️", "⚙️", 
+    "👔", "💼", "🛡️", "🎖️", "⚡", "🔬", "🛢️", "⚙️️", 
     "📈", "🎯", "👑", "🚀", "💡", "💻", "💎", "🏛️"
 ]
 
@@ -419,7 +419,7 @@ def clear_screened_database():
     if supabase: supabase.table("screened_candidates").delete().neq("id", 0).execute()
 
 # ===========================================================================
-# 5. DEDICATED CSS (INTEGRATED CORNER BADGE EDIT ICON)
+# 5. DEDICATED CSS (STRICT 175x175 SQUARE WITH IN-CARD TOP-RIGHT EDIT ICON)
 # ===========================================================================
 ADAPTIVE_CSS = """
 <style>
@@ -433,26 +433,34 @@ html, body, [class*="css"], .stApp {
     display: none !important; 
 }
 
-/* Profile Unit Container */
-.profile-card-unit {
-    position: relative;
-    width: 140px;
-    margin: 0 auto 1.4rem auto;
-    text-align: center;
+/* Container for Square Profile Card (Centered, Fixed 175px) */
+.profile-cell-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 2rem;
 }
 
-/* Card Button: Exact 140x140 Square */
-.profile-card-unit div.stButton:first-of-type > button {
-    width: 140px !important;
-    height: 140px !important;
-    min-width: 140px !important;
-    max-width: 140px !important;
-    min-height: 140px !important;
-    max-height: 140px !important;
-    border-radius: 24px !important;
+.card-box-holder {
+    position: relative;
+    width: 175px !important;
+    height: 175px !important;
+    margin: 0 auto !important;
+}
+
+/* Force Big Square 175x175px Button */
+.card-box-holder div[data-testid="stButton"]:first-of-type > button {
+    width: 175px !important;
+    height: 175px !important;
+    min-width: 175px !important;
+    max-width: 175px !important;
+    min-height: 175px !important;
+    max-height: 175px !important;
+    border-radius: 28px !important;
     background: #181B20 !important;
     border: 2px solid #2D333B !important;
-    box-shadow: 0 10px 22px rgba(0, 0, 0, 0.45) !important;
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.5) !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
@@ -461,78 +469,75 @@ html, body, [class*="css"], .stApp {
     transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
-.profile-card-unit div.stButton:first-of-type > button p {
-    font-size: 4.8rem !important;
+.card-box-holder div[data-testid="stButton"]:first-of-type > button p {
+    font-size: 5.5rem !important;
     line-height: 1 !important;
     margin: 0 !important;
     padding: 0 !important;
 }
 
-.profile-card-unit div.stButton:first-of-type > button:hover {
-    transform: translateY(-5px) scale(1.03) !important;
+.card-box-holder div[data-testid="stButton"]:first-of-type > button:hover {
+    transform: translateY(-6px) scale(1.03) !important;
     border-color: #10B981 !important;
-    box-shadow: 0 14px 28px rgba(16, 185, 129, 0.4) !important;
+    box-shadow: 0 16px 32px rgba(16, 185, 129, 0.35) !important;
     background: #22262E !important;
 }
 
-   /* Integrated In-Card Edit Pencil Icon (Top Right of Card) */
-.in-card-edit-btn {
+/* Integrated Edit Pencil Icon at Top-Right of Card */
+.corner-edit-btn {
     position: absolute;
-    top: 6px;
-    right: 6px;
-    z-index: 10;
+    top: 8px;
+    right: 8px;
+    z-index: 5;
 }
 
-.in-card-edit-btn div.stButton > button {
-    width: 170px !important;
-    height: 170px !important;
-    min-width: 170px !important;
-    max-width: 170px !important;
-    min-height: 170px !important;
-    max-height: 170px !important;
+.corner-edit-btn div.stButton > button {
+    width: 32px !important;
+    height: 32px !important;
+    min-width: 32px !important;
+    max-width: 32px !important;
+    min-height: 32px !important;
+    max-height: 32px !important;
     border-radius: 50% !important;
-    background: rgba(24, 27, 32, 0.85) !important;
+    background: rgba(24, 27, 32, 0.9) !important;
     border: 1px solid rgba(16, 185, 129, 0.5) !important;
     padding: 0 !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4) !important;
     transition: all 0.2s ease !important;
-    
-    
- 
 }
 
-.in-card-edit-btn div.stButton > button p {
-    font-size: 0.9rem !important;
+.corner-edit-btn div.stButton > button p {
+    font-size: 0.95rem !important;
     margin: 0 !important;
     line-height: 1 !important;
 }
 
-.in-card-edit-btn div.stButton > button:hover {
+.corner-edit-btn div.stButton > button:hover {
     background: #10B981 !important;
     border-color: #34D399 !important;
     transform: scale(1.15) !important;
 }
 
-/* Titles and Role below cards */
+/* Captions Below Card */
 .profile-meta-title {
     text-align: center;
-    font-size: 1.5rem;
-    font-weight: 650;
+    font-size: 1.15rem;
+    font-weight: 700;
     line-height: 1.2;
-    margin-top: 10px;
+    margin-top: 12px;
 }
 
 .profile-meta-role {
     text-align: center;
-    font-size: 0.72rem;
+    font-size: 0.75rem;
     font-family: 'JetBrains Mono', monospace;
     color: #10B981 !important;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-top: 2px;
+    letter-spacing: 0.6px;
+    margin-top: 3px;
 }
 
 /* ==========================================================================
@@ -576,8 +581,7 @@ html, body, [class*="css"], .stApp {
     color: #10B981;
 }
 
-/* Standard Buttons Inside Dashboard */
-div.stButton > button {
+div[data-testid="stMainBlockContainer"] div.stButton > button {
     border-radius: 10px !important;
     font-weight: 600 !important;
     padding: 0.45rem 1.1rem !important;
@@ -749,13 +753,13 @@ if not st.session_state.logged_in:
         st.stop()
 
     st.markdown(f"""
-        <div style="text-align: center; padding: 2.2rem 1rem 1.6rem 1rem;">
+        <div style="text-align: center; padding: 2.2rem 1rem 1.8rem 1rem;">
             <h1 style="font-size: 2.6rem; font-weight: 800; margin-bottom: 4px;">Who's Screening?</h1>
             <p style="color: #10B981; font-size: 1rem; font-weight: 500;">{APP_TAGLINE}</p>
         </div>
     """, unsafe_allow_html=True)
 
-    # Scoped Netflix-Style Square Cards with In-Card Corner Edit Button
+    # Scoped Netflix-Style Square Cards (175x175px)
     all_items = list(saved_profiles) + [("REGISTER_CARD", "New Profile", "", "Register")]
     cols_per_row = 4
     
@@ -766,12 +770,14 @@ if not st.session_state.logged_in:
             with cols[idx]:
                 if item[0] == "REGISTER_CARD":
                     st.markdown("""
-                        <div class="profile-card-unit">
+                        <div class="profile-cell-wrap">
+                            <div class="card-box-holder">
                     """, unsafe_allow_html=True)
                     if st.button("➕", key=f"add_profile_card_{i}"):
                         st.session_state.show_registration = True
                         st.rerun()
                     st.markdown("""
+                            </div>
                             <div class="profile-meta-title">New Profile</div>
                             <div class="profile-meta-role">Register Account</div>
                         </div>
@@ -781,7 +787,8 @@ if not st.session_state.logged_in:
                     avatar_sticker = get_user_avatar(p_email)
                     
                     st.markdown("""
-                        <div class="profile-card-unit">
+                        <div class="profile-cell-wrap">
+                            <div class="card-box-holder">
                     """, unsafe_allow_html=True)
                     
                     # Main Square Avatar Card
@@ -789,13 +796,14 @@ if not st.session_state.logged_in:
                         show_pin_dialog(p_email, p_name, p_role)
                     
                     # Corner Edit Button inside card
-                    st.markdown('<div class="in-card-edit-btn">', unsafe_allow_html=True)
+                    st.markdown('<div class="corner-edit-btn">', unsafe_allow_html=True)
                     if st.button("✏️", key=f"edit_btn_{i}_{idx}", help="Change Badge"):
                         show_sticker_picker_dialog(p_email, p_name)
                     st.markdown('</div>', unsafe_allow_html=True)
                     
                     # Name & Role below card
                     st.markdown(f"""
+                            </div>
                             <div class="profile-meta-title">{p_name}</div>
                             <div class="profile-meta-role">{p_role}</div>
                         </div>
@@ -977,7 +985,7 @@ with tab2:
     if display_results:
         st.markdown("### 📋 Screened Candidates")
         
-        if st.button("🗑️ Clear Screening View", type="secondary", key="clear_screening_view_btn"):
+        if st.button("🗑️️ Clear Screening View", type="secondary", key="clear_screening_view_btn"):
             st.session_state.screening_results = []
             st.success("Screening view reset.")
             st.rerun()
@@ -1036,7 +1044,7 @@ with tab3:
     st.markdown('</div>', unsafe_allow_html=True)
 
 with tab4:
-    st.markdown('<div class="corp-card"><h4>🛡️️ Admin User Controls</h4>', unsafe_allow_html=True)
+    st.markdown('<div class="corp-card"><h4>🛡 Admin User Controls</h4>', unsafe_allow_html=True)
     profiles = get_all_verified_profiles()
     for p_em, p_nm, p_p, p_r in profiles:
         c1, c2, c3 = st.columns([3, 1.5, 1], vertical_alignment="center")
