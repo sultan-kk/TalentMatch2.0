@@ -2,9 +2,9 @@
 Arl TalentMatch:AI-Driven Automated CV Parser & JD Matcher
 =============================================================================
 Branding: Attock Refinery Limited (ARL Official Forest Green & Charcoal Palette)
-Features: Netflix-Style Profile Cards, Custom Professional Stickers,
-Clickable Executive Badges, Bulletproof PIN Authentication, Fast 150 DPI OCR,
+Features: Executive Profile Badges, Bulletproof PIN Authentication, Fast 150 DPI OCR,
 Safe Multi-CV Extraction, Exact 13-Column Sequence, ARL Job Hierarchy & Supabase Sync.
+Windows Desktop (.msi) Client Download Support & Desktop Mode Dismissal.
 """
 
 import io
@@ -32,7 +32,7 @@ APP_TAGLINE = "Attock Refinery Limited (ARL) • HR Intelligence & AI Screening 
 GROQ_MODEL = "openai/gpt-oss-120b"
 ACCEPTED_TYPES = ["pdf", "docx", "png", "jpg", "jpeg"]
 
-# Available Professional Stickers
+# Professional Executive Stickers & Avatars
 PROFESSIONAL_STICKERS = {
     "👔": "Executive / HR Lead",
     "🛢️": "Refinery Operations",
@@ -48,13 +48,13 @@ PROFESSIONAL_STICKERS = {
     "🚀": "Turnaround Specialist"
 }
 
-# ⬇️ Hosted .msi / .exe release link
+# Hosted .msi / .exe release link
 EXE_DOWNLOAD_URL = "https://github.com/sultan-kk/TalentMatch2.0/releases/download/v1.0/ARL-HireMatrix-Pro_1.0.0_x64_en-US.msi"
 
 def get_arl_favicon():
     img = Image.new("RGBA", (64, 64), (255, 255, 255, 0))
     draw = ImageDraw.Draw(img)
-    draw.polygon([(32, 6), (58, 20), (58, 44), (32, 58), (6, 44), (6, 20)], outline=(22, 101, 52), width=5)
+    draw.polygon([(32, 6), (58, 20), (58, 44), (32, 58), (6, 44), (6, 20)], outline=(34, 197, 94), width=5)
     draw.polygon([(32, 16), (46, 25), (46, 39), (32, 48), (18, 39), (18, 25)], fill=(22, 101, 52))
     return img
 
@@ -117,7 +117,7 @@ def send_smtp_email(receiver_email, subject, body_text):
     except Exception as e:
         return False, f"Failed to send email: {e}"
 
-# ----------------- BULLETPROOF PIN AUTHENTICATION & STICKERS -----------------
+# ----------------- SECURITY PIN AUTHENTICATION & STICKERS -----------------
 def get_default_sticker(email: str) -> str:
     stickers = list(PROFESSIONAL_STICKERS.keys())
     idx = int(hashlib.md5(email.encode()).hexdigest(), 16) % len(stickers)
@@ -226,7 +226,7 @@ def register_initial_employee(name, email, password, sticker="👔"):
         }
         supabase.table("hr_users").upsert(data).execute()
         
-        success, msg = send_smtp_email(clean_email, "Arl TalentMatch - Verification OTP", f"Your verification code is: {otp}")
+        success, msg = send_smtp_email(clean_email, "ARL TalentMatch - Verification OTP", f"Your verification code is: {otp}")
         if success:
             return True, "Registration initiated! Please check your email for the verification OTP."
         else:
@@ -665,7 +665,7 @@ def generate_screening_excel(results_list) -> bytes:
     return buffer.getvalue()
 
 # ===========================================================================
-# 6. ARL CHARCOAL BLACK & OFFICIAL GREEN ACCENTS CSS (NETFLIX PROFILES)
+# 6. FULL ARL CORPORATE FOREST GREEN & GOLD-MINT ACCENTS THEME CSS
 # ===========================================================================
 ARL_GREEN_CSS = """
 <style>
@@ -675,28 +675,34 @@ html, body, [class*="css"] {
     font-family: 'Plus Jakarta Sans', sans-serif !important;
 }
 
+/* Full Atmospheric Forest Green Background */
+.stApp {
+    background: radial-gradient(circle at 50% 8%, #0f3d24 0%, #082415 48%, #03120a 100%) !important;
+    color: #F8FAFC !important;
+}
+
 [data-testid="stSidebar"] { display: none !important; }
 [data-testid="collapsedControl"] { display: none !important; }
 
-/* ARL Header */
+/* ARL Corporate Header */
 .cyber-header-box {
     text-align: center;
-    padding: 1.5rem 1rem 1rem 1rem;
+    padding: 1.6rem 1rem 1rem 1rem;
     margin-bottom: 0.8rem;
 }
 
 .cyber-title {
-    font-size: 2.1rem !important;
+    font-size: 2.15rem !important;
     font-weight: 800 !important;
     letter-spacing: -0.6px !important;
-    color: #111827 !important;
+    color: #FFFFFF !important;
     margin: 0 0 6px 0 !important;
     line-height: 1.2 !important;
 }
 
 .cyber-title-pro {
-    color: #166534 !important;
-    background: linear-gradient(135deg, #15803D 0%, #166534 100%);
+    color: #4ADE80 !important;
+    background: linear-gradient(135deg, #86EFAC 0%, #22C55E 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
 }
@@ -705,32 +711,22 @@ html, body, [class*="css"] {
     display: inline-flex !important;
     align-items: center !important;
     gap: 8px !important;
-    background: rgba(22, 101, 52, 0.08) !important;
-    border: 1.5px solid #166534 !important;
-    padding: 4px 18px !important;
+    background: rgba(34, 197, 94, 0.15) !important;
+    border: 1.5px solid #22C55E !important;
+    padding: 5px 20px !important;
     border-radius: 30px !important;
-    font-size: 0.75rem !important;
+    font-size: 0.76rem !important;
     font-weight: 800 !important;
     text-transform: uppercase !important;
     letter-spacing: 1.5px !important;
-    color: #166534 !important;
-}
-
-@media (prefers-color-scheme: dark) {
-    .cyber-title {
-        color: #F8FAFC !important;
-    }
-    .cyber-badge {
-        background: rgba(22, 101, 52, 0.2) !important;
-        border-color: #22C55E !important;
-        color: #22C55E !important;
-    }
+    color: #86EFAC !important;
+    box-shadow: 0 0 15px rgba(34, 197, 94, 0.2) !important;
 }
 
 /* ============================================================ */
-/* NETFLIX-STYLE ROUNDED SQUARE PROFILE CARDS                   */
+/* EXECUTIVE ROUNDED SQUARE PROFILE TILES                       */
 /* ============================================================ */
-.netflix-wrapper {
+.arl-profile-grid {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
@@ -739,7 +735,7 @@ html, body, [class*="css"] {
     padding: 1.5rem 0.5rem 1rem 0.5rem;
 }
 
-.netflix-profile-link {
+.arl-profile-tile {
     text-decoration: none !important;
     color: inherit !important;
     display: flex;
@@ -750,36 +746,35 @@ html, body, [class*="css"] {
     transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
-.netflix-profile-link:hover {
-    transform: translateY(-6px) scale(1.06);
+.arl-profile-tile:hover {
+    transform: translateY(-8px) scale(1.06);
 }
 
-.netflix-square-box {
+.arl-tile-avatar {
     width: 110px;
     height: 110px;
-    border-radius: 20px;
-    background: linear-gradient(145deg, #1A1E24 0%, #101317 100%);
-    border: 2px solid #262D35;
+    border-radius: 22px;
+    background: linear-gradient(145deg, #113f26 0%, #082416 100%);
+    border: 2px solid #22C55E;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 3.2rem;
-    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.55);
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.6), inset 0 0 16px rgba(34, 197, 94, 0.15);
     position: relative;
     transition: all 0.25s ease-in-out;
 }
 
-.netflix-profile-link:hover .netflix-square-box {
-    border-color: #22C55E !important;
-    box-shadow: 0 12px 28px rgba(34, 197, 94, 0.35), inset 0 0 16px rgba(34, 197, 94, 0.12) !important;
+.arl-profile-tile:hover .arl-tile-avatar {
+    border-color: #86EFAC !important;
+    box-shadow: 0 14px 34px rgba(34, 197, 94, 0.4), inset 0 0 20px rgba(74, 222, 128, 0.25) !important;
 }
 
-/* Mini Sticker Badge in Top-Right */
-.netflix-sticker-tag {
+.arl-tile-badge {
     position: absolute;
     bottom: -6px;
     right: -6px;
-    background: #14171A;
+    background: #082416;
     border: 1.5px solid #22C55E;
     border-radius: 50%;
     width: 28px;
@@ -788,14 +783,14 @@ html, body, [class*="css"] {
     align-items: center;
     justify-content: center;
     font-size: 0.85rem;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
 }
 
-.netflix-profile-name {
+.arl-tile-name {
     margin-top: 10px;
     font-size: 0.95rem;
     font-weight: 700;
-    color: #CBD5E1;
+    color: #F1F5F9;
     text-align: center;
     width: 115px;
     white-space: nowrap;
@@ -804,15 +799,16 @@ html, body, [class*="css"] {
     transition: color 0.2s ease;
 }
 
-.netflix-profile-link:hover .netflix-profile-name {
-    color: #22C55E !important;
+.arl-profile-tile:hover .arl-tile-name {
+    color: #4ADE80 !important;
 }
 
-.netflix-profile-role {
+.arl-tile-role {
     font-size: 0.72rem;
     font-family: 'JetBrains Mono', monospace;
-    color: #94A3B8;
-    background: rgba(255, 255, 255, 0.05);
+    color: #86EFAC;
+    background: rgba(34, 197, 94, 0.12);
+    border: 1px solid rgba(34, 197, 94, 0.3);
     padding: 2px 8px;
     border-radius: 6px;
     margin-top: 4px;
@@ -820,69 +816,45 @@ html, body, [class*="css"] {
     letter-spacing: 0.5px;
 }
 
-/* Add New Profile Square (Netflix dashed style) */
-.netflix-add-box {
+/* Add Profile Square */
+.arl-add-avatar {
     width: 110px;
     height: 110px;
-    border-radius: 20px;
-    background: rgba(255, 255, 255, 0.02);
-    border: 2px dashed #374151;
+    border-radius: 22px;
+    background: rgba(34, 197, 94, 0.08);
+    border: 2px dashed #22C55E;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 2.2rem;
-    color: #94A3B8;
+    color: #86EFAC;
     transition: all 0.25s ease;
 }
 
-.netflix-profile-link:hover .netflix-add-box {
-    border-color: #22C55E;
-    color: #22C55E;
-    background: rgba(34, 197, 94, 0.06);
+.arl-profile-tile:hover .arl-add-avatar {
+    border-color: #86EFAC;
+    color: #FFFFFF;
+    background: rgba(34, 197, 94, 0.2);
+    box-shadow: 0 10px 25px rgba(34, 197, 94, 0.25);
 }
 
-/* ARL Green Corporate Buttons */
-.stButton > button {
-    background: linear-gradient(135deg, #166534 0%, #14532D 100%) !important;
-    color: #FFFFFF !important;
-    border: 1.5px solid #22C55E !important;
-    border-radius: 12px !important;
-    font-weight: 700 !important;
-    white-space: nowrap !important;
-    padding: 0.65rem 1.2rem !important;
-    box-shadow: 0 4px 15px rgba(22, 101, 52, 0.3) !important;
-    transition: all 0.25s ease-in-out !important;
+/* Glassmorphism Border Wrappers & Containers */
+[data-testid="stVerticalBlock"] > [data-testid="stVerticalBlockBorderWrapper"]:first-child {
+    border: 1.5px solid rgba(74, 222, 128, 0.3) !important;
+    border-radius: 24px !important;
+    padding: 2.2rem 2.2rem !important;
+    background: linear-gradient(135deg, rgba(14, 46, 29, 0.88) 0%, rgba(8, 28, 18, 0.94) 100%) !important;
+    box-shadow: 0 18px 45px rgba(0, 0, 0, 0.6), inset 0 0 25px rgba(34, 197, 94, 0.12) !important;
+    backdrop-filter: blur(16px) !important;
 }
 
-.stButton > button:hover {
-    background: linear-gradient(135deg, #15803D 0%, #166534 100%) !important;
-    color: #FFFFFF !important;
-    border-color: #FFFFFF !important;
-    box-shadow: 0 6px 20px rgba(34, 197, 94, 0.5) !important;
-    transform: translateY(-2px);
-}
-
-/* PIN & Login Form Container */
+/* Form Styles */
 [data-testid="stForm"] {
-    background: #14171A !important;
-    border: 1.5px solid #1E2328 !important;
+    background: linear-gradient(145deg, rgba(14, 46, 29, 0.92) 0%, rgba(6, 22, 14, 0.96) 100%) !important;
+    border: 1.5px solid rgba(74, 222, 128, 0.3) !important;
     border-radius: 20px !important;
     padding: 2.2rem !important;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5) !important;
-}
-
-[data-testid="stVerticalBlockBorderWrapper"] h3 {
-    color: #22C55E !important;
-    font-weight: 800 !important;
-    font-size: 1.5rem !important;
-    text-shadow: 0 0 12px rgba(34, 197, 94, 0.3) !important;
-    margin-bottom: 6px !important;
-}
-
-[data-testid="stVerticalBlockBorderWrapper"] [data-testid="stCaptionContainer"] p,
-[data-testid="stVerticalBlockBorderWrapper"] [data-testid="stCaptionContainer"] {
-    color: #CBD5E1 !important;
-    font-size: 0.92rem !important;
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.6) !important;
 }
 
 [data-testid="stForm"] label,
@@ -891,88 +863,107 @@ html, body, [class*="css"] {
 [data-testid="stForm"] label p {
     color: #FFFFFF !important;
     font-weight: 700 !important;
-    font-size: 1rem !important;
-    letter-spacing: 0.5px !important;
+    font-size: 0.98rem !important;
+    letter-spacing: 0.4px !important;
 }
 
-[data-testid="stInputCounter"] {
-    color: #94A3B8 !important;
+/* Buttons */
+.stButton > button {
+    background: linear-gradient(135deg, #16A34A 0%, #15803D 100%) !important;
+    color: #FFFFFF !important;
+    border: 1.5px solid #4ADE80 !important;
+    border-radius: 12px !important;
+    font-weight: 700 !important;
+    white-space: nowrap !important;
+    padding: 0.65rem 1.2rem !important;
+    box-shadow: 0 4px 18px rgba(22, 163, 74, 0.35) !important;
+    transition: all 0.25s ease-in-out !important;
+}
+
+.stButton > button:hover {
+    background: linear-gradient(135deg, #22C55E 0%, #16A34A 100%) !important;
+    color: #FFFFFF !important;
+    border-color: #FFFFFF !important;
+    box-shadow: 0 6px 24px rgba(74, 222, 128, 0.5) !important;
+    transform: translateY(-2px);
 }
 
 /* Navbar */
 .top-navbar {
-    background: linear-gradient(135deg, #14171A 0%, #1A2026 100%);
-    border: 1.5px solid #1E2328;
-    border-bottom: 2px solid #166534;
+    background: linear-gradient(135deg, rgba(14, 46, 29, 0.95) 0%, rgba(8, 28, 18, 0.95) 100%);
+    border: 1.5px solid rgba(74, 222, 128, 0.25);
+    border-bottom: 2.5px solid #22C55E;
     border-radius: 16px;
     padding: 1.1rem 2rem;
     margin-bottom: 1.8rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
 }
 .top-brand-title {
     font-size: 1.45rem; font-weight: 800; color: #FFFFFF; margin: 0;
     display: flex; align-items: center; gap: 10px;
 }
 .top-brand-subtitle {
-    font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1.2px; font-weight: 700; color: #94A3B8; margin: 0;
+    font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1.2px; font-weight: 700; color: #86EFAC; margin: 0;
 }
 
 .corp-hero {
-    background: linear-gradient(135deg, rgba(22, 101, 52, 0.12) 0%, rgba(20, 23, 26, 0.8) 100%);
-    border: 1.5px solid #1E2328;
+    background: linear-gradient(135deg, rgba(34, 197, 94, 0.18) 0%, rgba(8, 28, 18, 0.9) 100%);
+    border: 1.5px solid rgba(74, 222, 128, 0.3);
     border-radius: 16px;
     padding: 2rem 2.5rem;
     margin-bottom: 2rem;
-    border-left: 6px solid #22C55E;
+    border-left: 6px solid #4ADE80;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
 }
 .corp-badge {
     display: inline-flex; align-items: center; gap: 8px; 
-    background: rgba(34, 197, 94, 0.15); color: #22C55E; 
+    background: rgba(34, 197, 94, 0.2); color: #86EFAC; 
     padding: 5px 14px; border-radius: 6px;
     font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.8rem;
-    border: 1px solid rgba(34, 197, 94, 0.4);
+    border: 1px solid rgba(74, 222, 128, 0.4);
 }
 
 .corp-card {
-    background: var(--background-color);
-    border: 1.5px solid rgba(22, 101, 52, 0.25);
+    background: rgba(14, 46, 29, 0.65);
+    border: 1.5px solid rgba(74, 222, 128, 0.25);
     border-radius: 16px;
     padding: 1.8rem;
     margin-bottom: 1.5rem;
+    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.3);
 }
 
 .corp-card h4 {
     font-size: 1.25rem !important;
     font-weight: 800 !important;
     letter-spacing: -0.2px !important;
-    color: light-dark(#166534, #FFFFFF) !important;
+    color: #FFFFFF !important;
     display: flex !important;
     align-items: center !important;
     gap: 10px !important;
     margin-top: 0 !important;
     margin-bottom: 1.2rem !important;
-    background: linear-gradient(90deg, rgba(34, 197, 94, 0.12) 0%, rgba(22, 101, 52, 0.04) 100%) !important;
-    border-left: 4px solid #166534 !important;
-    border-bottom: 1px solid rgba(22, 101, 52, 0.25) !important;
+    background: linear-gradient(90deg, rgba(34, 197, 94, 0.18) 0%, rgba(22, 101, 52, 0.08) 100%) !important;
+    border-left: 4px solid #4ADE80 !important;
+    border-bottom: 1px solid rgba(74, 222, 128, 0.25) !important;
     border-radius: 8px 12px 12px 8px !important;
     padding: 10px 16px !important;
 }
 
-.metric-box .val { font-size: 1.8rem; font-weight: 800; color: #22C55E; }
-.metric-box .lbl { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; font-weight: 700; opacity: 0.85; }
+.metric-box .val { font-size: 1.8rem; font-weight: 800; color: #4ADE80; }
+.metric-box .lbl { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; font-weight: 700; color: #86EFAC; }
 
-.score-high { color: #10B981 !important; font-weight: 800; }
-.score-mid { color: #F59E0B !important; font-weight: 800; }
-.score-low { color: #EF4444 !important; font-weight: 800; }
+.score-high { color: #4ADE80 !important; font-weight: 800; }
+.score-mid { color: #FBBF24 !important; font-weight: 800; }
+.score-low { color: #F87171 !important; font-weight: 800; }
 
 div[data-baseweb="tab-highlight"], div[data-baseweb="tab-border"] { display: none !important; }
 
 div[data-baseweb="tab-list"] {
-    background: #14171A !important;
-    border: 1.5px solid #1E2328 !important;
+    background: rgba(10, 34, 21, 0.9) !important;
+    border: 1.5px solid rgba(74, 222, 128, 0.25) !important;
     border-radius: 16px !important;
     padding: 6px 10px !important;
     gap: 8px !important;
@@ -991,37 +982,14 @@ button[data-baseweb="tab"] {
 }
 
 button[data-baseweb="tab"]:hover {
-    color: #22C55E !important;
-    background: rgba(34, 197, 94, 0.08) !important;
+    color: #4ADE80 !important;
+    background: rgba(34, 197, 94, 0.1) !important;
 }
 
 button[data-baseweb="tab"][aria-selected="true"] {
-    background: linear-gradient(135deg, rgba(22, 101, 52, 0.6) 0%, rgba(34, 197, 94, 0.2) 100%) !important;
-    border: 1.5px solid #22C55E !important;
-    color: #22C55E !important;
-}
-
-[data-testid="stVerticalBlock"] > [data-testid="stVerticalBlockBorderWrapper"]:first-child {
-    border: 1.5px solid rgba(22, 101, 52, 0.4) !important;
-    border-radius: 24px !important;
-    padding: 2.2rem 2.2rem !important;
-    background: rgba(22, 101, 52, 0.05) !important;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06) !important;
-}
-
-[data-testid="column"] [data-testid="stVerticalBlockBorderWrapper"], [data-testid="column"] > div {
-    border: none !important;
-    background: transparent !important;
-    padding: 0 !important;
-}
-
-@media (prefers-color-scheme: dark) {
-    [data-testid="stVerticalBlock"] > [data-testid="stVerticalBlockBorderWrapper"]:first-child {
-        border: 1.5px solid rgba(34, 197, 94, 0.35) !important;
-        background: linear-gradient(135deg, rgba(13, 35, 25, 0.82) 0%, rgba(9, 24, 17, 0.92) 100%) !important;
-        box-shadow: 0 16px 40px rgba(0, 0, 0, 0.55), inset 0 0 25px rgba(22, 101, 52, 0.15) !important;
-        backdrop-filter: blur(16px) !important;
-    }
+    background: linear-gradient(135deg, rgba(22, 101, 52, 0.8) 0%, rgba(34, 197, 94, 0.35) 100%) !important;
+    border: 1.5px solid #4ADE80 !important;
+    color: #FFFFFF !important;
 }
 </style>
 """
@@ -1039,14 +1007,13 @@ if "pending_otp_email" not in st.session_state: st.session_state.pending_otp_ema
 if "pending_pin_email" not in st.session_state: st.session_state.pending_pin_email = None
 if "screening_results" not in st.session_state: st.session_state.screening_results = []
 if "show_download_page" not in st.session_state: st.session_state.show_download_page = False
-if "manage_profiles_mode" not in st.session_state: st.session_state.manage_profiles_mode = False
 
 if "is_desktop_mode" not in st.session_state:
     st.session_state.is_desktop_mode = (st.query_params.get("mode") == "desktop")
 is_desktop_mode = st.session_state.is_desktop_mode or (st.query_params.get("mode") == "desktop")
 
 # ===========================================================================
-# 7.1 MOVIEBOX-STYLE DEDICATED DESKTOP DOWNLOAD LANDING PAGE
+# 7.1 DEDICATED WINDOWS DESKTOP INSTALLER LANDING PAGE
 # ===========================================================================
 def render_download_landing_page(exe_direct_url: str):
     st.markdown("""
@@ -1054,18 +1021,18 @@ def render_download_landing_page(exe_direct_url: str):
     .dl-hero-box {
         text-align: center;
         padding: 3rem 1.5rem 2.2rem 1.5rem;
-        background: linear-gradient(180deg, rgba(22, 101, 52, 0.18) 0%, rgba(20, 23, 26, 0.9) 100%);
-        border: 1.5px solid #1E2328;
-        border-top: 3px solid #22C55E;
+        background: linear-gradient(180deg, rgba(34, 197, 94, 0.22) 0%, rgba(8, 28, 18, 0.95) 100%);
+        border: 1.5px solid rgba(74, 222, 128, 0.35);
+        border-top: 4px solid #4ADE80;
         border-radius: 24px;
         margin-bottom: 2.5rem;
-        box-shadow: 0 16px 40px rgba(0, 0, 0, 0.55);
+        box-shadow: 0 16px 45px rgba(0, 0, 0, 0.6);
     }
     .dl-badge {
         display: inline-block;
-        background: rgba(34, 197, 94, 0.15);
-        color: #22C55E;
-        border: 1px solid #166534;
+        background: rgba(34, 197, 94, 0.18);
+        color: #4ADE80;
+        border: 1px solid #22C55E;
         padding: 6px 18px;
         border-radius: 30px;
         font-size: 0.78rem;
@@ -1082,7 +1049,7 @@ def render_download_landing_page(exe_direct_url: str):
         line-height: 1.15;
     }
     .dl-subtitle {
-        color: #94A3B8;
+        color: #CBD5E1;
         font-size: 1.15rem;
         max-width: 680px;
         margin: 0 auto 2.2rem auto;
@@ -1092,35 +1059,35 @@ def render_download_landing_page(exe_direct_url: str):
         display: inline-flex;
         align-items: center;
         gap: 12px;
-        background: linear-gradient(135deg, #166534 0%, #15803D 100%);
+        background: linear-gradient(135deg, #16A34A 0%, #15803D 100%);
         color: #FFFFFF !important;
         font-size: 1.18rem;
         font-weight: 800;
         padding: 1.1rem 2.8rem;
         border-radius: 14px;
         text-decoration: none;
-        box-shadow: 0 10px 30px rgba(22, 101, 52, 0.45);
-        border: 1.5px solid #22C55E;
+        box-shadow: 0 10px 30px rgba(22, 163, 74, 0.45);
+        border: 1.5px solid #4ADE80;
         transition: all 0.25s ease-in-out;
     }
     .dl-main-btn:hover {
-        background: linear-gradient(135deg, #15803D 0%, #166534 100%);
+        background: linear-gradient(135deg, #22C55E 0%, #16A34A 100%);
         transform: translateY(-3px) scale(1.02);
-        box-shadow: 0 14px 35px rgba(34, 197, 94, 0.6);
+        box-shadow: 0 14px 35px rgba(74, 222, 128, 0.6);
         border-color: #FFFFFF;
     }
     .step-card {
-        background: #14171A;
-        border: 1.5px solid #1E2328;
+        background: rgba(14, 46, 29, 0.8);
+        border: 1.5px solid rgba(74, 222, 128, 0.25);
         border-radius: 18px;
         padding: 2rem 1.5rem;
         text-align: center;
         height: 100%;
-        box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        box-shadow: 0 6px 20px rgba(0,0,0,0.4);
         transition: all 0.25s ease;
     }
     .step-card:hover {
-        border-color: #22C55E;
+        border-color: #4ADE80;
         transform: translateY(-4px);
     }
     .step-num {
@@ -1129,11 +1096,11 @@ def render_download_landing_page(exe_direct_url: str):
         height: 48px;
         line-height: 48px;
         border-radius: 50%;
-        background: rgba(34, 197, 94, 0.15);
-        color: #22C55E;
+        background: rgba(34, 197, 94, 0.2);
+        color: #4ADE80;
         font-weight: 800;
         font-size: 1.2rem;
-        border: 1.5px solid #166534;
+        border: 1.5px solid #22C55E;
         margin-bottom: 1.2rem;
         font-family: 'JetBrains Mono', monospace;
     }
@@ -1165,7 +1132,7 @@ def render_download_landing_page(exe_direct_url: str):
             <a href="{exe_direct_url}" target="_blank" class="dl-main-btn">
                 <span>⬇️</span> Download for Windows · ARL-HireMatrix-Pro.msi (Free)
             </a>
-            <div style="margin-top: 18px; color: #94A3B8; font-size: 0.85rem; font-family: 'JetBrains Mono', monospace;">
+            <div style="margin-top: 18px; color: #86EFAC; font-size: 0.85rem; font-family: 'JetBrains Mono', monospace;">
                 Official Windows Installer &bull; 64-bit Architecture &bull; Instant Cloud Sync
             </div>
         </div>
@@ -1200,20 +1167,18 @@ def render_download_landing_page(exe_direct_url: str):
         """, unsafe_allow_html=True)
 
     st.markdown("<div style='margin-top: 3.5rem;'></div>", unsafe_allow_html=True)
-    st.markdown("<h4 style='color: #22C55E; margin-bottom: 1rem;'>❓ Desktop App FAQs & Guidance</h4>", unsafe_allow_html=True)
+    st.markdown("<h4 style='color: #4ADE80; margin-bottom: 1rem;'>❓ Desktop App Guidance</h4>", unsafe_allow_html=True)
     with st.expander("❓ What should I do if Windows SmartScreen shows a warning?"):
-        st.write("Since this is a custom internal enterprise package without an expensive commercial EV certificate, Windows SmartScreen may show a security prompt. Simply click **'More info'** and then click **'Run anyway'**. The application is 100% virus-free and verified.")
+        st.write("Since this is a custom internal enterprise package, Windows SmartScreen may show a security prompt. Simply click **'More info'** and then click **'Run anyway'**. The application is verified and safe.")
     with st.expander("❓ Will my screened candidate data sync between Desktop and Web?"):
-        st.write("Yes! Both the Desktop application and the Web portal connect directly to the same Supabase Cloud database. Any resume uploaded or candidate screened on the desktop app is immediately available in real-time on the web version.")
-    with st.expander("❓ What are the system requirements?"):
-        st.write("Windows 10 or 11 (64-bit), minimum 4 GB RAM, and an active internet connection for Groq AI screening and Supabase synchronization.")
+        st.write("Yes! Both Desktop and Web connect directly to the same Supabase Cloud database in real-time.")
 
 if st.session_state.show_download_page:
     render_download_landing_page(EXE_DOWNLOAD_URL)
     st.stop()
 
 # ===========================================================================
-# 8. AUTHENTICATION & LOGIN SCREEN (NETFLIX PROFILES REDESIGN)
+# 8. AUTHENTICATION & LOGIN SCREEN (CLEAN EXECUTIVE CARDS)
 # ===========================================================================
 if not st.session_state.logged_in:
     saved_profiles = get_all_verified_profiles()
@@ -1240,14 +1205,14 @@ if not st.session_state.logged_in:
                             width: 68px; 
                             height: 68px; 
                             border-radius: 18px; 
-                            background: linear-gradient(135deg, rgba(34, 197, 94, 0.15) 0%, #14171A 100%);
-                            border: 2px solid #166534;
+                            background: linear-gradient(135deg, rgba(74, 222, 128, 0.2) 0%, #082416 100%);
+                            border: 2px solid #4ADE80;
                             display: flex;
                             align-items: center;
                             justify-content: center;
-                            box-shadow: 0 0 25px rgba(22, 101, 52, 0.35);
+                            box-shadow: 0 0 25px rgba(34, 197, 94, 0.4);
                         ">
-                            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#22C55E" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#4ADE80" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                                 <polygon points="12 2 22 7.5 22 16.5 12 22 2 16.5 2 7.5"></polygon>
                             </svg>
                         </div>
@@ -1303,47 +1268,47 @@ if not st.session_state.logged_in:
                         st.session_state.pending_otp_email = None
                         st.rerun()
                         
-            # --- VIEW C: NETFLIX "WHO'S SCREENING?" ROUNDED SQUARE PROFILES ---
+            # --- VIEW C: ROUNDED SQUARE EXECUTIVE PROFILE TILES ---
             elif saved_profiles and not st.session_state.selected_profile_email:
                 st.markdown("""
                     <div style="text-align: center; margin: 15px 0 10px 0;">
                         <h2 style="font-size: 1.7rem; font-weight: 800; color: #FFFFFF; letter-spacing: -0.5px; margin-bottom: 4px;">
-                            Who's Screening?
+                            Select Executive Profile
                         </h2>
-                        <p style="font-size: 0.88rem; color: #94A3B8; margin: 0;">Select your profile to enter your PIN:</p>
+                        <p style="font-size: 0.88rem; color: #86EFAC; margin: 0;">Click your profile tile to enter your 4-digit PIN:</p>
                     </div>
                 """, unsafe_allow_html=True)
                 
-                # Render Netflix Grid of Square Cards
-                cards_html = '<div class="netflix-wrapper">'
+                # Clean List Build to avoid Markdown Indentation Errors
+                tiles = ['<div class="arl-profile-grid">']
                 for p_email, p_name, p_pin, p_role, p_sticker in saved_profiles:
-                    cards_html += f"""
-                        <a href="?profile={p_email}{'&mode=desktop' if is_desktop_mode else ''}" target="_self" class="netflix-profile-link">
-                            <div class="netflix-square-box">
-                                {p_sticker}
-                                <span class="netflix-sticker-tag">🛡️</span>
-                            </div>
-                            <span class="netflix-profile-name">{p_name}</span>
-                            <span class="netflix-profile-role">{p_role}</span>
-                        </a>
-                    """
+                    profile_url = f"?profile={p_email}&mode=desktop" if is_desktop_mode else f"?profile={p_email}"
+                    tiles.append(
+                        f'<a href="{profile_url}" target="_self" class="arl-profile-tile">'
+                        f'<div class="arl-tile-avatar">{p_sticker}<span class="arl-tile-badge">🛡️</span></div>'
+                        f'<span class="arl-tile-name">{p_name}</span>'
+                        f'<span class="arl-tile-role">{p_role}</span>'
+                        f'</a>'
+                    )
                 
-                # Plus icon for Add Profile in Netflix Style
-                cards_html += """
-                    <a href="?profile=new" target="_self" class="netflix-profile-link">
-                        <div class="netflix-add-box">＋</div>
-                        <span class="netflix-profile-name">Add Profile</span>
-                        <span class="netflix-profile-role">Register</span>
-                    </a>
-                </div>
-                """
-                st.markdown(cards_html, unsafe_allow_html=True)
+                # Add Profile Tile
+                tiles.append(
+                    '<a href="?profile=new" target="_self" class="arl-profile-tile">'
+                    '<div class="arl-add-avatar">＋</div>'
+                    '<span class="arl-tile-name">Add Profile</span>'
+                    '<span class="arl-tile-role">Register</span>'
+                    '</a>'
+                )
+                tiles.append('</div>')
+                
+                # Render Clean HTML Grid
+                st.markdown("".join(tiles), unsafe_allow_html=True)
                 
                 st.markdown("<div style='margin-top: 25px;'></div>", unsafe_allow_html=True)
                 
-                # Netflix Style: "Manage Profiles / Customize Stickers" Drawer
-                with st.expander("🎨 Manage Profiles & Choose Stickers", expanded=st.session_state.manage_profiles_mode):
-                    st.caption("Change your profile's professional badge or remove unused profiles.")
+                # Executive Badges & Stickers Manager
+                with st.expander("🎨 Manage Executive Badges & Stickers"):
+                    st.caption("Customize your professional avatar badge or remove unused profiles.")
                     for p_email, p_name, p_pin, p_role, p_sticker in saved_profiles:
                         cm_1, cm_2, cm_3 = st.columns([3, 4, 1.2], vertical_alignment="center")
                         with cm_1:
@@ -1373,13 +1338,13 @@ if not st.session_state.logged_in:
                 p_match = next((p for p in saved_profiles if p[0].lower() == target_email.lower()), (target_email, "Executive User", "", "Recruiter", "👔"))
                 
                 st.markdown(f"""
-                    <div style="display: flex; align-items: center; justify-content: center; gap: 14px; margin-bottom: 12px;">
-                        <div style="font-size: 2.8rem; background: #14171A; border: 2px solid #22C55E; border-radius: 18px; width: 68px; height: 68px; display: flex; align-items: center; justify-content: center;">
+                    <div style="display: flex; align-items: center; justify-content: center; gap: 14px; margin-bottom: 14px;">
+                        <div style="font-size: 2.8rem; background: #082416; border: 2px solid #4ADE80; border-radius: 18px; width: 68px; height: 68px; display: flex; align-items: center; justify-content: center;">
                             {p_match[4]}
                         </div>
                         <div>
-                            <h3 style="margin: 0; color: #22C55E; font-size: 1.5rem;">Sign In: {p_match[1]}</h3>
-                            <span style="font-size: 0.85rem; color: #94A3B8;">{target_email} ({p_match[3]})</span>
+                            <h3 style="margin: 0; color: #4ADE80; font-size: 1.5rem;">Sign In: {p_match[1]}</h3>
+                            <span style="font-size: 0.85rem; color: #CBD5E1;">{target_email} ({p_match[3]})</span>
                         </div>
                     </div>
                 """, unsafe_allow_html=True)
@@ -1426,7 +1391,7 @@ if not st.session_state.logged_in:
                     reg_email = st.text_input("Company Email (@arl.com.pk)", placeholder="employee@arl.com.pk")
                     reg_pass = st.text_input("Master Password", type="password")
                     
-                    st.markdown("**Choose your Professional Sticker / Avatar:**")
+                    st.markdown("**Choose your Executive Badge / Sticker:**")
                     reg_sticker = st.selectbox(
                         "Professional Sticker",
                         options=list(PROFESSIONAL_STICKERS.keys()),
@@ -1673,20 +1638,20 @@ with col_n1:
                 width: 48px; 
                 height: 48px; 
                 border-radius: 14px; 
-                background: linear-gradient(135deg, rgba(34, 197, 94, 0.25) 0%, #14171A 100%);
-                border: 2px solid #22C55E;
+                background: linear-gradient(135deg, rgba(74, 222, 128, 0.25) 0%, #082416 100%);
+                border: 2px solid #4ADE80;
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                box-shadow: 0 0 20px rgba(34, 197, 94, 0.35);
+                box-shadow: 0 0 20px rgba(34, 197, 94, 0.4);
                 flex-shrink: 0;
             ">
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#22C55E" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#4ADE80" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                     <polygon points="12 2 22 7.5 22 16.5 12 22 2 16.5 2 7.5"></polygon>
                 </svg>
             </div>
             <div>
-                <h2 class="top-brand-title" style="margin: 0; font-size: 1.35rem; color: #FFFFFF;">Arl TalentMatch: <span style="color: #22C55E;">AI-Driven Automated CV Parser & JD Matcher</span></h2>
+                <h2 class="top-brand-title" style="margin: 0; font-size: 1.35rem; color: #FFFFFF;">Arl TalentMatch: <span style="color: #4ADE80;">AI-Driven Automated CV Parser & JD Matcher</span></h2>
                 <p class="top-brand-subtitle" style="margin: 4px 0 0 0;">Attock Refinery Limited &bull; Active: <b>{st.session_state.get('hr_name', 'Recruiter')}</b> ({st.session_state.get('hr_email', 'admin@arl.com.pk')}) &bull; Role: <b>{st.session_state.get('hr_role', 'Recruiter')}</b></p>
             </div>
         </div>
