@@ -742,7 +742,7 @@ if not st.session_state.logged_in:
     saved_profiles = get_all_verified_profiles()
 
     if st.session_state.show_download_page:
-         st.markdown("""
+        st.markdown("---")
         st.markdown(f"""
         <div style="text-align: center; padding: 2.2rem 1rem 1.6rem 1rem;">
             <h1 style="font-size: 2.6rem; font-weight: 800; margin-bottom: 4px;">Who's Screening?</h1>
