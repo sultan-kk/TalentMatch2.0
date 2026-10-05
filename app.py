@@ -1,13 +1,10 @@
-
 """
-ARL HireMatrix Pro — Official Corporate Edition
+Arl TalentMatch:AI-Driven Automated CV Parser & JD Matcher
 =============================================================================
 Branding: Attock Refinery Limited (ARL Official Forest Green & Charcoal Palette)
 Features: Clickable Executive Badges, Bulletproof PIN Authentication,
 Fast 150 DPI OCR, Safe Multi-CV Extraction, Exact 13-Column Sequence,
 ARL Cascading Job Hierarchy & Real-Time Supabase Cloud Synchronized Grids.
-Now with: Built-in MovieBox-Style Windows Desktop (.exe) Download Landing Page
-and One-Click Desktop Mode Dismissal (Hide CTA inside Desktop Client).
 """
 
 import io
@@ -23,6 +20,7 @@ from email.mime.multipart import MIMEMultipart
 from email.utils import formataddr
 import pandas as pd
 import streamlit as st
+import streamlit.components.v1 as components
 from groq import Groq
 from supabase import create_client, Client
 from PIL import Image, ImageOps, ImageEnhance, ImageDraw
@@ -30,12 +28,27 @@ from PIL import Image, ImageOps, ImageEnhance, ImageDraw
 # ===========================================================================
 # 1. PAGE CONFIGURATION & ARL GREEN HEXAGON FAVICON
 # ===========================================================================
-APP_NAME = "ARL HireMatrix Pro"
+APP_NAME = "Arl TalentMatch:AI-Driven Automated CV Parser & JD Matcher"
 APP_TAGLINE = "Attock Refinery Limited (ARL) • HR Intelligence & AI Screening Engine"
 GROQ_MODEL = "openai/gpt-oss-120b"
 ACCEPTED_TYPES = ["pdf", "docx", "png", "jpg", "jpeg"]
 
-# ⬇️ Hosted .msi / .exe release link
+PROFESSIONAL_STICKERS = {
+    "👔": "Executive / HR Lead",
+    "🛢️": "Refinery Operations",
+    "🔬": "QC Petroleum Chemist",
+    "⚙️": "Process Engineer",
+    "🛡️": "HSE & Safety Lead",
+    "💻": "IT & Automation Specialist",
+    "📊": "Commercial & Finance",
+    "🎯": "Talent Acquisition Lead",
+    "👷": "Plant Maintenance Specialist",
+    "⚡": "Power & Energy Lead",
+    "👑": "Chief Executive",
+    "🚀": "Turnaround Specialist"
+}
+
+AVATAR_STORAGE_FILE = "user_avatars.json"
 EXE_DOWNLOAD_URL = "https://github.com/sultan-kk/TalentMatch2.0/releases/download/v1.0/ARL-HireMatrix-Pro_1.0.0_x64_en-US.msi"
 
 def get_arl_favicon():
@@ -53,18 +66,7 @@ st.set_page_config(
 )
 
 # ===========================================================================
-# 2. CLICKABLE PROFILE CARD DETECTOR (URL QUERY PARAMETERS)
-# ===========================================================================
-if "profile" in st.query_params:
-    selected_prof = st.query_params["profile"]
-    if isinstance(selected_prof, list):
-        selected_prof = selected_prof[0]
-    del st.query_params["profile"]
-    if not st.session_state.get("selected_profile_email"):
-        st.session_state.selected_profile_email = selected_prof
-
-# ===========================================================================
-# 3. SUPABASE CLOUD DATABASE CONNECTION
+# 2. SUPABASE CLOUD DATABASE CONNECTION
 # ===========================================================================
 @st.cache_resource
 def init_supabase():
@@ -104,13 +106,64 @@ def send_smtp_email(receiver_email, subject, body_text):
     except Exception as e:
         return False, f"Failed to send email: {e}"
 
-# ----------------- BULLETPROOF PIN AUTHENTICATION -----------------
+# ----------------- STICKER PERSISTENCE & PIN AUTH -----------------
+def load_local_avatars():
+    if os.path.exists(AVATAR_STORAGE_FILE):
+        try:
+            with open(AVATAR_STORAGE_FILE, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception:
+            pass
+    return {}
+
+def save_local_avatar(email, sticker):
+    data = load_local_avatars()
+    data[email.lower().strip()] = sticker
+    try:
+        with open(AVATAR_STORAGE_FILE, "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False)
+    except Exception:
+        pass
+
+def get_default_sticker(email: str) -> str:
+    stickers = list(PROFESSIONAL_STICKERS.keys())
+    idx = int(hashlib.md5(email.encode()).hexdigest(), 16) % len(stickers)
+    return stickers[idx]
+
+def get_user_sticker(email: str, db_avatar: str = None) -> str:
+    clean = email.lower().strip()
+    if "custom_stickers" in st.session_state and clean in st.session_state.custom_stickers:
+        return st.session_state.custom_stickers[clean]
+    local_data = load_local_avatars()
+    if clean in local_data:
+        return local_data[clean]
+    if db_avatar:
+        return db_avatar
+    return get_default_sticker(email)
+
+def update_user_sticker(email: str, sticker: str):
+    clean = email.lower().strip()
+    if "custom_stickers" not in st.session_state:
+        st.session_state.custom_stickers = {}
+    st.session_state.custom_stickers[clean] = sticker
+    save_local_avatar(clean, sticker)
+    if supabase:
+        try:
+            supabase.table("hr_users").update({"avatar": sticker}).eq("email", clean).execute()
+        except Exception:
+            pass
+        try:
+            supabase.table("employees").update({"avatar": sticker}).eq("email", clean).execute()
+        except Exception:
+            pass
+    return True
+
 def verify_employee_pin(email, entered_pin):
     clean_email = email.lower().strip()
     entered_str = str(entered_pin).strip()
 
     cached = get_all_verified_profiles()
-    for p_email, p_name, p_pin, p_role in cached:
+    for p_email, p_name, p_pin, p_role, p_sticker in cached:
         if p_email.lower().strip() == clean_email:
             if str(p_pin).strip() == entered_str:
                 return True, p_name, p_role
@@ -140,14 +193,17 @@ def verify_employee_pin(email, entered_pin):
 
 def get_all_verified_profiles():
     if not supabase:
-        return [("admin@arl.com.pk", "ARL Admin", "1234", "Admin")]
+        default_stk = get_user_sticker("admin@arl.com.pk", "🛢️")
+        return [("admin@arl.com.pk", "ARL Admin", "1234", "Admin", default_stk)]
     profiles = []
     try:
         res = supabase.table("hr_users").select("*").execute()
         if res.data:
             for r in res.data:
                 if r.get("pin"):
-                    profiles.append((r.get("email"), r.get("name"), str(r.get("pin")), r.get("role", "Recruiter")))
+                    email = r.get("email")
+                    sticker = get_user_sticker(email, r.get("avatar"))
+                    profiles.append((email, r.get("name"), str(r.get("pin")), r.get("role", "Recruiter"), sticker))
     except Exception:
         pass
     try:
@@ -155,8 +211,10 @@ def get_all_verified_profiles():
         if res2.data:
             existing_emails = [p[0].lower() for p in profiles]
             for r in res2.data:
-                if r.get("pin") and r.get("email", "").lower() not in existing_emails:
-                    profiles.append((r.get("email"), r.get("name"), str(r.get("pin")), r.get("role", "Recruiter")))
+                em = r.get("email", "")
+                if r.get("pin") and em.lower() not in existing_emails:
+                    sticker = get_user_sticker(em, r.get("avatar"))
+                    profiles.append((em, r.get("name"), str(r.get("pin")), r.get("role", "Recruiter"), sticker))
     except Exception:
         pass
     return profiles
@@ -164,7 +222,7 @@ def get_all_verified_profiles():
 def get_all_verified_profiles_admin():
     return get_all_verified_profiles()
 
-def register_initial_employee(name, email, password):
+def register_initial_employee(name, email, password, sticker="👔"):
     clean_email = email.lower().strip()
     otp = str(random.randint(100000, 999999))
     if not supabase:
@@ -185,11 +243,13 @@ def register_initial_employee(name, email, password):
             "pin": None,
             "role": role,
             "is_verified": 0,
-            "otp": otp
+            "otp": otp,
+            "avatar": sticker
         }
         supabase.table("hr_users").upsert(data).execute()
+        update_user_sticker(clean_email, sticker)
         
-        success, msg = send_smtp_email(clean_email, "ARL HireMatrix Pro - Verification OTP", f"Your verification code is: {otp}")
+        success, msg = send_smtp_email(clean_email, "ARL TalentMatch - Verification OTP", f"Your verification code is: {otp}")
         if success:
             return True, "Registration initiated! Please check your email for the verification OTP."
         else:
@@ -235,65 +295,47 @@ def delete_employee_profile(email):
         supabase.table("employees").delete().eq("email", clean_email).execute()
     except Exception:
         pass
+    if "custom_stickers" in st.session_state and clean_email in st.session_state.custom_stickers:
+        del st.session_state.custom_stickers[clean_email]
     return True, "Employee profile removed."
 
 # ===========================================================================
-# 4. ARL CORPORATE JOB CATALOG & SUPABASE HIERARCHY
+# 3. ARL CORPORATE JOB CATALOG & SUPABASE HIERARCHY
 # ===========================================================================
 DEFAULT_ARL_CATALOG = {
     "Operations & Refining": [
-        "Process Engineer",
-        "Plant Shift Incharge",
-        "Senior Plant Operator (CDU / Reformer)",
-        "Control Room DCS Operator",
-        "Refining Operations Manager",
-        "Lead Commissioning Engineer"
+        "Process Engineer", "Plant Shift Incharge", "Senior Plant Operator (CDU / Reformer)",
+        "Control Room DCS Operator", "Refining Operations Manager", "Lead Commissioning Engineer"
     ],
     "Maintenance & Engineering": [
-        "Mechanical Maintenance Engineer",
-        "Electrical Maintenance Engineer",
-        "Instrumentation & Control (I&C) Engineer",
-        "Reliability & Inspection Engineer",
-        "Turnaround & Maintenance Planning Specialist",
-        "Rotary Equipment Specialist"
+        "Mechanical Maintenance Engineer", "Electrical Maintenance Engineer",
+        "Instrumentation & Control (I&C) Engineer", "Reliability & Inspection Engineer",
+        "Turnaround & Maintenance Planning Specialist", "Rotary Equipment Specialist"
     ],
     "Technical Services & Quality Control (QC Lab)": [
-        "Technical Services Engineer",
-        "Senior Petroleum Chemist",
-        "Lab Quality Analyst",
-        "Corrosion & Metallurgy Engineer",
-        "Catalyst & Yield Optimization Specialist"
+        "Technical Services Engineer", "Senior Petroleum Chemist", "Lab Quality Analyst",
+        "Corrosion & Metallurgy Engineer", "Catalyst & Yield Optimization Specialist"
     ],
     "Health, Safety, Environment & Security (HSE&S)": [
-        "HSE Lead / Manager",
-        "Process Safety Management (PSM) Specialist",
-        "Fire & Industrial Safety Engineer",
-        "Environmental Compliance Officer"
+        "HSE Lead / Manager", "Process Safety Management (PSM) Specialist",
+        "Fire & Industrial Safety Engineer", "Environmental Compliance Officer"
     ],
     "Supply Chain, Logistics & Procurement": [
-        "Procurement & Contracts Lead",
-        "Crude Oil Logistics & Storage Supervisor",
-        "Commercial & Petroleum Dispatch Executive",
-        "Warehouse & Inventory Controller"
+        "Procurement & Contracts Lead", "Crude Oil Logistics & Storage Supervisor",
+        "Commercial & Petroleum Dispatch Executive", "Warehouse & Inventory Controller"
     ],
     "Finance, Accounts & Commercial": [
-        "Treasury & Budgeting Lead",
-        "Corporate & Cost Accountant",
-        "Internal Audit Executive",
-        "Taxation & Compliance Specialist"
+        "Treasury & Budgeting Lead", "Corporate & Cost Accountant",
+        "Internal Audit Executive", "Taxation & Compliance Specialist"
     ],
     "Human Resources & Administration": [
-        "Talent Acquisition & Recruitment Specialist",
-        "HR Operations & Payroll Executive",
-        "Industrial Relations & Labor Compliance Officer",
-        "Organizational Development (OD) Lead",
+        "Talent Acquisition & Recruitment Specialist", "HR Operations & Payroll Executive",
+        "Industrial Relations & Labor Compliance Officer", "Organizational Development (OD) Lead",
         "Administration & Estate Management Officer"
     ],
     "Information Technology & Industrial Automation": [
-        "SAP ERP Functional Consultant",
-        "SCADA & Process Automation Specialist",
-        "IT Systems & Network Administrator",
-        "Cyber Security Analyst"
+        "SAP ERP Functional Consultant", "SCADA & Process Automation Specialist",
+        "IT Systems & Network Administrator", "Cyber Security Analyst"
     ]
 }
 
@@ -355,7 +397,7 @@ def delete_arl_job_from_db(department, job_title):
     return True, "Removed locally."
 
 # ===========================================================================
-# 5. CANDIDATE REPOSITORY & SCREENED STORAGE (13-COLUMN SEQUENCE)
+# 4. CANDIDATE REPOSITORY & SCREENED STORAGE
 # ===========================================================================
 def load_database():
     expected_cols = [
@@ -390,20 +432,10 @@ def load_database():
         pass
     return pd.DataFrame(columns=expected_cols)
 
-def check_if_exists_in_db(email):
-    if email in ["Not Provided", "Not Found", ""] or not email or not supabase:
-        return False
-    try:
-        response = supabase.table("candidates").select("email").ilike("email", email.lower().strip()).execute()
-        return len(response.data) > 0
-    except Exception:
-        return False
-
 def save_candidates_to_repository(new_candidates):
     if not supabase:
         return 0, 0
     current_timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    
     existing_emails = set()
     existing_phones = set()
     try:
@@ -418,36 +450,26 @@ def save_candidates_to_repository(new_candidates):
 
     inserted_count = 0
     skipped_count = 0
-
     for c in new_candidates:
         cand_email = str(c.get("email", "")).strip().lower()
         cand_phone = re.sub(r"\D", "", str(c.get("phone", "")))
-
         is_dup = False
         if cand_email and cand_email not in ["not provided", "not found", "", "nan"] and cand_email in existing_emails:
             is_dup = True
         elif cand_phone and len(cand_phone) >= 7 and cand_phone in existing_phones:
             is_dup = True
-
         if is_dup:
             skipped_count += 1
             continue
 
         payload = {
-            "candidate_name": c.get("name", "Unknown"),
-            "father_name": c.get("father_name", "Not Provided"),
-            "education": c.get("education", "Not Provided"),
-            "cgpa": c.get("cgpa", "Not Provided"),
-            "passing_year": c.get("passing_year", "Not Provided"),
-            "university_name": c.get("university_name", "Not Provided"),
-            "dob": c.get("dob", "Not Provided"),
-            "email": c.get("email", "Not Provided"),
-            "phone": c.get("phone", "Not Provided"),
-            "experience_years": str(c.get("experience_years", "0")),
-            "latest_experience": c.get("latest_experience", "Not Provided"),
-            "reference": c.get("reference", "Not Provided"),
-            "pipeline_status": "Talent Pool",
-            "added_at": current_timestamp
+            "candidate_name": c.get("name", "Unknown"), "father_name": c.get("father_name", "Not Provided"),
+            "education": c.get("education", "Not Provided"), "cgpa": c.get("cgpa", "Not Provided"),
+            "passing_year": c.get("passing_year", "Not Provided"), "university_name": c.get("university_name", "Not Provided"),
+            "dob": c.get("dob", "Not Provided"), "email": c.get("email", "Not Provided"),
+            "phone": c.get("phone", "Not Provided"), "experience_years": str(c.get("experience_years", "0")),
+            "latest_experience": c.get("latest_experience", "Not Provided"), "reference": c.get("reference", "Not Provided"),
+            "pipeline_status": "Talent Pool", "added_at": current_timestamp
         }
         try:
             supabase.table("candidates").insert(payload).execute()
@@ -456,73 +478,51 @@ def save_candidates_to_repository(new_candidates):
             if cand_phone and len(cand_phone) >= 7: existing_phones.add(cand_phone)
         except Exception:
             pass
-
     return inserted_count, skipped_count
 
 def delete_single_candidate_from_db(email_or_name):
-    if not supabase:
-        return
+    if not supabase: return
     try:
         supabase.table("candidates").delete().or_(f"email.ilike.{email_or_name},candidate_name.ilike.{email_or_name}").execute()
-    except Exception:
-        pass
+    except Exception: pass
 
 def update_candidate_pipeline_status(email, new_status):
-    if not supabase:
-        return
+    if not supabase: return
     try:
         supabase.table("candidates").update({"pipeline_status": new_status}).ilike("email", email).execute()
-    except Exception:
-        pass
+    except Exception: pass
 
 def clear_candidate_database():
-    if not supabase:
-        return
-    try:
-        supabase.table("candidates").delete().neq("id", 0).execute()
-    except Exception:
-        pass
-        
+    if not supabase: return
+    try: supabase.table("candidates").delete().neq("id", 0).execute()
+    except Exception: pass
+
 def save_screened_to_supabase(screened_list):
-    if not supabase or not screened_list:
-        return
+    if not supabase or not screened_list: return
     current_timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     for r in screened_list:
         skills_str = ", ".join(r.get("missing_skills", [])) if isinstance(r.get("missing_skills"), list) else str(r.get("missing_skills", ""))
         payload = {
-            "job_title": r.get("job_title", "Not Specified"),
-            "candidate_name": r.get("name", "Unknown"),
-            "father_name": r.get("father_name", "Not Provided"),
-            "education": r.get("education", "Not Provided"),
-            "cgpa": r.get("cgpa", "Not Provided"),
-            "passing_year": r.get("passing_year", "Not Provided"),
-            "university_name": r.get("university_name", "Not Provided"),
-            "dob": r.get("dob", "Not Provided"),
-            "email": r.get("email", "Not Provided"),
-            "phone": r.get("phone", "Not Provided"),
-            "experience_years": str(r.get("experience_years", "0")),
-            "latest_experience": r.get("latest_experience", "Not Provided"),
-            "reference": r.get("reference", "Not Provided"),
-            "match_score": float(r.get("match_score", 0)),
-            "missing_skills": skills_str,
-            "pipeline_status": r.get("pipeline_status", "Shortlisted"),
+            "job_title": r.get("job_title", "Not Specified"), "candidate_name": r.get("name", "Unknown"),
+            "father_name": r.get("father_name", "Not Provided"), "education": r.get("education", "Not Provided"),
+            "cgpa": r.get("cgpa", "Not Provided"), "passing_year": r.get("passing_year", "Not Provided"),
+            "university_name": r.get("university_name", "Not Provided"), "dob": r.get("dob", "Not Provided"),
+            "email": r.get("email", "Not Provided"), "phone": r.get("phone", "Not Provided"),
+            "experience_years": str(r.get("experience_years", "0")), "latest_experience": r.get("latest_experience", "Not Provided"),
+            "reference": r.get("reference", "Not Provided"), "match_score": float(r.get("match_score", 0)),
+            "missing_skills": skills_str, "pipeline_status": r.get("pipeline_status", "Shortlisted"),
             "screened_at": current_timestamp
         }
-        try:
-            supabase.table("screened_candidates").insert(payload).execute()
-        except Exception:
-            pass
+        try: supabase.table("screened_candidates").insert(payload).execute()
+        except Exception: pass
 
 def load_screened_database():
     expected_cols = [
-        "Job Title", "Match Score (%)", "Pipeline Status",
-        "Name", "Father Name", "Qualification", "CGPA", 
-        "Passing Year", "Institute", "DOB", "Email", 
-        "Phone Number", "Experience", "Latest Experience", "Reference",
-        "Missing Skills", "Screened At"
+        "Job Title", "Match Score (%)", "Pipeline Status", "Name", "Father Name",
+        "Qualification", "CGPA", "Passing Year", "Institute", "DOB", "Email",
+        "Phone Number", "Experience", "Latest Experience", "Reference", "Missing Skills", "Screened At"
     ]
-    if not supabase:
-        return pd.DataFrame(columns=expected_cols)
+    if not supabase: return pd.DataFrame(columns=expected_cols)
     try:
         response = supabase.table("screened_candidates").select("*").order("id", desc=True).execute()
         rows = response.data
@@ -530,51 +530,35 @@ def load_screened_database():
             mapped = []
             for r in rows:
                 mapped.append({
-                    "Job Title": r.get("job_title", "Not Specified"),
-                    "Match Score (%)": r.get("match_score", 0),
-                    "Pipeline Status": r.get("pipeline_status", "Shortlisted"),
-                    "Name": r.get("candidate_name", "Unknown"),
-                    "Father Name": r.get("father_name", "Not Provided"),
-                    "Qualification": r.get("education", "Not Provided"),
-                    "CGPA": r.get("cgpa", "Not Provided"),
-                    "Passing Year": r.get("passing_year", "Not Provided"),
-                    "Institute": r.get("university_name", "Not Provided"),
-                    "DOB": r.get("dob", "Not Provided"),
-                    "Email": r.get("email", "Not Provided"),
-                    "Phone Number": r.get("phone", "Not Provided"),
-                    "Experience": str(r.get("experience_years", "0")),
-                    "Latest Experience": r.get("latest_experience", "Not Provided"),
-                    "Reference": r.get("reference", "Not Provided"),
-                    "Missing Skills": r.get("missing_skills", "None"),
+                    "Job Title": r.get("job_title", "Not Specified"), "Match Score (%)": r.get("match_score", 0),
+                    "Pipeline Status": r.get("pipeline_status", "Shortlisted"), "Name": r.get("candidate_name", "Unknown"),
+                    "Father Name": r.get("father_name", "Not Provided"), "Qualification": r.get("education", "Not Provided"),
+                    "CGPA": r.get("cgpa", "Not Provided"), "Passing Year": r.get("passing_year", "Not Provided"),
+                    "Institute": r.get("university_name", "Not Provided"), "DOB": r.get("dob", "Not Provided"),
+                    "Email": r.get("email", "Not Provided"), "Phone Number": r.get("phone", "Not Provided"),
+                    "Experience": str(r.get("experience_years", "0")), "Latest Experience": r.get("latest_experience", "Not Provided"),
+                    "Reference": r.get("reference", "Not Provided"), "Missing Skills": r.get("missing_skills", "None"),
                     "Screened At": r.get("screened_at", "")
                 })
             return pd.DataFrame(mapped)
-    except Exception:
-        pass
+    except Exception: pass
     return pd.DataFrame(columns=expected_cols)
 
 def update_screened_candidate_status(email, job_title, new_status):
-    if not supabase:
-        return
-    try:
-        supabase.table("screened_candidates").update({"pipeline_status": new_status}).ilike("email", email).ilike("job_title", job_title).execute()
-    except Exception:
-        pass
+    if not supabase: return
+    try: supabase.table("screened_candidates").update({"pipeline_status": new_status}).ilike("email", email).ilike("job_title", job_title).execute()
+    except Exception: pass
 
 def clear_screened_database():
-    if not supabase:
-        return
-    try:
-        supabase.table("screened_candidates").delete().neq("id", 0).execute()
-    except Exception:
-        pass
+    if not supabase: return
+    try: supabase.table("screened_candidates").delete().neq("id", 0).execute()
+    except Exception: pass
 
 def generate_repository_excel(df: pd.DataFrame) -> bytes:
     import openpyxl
     buffer = io.BytesIO()
     export_df = df.copy()
     export_df.insert(0, "Sr. No.", range(1, len(export_df) + 1))
-    
     with pd.ExcelWriter(buffer, engine="openpyxl") as writer:
         export_df.to_excel(writer, index=False, sheet_name="Candidates_Master")
         worksheet = writer.sheets["Candidates_Master"]
@@ -585,7 +569,6 @@ def generate_repository_excel(df: pd.DataFrame) -> bytes:
             worksheet.column_dimensions[col_letter].width = min(max(max_len + 3, 15), 40)
             for cell in col:
                 cell.alignment = openpyxl.styles.Alignment(wrap_text=True, vertical="top")
-                
     buffer.seek(0)
     return buffer.getvalue()
 
@@ -595,22 +578,12 @@ def generate_screening_excel(results_list) -> bytes:
     data = []
     for idx, r in enumerate(results_list, start=1):
         data.append({
-            "Sr. No.": idx,
-            "Job Title": r.get("job_title", "Not Specified"),
-            "Candidate Name": r["name"],
-            "Father Name": r["father_name"],
-            "Qualification": r["education"],
-            "CGPA": r["cgpa"],
-            "Passing Year": r["passing_year"],
-            "Institute": r["university_name"],
-            "DOB": r["dob"],
-            "Email": r["email"],
-            "Phone Number": r["phone"],
-            "Experience": r["experience_years"],
-            "Latest Experience": r["latest_experience"],
-            "Reference": r["reference"],
-            "Match Score (%)": r["match_score"],
-            "Pipeline Status": r["pipeline_status"]
+            "Sr. No.": idx, "Job Title": r.get("job_title", "Not Specified"), "Candidate Name": r["name"],
+            "Father Name": r["father_name"], "Qualification": r["education"], "CGPA": r["cgpa"],
+            "Passing Year": r["passing_year"], "Institute": r["university_name"], "DOB": r["dob"],
+            "Email": r["email"], "Phone Number": r["phone"], "Experience": r["experience_years"],
+            "Latest Experience": r["latest_experience"], "Reference": r["reference"],
+            "Match Score (%)": r["match_score"], "Pipeline Status": r["pipeline_status"]
         })
     export_df = pd.DataFrame(data)
     with pd.ExcelWriter(buffer, engine="openpyxl") as writer:
@@ -623,12 +596,11 @@ def generate_screening_excel(results_list) -> bytes:
             worksheet.column_dimensions[col_letter].width = min(max(max_len + 3, 15), 40)
             for cell in col:
                 cell.alignment = openpyxl.styles.Alignment(wrap_text=True, vertical="top")
-                
     buffer.seek(0)
     return buffer.getvalue()
 
 # ===========================================================================
-# 6. ARL CHARCOAL BLACK & OFFICIAL GREEN ACCENTS CSS
+# 5. NETFLIX-STYLE PROFILE THEME & SINGLE CHARCOAL MODAL CSS
 # ===========================================================================
 ARL_GREEN_CSS = """
 <style>
@@ -638,359 +610,383 @@ html, body, [class*="css"] {
     font-family: 'Plus Jakarta Sans', sans-serif !important;
 }
 
-[data-testid="stSidebar"] { display: none !important; }
-[data-testid="collapsedControl"] { display: none !important; }
+/* Atmospheric Full Dark Forest Green Background */
+.stApp {
+    background: radial-gradient(circle at 50% 8%, #0f3d24 0%, #082415 48%, #03120a 100%) !important;
+    color: #F8FAFC !important;
+}
 
-/* ARL Header */
+[data-testid="stSidebar"], [data-testid="collapsedControl"] { display: none !important; }
+
+/* Header */
 .cyber-header-box {
     text-align: center;
-    padding: 1.8rem 1rem 1.2rem 1rem;
-    margin-bottom: 1.2rem;
+    padding: 1.5rem 1rem 0.8rem 1rem;
+    margin-bottom: 0.5rem;
 }
-
 .cyber-title {
-    font-size: 3.2rem !important;
+    font-size: 2.1rem !important;
     font-weight: 800 !important;
-    letter-spacing: -0.8px !important;
-    color: #111827 !important;
-    margin: 0 0 8px 0 !important;
+    letter-spacing: -0.6px !important;
+    color: #FFFFFF !important;
+    margin: 0 0 6px 0 !important;
+    line-height: 1.2 !important;
 }
-
 .cyber-title-pro {
-    color: #166534 !important;
-    background: linear-gradient(135deg, #15803D 0%, #166534 100%);
+    color: #4ADE80 !important;
+    background: linear-gradient(135deg, #86EFAC 0%, #22C55E 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
 }
-
 .cyber-badge {
     display: inline-flex !important;
     align-items: center !important;
     gap: 8px !important;
-    background: rgba(22, 101, 52, 0.08) !important;
-    border: 1.5px solid #166534 !important;
+    background: rgba(34, 197, 94, 0.15) !important;
+    border: 1.5px solid #22C55E !important;
     padding: 5px 20px !important;
     border-radius: 30px !important;
-    font-size: 0.78rem !important;
+    font-size: 0.76rem !important;
     font-weight: 800 !important;
     text-transform: uppercase !important;
     letter-spacing: 1.5px !important;
-    color: #166534 !important;
+    color: #86EFAC !important;
+    box-shadow: 0 0 15px rgba(34, 197, 94, 0.2) !important;
 }
 
-@media (prefers-color-scheme: dark) {
-    .cyber-title {
-        color: #F8FAFC !important;
-    }
-    .cyber-badge {
-        background: rgba(22, 101, 52, 0.2) !important;
-        border-color: #22C55E !important;
-        color: #22C55E !important;
-    }
-}
-
-/* CLICKABLE PROFILE BADGE CARD (CHARCOAL BLACK WITH ARL GREEN ACCENT) */
-.arl-clickable-badge {
-    text-decoration: none !important;
-    color: inherit !important;
-    display: block !important;
-    cursor: pointer !important;
-    transition: all 0.25s ease-in-out !important;
-}
-
-.cyber-badge-card {
-    position: relative;
-    background: linear-gradient(135deg, #181B1E 0%, #111315 100%) !important;
-    border: 1.5px solid #1E2328 !important;
-    border-left: 5px solid #166534 !important;
-    border-radius: 16px !important;
-    padding: 1.5rem 1.8rem !important;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.45) !important;
-    transition: all 0.25s ease-in-out !important;
-}
-
-.arl-clickable-badge:hover .cyber-badge-card {
-    border-color: #22C55E !important;
-    border-left-color: #22C55E !important;
-    box-shadow: 0 14px 35px rgba(0, 0, 0, 0.6), inset 0 0 15px rgba(34, 197, 94, 0.08) !important;
-    transform: translateY(-3px) scale(1.01);
-}
-
-.cyber-top-bar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 0.8rem;
-    border-bottom: 1px dashed rgba(255, 255, 255, 0.1);
-    padding-bottom: 0.5rem;
-}
-
-.cyber-access-id {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.72rem;
-    font-weight: 700;
-    color: #94A3B8;
-    letter-spacing: 1px;
-}
-
-.cyber-status-dot {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.72rem;
-    font-weight: 700;
-    color: #22C55E;
-    letter-spacing: 1px;
-}
-
-.cyber-avatar-ring {
-    width: 58px;
-    height: 58px;
-    border-radius: 50%;
-    background: #14171A;
-    border: 2px solid #166534;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.7rem;
-    box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
-    flex-shrink: 0;
-}
-
-.cyber-name-title {
-    margin: 0;
-    font-size: 1.45rem;
-    font-weight: 800;
-    color: #F8FAFC !important;
-    letter-spacing: -0.3px;
-}
-
-.cyber-role-pill {
-    background: rgba(34, 197, 94, 0.12);
-    border: 1px solid #166534;
-    color: #22C55E;
-    padding: 2px 10px;
-    border-radius: 6px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.72rem;
-    font-weight: 700;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-}
-
-.cyber-email-mono {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.84rem;
-    color: #94A3B8;
-    background: #0E1012;
-    padding: 4px 10px;
-    border-radius: 6px;
-    display: inline-block;
-    margin-top: 5px;
-    border: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-/* ARL Green Corporate Buttons */
-.stButton > button {
-    background: linear-gradient(135deg, #166534 0%, #14532D 100%) !important;
+/* Global button styling */
+button,
+button[kind="secondary"],
+button[kind="primary"],
+div[data-testid="stButton"] button {
+    background: linear-gradient(145deg, #113f26 0%, #082416 100%) !important;
     color: #FFFFFF !important;
     border: 1.5px solid #22C55E !important;
     border-radius: 12px !important;
     font-weight: 700 !important;
-    white-space: nowrap !important;
-    padding: 0.65rem 1.2rem !important;
-    box-shadow: 0 4px 15px rgba(22, 101, 52, 0.3) !important;
-    transition: all 0.25s ease-in-out !important;
+    transition: all 0.2s ease-in-out !important;
 }
 
-.stButton > button:hover {
-    background: linear-gradient(135deg, #15803D 0%, #166534 100%) !important;
-    color: #FFFFFF !important;
-    border-color: #FFFFFF !important;
-    box-shadow: 0 6px 20px rgba(34, 197, 94, 0.5) !important;
-    transform: translateY(-2px);
+/* ============================================================ */
+/* NETFLIX-STYLE FLEX PROFILE DECK (140px CARD + ON-CARD EDIT)  */
+/* ============================================================ */
+.netflix-deck {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    justify-content: center !important;
+    align-items: flex-start !important;
+    gap: 28px !important;
+    padding: 1.5rem 0 !important;
 }
 
-/* PIN & Login Form Container */
-[data-testid="stForm"] {
-    background: #14171A !important;
-    border: 1.5px solid #1E2328 !important;
-    border-radius: 20px !important;
-    padding: 2.2rem !important;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5) !important;
+.netflix-item {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    width: 140px !important;
 }
 
-/* PIN Screen Heading ('🔐 Sign In: ...') */
-[data-testid="stVerticalBlockBorderWrapper"] h3 {
-    color: #22C55E !important;
+.netflix-box {
+    position: relative !important;
+    width: 140px !important;
+    height: 140px !important;
+    margin: 0 auto !important;
+}
+
+/* 1. Big Avatar Card Button (140px x 140px Rounded Square Card) */
+.netflix-box .stButton:nth-of-type(1) {
+    margin: 0 !important;
+    width: 140px !important;
+    height: 140px !important;
+}
+
+.netflix-box .stButton:nth-of-type(1) > button {
+    width: 140px !important;
+    height: 140px !important;
+    border-radius: 24px !important;
+    font-size: 4.2rem !important;
+    line-height: 1 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    margin: 0 !important;
+    background: linear-gradient(145deg, #134629 0%, #072416 100%) !important;
+    border: 2.5px solid #22C55E !important;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6), inset 0 0 16px rgba(34, 197, 94, 0.2) !important;
+    transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+    padding: 0 !important;
+    cursor: pointer !important;
+}
+
+.netflix-box:hover .stButton:nth-of-type(1) > button {
+    border-color: #86EFAC !important;
+    transform: scale(1.05) !important;
+    box-shadow: 0 14px 34px rgba(34, 197, 94, 0.45), inset 0 0 20px rgba(74, 222, 128, 0.3) !important;
+}
+
+/* 2. Edit Button (Positioned directly ON the bottom of the card, visible ONLY on hover) */
+.netflix-box .stButton:nth-of-type(2) {
+    position: absolute !important;
+    top: 96px !important;
+    left: 50% !important;
+    transform: translateX(-50%) translateY(4px) !important;
+    z-index: 15 !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    transition: all 0.2s ease-in-out !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.netflix-box:hover .stButton:nth-of-type(2) {
+    opacity: 1 !important;
+    transform: translateX(-50%) translateY(0) !important;
+    pointer-events: auto !important;
+}
+
+.netflix-box .stButton:nth-of-type(2) > button {
+    height: 28px !important;
+    min-height: unset !important;
+    padding: 2px 14px !important;
+    border-radius: 12px !important;
+    font-size: 0.72rem !important;
     font-weight: 800 !important;
-    font-size: 1.5rem !important;
-    text-shadow: 0 0 12px rgba(34, 197, 94, 0.3) !important;
-    margin-bottom: 6px !important;
+    letter-spacing: 0.8px !important;
+    background: rgba(0, 0, 0, 0.88) !important;
+    border: 1.5px solid #4ADE80 !important;
+    color: #4ADE80 !important;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.6) !important;
+    backdrop-filter: blur(4px) !important;
+    cursor: pointer !important;
+    white-space: nowrap !important;
 }
 
-/* 'Enter 4-digit PIN for ...' Caption */
-[data-testid="stVerticalBlockBorderWrapper"] [data-testid="stCaptionContainer"] p,
-[data-testid="stVerticalBlockBorderWrapper"] [data-testid="stCaptionContainer"] {
-    color: #CBD5E1 !important;
-    font-size: 0.92rem !important;
-}
-
-/* Form Input Label ('4-Digit PIN') */
-[data-testid="stForm"] label,
-[data-testid="stWidgetLabel"] label,
-[data-testid="stWidgetLabel"] p,
-[data-testid="stForm"] label p {
+.netflix-box .stButton:nth-of-type(2) > button:hover {
+    background: #000000 !important;
     color: #FFFFFF !important;
-    font-weight: 700 !important;
-    font-size: 1rem !important;
-    letter-spacing: 0.5px !important;
+    border-color: #86EFAC !important;
+    transform: scale(1.05) !important;
 }
 
-/* Character counter (0/4) color */
-[data-testid="stInputCounter"] {
-    color: #94A3B8 !important;
+/* 3. Add Profile Card */
+.netflix-box.add-card .stButton:nth-of-type(1) > button {
+    border: 2.5px dashed #22C55E !important;
+    background: rgba(34, 197, 94, 0.08) !important;
+    color: #86EFAC !important;
+    font-size: 2.8rem !important;
 }
 
-/* Navbar */
+.netflix-box.add-card:hover .stButton:nth-of-type(1) > button {
+    border-color: #86EFAC !important;
+    background: rgba(34, 197, 94, 0.22) !important;
+    color: #FFFFFF !important;
+}
+
+.arl-tile-name {
+    margin-top: 10px;
+    font-size: 1rem;
+    font-weight: 800;
+    color: #FFFFFF;
+    text-align: center;
+    line-height: 1.25;
+}
+.arl-tile-role {
+    font-size: 0.72rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    color: #86EFAC;
+    background: rgba(34, 197, 94, 0.16);
+    border: 1px solid rgba(34, 197, 94, 0.35);
+    padding: 2px 8px;
+    border-radius: 6px;
+    margin-top: 4px;
+    display: inline-block;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* ============================================================ */
+/* SEAMLESS SINGLE CHARCOAL MODAL & BLURRED BACKDROP            */
+/* ============================================================ */
+div[data-testid="stModalBackdrop"], div[data-testid="stDialogBackdrop"] {
+    background-color: rgba(3, 16, 9, 0.6) !important;
+    backdrop-filter: blur(8px) !important;
+    -webkit-backdrop-filter: blur(8px) !important;
+}
+
+div[data-testid="stDialog"] [data-testid="stForm"],
+div[role="dialog"] [data-testid="stForm"] {
+    background: transparent !important;
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+div[data-testid="stDialog"], div[role="dialog"] {
+    border-radius: 20px !important;
+    border: 2px solid #22C55E !important;
+    background: #12161A !important;
+    background-color: #12161A !important;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.85), 0 0 25px rgba(34, 197, 94, 0.25) !important;
+    max-width: 320px !important;
+    width: 320px !important;
+    margin: auto !important;
+    padding: 1.6rem 1.8rem !important;
+}
+
+div[data-testid="stDialog"] h2,
+div[role="dialog"] h2 {
+    font-size: 1.35rem !important;
+    font-weight: 800 !important;
+    color: #4ADE80 !important;
+    letter-spacing: 1px !important;
+    text-align: center !important;
+    margin: 0 0 1rem 0 !important;
+}
+
+div[data-testid="stDialog"] input[type="password"] {
+    font-size: 1.4rem !important;
+    letter-spacing: 6px !important;
+    text-align: center !important;
+    background: #080a0c !important;
+    border: 1.5px solid #22C55E !important;
+    color: #FFFFFF !important;
+    border-radius: 12px !important;
+    height: 48px !important;
+}
+
+.sticker-modal-grid div[data-testid="stColumn"] button {
+    font-size: 2.3rem !important;
+    height: 64px !important;
+    width: 100% !important;
+    padding: 0 !important;
+    line-height: 1 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 16px !important;
+    background: linear-gradient(145deg, #113f26 0%, #082416 100%) !important;
+    border: 2px solid #22C55E !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4) !important;
+}
+.sticker-modal-grid div[data-testid="stColumn"] button:hover {
+    border-color: #86EFAC !important;
+    transform: scale(1.1) !important;
+    background: linear-gradient(145deg, #165332 0%, #0d3822 100%) !important;
+    box-shadow: 0 6px 20px rgba(34, 197, 94, 0.5) !important;
+}
+
 .top-navbar {
-    background: linear-gradient(135deg, #14171A 0%, #1A2026 100%);
-    border: 1.5px solid #1E2328;
-    border-bottom: 2px solid #166534;
+    background: linear-gradient(135deg, rgba(14, 46, 29, 0.95) 0%, rgba(8, 28, 18, 0.95) 100%);
+    border: 1.5px solid rgba(74, 222, 128, 0.25);
+    border-bottom: 2.5px solid #22C55E;
     border-radius: 16px;
     padding: 1.1rem 2rem;
     margin-bottom: 1.8rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
 }
 .top-brand-title {
-    font-size: 1.55rem; font-weight: 800; color: #FFFFFF; margin: 0;
+    font-size: 1.45rem; font-weight: 800; color: #FFFFFF; margin: 0;
     display: flex; align-items: center; gap: 10px;
 }
 .top-brand-subtitle {
-    font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1.2px; font-weight: 700; color: #94A3B8; margin: 0;
+    font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1.2px; font-weight: 700; color: #86EFAC; margin: 0;
 }
 
 .corp-hero {
-    background: linear-gradient(135deg, rgba(22, 101, 52, 0.12) 0%, rgba(20, 23, 26, 0.8) 100%);
-    border: 1.5px solid #1E2328;
+    background: linear-gradient(135deg, rgba(34, 197, 94, 0.18) 0%, rgba(8, 28, 18, 0.9) 100%);
+    border: 1.5px solid rgba(74, 222, 128, 0.3);
     border-radius: 16px;
     padding: 2rem 2.5rem;
     margin-bottom: 2rem;
-    border-left: 6px solid #22C55E;
+    border-left: 6px solid #4ADE80;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
 }
 .corp-badge {
     display: inline-flex; align-items: center; gap: 8px; 
-    background: rgba(34, 197, 94, 0.15); color: #22C55E; 
+    background: rgba(34, 197, 94, 0.2); color: #86EFAC; 
     padding: 5px 14px; border-radius: 6px;
     font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.8rem;
-    border: 1px solid rgba(34, 197, 94, 0.4);
+    border: 1px solid rgba(74, 222, 128, 0.4);
 }
-
 .corp-card {
-    background: var(--background-color);
-    border: 1.5px solid rgba(22, 101, 52, 0.25);
+    background: rgba(14, 46, 29, 0.65);
+    border: 1.5px solid rgba(74, 222, 128, 0.25);
     border-radius: 16px;
     padding: 1.8rem;
     margin-bottom: 1.5rem;
+    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.3);
 }
-
 .corp-card h4 {
     font-size: 1.25rem !important;
     font-weight: 800 !important;
     letter-spacing: -0.2px !important;
-    color: light-dark(#166534, #FFFFFF) !important;
+    color: #FFFFFF !important;
     display: flex !important;
     align-items: center !important;
     gap: 10px !important;
     margin-top: 0 !important;
     margin-bottom: 1.2rem !important;
-    background: linear-gradient(90deg, rgba(34, 197, 94, 0.12) 0%, rgba(22, 101, 52, 0.04) 100%) !important;
-    border-left: 4px solid #166534 !important;
-    border-bottom: 1px solid rgba(22, 101, 52, 0.25) !important;
+    background: linear-gradient(90deg, rgba(34, 197, 94, 0.18) 0%, rgba(22, 101, 52, 0.08) 100%) !important;
+    border-left: 4px solid #4ADE80 !important;
+    border-bottom: 1px solid rgba(74, 222, 128, 0.25) !important;
     border-radius: 8px 12px 12px 8px !important;
     padding: 10px 16px !important;
 }
 
-.metric-box .val { font-size: 1.8rem; font-weight: 800; color: #22C55E; }
-.metric-box .lbl { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; font-weight: 700; opacity: 0.85; }
-
-.score-high { color: #10B981 !important; font-weight: 800; }
-.score-mid { color: #F59E0B !important; font-weight: 800; }
-.score-low { color: #EF4444 !important; font-weight: 800; }
+.metric-box .val { font-size: 1.8rem; font-weight: 800; color: #4ADE80; }
+.metric-box .lbl { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; font-weight: 700; color: #86EFAC; }
+.score-high { color: #4ADE80 !important; font-weight: 800; }
+.score-mid { color: #FBBF24 !important; font-weight: 800; }
+.score-low { color: #F87171 !important; font-weight: 800; }
 
 div[data-baseweb="tab-highlight"], div[data-baseweb="tab-border"] { display: none !important; }
-
 div[data-baseweb="tab-list"] {
-    background: #14171A !important;
-    border: 1.5px solid #1E2328 !important;
+    background: rgba(10, 34, 21, 0.9) !important;
+    border: 1.5px solid rgba(74, 222, 128, 0.25) !important;
     border-radius: 16px !important;
     padding: 6px 10px !important;
     gap: 8px !important;
     margin-bottom: 1.8rem !important;
 }
-
 button[data-baseweb="tab"] {
     background: transparent !important;
     border: 1.5px solid transparent !important;
     border-radius: 12px !important;
     padding: 8px 20px !important;
-    color: #94A3B8 !important;
+    color: #CBD5E1 !important;
     font-size: 0.92rem !important;
     font-weight: 700 !important;
     transition: all 0.25s ease-in-out !important;
 }
-
 button[data-baseweb="tab"]:hover {
-    color: #22C55E !important;
-    background: rgba(34, 197, 94, 0.08) !important;
+    color: #4ADE80 !important;
+    background: rgba(34, 197, 94, 0.1) !important;
 }
-
 button[data-baseweb="tab"][aria-selected="true"] {
-    background: linear-gradient(135deg, rgba(22, 101, 52, 0.6) 0%, rgba(34, 197, 94, 0.2) 100%) !important;
-    border: 1.5px solid #22C55E !important;
-    color: #22C55E !important;
-}
-
-[data-testid="stVerticalBlock"] > [data-testid="stVerticalBlockBorderWrapper"]:first-child {
-    border: 1.5px solid rgba(22, 101, 52, 0.4) !important;
-    border-radius: 24px !important;
-    padding: 2.2rem 2.2rem !important;
-    background: rgba(22, 101, 52, 0.05) !important;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06) !important;
-}
-
-[data-testid="column"] [data-testid="stVerticalBlockBorderWrapper"], [data-testid="column"] > div {
-    border: none !important;
-    background: transparent !important;
-    padding: 0 !important;
-}
-
-@media (prefers-color-scheme: dark) {
-    [data-testid="stVerticalBlock"] > [data-testid="stVerticalBlockBorderWrapper"]:first-child {
-        border: 1.5px solid rgba(34, 197, 94, 0.35) !important;
-        background: linear-gradient(135deg, rgba(13, 35, 25, 0.82) 0%, rgba(9, 24, 17, 0.92) 100%) !important;
-        box-shadow: 0 16px 40px rgba(0, 0, 0, 0.55), inset 0 0 25px rgba(22, 101, 52, 0.15) !important;
-        backdrop-filter: blur(16px) !important;
-    }
+    background: linear-gradient(135deg, rgba(22, 101, 52, 0.8) 0%, rgba(34, 197, 94, 0.35) 100%) !important;
+    border: 1.5px solid #4ADE80 !important;
+    color: #FFFFFF !important;
 }
 </style>
 """
 st.markdown(ARL_GREEN_CSS, unsafe_allow_html=True)
 
 # ===========================================================================
-# 7. SESSION STATE INITIALIZATION & DESKTOP DETECTION
+# 6. SESSION STATE INITIALIZATION & DESKTOP DETECTION
 # ===========================================================================
 if "logged_in" not in st.session_state: st.session_state.logged_in = False
 if "hr_name" not in st.session_state: st.session_state.hr_name = ""
 if "hr_email" not in st.session_state: st.session_state.hr_email = ""
 if "hr_role" not in st.session_state: st.session_state.hr_role = "Recruiter"
-if "selected_profile_email" not in st.session_state: st.session_state.selected_profile_email = None
 if "pending_otp_email" not in st.session_state: st.session_state.pending_otp_email = None
 if "pending_pin_email" not in st.session_state: st.session_state.pending_pin_email = None
+if "register_mode" not in st.session_state: st.session_state.register_mode = False
 if "screening_results" not in st.session_state: st.session_state.screening_results = []
 if "show_download_page" not in st.session_state: st.session_state.show_download_page = False
 
@@ -999,111 +995,9 @@ if "is_desktop_mode" not in st.session_state:
 is_desktop_mode = st.session_state.is_desktop_mode or (st.query_params.get("mode") == "desktop")
 
 # ===========================================================================
-# 7.1 MOVIEBOX-STYLE DEDICATED DESKTOP DOWNLOAD LANDING PAGE
+# 6.1 DEDICATED WINDOWS DESKTOP INSTALLER LANDING PAGE
 # ===========================================================================
 def render_download_landing_page(exe_direct_url: str):
-    st.markdown("""
-    <style>
-    .dl-hero-box {
-        text-align: center;
-        padding: 3rem 1.5rem 2.2rem 1.5rem;
-        background: linear-gradient(180deg, rgba(22, 101, 52, 0.18) 0%, rgba(20, 23, 26, 0.9) 100%);
-        border: 1.5px solid #1E2328;
-        border-top: 3px solid #22C55E;
-        border-radius: 24px;
-        margin-bottom: 2.5rem;
-        box-shadow: 0 16px 40px rgba(0, 0, 0, 0.55);
-    }
-    .dl-badge {
-        display: inline-block;
-        background: rgba(34, 197, 94, 0.15);
-        color: #22C55E;
-        border: 1px solid #166534;
-        padding: 6px 18px;
-        border-radius: 30px;
-        font-size: 0.78rem;
-        font-weight: 800;
-        letter-spacing: 1.5px;
-        margin-bottom: 1.2rem;
-        text-transform: uppercase;
-    }
-    .dl-title {
-        font-size: 3.2rem;
-        font-weight: 800;
-        color: #FFFFFF;
-        margin: 0 0 1rem 0;
-        line-height: 1.15;
-    }
-    .dl-subtitle {
-        color: #94A3B8;
-        font-size: 1.15rem;
-        max-width: 680px;
-        margin: 0 auto 2.2rem auto;
-        line-height: 1.6;
-    }
-    .dl-main-btn {
-        display: inline-flex;
-        align-items: center;
-        gap: 12px;
-        background: linear-gradient(135deg, #166534 0%, #15803D 100%);
-        color: #FFFFFF !important;
-        font-size: 1.18rem;
-        font-weight: 800;
-        padding: 1.1rem 2.8rem;
-        border-radius: 14px;
-        text-decoration: none;
-        box-shadow: 0 10px 30px rgba(22, 101, 52, 0.45);
-        border: 1.5px solid #22C55E;
-        transition: all 0.25s ease-in-out;
-    }
-    .dl-main-btn:hover {
-        background: linear-gradient(135deg, #15803D 0%, #166534 100%);
-        transform: translateY(-3px) scale(1.02);
-        box-shadow: 0 14px 35px rgba(34, 197, 94, 0.6);
-        border-color: #FFFFFF;
-    }
-    .step-card {
-        background: #14171A;
-        border: 1.5px solid #1E2328;
-        border-radius: 18px;
-        padding: 2rem 1.5rem;
-        text-align: center;
-        height: 100%;
-        box-shadow: 0 6px 20px rgba(0,0,0,0.3);
-        transition: all 0.25s ease;
-    }
-    .step-card:hover {
-        border-color: #22C55E;
-        transform: translateY(-4px);
-    }
-    .step-num {
-        display: inline-block;
-        width: 48px;
-        height: 48px;
-        line-height: 48px;
-        border-radius: 50%;
-        background: rgba(34, 197, 94, 0.15);
-        color: #22C55E;
-        font-weight: 800;
-        font-size: 1.2rem;
-        border: 1.5px solid #166534;
-        margin-bottom: 1.2rem;
-        font-family: 'JetBrains Mono', monospace;
-    }
-    .step-title {
-        color: #FFFFFF;
-        font-size: 1.2rem;
-        font-weight: 700;
-        margin-bottom: 0.6rem;
-    }
-    .step-desc {
-        color: #94A3B8;
-        font-size: 0.92rem;
-        line-height: 1.55;
-    }
-    </style>
-    """, unsafe_allow_html=True)
-
     c_back, _ = st.columns([2.5, 7.5])
     with c_back:
         if st.button("⬅️ Back to Web Portal", use_container_width=True, key="back_to_portal_from_dl"):
@@ -1111,68 +1005,110 @@ def render_download_landing_page(exe_direct_url: str):
             st.rerun()
 
     st.markdown(f"""
-        <div class="dl-hero-box">
-            <div class="dl-badge">🪟 BUILT FOR WINDOWS 10 / 11</div>
-            <h1 class="dl-title">ARL HireMatrix Pro for Windows</h1>
-            <p class="dl-subtitle">Run Attock Refinery Limited's enterprise candidate extraction, AI matching, and cloud recruitment pipeline as a dedicated, high-speed desktop software.</p>
-            <a href="{exe_direct_url}" target="_blank" class="dl-main-btn">
-                <span>⬇️</span> Download for Windows · ARL-HireMatrix-Pro.msi (Free)
+        <div style="
+            text-align: center; padding: 3rem 1.5rem 2.2rem 1.5rem;
+            background: linear-gradient(180deg, rgba(34, 197, 94, 0.22) 0%, rgba(8, 28, 18, 0.95) 100%);
+            border: 1.5px solid rgba(74, 222, 128, 0.35); border-top: 4px solid #4ADE80;
+            border-radius: 24px; margin-bottom: 2.5rem; box-shadow: 0 16px 45px rgba(0, 0, 0, 0.6);
+        ">
+            <div style="display: inline-block; background: rgba(34, 197, 94, 0.18); color: #4ADE80; border: 1px solid #22C55E; padding: 6px 18px; border-radius: 30px; font-size: 0.78rem; font-weight: 800; letter-spacing: 1.5px; margin-bottom: 1.2rem; text-transform: uppercase;">
+                🪟 BUILT FOR WINDOWS 10 / 11
+            </div>
+            <h1 style="font-size: 3.2rem; font-weight: 800; color: #FFFFFF; margin: 0 0 1rem 0; line-height: 1.15;">
+                Arl TalentMatch for Windows
+            </h1>
+            <p style="color: #CBD5E1; font-size: 1.15rem; max-width: 680px; margin: 0 auto 2.2rem auto; line-height: 1.6;">
+                Run Attock Refinery Limited's enterprise candidate extraction, AI matching, and cloud recruitment pipeline as a dedicated, high-speed desktop software.
+            </p>
+            <a href="{exe_direct_url}" target="_blank" style="
+                display: inline-flex; align-items: center; gap: 12px; background: linear-gradient(135deg, #16A34A 0%, #15803D 100%);
+                color: #FFFFFF !important; font-size: 1.18rem; font-weight: 800; padding: 1.1rem 2.8rem; border-radius: 14px;
+                text-decoration: none; box-shadow: 0 10px 30px rgba(22, 163, 74, 0.45); border: 1.5px solid #4ADE80;
+            ">
+                <span>⬇</span> Download for Windows · ARL-HireMatrix-Pro.msi (Free)
             </a>
-            <div style="margin-top: 18px; color: #94A3B8; font-size: 0.85rem; font-family: 'JetBrains Mono', monospace;">
+            <div style="margin-top: 18px; color: #86EFAC; font-size: 0.85rem; font-family: 'JetBrains Mono', monospace;">
                 Official Windows Installer &bull; 64-bit Architecture &bull; Instant Cloud Sync
             </div>
         </div>
     """, unsafe_allow_html=True)
-
-    st.markdown("<h3 style='text-align: center; color: #FFFFFF; margin-bottom: 2rem;'>⚡ From Download to Screening in Three Steps</h3>", unsafe_allow_html=True)
-    
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        st.markdown("""
-            <div class="step-card">
-                <div class="step-num">01</div>
-                <div class="step-title">Download the Installer</div>
-                <div class="step-desc">Click the primary download button above and save the standalone Windows installer package to your PC.</div>
-            </div>
-        """, unsafe_allow_html=True)
-    with col2:
-        st.markdown("""
-            <div class="step-card">
-                <div class="step-num">02</div>
-                <div class="step-title">Run Installer</div>
-                <div class="step-desc">Double click the .msi package. If prompted by Windows SmartScreen, click <i>More Info &rarr; Run Anyway</i>.</div>
-            </div>
-        """, unsafe_allow_html=True)
-    with col3:
-        st.markdown("""
-            <div class="step-card">
-                <div class="step-num">03</div>
-                <div class="step-title">Open Portal</div>
-                <div class="step-desc">Launch ARL HireMatrix Pro from your desktop and enter your 4-digit PIN to begin candidate screening.</div>
-            </div>
-        """, unsafe_allow_html=True)
-
-    st.markdown("<div style='margin-top: 3.5rem;'></div>", unsafe_allow_html=True)
-    st.markdown("<h4 style='color: #22C55E; margin-bottom: 1rem;'>❓ Desktop App FAQs & Guidance</h4>", unsafe_allow_html=True)
-    with st.expander("❓ What should I do if Windows SmartScreen shows a warning?"):
-        st.write("Since this is a custom internal enterprise package without an expensive commercial EV certificate, Windows SmartScreen may show a security prompt. Simply click **'More info'** and then click **'Run anyway'**. The application is 100% virus-free and verified.")
-    with st.expander("❓ Will my screened candidate data sync between Desktop and Web?"):
-        st.write("Yes! Both the Desktop application and the Web portal connect directly to the same Supabase Cloud database. Any resume uploaded or candidate screened on the desktop app is immediately available in real-time on the web version.")
-    with st.expander("❓ What are the system requirements?"):
-        st.write("Windows 10 or 11 (64-bit), minimum 4 GB RAM, and an active internet connection for Groq AI screening and Supabase synchronization.")
 
 if st.session_state.show_download_page:
     render_download_landing_page(EXE_DOWNLOAD_URL)
     st.stop()
 
 # ===========================================================================
-# 8. AUTHENTICATION & LOGIN SCREEN (CHARCOAL CARDS)
+# 7. CLEAN SINGLE CHARCOAL PIN DIALOG & BADGE PICKER
+# ===========================================================================
+if hasattr(st, "dialog"):
+    @st.dialog("PIN")
+    def show_pin_dialog(target_email, p_name, p_role):
+        components.html("""
+        <script>
+        (function autoFocus() {
+            var attempts = 0;
+            var timer = setInterval(function() {
+                var doc = window.parent.document;
+                var input = doc.querySelector('div[role="dialog"] input[type="password"], div[data-testid="stDialog"] input[type="password"]');
+                if (input) {
+                    input.focus();
+                    input.select();
+                    clearInterval(timer);
+                }
+                if (++attempts > 40) clearInterval(timer);
+            }, 30);
+        })();
+        </script>
+        """, height=0, width=0)
+
+        with st.form("pin_form_clean"):
+            pin_input = st.text_input("PIN", type="password", max_chars=4, placeholder="••••", label_visibility="collapsed", key=f"clean_pin_{target_email}")
+            submitted = st.form_submit_button("Enter ➔", use_container_width=True)
+
+        if submitted or (pin_input and len(pin_input) == 4):
+            success, name, role = verify_employee_pin(target_email, pin_input)
+            if success:
+                st.session_state.logged_in = True
+                st.session_state.hr_name = name or p_name
+                st.session_state.hr_email = target_email
+                st.session_state.hr_role = role or p_role
+                st.rerun()
+            else:
+                st.error("❌ Incorrect PIN")
+
+    @st.dialog("Choose Badge")
+    def show_sticker_dialog(target_email, p_name):
+        st.markdown('<div class="sticker-modal-grid">', unsafe_allow_html=True)
+        cols = st.columns(6)
+        for idx, (stk, title) in enumerate(PROFESSIONAL_STICKERS.items()):
+            with cols[idx % 6]:
+                if st.button(stk, key=f"stk_select_{stk}_{idx}", help=title, use_container_width=True):
+                    update_user_sticker(target_email, stk)
+                    st.rerun()
+        st.markdown('</div>', unsafe_allow_html=True)
+                    
+        st.markdown("<div style='margin-top: 15px;'></div>", unsafe_allow_html=True)
+        st.markdown("---")
+        col_d1, col_d2 = st.columns([1.5, 1])
+        with col_d1:
+            if st.button("🗑️ Delete Profile", key=f"del_prof_dialog_{target_email}", use_container_width=True):
+                delete_employee_profile(target_email)
+                st.rerun()
+        with col_d2:
+            if st.button("Close", key="close_stk_dialog_btn", use_container_width=True):
+                st.rerun()
+else:
+    def show_pin_dialog(e, n, r): pass
+    def show_sticker_dialog(e, n): pass
+
+# ===========================================================================
+# 8. AUTHENTICATION & LOGIN SCREEN (NETFLIX PROFILE DECK)
 # ===========================================================================
 if not st.session_state.logged_in:
     saved_profiles = get_all_verified_profiles()
-    col_c1, col_c2, col_c3 = st.columns([1, 3.8, 1])
+
+    col_c1, col_c2, col_c3 = st.columns([1, 4.2, 1])
     with col_c2:
-        # Desktop Download CTA Banner on Login Page with ✕ Dismiss Button
         if not is_desktop_mode:
             c_banner_l, c_banner_r, c_banner_x = st.columns([6.8, 2.5, 0.7], vertical_alignment="center")
             with c_banner_l:
@@ -1191,28 +1127,24 @@ if not st.session_state.logged_in:
                 <div class="cyber-header-box">
                     <div style="display: flex; justify-content: center; margin-bottom: 12px;">
                         <div style="
-                            width: 68px; 
-                            height: 68px; 
-                            border-radius: 18px; 
-                            background: linear-gradient(135deg, rgba(34, 197, 94, 0.15) 0%, #14171A 100%);
-                            border: 2px solid #166534;
-                            display: flex;
-                            align-items: center;
-                            justify-content: center;
-                            box-shadow: 0 0 25px rgba(22, 101, 52, 0.35);
+                            width: 68px; height: 68px; border-radius: 18px; 
+                            background: linear-gradient(135deg, rgba(74, 222, 128, 0.2) 0%, #082416 100%);
+                            border: 2px solid #4ADE80; display: flex; align-items: center; justify-content: center;
+                            box-shadow: 0 0 25px rgba(34, 197, 94, 0.4);
                         ">
-                            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#22C55E" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#4ADE80" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                                 <polygon points="12 2 22 7.5 22 16.5 12 22 2 16.5 2 7.5"></polygon>
                             </svg>
                         </div>
                     </div>
-                    <h1 class="cyber-title">ARL HireMatrix <span class="cyber-title-pro">Pro</span></h1>
+                    <h1 class="cyber-title">Arl TalentMatch: <span class="cyber-title-pro">AI-Driven Automated CV Parser & JD Matcher</span></h1>
                     <div class="cyber-badge">
                         <span>◈</span> {APP_TAGLINE} <span>◈</span>
                     </div>
                 </div>
             """, unsafe_allow_html=True)
             
+            # --- VIEW A: SECURITY PIN SETUP ---
             if st.session_state.pending_pin_email:
                 st.markdown("### 🔐 Security PIN Setup")
                 st.info(f"Email verified for **{st.session_state.pending_pin_email}**. Create your 4-digit security PIN.")
@@ -1234,6 +1166,7 @@ if not st.session_state.logged_in:
                         else:
                             st.error(msg)
                             
+            # --- VIEW B: OTP VERIFICATION ---
             elif st.session_state.pending_otp_email:
                 st.markdown("### 📬 Email Verification")
                 st.info(f"Enter the 6-digit security code sent to **{st.session_state.pending_otp_email}**.")
@@ -1255,87 +1188,60 @@ if not st.session_state.logged_in:
                         st.session_state.pending_otp_email = None
                         st.rerun()
                         
-            elif saved_profiles and not st.session_state.selected_profile_email:
+            # --- VIEW C: SEAMLESS ROUNDED SQUARE PROFILE TILES ---
+            elif saved_profiles and not st.session_state.register_mode:
                 st.markdown("""
-                    <div style="margin-bottom: 14px;">
-                        <h3 style="margin: 0 0 0.2rem 0; font-size: 1.3rem; font-weight: 700; color: #22C55E;">👥 Active Executive Profiles</h3>
-                        <p style="font-size: 0.85rem; color: #94A3B8; margin: 0;">Click on your profile card to enter your PIN:</p>
+                    <div style="text-align: center; margin: 15px 0 20px 0;">
+                        <h2 style="font-size: 1.75rem; font-weight: 800; color: #FFFFFF; letter-spacing: -0.5px; margin-bottom: 4px;">
+                            Select Executive Profile
+                        </h2>
+                        <p style="font-size: 0.9rem; color: #86EFAC; margin: 0;">Click your profile to enter PIN, or hover to click <b>EDIT</b>:</p>
                     </div>
                 """, unsafe_allow_html=True)
                 
-                for p_email, p_name, p_pin, p_role in saved_profiles:
-                    col_card, col_del = st.columns([8.6, 1.4], vertical_alignment="center")
-                    with col_card:
-                        st.markdown(f"""
-                            <a href="?profile={p_email}{'&mode=desktop' if is_desktop_mode else ''}" target="_self" class="arl-clickable-badge">
-                                <div class="cyber-badge-card">
-                                    <div class="cyber-top-bar">
-                                        <span class="cyber-access-id">ARL // {hashlib.md5(p_email.encode()).hexdigest()[:8].upper()}</span>
-                                        <span class="cyber-status-dot">ONLINE ◈ CLICK TO SIGN IN ➔</span>
-                                    </div>
-                                    <div style="display: flex; align-items: center; gap: 18px;">
-                                        <div class="cyber-avatar-ring">👤</div>
-                                        <div style="flex-grow: 1;">
-                                            <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-                                                <h3 class="cyber-name-title">{p_name}</h3>
-                                                <span class="cyber-role-pill">{p_role}</span>
-                                            </div>
-                                            <div class="cyber-email-mono">✉ {p_email}</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </a>
-                        """, unsafe_allow_html=True)
-                    with col_del:
-                        if st.button("🗑️", key=f"del_card_{p_email}", help=f"Delete {p_name}'s profile", use_container_width=True):
-                            delete_employee_profile(p_email)
-                            st.success("Profile removed.")
-                            st.rerun()
-                    st.markdown("<div style='margin-bottom: 12px;'></div>", unsafe_allow_html=True)
-                
-                st.markdown("---")
-                if st.button("➕ Register New Profile", use_container_width=True, key="reg_new_emp_auth_btn"):
-                    st.session_state.selected_profile_email = "new"
-                    st.rerun()
+                deck_cols = st.columns([1, 8, 1])
+                with deck_cols[1]:
+                    st.markdown('<div class="netflix-deck">', unsafe_allow_html=True)
                     
-            elif st.session_state.selected_profile_email and st.session_state.selected_profile_email != "new":
-                target_email = st.session_state.selected_profile_email
-                p_match = next((p for p in saved_profiles if p[0].lower() == target_email.lower()), (target_email, "Executive User", "", "Recruiter"))
-                st.markdown(f"### 🔐 Sign In: {p_match[1]}")
-                st.caption(f"Enter 4-digit PIN for **{target_email}**")
+                    for idx, (p_email, p_name, p_pin, p_role, p_sticker) in enumerate(saved_profiles):
+                        st.markdown('<div class="netflix-item">', unsafe_allow_html=True)
+                        st.markdown('<div class="netflix-box">', unsafe_allow_html=True)
+                        
+                        # 1. Main Avatar Card Button (Directly triggers PIN modal on click)
+                        if st.button(p_sticker, key=f"prof_card_{idx}", help=f"Sign in as {p_name}"):
+                            show_pin_dialog(p_email, p_name, p_role)
+                            
+                        # 2. Edit Button (Sits ON the bottom of the card, reveals on hover)
+                        if st.button("✏️ EDIT", key=f"edit_btn_{idx}", help=f"Change badge for {p_name}"):
+                            show_sticker_dialog(p_email, p_name)
+                            
+                        st.markdown('</div>', unsafe_allow_html=True)
+                        
+                        # 3. Name & Role below the card
+                        st.markdown(f"""
+                            <div class="arl-tile-name">{p_name}</div>
+                            <div class="arl-tile-role">{p_role}</div>
+                        """, unsafe_allow_html=True)
+                        st.markdown('</div>', unsafe_allow_html=True)
+                                
+                    # Add Profile Card
+                    st.markdown('<div class="netflix-item">', unsafe_allow_html=True)
+                    st.markdown('<div class="netflix-box add-card">', unsafe_allow_html=True)
+                    if st.button("＋", key="add_new_prof_btn", help="Register New Profile"):
+                        st.session_state.register_mode = True
+                        st.rerun()
+                    st.markdown('</div>', unsafe_allow_html=True)
+                    st.markdown("""
+                        <div class="arl-tile-name">Add Profile</div>
+                        <div class="arl-tile-role">REGISTER</div>
+                    """, unsafe_allow_html=True)
+                    st.markdown('</div>', unsafe_allow_html=True)
+                        
+                    st.markdown('</div>', unsafe_allow_html=True)
                 
-                with st.form("pin_login_form"):
-                    pin_input = st.text_input("4-Digit PIN", type="password", max_chars=4, placeholder="••••")
-                    submit_log = st.form_submit_button("Access Portal (Press Enter)", use_container_width=True)
-                col_b1, col_b2 = st.columns(2)
-                if submit_log:
-                    success, name, role = verify_employee_pin(target_email, pin_input)
-                    if success:
-                        st.session_state.logged_in = True
-                        st.session_state.hr_name = name if name else p_match[1]
-                        st.session_state.hr_email = target_email
-                        st.session_state.hr_role = role if role else "Recruiter"
-                        st.session_state.selected_profile_email = None
-                        try:
-                            st.query_params.clear()
-                            if is_desktop_mode:
-                                st.query_params["mode"] = "desktop"
-                        except Exception:
-                            pass
-                        st.success(f"Welcome back, {st.session_state.hr_name}!")
-                        st.rerun()
-                    else:
-                        st.error("❌ Incorrect 4-Digit PIN. Please verify.")
-                with col_b2:
-                    if st.button("Switch Profile", use_container_width=True, key="switch_prof_auth_btn"):
-                        st.session_state.selected_profile_email = None
-                        try:
-                            st.query_params.clear()
-                            if is_desktop_mode:
-                                st.query_params["mode"] = "desktop"
-                        except Exception:
-                            pass
-                        st.rerun()
+                st.markdown("<div style='margin-top: 20px;'></div>", unsafe_allow_html=True)
+                        
+            # --- VIEW D: REGISTER NEW PROFILE WITH STICKER PICKER ---
             else:
                 st.markdown("### 📝 Employee / Admin Registration")
                 st.caption("First registered user automatically becomes Admin with dedicated PIN creation.")
@@ -1343,22 +1249,32 @@ if not st.session_state.logged_in:
                     reg_name = st.text_input("Full Name", placeholder="Alex Mercer")
                     reg_email = st.text_input("Company Email (@arl.com.pk)", placeholder="employee@arl.com.pk")
                     reg_pass = st.text_input("Master Password", type="password")
+                    
+                    st.markdown("**Choose your Executive Badge / Sticker:**")
+                    reg_sticker = st.selectbox(
+                        "Professional Sticker",
+                        options=list(PROFESSIONAL_STICKERS.keys()),
+                        format_func=lambda x: f"{x} {PROFESSIONAL_STICKERS[x]}"
+                    )
+                    
                     submit_reg = st.form_submit_button("Send Verification OTP", use_container_width=True)
+                    
                 col_r1, col_r2 = st.columns(2)
                 if submit_reg:
                     if not reg_name.strip() or not reg_email.strip() or not reg_pass.strip():
                         st.warning("Please verify all required fields.")
                     else:
-                        success, msg = register_initial_employee(reg_name, reg_email, reg_pass)
+                        success, msg = register_initial_employee(reg_name, reg_email, reg_pass, sticker=reg_sticker)
                         if success:
                             st.success(msg)
                             st.session_state.pending_otp_email = reg_email.lower().strip()
+                            st.session_state.register_mode = False
                             st.rerun()
                         else:
                             st.error(msg)
                 with col_r2:
-                    if saved_profiles and st.button("Back to Profiles", use_container_width=True, key="back_to_prof_auth_btn"):
-                        st.session_state.selected_profile_email = None
+                    if st.button("Back to Profiles", use_container_width=True, key="back_to_prof_auth_btn"):
+                        st.session_state.register_mode = False
                         st.rerun()
     st.stop()
 
@@ -1416,7 +1332,7 @@ def extract_resume_text(uploaded_file):
         elif ext in ["png", "jpg", "jpeg"]:
             return extract_text_from_image(file_bytes)
     except Exception as exc:
-        st.error(f"⚠️ Could not read {uploaded_file.name}: {exc}")
+        st.error(f"⚠ Could not read {uploaded_file.name}: {exc}")
     return None
 
 # ===========================================================================
@@ -1579,23 +1495,17 @@ with col_n1:
     st.markdown(f"""
         <div class="top-navbar" style="display: flex; align-items: center; gap: 16px;">
             <div style="
-                width: 48px; 
-                height: 48px; 
-                border-radius: 14px; 
-                background: linear-gradient(135deg, rgba(34, 197, 94, 0.25) 0%, #14171A 100%);
-                border: 2px solid #22C55E;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                box-shadow: 0 0 20px rgba(34, 197, 94, 0.35);
-                flex-shrink: 0;
+                width: 48px; height: 48px; border-radius: 14px; 
+                background: linear-gradient(135deg, rgba(74, 222, 128, 0.25) 0%, #082416 100%);
+                border: 2px solid #4ADE80; display: flex; align-items: center; justify-content: center;
+                box-shadow: 0 0 20px rgba(34, 197, 94, 0.4); flex-shrink: 0;
             ">
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#22C55E" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#4ADE80" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                     <polygon points="12 2 22 7.5 22 16.5 12 22 2 16.5 2 7.5"></polygon>
                 </svg>
             </div>
             <div>
-                <h2 class="top-brand-title" style="margin: 0; font-size: 1.55rem; color: #FFFFFF;">ARL HireMatrix <span style="color: #22C55E;">Pro</span></h2>
+                <h2 class="top-brand-title" style="margin: 0; font-size: 1.35rem; color: #FFFFFF;">Arl TalentMatch: <span style="color: #4ADE80;">AI-Driven Automated CV Parser & JD Matcher</span></h2>
                 <p class="top-brand-subtitle" style="margin: 4px 0 0 0;">Attock Refinery Limited &bull; Active: <b>{st.session_state.get('hr_name', 'Recruiter')}</b> ({st.session_state.get('hr_email', 'admin@arl.com.pk')}) &bull; Role: <b>{st.session_state.get('hr_role', 'Recruiter')}</b></p>
             </div>
         </div>
@@ -1613,7 +1523,6 @@ with col_n2:
                 st.session_state.hr_name = ""
                 st.session_state.hr_email = ""
                 st.session_state.hr_role = "Recruiter"
-                st.session_state.selected_profile_email = None
                 st.session_state.screening_results = []
                 try:
                     st.query_params.clear()
@@ -1628,7 +1537,6 @@ with col_n2:
             st.session_state.hr_name = ""
             st.session_state.hr_email = ""
             st.session_state.hr_role = "Recruiter"
-            st.session_state.selected_profile_email = None
             st.session_state.screening_results = []
             try:
                 st.query_params.clear()
@@ -1737,7 +1645,7 @@ with tab2:
     
     with st.expander("⚙️ Manage ARL Job Catalog (Add, Edit, or Remove Jobs & Departments)"):
         st.caption("Permanently modify or add job positions in the ARL database hierarchy.")
-        m_tab1, m_tab2, m_tab3 = st.tabs(["➕ Add New Job", "✏️ Edit / Rename Job", "🗑️ Delete Job"])
+        m_tab1, m_tab2, m_tab3 = st.tabs(["➕ Add New Job", "✏️ Edit / Rename Job", "🗑 Delete Job"])
         
         with m_tab1:
             col_ad1, col_ad2 = st.columns(2)
@@ -1871,7 +1779,7 @@ with tab2:
                 c1, c2 = st.columns([1.3, 1])
                 with c1:
                     st.markdown(f"**💼 Target Role:** `{cand.get('job_title', 'Not Specified')}`")
-                    st.markdown(f"**✉️️ Email:** `{cand['email']}` | **📞 Phone:** `{cand['phone']}`")
+                    st.markdown(f"**✉ Email:** `{cand['email']}` | **📞 Phone:** `{cand['phone']}`")
                     st.markdown(f"**👤 Father's Name:** {cand['father_name']}")
                     st.markdown(f"**🎓 Qualification:** {cand['education']} (CGPA: {cand['cgpa']} | Year: {cand['passing_year']})")
                     st.markdown(f"**🏫 Institute:** {cand['university_name']}")
@@ -2010,7 +1918,7 @@ with tab3:
 
 # ----------------- TAB 4: ADMIN CONTROLS -----------------
 with tab4:
-    st.markdown('<div class="corp-card"><h4>🛡️ Admin Access & Employee Management</h4></div>', unsafe_allow_html=True)
+    st.markdown('<div class="corp-card"><h4>🛡 Admin Access & Employee Management</h4></div>', unsafe_allow_html=True)
     
     if st.session_state.get('hr_role') != "Admin":
         st.error("⛔ **Access Denied**: You do not have Administrator privileges to view this control panel.")
@@ -2020,9 +1928,9 @@ with tab4:
         st.markdown("### 👥 Active Employee Profiles & Confidential PINs")
         all_emps = get_all_verified_profiles_admin()
         st.markdown(f"**Total Active Registered Employees:** {len(all_emps)}")
-        for emp_email, emp_name, emp_pin, emp_role in all_emps:
+        for emp_email, emp_name, emp_pin, emp_role, emp_sticker in all_emps:
             col_a1, col_a2, col_a3 = st.columns([2, 1, 1])
-            with col_a1: st.write(f"👤 **{emp_name}** ({emp_email}) — *{emp_role}*")
+            with col_a1: st.write(f"{emp_sticker} **{emp_name}** ({emp_email}) — *{emp_role}*")
             with col_a2: st.write(f"PIN: `{emp_pin}`")
             with col_a3:
                 if emp_email.lower() != st.session_state.get('hr_email', '').lower():
