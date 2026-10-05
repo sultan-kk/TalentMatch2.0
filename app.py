@@ -2,8 +2,8 @@
 ARL TalentMatch — Official Corporate Edition (Full-Proof Enterprise Suite)
 =============================================================================
 Branding: Attock Refinery Limited (ARL Forest Green & Adaptive Theme Palette)
-Features: Premium Styled In-App Download Suite, FAQ Accordion, Netflix Cards,
-Supabase Live Pipeline, Status Updater, SMTP Email Dispatcher & AI Interview Generator.
+Features: Stunning In-App Download Suite & FAQs, Netflix Cards, Supabase Live Pipeline, 
+Status Updater, Tab 2 Clear View & Database Grid Cleaner.
 """
 
 import io
@@ -396,7 +396,7 @@ def clear_screened_database():
     if supabase: supabase.table("screened_candidates").delete().neq("id", 0).execute()
 
 # ===========================================================================
-# 5. HIGH-END CORPORATE CSS (STYLISH DOWNLOAD SUITE)
+# 5. HIGH-END CORPORATE CSS
 # ===========================================================================
 ADAPTIVE_CSS = """
 <style>
@@ -408,19 +408,6 @@ html, body, [class*="css"], .stApp {
 
 [data-testid="stSidebar"] { display: none !important; }
 [data-testid="collapsedControl"] { display: none !important; }
-
-/* Glowing Corporate Download Banner */
-.top-download-banner {
-    background: linear-gradient(135deg, #064E3B 0%, #022C22 100%);
-    border: 2px solid #34D399;
-    border-radius: 18px;
-    padding: 1.25rem 2rem;
-    margin-bottom: 1.8rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    box-shadow: 0 10px 30px rgba(5, 150, 105, 0.4);
-}
 
 .netflix-card-box {
     background: linear-gradient(145deg, #0F3622 0%, #081F13 100%);
@@ -524,8 +511,8 @@ def show_sticker_picker_dialog(email, name):
 if not st.session_state.logged_in:
     saved_profiles = get_all_verified_profiles()
     
-    # Styled Top Download Banner
-    col_b1, col_b2 = st.columns([7.2, 2.8], vertical_alignment="center")
+    # Gorgeous Styled Top Download Banner
+    col_b1, col_b2 = st.columns([7, 3], vertical_alignment="center")
     with col_b1:
         st.markdown("🚀 **ARL TalentMatch Desktop Suite** — Standalone Windows app available for offline execution.")
     with col_b2:
@@ -706,9 +693,9 @@ df_all = load_database()
 user_avatar = get_user_avatar(st.session_state.hr_email)
 
 # Top Styled Banner on Main Dashboard
-col_d1, col_d2 = st.columns([7.2, 2.8], vertical_alignment="center")
+col_d1, col_d2 = st.columns([7, 3], vertical_alignment="center")
 with col_d1:
-    st.markdown("🚀 **ARL TalentMatch Desktop Suite** — Standalone Windows installer available for offline execution.")
+    st.markdown("🚀 **ARL TalentMatch Desktop Suite** — Standalone Windows app available for offline execution.")
 with col_d2:
     if st.button("📥 View Download & FAQs", key="dl_btn_dash_top", use_container_width=True):
         st.session_state.show_download_page = True
