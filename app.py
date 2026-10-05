@@ -1,5 +1,5 @@
 """
-ARL HireMatrix Pro — Official Corporate Edition
+ARL TalentMatch — Official Corporate Edition
 =============================================================================
 Branding: Attock Refinery Limited (ARL Official Forest Green & Charcoal Palette)
 Features: Netflix-Style Profile Selector, Interactive Avatar Badges, 
@@ -31,7 +31,7 @@ APP_NAME = "ARL TalentMatch"
 APP_TAGLINE = "Attock Refinery Limited (ARL) • AI-Driven Automated CV Parser & JD Screener"
 GROQ_MODEL = "openai/gpt-oss-120b"
 ACCEPTED_TYPES = ["pdf", "docx", "png", "jpg", "jpeg"]
-EXE_DOWNLOAD_URL = "https://github.com/sultan-kk/TalentMatch2.0/releases/download/v1.0/ARL-HireMatrix-Pro_1.0.0_x64_en-US.msi"
+EXE_DOWNLOAD_URL = "https://github.com/sultan-kk/TalentMatch2.0/releases/download/v1.0/ARL-TalentMatch_1.0.0_x64_en-US.msi"
 
 # Professional Corporate Badges / Stickers for Avatars
 AVAILABLE_BADGES = [
@@ -188,7 +188,7 @@ def register_initial_employee(name, email, password):
         }
         supabase.table("hr_users").upsert(data).execute()
         
-        success, msg = send_smtp_email(clean_email, "ARL HireMatrix Pro - Verification OTP", f"Your verification code is: {otp}")
+        success, msg = send_smtp_email(clean_email, "ARL TalentMatch - Verification OTP", f"Your verification code is: {otp}")
         if success:
             return True, "Registration initiated! Please check your email for the verification OTP."
         else:
@@ -749,18 +749,6 @@ div[data-testid="stHorizontalBlock"] .stButton > button[kind="secondary"] {
     color: #CBD5E1 !important;
 }
 
-/* Sticker Grid Items */
-.sticker-picker-btn {
-    font-size: 2.2rem !important;
-    padding: 10px !important;
-    text-align: center;
-    background: #14171A;
-    border: 1.5px solid #1E252B;
-    border-radius: 14px;
-    transition: all 0.2s;
-    cursor: pointer;
-}
-
 /* Inside Dialog Styling */
 [data-testid="stDialog"] input {
     background-color: #0E1012 !important;
@@ -890,7 +878,6 @@ def show_pin_dialog(email, name, role):
     st.caption(f"Account: `{email}`")
     
     with st.form(f"modal_pin_form_{email}"):
-        # Cursor auto-focus on PIN entry field
         pin_val = st.text_input("4-Digit PIN", type="password", max_chars=4, placeholder="••••")
         submit_btn = st.form_submit_button("Access Portal ➔", use_container_width=True)
         
@@ -923,7 +910,6 @@ def show_sticker_picker_dialog(email, name):
 if not st.session_state.logged_in:
     saved_profiles = get_all_verified_profiles()
     
-    # Optional Desktop CTA banner
     if not is_desktop_mode:
         c_banner_l, c_banner_r, c_banner_x = st.columns([7, 2.3, 0.7], vertical_alignment="center")
         with c_banner_l:
@@ -937,7 +923,6 @@ if not st.session_state.logged_in:
                 st.session_state.is_desktop_mode = True
                 st.rerun()
 
-    # Step 1: PIN Setup Screen (if verified from OTP)
     if st.session_state.pending_pin_email:
         _, mid_col, _ = st.columns([1, 2.2, 1])
         with mid_col:
@@ -962,7 +947,6 @@ if not st.session_state.logged_in:
                         st.error(msg)
         st.stop()
 
-    # Step 2: OTP Verification Screen
     elif st.session_state.pending_otp_email:
         _, mid_col, _ = st.columns([1, 2.2, 1])
         with mid_col:
@@ -985,7 +969,6 @@ if not st.session_state.logged_in:
                 st.rerun()
         st.stop()
 
-    # Step 3: Registration Form (Any Email Allowed)
     elif st.session_state.show_registration or not saved_profiles:
         _, mid_col, _ = st.columns([1, 2.2, 1])
         with mid_col:
@@ -1020,11 +1003,10 @@ if not st.session_state.logged_in:
                     st.rerun()
         st.stop()
 
-    # Step 4: NETFLIX "WHO'S SCREENING?" PROFILE CARDS GRID
-    st.markdown("""
+    st.markdown(f"""
         <div class="netflix-header-box">
             <h1 class="netflix-heading">Who's Screening?</h1>
-            <p class="netflix-subtext">Select your ARL Executive Profile to unlock the portal</p>
+            <p class="netflix-subtext">{APP_TAGLINE}</p>
         </div>
     """, unsafe_allow_html=True)
 
@@ -1035,7 +1017,6 @@ if not st.session_state.logged_in:
         with card_cols[idx]:
             avatar_sticker = get_user_avatar(p_email)
             
-            # Interactive Rounded Square Card
             st.markdown(f"""
                 <div class="netflix-card-wrapper">
                     <div class="netflix-avatar-emoji">{avatar_sticker}</div>
@@ -1045,7 +1026,6 @@ if not st.session_state.logged_in:
                 <div class="netflix-user-role">{p_role}</div>
             """, unsafe_allow_html=True)
             
-            # Two inline action buttons: Click Profile (Open PIN Dialog) & Sticker Picker
             c_sel, c_edit = st.columns([3, 1.2])
             with c_sel:
                 if st.button("Sign In", key=f"sel_prof_{idx}_{p_email}", use_container_width=True):
@@ -1056,7 +1036,6 @@ if not st.session_state.logged_in:
 
     st.markdown("<div style='margin-top: 3.5rem;'></div>", unsafe_allow_html=True)
     
-    # Bottom Controls: Add Profile / Manage
     _, b_mid, _ = st.columns([2, 1.8, 2])
     with b_mid:
         if st.button("➕ Add New Profile", use_container_width=True, key="netflix_add_profile_btn"):
@@ -1268,7 +1247,6 @@ st.markdown(f"""
 
 tab1, tab2, tab3, tab4 = st.tabs(["📥 1. Talent Repository (Upload)", "🎯 2. JD Screening & Matching", "🗄️ 3. Live Database Grids", "🛡️ 4. Admin Controls"])
 
-# ----------------- TAB 1: TALENT REPOSITORY -----------------
 with tab1:
     st.markdown('<div class="corp-card"><h4>📥 Step 1: Ingest & Parse Resumes</h4>', unsafe_allow_html=True)
     uploaded_files = st.file_uploader("Upload Resumes (PDF, DOCX, Images)", type=ACCEPTED_TYPES, accept_multiple_files=True)
@@ -1291,7 +1269,6 @@ with tab1:
             st.rerun()
     st.markdown('</div>', unsafe_allow_html=True)
 
-# ----------------- TAB 2: SCREENING & MATCHING -----------------
 with tab2:
     st.markdown('<div class="corp-card"><h4>🎯 Step 2: Job Description Screening</h4>', unsafe_allow_html=True)
     catalog = load_arl_job_catalog()
@@ -1344,7 +1321,6 @@ with tab2:
                 st.write(f"**Skills Gap:** {', '.join(cand['missing_skills']) if cand['missing_skills'] else 'None'}")
     st.markdown('</div>', unsafe_allow_html=True)
 
-# ----------------- TAB 3: LIVE CLOUD GRIDS -----------------
 with tab3:
     st.markdown('<div class="corp-card"><h4>🗄️ Real-Time Synchronized Supabase Grids</h4>', unsafe_allow_html=True)
     g1, g2 = st.tabs(["Screened Candidates", "Master Talent Pool"])
@@ -1368,7 +1344,6 @@ with tab3:
             st.info("Master candidate database is empty.")
     st.markdown('</div>', unsafe_allow_html=True)
 
-# ----------------- TAB 4: ADMIN CONTROLS -----------------
 with tab4:
     st.markdown('<div class="corp-card"><h4>🛡️ Executive Access & Profiles</h4>', unsafe_allow_html=True)
     if st.session_state.get('hr_role') != "Admin":
