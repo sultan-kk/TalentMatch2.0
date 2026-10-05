@@ -471,7 +471,7 @@ def clear_screened_database():
     if supabase: supabase.table("screened_candidates").delete().neq("id", 0).execute()
 
 # ===========================================================================
-# 5. ISOLATED CSS (STRICT 135x135px SQUARE PROFILE CARDS)
+# 5. ADAPTIVE STYLING CSS
 # ===========================================================================
 ADAPTIVE_CSS = """
 <style>
@@ -485,61 +485,7 @@ html, body, [class*="css"], .stApp {
     display: none !important; 
 }
 
-/* ==========================================================================
-   STRICT SQUARE 135px x 135px PROFILE CARDS (PREVENTS RECTANGLE STRETCH)
-   ========================================================================== */
-div[data-testid="stColumn"] > div:has(.square-profile-card) {
-    display: flex !important;
-    justify-content: center !important;
-    align-items: center !important;
-}
-
-div[data-testid="stColumn"] div[style*="width:150px; height:150px"] div.stButton > button {
-    width: 150px !important;
-    height: 150px !important;
-    border-radius: 24px !important;
-    background: #181B20 !important;
-    border: 2px solid #2D333B !important;
-    box-shadow: 0 10px 22px rgba(0, 0, 0, 0.45) !important;
-    padding: 0 !important;
-    margin: 0 !important;
-}
-
-div[data-testid="stColumn"] div[style*="width:150px; height:150px"] div.stButton > button p {
-    font-size: 4.8rem !important;
-    line-height: 1 !important;
-    margin: 0 !important;
-}
-
-div[data-testid="stColumn"] > div:has(.square-profile-card) div.stButton > button:hover {
-    transform: translateY(-5px) scale(1.04) !important;
-    border-color: #10B981 !important;
-    box-shadow: 0 14px 28px rgba(16, 185, 129, 0.4) !important;
-    background: #22262E !important;
-}
-
-/* Titles and Role below cards */
-.profile-meta-title {
-    text-align: center;
-    font-size: 1.3rem;
-    font-weight: 600;
-    line-height: 1.2;
-    margin-top: 8px;
-}
-
-.profile-meta-role {
-    text-align: center;
-    font-size: 0.7rem;
-    font-family: 'JetBrains Mono', monospace;
-    color: #10B981 !important;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-top: 2px;
-}
-
-/* ==========================================================================
-   PORTAL INTERIOR: CLEAN, BALANCED & THEME ADAPTIVE
-   ========================================================================== */
+/* Interior Dashboard Styling */
 .top-navbar {
     background: var(--secondary-background-color);
     border: 1px solid rgba(16, 185, 129, 0.35);
@@ -578,12 +524,21 @@ div[data-testid="stColumn"] > div:has(.square-profile-card) div.stButton > butto
     color: #10B981;
 }
 
-/* Standard Buttons Inside Dashboard */
-div.stButton > button {
-    border-radius: 10px !important;
-    font-weight: 600 !important;
-    padding: 0.45rem 1.1rem !important;
-    transition: all 0.2s ease !important;
+div[data-testid="stColumn"] div[style*="width:150px; height:150px"] div.stButton > button {
+    width: 150px !important;
+    height: 150px !important;
+    border-radius: 24px !important;
+    background: #181B20 !important;
+    border: 2px solid #2D333B !important;
+    box-shadow: 0 10px 22px rgba(0, 0, 0, 0.45) !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+div[data-testid="stColumn"] div[style*="width:150px; height:150px"] div.stButton > button p {
+    font-size: 4.8rem !important;
+    line-height: 1 !important;
+    margin: 0 !important;
 }
 
 div.stButton > button[kind="primary"] {
@@ -595,6 +550,25 @@ div.stButton > button[kind="primary"] {
 div.stButton > button[kind="primary"]:hover {
     background: #059669 !important;
     border-color: #10B981 !important;
+}
+
+/* Scoped Netflix Profile Card */
+.profile-meta-title {
+    text-align: center;
+    font-size: 1.1rem;
+    font-weight: 700;
+    line-height: 1.2;
+    margin-top: 10px;
+}
+
+.profile-meta-role {
+    text-align: center;
+    font-size: 0.72rem;
+    font-family: 'JetBrains Mono', monospace;
+    color: #10B981 !important;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    margin-top: 3px;
 }
 </style>
 """
