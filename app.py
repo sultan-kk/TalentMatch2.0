@@ -1,9 +1,9 @@
 """
-ARL TalentMatch — Official Corporate Edition (Adaptive Enterprise Suite)
+ARL TalentMatch — Official Corporate Edition (Enterprise Suite)
 =============================================================================
-Branding: Attock Refinery Limited (ARL Forest Green & Native Adaptive Theme)
-Features: Guaranteed 160x160px Square Profile Cards, In-Card Top-Right Edit Badge,
-Supabase Permanent Badge Sync, Deduplication Engine, Bottom Append.
+Branding: Attock Refinery Limited (ARL Forest Green & Adaptive Theme)
+Features: Guaranteed 165x165px Square Profile Cards, Smooth Emerald Glow Hover,
+Instant Logout/Lock, Permanent Supabase Badges, Deduplication Engine, Bottom Append.
 """
 
 import io
@@ -460,7 +460,7 @@ def clear_screened_database():
     if supabase: supabase.table("screened_candidates").delete().neq("id", 0).execute()
 
 # ===========================================================================
-# 5. CSS (PERFECT ALIGNMENT, HOVER EFFECTS & STRICT 165x165 SQUARES)
+# 5. CSS (DIRECT ENFORCED 165x165 SQUARES & HOVER GLOW)
 # ===========================================================================
 ADAPTIVE_CSS = """
 <style>
@@ -489,52 +489,25 @@ div.stButton > button[kind="primary"] {
 }
 
 /* ==========================================================================
-   NETFLIX PROFILE GRID: PERFECT CENTER ALIGNMENT & HOVER EFFECT
+   SOLID 165x165 SQUARE PROFILE BUTTONS
    ========================================================================== */
-/* Column ke content ko horizontally & vertically center karein */
-div[data-testid="stHorizontalBlock"] {
-    display: flex !important;
-    justify-content: center !important;
-    align-items: flex-start !important;
-    gap: 1.5rem !important;
-    max-width: 900px !important;
-    margin: 0 auto !important;
-}
-
 div[data-testid="stColumn"] {
     display: flex !important;
     flex-direction: column !important;
     align-items: center !important;
-    justify-content: center !important;
+    justify-content: flex-start !important;
 }
 
-/* Profile Card Container (Fixed 165x165px Square) */
-.profile-cell-wrap {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    width: 165px;
-    margin: 0 auto 1.5rem auto;
-}
-
-.profile-card-holder {
-    position: relative;
-    width: 165px !important;
-    height: 165px !important;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-/* Main Profile Square Button */
-.profile-card-holder div[data-testid="stButton"]:first-child > button {
+/* Targeted Strict 165x165 Square Buttons */
+div[data-testid="stColumn"] div.stButton > button[key*="ucard_"],
+div[data-testid="stColumn"] div.stButton > button[key*="add_card_"] {
     width: 165px !important;
     height: 165px !important;
     min-width: 165px !important;
     max-width: 165px !important;
     min-height: 165px !important;
     max-height: 165px !important;
+    aspect-ratio: 1 / 1 !important;
     border-radius: 28px !important;
     background: #181B20 !important;
     border: 2px solid #2D333B !important;
@@ -542,78 +515,58 @@ div[data-testid="stColumn"] {
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
+    margin: 0 auto !important;
     padding: 0 !important;
-    margin: 0 !important;
     cursor: pointer !important;
-    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+    transition: all 0.28s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
-.profile-card-holder div[data-testid="stButton"]:first-child > button p {
+div[data-testid="stColumn"] div.stButton > button[key*="ucard_"] p,
+div[data-testid="stColumn"] div.stButton > button[key*="add_card_"] p {
     font-size: 5.2rem !important;
     line-height: 1 !important;
     margin: 0 !important;
     padding: 0 !important;
-    transition: transform 0.3s ease !important;
+    transition: transform 0.28s ease !important;
 }
 
-/* HIGH-END HOVER EFFECT: Lift + Smooth Glow + Scale */
-.profile-card-holder div[data-testid="stButton"]:first-child > button:hover {
+/* Hover Lift + Glowing Emerald */
+div[data-testid="stColumn"] div.stButton > button[key*="ucard_"]:hover,
+div[data-testid="stColumn"] div.stButton > button[key*="add_card_"]:hover {
     transform: translateY(-8px) scale(1.05) !important;
     border-color: #10B981 !important;
-    box-shadow: 0 16px 36px rgba(16, 185, 129, 0.4), 0 0 20px rgba(52, 211, 153, 0.25) !important;
-    background: #20242B !important;
+    box-shadow: 0 16px 36px rgba(16, 185, 129, 0.4), 0 0 18px rgba(52, 211, 153, 0.3) !important;
+    background: #22262E !important;
 }
 
-.profile-card-holder div[data-testid="stButton"]:first-child > button:hover p {
+div[data-testid="stColumn"] div.stButton > button[key*="ucard_"]:hover p,
+div[data-testid="stColumn"] div.stButton > button[key*="add_card_"]:hover p {
     transform: scale(1.08) !important;
 }
 
-/* In-Card Floating Edit Badge (Top-Right) */
-.profile-edit-badge {
-    position: absolute;
-    top: 8px;
-    right: 8px;
-    z-index: 99;
+/* Edit Badge Pill Button */
+div[data-testid="stColumn"] div.stButton > button[key*="ebtn_"] {
+    border-radius: 20px !important;
+    font-size: 0.78rem !important;
+    padding: 0.22rem 0.8rem !important;
+    background: rgba(16, 185, 129, 0.12) !important;
+    border: 1px solid rgba(16, 185, 129, 0.4) !important;
+    color: #10B981 !important;
+    margin-top: 6px !important;
 }
 
-.profile-edit-badge div[data-testid="stButton"] > button {
-    width: 34px !important;
-    height: 34px !important;
-    min-width: 34px !important;
-    min-height: 34px !important;
-    border-radius: 50% !important;
-    background: #23272F !important;
-    border: 1.5px solid #10B981 !important;
-    padding: 0 !important;
-    margin: 0 !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5) !important;
-    transition: all 0.2s ease !important;
-}
-
-.profile-edit-badge div[data-testid="stButton"] > button p {
-    font-size: 0.95rem !important;
-    line-height: 1 !important;
-    margin: 0 !important;
-    padding: 0 !important;
-}
-
-.profile-edit-badge div[data-testid="stButton"] > button:hover {
+div[data-testid="stColumn"] div.stButton > button[key*="ebtn_"]:hover {
     background: #10B981 !important;
-    border-color: #34D399 !important;
-    transform: scale(1.18) !important;
+    color: #FFFFFF !important;
 }
 
-/* Captions Below Card */
 .profile-meta-title {
     text-align: center;
     font-size: 1.12rem;
     font-weight: 700;
-    line-height: 1.2;
-    margin-top: 12px;
     color: #FFFFFF !important;
+    margin-top: 10px;
+    line-height: 1.2;
 }
 
 .profile-meta-role {
@@ -623,7 +576,7 @@ div[data-testid="stColumn"] {
     color: #10B981 !important;
     text-transform: uppercase;
     letter-spacing: 0.6px;
-    margin-top: 3px;
+    margin-top: 2px;
 }
 
 /* Interior Dashboard Styling */
@@ -667,6 +620,7 @@ div[data-testid="stColumn"] {
 </style>
 """
 st.markdown(ADAPTIVE_CSS, unsafe_allow_html=True)
+
 # ===========================================================================
 # 6. SESSION STATE INITIALIZATION
 # ===========================================================================
@@ -734,29 +688,71 @@ def show_sticker_picker_dialog(email, name):
                 st.success("Badge permanently saved!")
                 st.rerun()
 
-# =======================================================================
-    # 8. AUTHENTICATION & LOGIN SCREEN (STRICT 165x165 SQUARES)
-    # =======================================================================
-    # Handle direct selection from cards
-    params = st.query_params
-    if "select_user" in params:
-        u_email = params["select_user"]
-        st.query_params.clear()
-        for p_email, p_name, p_pin, p_role in saved_profiles:
-            if p_email.lower().strip() == u_email.lower().strip():
-                show_pin_dialog(p_email, p_name, p_role)
-                break
-    elif "edit_badge" in params:
-        u_email = params["edit_badge"]
-        st.query_params.clear()
-        for p_email, p_name, p_pin, p_role in saved_profiles:
-            if p_email.lower().strip() == u_email.lower().strip():
-                show_sticker_picker_dialog(p_email, p_name)
-                break
-    elif "register_new" in params:
-        st.query_params.clear()
-        st.session_state.show_registration = True
-        st.rerun()
+# ===========================================================================
+# 8. AUTHENTICATION & LOGIN SCREEN (165x165 SQUARES)
+# ===========================================================================
+if not st.session_state.logged_in:
+    saved_profiles = get_all_verified_profiles()
+
+    if st.session_state.show_download_page:
+        st.markdown("---")
+        st.markdown(f"""
+            <div style="background: var(--secondary-background-color); border: 1.5px solid #10B981; border-radius: 18px; padding: 2.2rem; margin-bottom: 2rem; text-align: center; box-shadow: 0 8px 24px rgba(0,0,0,0.15);">
+                <div style="font-size: 2.8rem; margin-bottom: 8px;">💻</div>
+                <h2 style="margin-bottom: 8px; font-weight: 800;">ARL TalentMatch Desktop Edition</h2>
+                <p style="max-width: 650px; margin: 0 auto 20px auto; opacity: 0.85;">
+                    Run Attock Refinery's recruitment suite natively on your Windows PC for high-performance offline execution, native OCR processing, and secure cloud synchronization.
+                </p>
+                <a href="{EXE_DIRECT_DOWNLOAD_URL}" target="_blank" style="background: #059669; color: white; padding: 0.75rem 2rem; border-radius: 10px; font-weight: 700; font-size: 1.05rem; text-decoration: none; display: inline-block;">📥 Download Windows Installer (.msi)</a>
+            </div>
+        """, unsafe_allow_html=True)
+
+        if st.button("⬅ Back to Portal Login", use_container_width=True):
+            st.session_state.show_download_page = False
+            st.rerun()
+        st.stop()
+
+    if st.session_state.pending_pin_email:
+        _, mid_col, _ = st.columns([1, 2.2, 1])
+        with mid_col:
+            st.markdown("### 🔐 Security PIN Setup")
+            with st.form("pin_setup_form"):
+                new_pin = st.text_input("Create 4-Digit PIN", type="password", max_chars=4)
+                confirm_pin = st.text_input("Confirm 4-Digit PIN", type="password", max_chars=4)
+                submit_pin = st.form_submit_button("Save PIN & Continue", use_container_width=True)
+            if submit_pin:
+                if len(new_pin) == 4 and new_pin == confirm_pin:
+                    success, msg = save_employee_pin(st.session_state.pending_pin_email, new_pin)
+                    if success:
+                        st.success(msg)
+                        st.session_state.pending_pin_email = None
+                        st.rerun()
+                else:
+                    st.error("Invalid or non-matching PIN.")
+        st.stop()
+
+    elif st.session_state.show_registration:
+        _, mid_col, _ = st.columns([1, 2.2, 1])
+        with mid_col:
+            st.markdown("### 📝 Register Executive Profile")
+            with st.form("universal_registration_form"):
+                reg_name = st.text_input("Full Name")
+                reg_email = st.text_input("Email Address")
+                reg_pass = st.text_input("Master Password", type="password")
+                submit_reg = st.form_submit_button("Register Profile", use_container_width=True)
+            if submit_reg:
+                success, msg = register_initial_employee(reg_name, reg_email, reg_pass)
+                if success:
+                    st.success(msg)
+                    st.session_state.pending_pin_email = reg_email.lower().strip()
+                    st.session_state.show_registration = False
+                    st.rerun()
+                else:
+                    st.error(msg)
+            if st.button("⬅ Back to Profiles", use_container_width=True):
+                st.session_state.show_registration = False
+                st.rerun()
+        st.stop()
 
     st.markdown(f"""
         <div style="text-align: center; padding: 2.2rem 1rem 1.6rem 1rem;">
@@ -765,128 +761,36 @@ def show_sticker_picker_dialog(email, name):
         </div>
     """, unsafe_allow_html=True)
 
-    # Bullet-proof Flexbox Grid with Strict 165x165 Squares & Hover Glow
-    cards_html = """
-    <style>
-    .netflix-profiles-grid {
-        display: flex;
-        flex-direction: row;
-        justify-content: center;
-        align-items: flex-start;
-        gap: 30px;
-        max-width: 950px;
-        margin: 0 auto 2.5rem auto;
-    }
-    .profile-card-item {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        width: 165px;
-        text-decoration: none;
-    }
-    .profile-square-btn {
-        position: relative;
-        width: 165px;
-        height: 165px;
-        background: #181B20;
-        border: 2.5px solid #2D333B;
-        border-radius: 28px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        box-shadow: 0 10px 24px rgba(0, 0, 0, 0.5);
-        cursor: pointer;
-        transition: all 0.28s cubic-bezier(0.4, 0, 0.2, 1);
-        text-decoration: none;
-    }
-    .profile-square-btn:hover {
-        transform: translateY(-8px) scale(1.05);
-        border-color: #10B981;
-        box-shadow: 0 16px 36px rgba(16, 185, 129, 0.4), 0 0 18px rgba(52, 211, 153, 0.25);
-        background: #20242B;
-    }
-    .profile-emoji-text {
-        font-size: 5.2rem;
-        line-height: 1;
-        user-select: none;
-        transition: transform 0.28s ease;
-    }
-    .profile-square-btn:hover .profile-emoji-text {
-        transform: scale(1.08);
-    }
-    .profile-corner-pencil {
-        position: absolute;
-        top: 8px;
-        right: 8px;
-        width: 34px;
-        height: 34px;
-        background: rgba(35, 39, 47, 0.9);
-        border: 1.5px solid #10B981;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 0.95rem;
-        color: #FFFFFF;
-        text-decoration: none;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
-        transition: all 0.2s ease;
-        z-index: 10;
-    }
-    .profile-corner-pencil:hover {
-        background: #10B981;
-        border-color: #34D399;
-        transform: scale(1.18);
-    }
-    .profile-name-caption {
-        text-align: center;
-        font-size: 1.12rem;
-        font-weight: 700;
-        color: #FFFFFF;
-        margin-top: 12px;
-        line-height: 1.2;
-    }
-    .profile-role-caption {
-        text-align: center;
-        font-size: 0.72rem;
-        font-family: 'JetBrains Mono', monospace;
-        color: #10B981;
-        text-transform: uppercase;
-        letter-spacing: 0.6px;
-        margin-top: 3px;
-    }
-    </style>
-    <div class="netflix-profiles-grid">
-    """
+    all_items = list(saved_profiles) + [("REGISTER_CARD", "New Profile", "", "Register")]
+    cols_per_row = 4
 
-    for p_email, p_name, p_pin, p_role in saved_profiles:
-        avatar_sticker = get_user_avatar(p_email)
-        cards_html += f"""
-        <div class="profile-card-item">
-            <div style="position: relative; width: 165px; height: 165px;">
-                <a href="?select_user={p_email}" target="_self" class="profile-square-btn">
-                    <span class="profile-emoji-text">{avatar_sticker}</span>
-                </a>
-                <a href="?edit_badge={p_email}" target="_self" class="profile-corner-pencil" title="Change Badge">✏️</a>
-            </div>
-            <div class="profile-name-caption">{p_name}</div>
-            <div class="profile-role-caption">{p_role}</div>
-        </div>
-        """
+    for i in range(0, len(all_items), cols_per_row):
+        row_items = all_items[i:i + cols_per_row]
+        cols = st.columns(cols_per_row)
+        for idx, item in enumerate(row_items):
+            with cols[idx]:
+                if item[0] == "REGISTER_CARD":
+                    if st.button("➕", key=f"add_card_{i}_{idx}"):
+                        st.session_state.show_registration = True
+                        st.rerun()
+                    st.markdown("""
+                        <div class="profile-meta-title">New Profile</div>
+                        <div class="profile-meta-role">Register Account</div>
+                    """, unsafe_allow_html=True)
+                else:
+                    p_email, p_name, p_pin, p_role = item
+                    avatar_sticker = get_user_avatar(p_email)
 
-    # 4th Card: Add New Profile Registration
-    cards_html += """
-        <div class="profile-card-item">
-            <a href="?register_new=1" target="_self" class="profile-square-btn">
-                <span class="profile-emoji-text" style="font-size: 4.5rem;">➕</span>
-            </a>
-            <div class="profile-name-caption">New Profile</div>
-            <div class="profile-role-caption">Register Account</div>
-        </div>
-    </div>
-    """
+                    if st.button(avatar_sticker, key=f"ucard_{i}_{idx}"):
+                        show_pin_dialog(p_email, p_name, p_role)
 
-    st.markdown(cards_html, unsafe_allow_html=True)
+                    st.markdown(f"""
+                        <div class="profile-meta-title">{p_name}</div>
+                        <div class="profile-meta-role">{p_role}</div>
+                    """, unsafe_allow_html=True)
+
+                    if st.button("✏️ Change Badge", key=f"ebtn_{i}_{idx}"):
+                        show_sticker_picker_dialog(p_email, p_name)
 
     st.markdown("<br><hr style='opacity: 0.25;'>", unsafe_allow_html=True)
     col_dl1, col_dl2 = st.columns([7.5, 2.5], vertical_alignment="center")
@@ -898,6 +802,7 @@ def show_sticker_picker_dialog(email, name):
             st.rerun()
 
     st.stop()
+
 # ===========================================================================
 # 9. OCR & MULTI-RESUME EXTRACTION ENGINE
 # ===========================================================================
@@ -1057,7 +962,10 @@ with col_nav_right:
             st.session_state.logged_in = False
             st.session_state.hr_name = ""
             st.session_state.hr_email = ""
-            st.rerun()  # <-- YEH ADD KAREIN taake foran login screen par bhej de
+            st.session_state.hr_role = "Recruiter"
+            st.query_params.clear()
+            st.rerun()
+
 st.markdown(f"""
     <div class="corp-hero">
         <h2 style="margin: 0 0 6px 0; font-weight: 800;">Attock Refinery Executive Suite</h2>
@@ -1068,7 +976,7 @@ st.markdown(f"""
 tab1, tab2, tab3, tab4 = st.tabs([
     "📥 1. Talent Repository (Upload)", 
     "🎯 2. JD Screening & Matching", 
-    "🗄 3. Live Database Grids", 
+    "🗄️ 3. Live Database Grids", 
     "🛡️ 4. Admin Controls"
 ])
 
