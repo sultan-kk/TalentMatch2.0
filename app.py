@@ -2,11 +2,9 @@
 Arl TalentMatch:AI-Driven Automated CV Parser & JD Matcher
 =============================================================================
 Branding: Attock Refinery Limited (ARL Official Forest Green & Charcoal Palette)
-Features: Clickable Executive Badges, Bulletproof PIN Authentication,
-Fast 150 DPI OCR, Safe Multi-CV Extraction, Exact 13-Column Sequence,
-ARL Cascading Job Hierarchy & Real-Time Supabase Cloud Synchronized Grids.
-Now with: Built-in MovieBox-Style Windows Desktop (.exe) Download Landing Page
-and One-Click Desktop Mode Dismissal (Hide CTA inside Desktop Client).
+Features: Netflix-Style Profile Cards, Custom Professional Stickers,
+Clickable Executive Badges, Bulletproof PIN Authentication, Fast 150 DPI OCR,
+Safe Multi-CV Extraction, Exact 13-Column Sequence, ARL Job Hierarchy & Supabase Sync.
 """
 
 import io
@@ -33,6 +31,22 @@ APP_NAME = "Arl TalentMatch:AI-Driven Automated CV Parser & JD Matcher"
 APP_TAGLINE = "Attock Refinery Limited (ARL) • HR Intelligence & AI Screening Engine"
 GROQ_MODEL = "openai/gpt-oss-120b"
 ACCEPTED_TYPES = ["pdf", "docx", "png", "jpg", "jpeg"]
+
+# Available Professional Stickers
+PROFESSIONAL_STICKERS = {
+    "👔": "Executive / HR Lead",
+    "🛢️": "Refinery Operations",
+    "🔬": "QC Petroleum Chemist",
+    "⚙️": "Process Engineer",
+    "🛡️": "HSE & Safety Lead",
+    "💻": "IT & Automation Specialist",
+    "📊": "Commercial & Finance",
+    "🎯": "Talent Acquisition Lead",
+    "👷": "Plant Maintenance Specialist",
+    "⚡": "Power & Energy Lead",
+    "👑": "Chief Executive",
+    "🚀": "Turnaround Specialist"
+}
 
 # ⬇️ Hosted .msi / .exe release link
 EXE_DOWNLOAD_URL = "https://github.com/sultan-kk/TalentMatch2.0/releases/download/v1.0/ARL-HireMatrix-Pro_1.0.0_x64_en-US.msi"
@@ -103,13 +117,18 @@ def send_smtp_email(receiver_email, subject, body_text):
     except Exception as e:
         return False, f"Failed to send email: {e}"
 
-# ----------------- BULLETPROOF PIN AUTHENTICATION -----------------
+# ----------------- BULLETPROOF PIN AUTHENTICATION & STICKERS -----------------
+def get_default_sticker(email: str) -> str:
+    stickers = list(PROFESSIONAL_STICKERS.keys())
+    idx = int(hashlib.md5(email.encode()).hexdigest(), 16) % len(stickers)
+    return stickers[idx]
+
 def verify_employee_pin(email, entered_pin):
     clean_email = email.lower().strip()
     entered_str = str(entered_pin).strip()
 
     cached = get_all_verified_profiles()
-    for p_email, p_name, p_pin, p_role in cached:
+    for p_email, p_name, p_pin, p_role, p_sticker in cached:
         if p_email.lower().strip() == clean_email:
             if str(p_pin).strip() == entered_str:
                 return True, p_name, p_role
@@ -139,14 +158,16 @@ def verify_employee_pin(email, entered_pin):
 
 def get_all_verified_profiles():
     if not supabase:
-        return [("admin@arl.com.pk", "ARL Admin", "1234", "Admin")]
+        return [("admin@arl.com.pk", "ARL Admin", "1234", "Admin", "🛢️")]
     profiles = []
     try:
         res = supabase.table("hr_users").select("*").execute()
         if res.data:
             for r in res.data:
                 if r.get("pin"):
-                    profiles.append((r.get("email"), r.get("name"), str(r.get("pin")), r.get("role", "Recruiter")))
+                    email = r.get("email")
+                    sticker = r.get("avatar") or get_default_sticker(email)
+                    profiles.append((email, r.get("name"), str(r.get("pin")), r.get("role", "Recruiter"), sticker))
     except Exception:
         pass
     try:
@@ -154,8 +175,10 @@ def get_all_verified_profiles():
         if res2.data:
             existing_emails = [p[0].lower() for p in profiles]
             for r in res2.data:
-                if r.get("pin") and r.get("email", "").lower() not in existing_emails:
-                    profiles.append((r.get("email"), r.get("name"), str(r.get("pin")), r.get("role", "Recruiter")))
+                em = r.get("email", "")
+                if r.get("pin") and em.lower() not in existing_emails:
+                    sticker = r.get("avatar") or get_default_sticker(em)
+                    profiles.append((em, r.get("name"), str(r.get("pin")), r.get("role", "Recruiter"), sticker))
     except Exception:
         pass
     return profiles
@@ -163,7 +186,21 @@ def get_all_verified_profiles():
 def get_all_verified_profiles_admin():
     return get_all_verified_profiles()
 
-def register_initial_employee(name, email, password):
+def update_user_sticker(email, sticker):
+    clean_email = email.lower().strip()
+    if not supabase:
+        return False
+    try:
+        supabase.table("hr_users").update({"avatar": sticker}).eq("email", clean_email).execute()
+    except Exception:
+        pass
+    try:
+        supabase.table("employees").update({"avatar": sticker}).eq("email", clean_email).execute()
+    except Exception:
+        pass
+    return True
+
+def register_initial_employee(name, email, password, sticker="👔"):
     clean_email = email.lower().strip()
     otp = str(random.randint(100000, 999999))
     if not supabase:
@@ -184,7 +221,8 @@ def register_initial_employee(name, email, password):
             "pin": None,
             "role": role,
             "is_verified": 0,
-            "otp": otp
+            "otp": otp,
+            "avatar": sticker
         }
         supabase.table("hr_users").upsert(data).execute()
         
@@ -627,7 +665,7 @@ def generate_screening_excel(results_list) -> bytes:
     return buffer.getvalue()
 
 # ===========================================================================
-# 6. ARL CHARCOAL BLACK & OFFICIAL GREEN ACCENTS CSS
+# 6. ARL CHARCOAL BLACK & OFFICIAL GREEN ACCENTS CSS (NETFLIX PROFILES)
 # ===========================================================================
 ARL_GREEN_CSS = """
 <style>
@@ -643,16 +681,16 @@ html, body, [class*="css"] {
 /* ARL Header */
 .cyber-header-box {
     text-align: center;
-    padding: 1.8rem 1rem 1.2rem 1rem;
-    margin-bottom: 1.2rem;
+    padding: 1.5rem 1rem 1rem 1rem;
+    margin-bottom: 0.8rem;
 }
 
 .cyber-title {
-    font-size: 2.2rem !important;
+    font-size: 2.1rem !important;
     font-weight: 800 !important;
-    letter-spacing: -0.8px !important;
+    letter-spacing: -0.6px !important;
     color: #111827 !important;
-    margin: 0 0 8px 0 !important;
+    margin: 0 0 6px 0 !important;
     line-height: 1.2 !important;
 }
 
@@ -669,9 +707,9 @@ html, body, [class*="css"] {
     gap: 8px !important;
     background: rgba(22, 101, 52, 0.08) !important;
     border: 1.5px solid #166534 !important;
-    padding: 5px 20px !important;
+    padding: 4px 18px !important;
     border-radius: 30px !important;
-    font-size: 0.78rem !important;
+    font-size: 0.75rem !important;
     font-weight: 800 !important;
     text-transform: uppercase !important;
     letter-spacing: 1.5px !important;
@@ -689,106 +727,118 @@ html, body, [class*="css"] {
     }
 }
 
-/* CLICKABLE PROFILE BADGE CARD (CHARCOAL BLACK WITH ARL GREEN ACCENT) */
-.arl-clickable-badge {
+/* ============================================================ */
+/* NETFLIX-STYLE ROUNDED SQUARE PROFILE CARDS                   */
+/* ============================================================ */
+.netflix-wrapper {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 22px;
+    padding: 1.5rem 0.5rem 1rem 0.5rem;
+}
+
+.netflix-profile-link {
     text-decoration: none !important;
     color: inherit !important;
-    display: block !important;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 125px;
     cursor: pointer !important;
-    transition: all 0.25s ease-in-out !important;
+    transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
-.cyber-badge-card {
-    position: relative;
-    background: linear-gradient(135deg, #181B1E 0%, #111315 100%) !important;
-    border: 1.5px solid #1E2328 !important;
-    border-left: 5px solid #166534 !important;
-    border-radius: 16px !important;
-    padding: 1.5rem 1.8rem !important;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.45) !important;
-    transition: all 0.25s ease-in-out !important;
+.netflix-profile-link:hover {
+    transform: translateY(-6px) scale(1.06);
 }
 
-.arl-clickable-badge:hover .cyber-badge-card {
-    border-color: #22C55E !important;
-    border-left-color: #22C55E !important;
-    box-shadow: 0 14px 35px rgba(0, 0, 0, 0.6), inset 0 0 15px rgba(34, 197, 94, 0.08) !important;
-    transform: translateY(-3px) scale(1.01);
-}
-
-.cyber-top-bar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 0.8rem;
-    border-bottom: 1px dashed rgba(255, 255, 255, 0.1);
-    padding-bottom: 0.5rem;
-}
-
-.cyber-access-id {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.72rem;
-    font-weight: 700;
-    color: #94A3B8;
-    letter-spacing: 1px;
-}
-
-.cyber-status-dot {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.72rem;
-    font-weight: 700;
-    color: #22C55E;
-    letter-spacing: 1px;
-}
-
-.cyber-avatar-ring {
-    width: 58px;
-    height: 58px;
-    border-radius: 50%;
-    background: #14171A;
-    border: 2px solid #166534;
+.netflix-square-box {
+    width: 110px;
+    height: 110px;
+    border-radius: 20px;
+    background: linear-gradient(145deg, #1A1E24 0%, #101317 100%);
+    border: 2px solid #262D35;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.7rem;
-    box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
-    flex-shrink: 0;
+    font-size: 3.2rem;
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.55);
+    position: relative;
+    transition: all 0.25s ease-in-out;
 }
 
-.cyber-name-title {
-    margin: 0;
-    font-size: 1.45rem;
-    font-weight: 800;
-    color: #F8FAFC !important;
-    letter-spacing: -0.3px;
+.netflix-profile-link:hover .netflix-square-box {
+    border-color: #22C55E !important;
+    box-shadow: 0 12px 28px rgba(34, 197, 94, 0.35), inset 0 0 16px rgba(34, 197, 94, 0.12) !important;
 }
 
-.cyber-role-pill {
-    background: rgba(34, 197, 94, 0.12);
-    border: 1px solid #166534;
-    color: #22C55E;
-    padding: 2px 10px;
-    border-radius: 6px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.72rem;
+/* Mini Sticker Badge in Top-Right */
+.netflix-sticker-tag {
+    position: absolute;
+    bottom: -6px;
+    right: -6px;
+    background: #14171A;
+    border: 1.5px solid #22C55E;
+    border-radius: 50%;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+.netflix-profile-name {
+    margin-top: 10px;
+    font-size: 0.95rem;
     font-weight: 700;
-    letter-spacing: 1px;
-    text-transform: uppercase;
+    color: #CBD5E1;
+    text-align: center;
+    width: 115px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: color 0.2s ease;
 }
 
-.cyber-email-mono {
+.netflix-profile-link:hover .netflix-profile-name {
+    color: #22C55E !important;
+}
+
+.netflix-profile-role {
+    font-size: 0.72rem;
     font-family: 'JetBrains Mono', monospace;
-    font-size: 0.84rem;
     color: #94A3B8;
-    background: #0E1012;
-    padding: 4px 10px;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 2px 8px;
     border-radius: 6px;
-    display: inline-block;
-    margin-top: 5px;
-    border: 1px solid rgba(255, 255, 255, 0.05);
+    margin-top: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Add New Profile Square (Netflix dashed style) */
+.netflix-add-box {
+    width: 110px;
+    height: 110px;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.02);
+    border: 2px dashed #374151;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.2rem;
+    color: #94A3B8;
+    transition: all 0.25s ease;
+}
+
+.netflix-profile-link:hover .netflix-add-box {
+    border-color: #22C55E;
+    color: #22C55E;
+    background: rgba(34, 197, 94, 0.06);
 }
 
 /* ARL Green Corporate Buttons */
@@ -821,7 +871,6 @@ html, body, [class*="css"] {
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5) !important;
 }
 
-/* PIN Screen Heading ('🔐 Sign In: ...') */
 [data-testid="stVerticalBlockBorderWrapper"] h3 {
     color: #22C55E !important;
     font-weight: 800 !important;
@@ -830,14 +879,12 @@ html, body, [class*="css"] {
     margin-bottom: 6px !important;
 }
 
-/* 'Enter 4-digit PIN for ...' Caption */
 [data-testid="stVerticalBlockBorderWrapper"] [data-testid="stCaptionContainer"] p,
 [data-testid="stVerticalBlockBorderWrapper"] [data-testid="stCaptionContainer"] {
     color: #CBD5E1 !important;
     font-size: 0.92rem !important;
 }
 
-/* Form Input Label ('4-Digit PIN') */
 [data-testid="stForm"] label,
 [data-testid="stWidgetLabel"] label,
 [data-testid="stWidgetLabel"] p,
@@ -848,7 +895,6 @@ html, body, [class*="css"] {
     letter-spacing: 0.5px !important;
 }
 
-/* Character counter (0/4) color */
 [data-testid="stInputCounter"] {
     color: #94A3B8 !important;
 }
@@ -867,7 +913,7 @@ html, body, [class*="css"] {
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
 }
 .top-brand-title {
-    font-size: 1.55rem; font-weight: 800; color: #FFFFFF; margin: 0;
+    font-size: 1.45rem; font-weight: 800; color: #FFFFFF; margin: 0;
     display: flex; align-items: center; gap: 10px;
 }
 .top-brand-subtitle {
@@ -993,6 +1039,7 @@ if "pending_otp_email" not in st.session_state: st.session_state.pending_otp_ema
 if "pending_pin_email" not in st.session_state: st.session_state.pending_pin_email = None
 if "screening_results" not in st.session_state: st.session_state.screening_results = []
 if "show_download_page" not in st.session_state: st.session_state.show_download_page = False
+if "manage_profiles_mode" not in st.session_state: st.session_state.manage_profiles_mode = False
 
 if "is_desktop_mode" not in st.session_state:
     st.session_state.is_desktop_mode = (st.query_params.get("mode") == "desktop")
@@ -1166,13 +1213,12 @@ if st.session_state.show_download_page:
     st.stop()
 
 # ===========================================================================
-# 8. AUTHENTICATION & LOGIN SCREEN (CHARCOAL CARDS)
+# 8. AUTHENTICATION & LOGIN SCREEN (NETFLIX PROFILES REDESIGN)
 # ===========================================================================
 if not st.session_state.logged_in:
     saved_profiles = get_all_verified_profiles()
-    col_c1, col_c2, col_c3 = st.columns([1, 3.8, 1])
+    col_c1, col_c2, col_c3 = st.columns([1, 4.2, 1])
     with col_c2:
-        # Desktop Download CTA Banner on Login Page with ✕ Dismiss Button
         if not is_desktop_mode:
             c_banner_l, c_banner_r, c_banner_x = st.columns([6.8, 2.5, 0.7], vertical_alignment="center")
             with c_banner_l:
@@ -1213,6 +1259,7 @@ if not st.session_state.logged_in:
                 </div>
             """, unsafe_allow_html=True)
             
+            # --- VIEW A: SECURITY PIN SETUP ---
             if st.session_state.pending_pin_email:
                 st.markdown("### 🔐 Security PIN Setup")
                 st.info(f"Email verified for **{st.session_state.pending_pin_email}**. Create your 4-digit security PIN.")
@@ -1234,6 +1281,7 @@ if not st.session_state.logged_in:
                         else:
                             st.error(msg)
                             
+            # --- VIEW B: OTP VERIFICATION ---
             elif st.session_state.pending_otp_email:
                 st.markdown("### 📬 Email Verification")
                 st.info(f"Enter the 6-digit security code sent to **{st.session_state.pending_otp_email}**.")
@@ -1255,57 +1303,89 @@ if not st.session_state.logged_in:
                         st.session_state.pending_otp_email = None
                         st.rerun()
                         
+            # --- VIEW C: NETFLIX "WHO'S SCREENING?" ROUNDED SQUARE PROFILES ---
             elif saved_profiles and not st.session_state.selected_profile_email:
                 st.markdown("""
-                    <div style="margin-bottom: 14px;">
-                        <h3 style="margin: 0 0 0.2rem 0; font-size: 1.3rem; font-weight: 700; color: #22C55E;">👥 Active Executive Profiles</h3>
-                        <p style="font-size: 0.85rem; color: #94A3B8; margin: 0;">Click on your profile card to enter your PIN:</p>
+                    <div style="text-align: center; margin: 15px 0 10px 0;">
+                        <h2 style="font-size: 1.7rem; font-weight: 800; color: #FFFFFF; letter-spacing: -0.5px; margin-bottom: 4px;">
+                            Who's Screening?
+                        </h2>
+                        <p style="font-size: 0.88rem; color: #94A3B8; margin: 0;">Select your profile to enter your PIN:</p>
                     </div>
                 """, unsafe_allow_html=True)
                 
-                for p_email, p_name, p_pin, p_role in saved_profiles:
-                    col_card, col_del = st.columns([8.6, 1.4], vertical_alignment="center")
-                    with col_card:
-                        st.markdown(f"""
-                            <a href="?profile={p_email}{'&mode=desktop' if is_desktop_mode else ''}" target="_self" class="arl-clickable-badge">
-                                <div class="cyber-badge-card">
-                                    <div class="cyber-top-bar">
-                                        <span class="cyber-access-id">ARL // {hashlib.md5(p_email.encode()).hexdigest()[:8].upper()}</span>
-                                        <span class="cyber-status-dot">ONLINE ◈ CLICK TO SIGN IN ➔</span>
-                                    </div>
-                                    <div style="display: flex; align-items: center; gap: 18px;">
-                                        <div class="cyber-avatar-ring">👤</div>
-                                        <div style="flex-grow: 1;">
-                                            <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-                                                <h3 class="cyber-name-title">{p_name}</h3>
-                                                <span class="cyber-role-pill">{p_role}</span>
-                                            </div>
-                                            <div class="cyber-email-mono">✉ {p_email}</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </a>
-                        """, unsafe_allow_html=True)
-                    with col_del:
-                        if st.button("🗑️", key=f"del_card_{p_email}", help=f"Delete {p_name}'s profile", use_container_width=True):
-                            delete_employee_profile(p_email)
-                            st.success("Profile removed.")
-                            st.rerun()
-                    st.markdown("<div style='margin-bottom: 12px;'></div>", unsafe_allow_html=True)
+                # Render Netflix Grid of Square Cards
+                cards_html = '<div class="netflix-wrapper">'
+                for p_email, p_name, p_pin, p_role, p_sticker in saved_profiles:
+                    cards_html += f"""
+                        <a href="?profile={p_email}{'&mode=desktop' if is_desktop_mode else ''}" target="_self" class="netflix-profile-link">
+                            <div class="netflix-square-box">
+                                {p_sticker}
+                                <span class="netflix-sticker-tag">🛡️</span>
+                            </div>
+                            <span class="netflix-profile-name">{p_name}</span>
+                            <span class="netflix-profile-role">{p_role}</span>
+                        </a>
+                    """
                 
-                st.markdown("---")
-                if st.button("➕ Register New Profile", use_container_width=True, key="reg_new_emp_auth_btn"):
-                    st.session_state.selected_profile_email = "new"
-                    st.rerun()
-                    
+                # Plus icon for Add Profile in Netflix Style
+                cards_html += """
+                    <a href="?profile=new" target="_self" class="netflix-profile-link">
+                        <div class="netflix-add-box">＋</div>
+                        <span class="netflix-profile-name">Add Profile</span>
+                        <span class="netflix-profile-role">Register</span>
+                    </a>
+                </div>
+                """
+                st.markdown(cards_html, unsafe_allow_html=True)
+                
+                st.markdown("<div style='margin-top: 25px;'></div>", unsafe_allow_html=True)
+                
+                # Netflix Style: "Manage Profiles / Customize Stickers" Drawer
+                with st.expander("🎨 Manage Profiles & Choose Stickers", expanded=st.session_state.manage_profiles_mode):
+                    st.caption("Change your profile's professional badge or remove unused profiles.")
+                    for p_email, p_name, p_pin, p_role, p_sticker in saved_profiles:
+                        cm_1, cm_2, cm_3 = st.columns([3, 4, 1.2], vertical_alignment="center")
+                        with cm_1:
+                            st.write(f"**{p_name}** (`{p_email}`)")
+                        with cm_2:
+                            curr_idx = list(PROFESSIONAL_STICKERS.keys()).index(p_sticker) if p_sticker in PROFESSIONAL_STICKERS else 0
+                            new_stk = st.selectbox(
+                                "Sticker",
+                                options=list(PROFESSIONAL_STICKERS.keys()),
+                                format_func=lambda x: f"{x} {PROFESSIONAL_STICKERS.get(x, '')}",
+                                index=curr_idx,
+                                key=f"sel_stk_{p_email}",
+                                label_visibility="collapsed"
+                            )
+                            if new_stk != p_sticker:
+                                update_user_sticker(p_email, new_stk)
+                                st.rerun()
+                        with cm_3:
+                            if st.button("🗑️", key=f"del_card_{p_email}", help=f"Delete {p_name}"):
+                                delete_employee_profile(p_email)
+                                st.success("Removed.")
+                                st.rerun()
+                                
+            # --- VIEW D: PIN AUTHENTICATION FORM ---
             elif st.session_state.selected_profile_email and st.session_state.selected_profile_email != "new":
                 target_email = st.session_state.selected_profile_email
-                p_match = next((p for p in saved_profiles if p[0].lower() == target_email.lower()), (target_email, "Executive User", "", "Recruiter"))
-                st.markdown(f"### 🔐 Sign In: {p_match[1]}")
-                st.caption(f"Enter 4-digit PIN for **{target_email}**")
+                p_match = next((p for p in saved_profiles if p[0].lower() == target_email.lower()), (target_email, "Executive User", "", "Recruiter", "👔"))
+                
+                st.markdown(f"""
+                    <div style="display: flex; align-items: center; justify-content: center; gap: 14px; margin-bottom: 12px;">
+                        <div style="font-size: 2.8rem; background: #14171A; border: 2px solid #22C55E; border-radius: 18px; width: 68px; height: 68px; display: flex; align-items: center; justify-content: center;">
+                            {p_match[4]}
+                        </div>
+                        <div>
+                            <h3 style="margin: 0; color: #22C55E; font-size: 1.5rem;">Sign In: {p_match[1]}</h3>
+                            <span style="font-size: 0.85rem; color: #94A3B8;">{target_email} ({p_match[3]})</span>
+                        </div>
+                    </div>
+                """, unsafe_allow_html=True)
                 
                 with st.form("pin_login_form"):
-                    pin_input = st.text_input("4-Digit PIN", type="password", max_chars=4, placeholder="••••")
+                    pin_input = st.text_input("4-Digit Security PIN", type="password", max_chars=4, placeholder="••••")
                     submit_log = st.form_submit_button("Access Portal (Press Enter)", use_container_width=True)
                 col_b1, col_b2 = st.columns(2)
                 if submit_log:
@@ -1336,6 +1416,8 @@ if not st.session_state.logged_in:
                         except Exception:
                             pass
                         st.rerun()
+                        
+            # --- VIEW E: REGISTER NEW PROFILE WITH STICKER PICKER ---
             else:
                 st.markdown("### 📝 Employee / Admin Registration")
                 st.caption("First registered user automatically becomes Admin with dedicated PIN creation.")
@@ -1343,13 +1425,22 @@ if not st.session_state.logged_in:
                     reg_name = st.text_input("Full Name", placeholder="Alex Mercer")
                     reg_email = st.text_input("Company Email (@arl.com.pk)", placeholder="employee@arl.com.pk")
                     reg_pass = st.text_input("Master Password", type="password")
+                    
+                    st.markdown("**Choose your Professional Sticker / Avatar:**")
+                    reg_sticker = st.selectbox(
+                        "Professional Sticker",
+                        options=list(PROFESSIONAL_STICKERS.keys()),
+                        format_func=lambda x: f"{x} {PROFESSIONAL_STICKERS[x]}"
+                    )
+                    
                     submit_reg = st.form_submit_button("Send Verification OTP", use_container_width=True)
+                    
                 col_r1, col_r2 = st.columns(2)
                 if submit_reg:
                     if not reg_name.strip() or not reg_email.strip() or not reg_pass.strip():
                         st.warning("Please verify all required fields.")
                     else:
-                        success, msg = register_initial_employee(reg_name, reg_email, reg_pass)
+                        success, msg = register_initial_employee(reg_name, reg_email, reg_pass, sticker=reg_sticker)
                         if success:
                             st.success(msg)
                             st.session_state.pending_otp_email = reg_email.lower().strip()
@@ -2020,9 +2111,9 @@ with tab4:
         st.markdown("### 👥 Active Employee Profiles & Confidential PINs")
         all_emps = get_all_verified_profiles_admin()
         st.markdown(f"**Total Active Registered Employees:** {len(all_emps)}")
-        for emp_email, emp_name, emp_pin, emp_role in all_emps:
+        for emp_email, emp_name, emp_pin, emp_role, emp_sticker in all_emps:
             col_a1, col_a2, col_a3 = st.columns([2, 1, 1])
-            with col_a1: st.write(f"👤 **{emp_name}** ({emp_email}) — *{emp_role}*")
+            with col_a1: st.write(f"{emp_sticker} **{emp_name}** ({emp_email}) — *{emp_role}*")
             with col_a2: st.write(f"PIN: `{emp_pin}`")
             with col_a3:
                 if emp_email.lower() != st.session_state.get('hr_email', '').lower():
