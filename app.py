@@ -460,7 +460,7 @@ def clear_screened_database():
     if supabase: supabase.table("screened_candidates").delete().neq("id", 0).execute()
 
 # ===========================================================================
-# 5. ISOLATED CSS (STRICT 135x135px SQUARE PROFILE CARDS)
+# 5. CSS (PERFECT ALIGNMENT, HOVER EFFECTS & STRICT 165x165 SQUARES)
 # ===========================================================================
 ADAPTIVE_CSS = """
 <style>
@@ -474,70 +474,160 @@ html, body, [class*="css"], .stApp {
     display: none !important; 
 }
 
-/* ==========================================================================
-   STRICT SQUARE 135px x 135px PROFILE CARDS (PREVENTS RECTANGLE STRETCH)
-   ========================================================================== */
-div[data-testid="stColumn"] > div:has(.square-profile-card) {
-    display: flex !important;
-    justify-content: center !important;
-    align-items: center !important;
+/* Base button styling inside Dashboard */
+div.stButton > button {
+    border-radius: 10px !important;
+    font-weight: 600 !important;
+    padding: 0.45rem 1.1rem !important;
+    transition: all 0.2s ease !important;
 }
 
-div[data-testid="stColumn"] > div:has(.square-profile-card) div.stButton > button {
-    width: 160px !important;
-    height: 160px !important;
-    min-width: 160px !important;
-    max-width: 160px !important;
-    min-height: 160px !important;
-    max-height: 160px !important;
+div.stButton > button[kind="primary"] {
+    background: #047857 !important;
+    border-color: #059669 !important;
+    color: #FFFFFF !important;
+}
+
+/* ==========================================================================
+   NETFLIX PROFILE GRID: PERFECT CENTER ALIGNMENT & HOVER EFFECT
+   ========================================================================== */
+/* Column ke content ko horizontally & vertically center karein */
+div[data-testid="stHorizontalBlock"] {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: flex-start !important;
+    gap: 1.5rem !important;
+    max-width: 900px !important;
     margin: 0 auto !important;
-    border-radius: 24px !important;
+}
+
+div[data-testid="stColumn"] {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+/* Profile Card Container (Fixed 165x165px Square) */
+.profile-cell-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 165px;
+    margin: 0 auto 1.5rem auto;
+}
+
+.profile-card-holder {
+    position: relative;
+    width: 165px !important;
+    height: 165px !important;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Main Profile Square Button */
+.profile-card-holder div[data-testid="stButton"]:first-child > button {
+    width: 165px !important;
+    height: 165px !important;
+    min-width: 165px !important;
+    max-width: 165px !important;
+    min-height: 165px !important;
+    max-height: 165px !important;
+    aspect-ratio: 1 / 1 !important;
+    border-radius: 28px !important;
     background: #181B20 !important;
     border: 2px solid #2D333B !important;
-    box-shadow: 0 10px 22px rgba(0, 0, 0, 0.45) !important;
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.5) !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
     padding: 0 !important;
-    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    margin: 0 !important;
+    cursor: pointer !important;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
 }
 
-div[data-testid="stColumn"] > div:has(.square-profile-card) div.stButton > button p {
-    font-size: 4.2rem !important;
+.profile-card-holder div[data-testid="stButton"]:first-child > button p {
+    font-size: 5.2rem !important;
+    line-height: 1 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    transition: transform 0.3s ease !important;
+}
+
+/* HIGH-END HOVER EFFECT: Lift + Smooth Glow + Scale */
+.profile-card-holder div[data-testid="stButton"]:first-child > button:hover {
+    transform: translateY(-8px) scale(1.05) !important;
+    border-color: #10B981 !important;
+    box-shadow: 0 16px 36px rgba(16, 185, 129, 0.4), 0 0 20px rgba(52, 211, 153, 0.25) !important;
+    background: #20242B !important;
+}
+
+.profile-card-holder div[data-testid="stButton"]:first-child > button:hover p {
+    transform: scale(1.08) !important;
+}
+
+/* In-Card Floating Edit Badge (Top-Right) */
+.profile-edit-badge {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    z-index: 99;
+}
+
+.profile-edit-badge div[data-testid="stButton"] > button {
+    width: 34px !important;
+    height: 34px !important;
+    min-width: 34px !important;
+    min-height: 34px !important;
+    border-radius: 50% !important;
+    background: #23272F !important;
+    border: 1.5px solid #10B981 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5) !important;
+    transition: all 0.2s ease !important;
+}
+
+.profile-edit-badge div[data-testid="stButton"] > button p {
+    font-size: 0.95rem !important;
     line-height: 1 !important;
     margin: 0 !important;
     padding: 0 !important;
 }
 
-div[data-testid="stColumn"] > div:has(.square-profile-card) div.stButton > button:hover {
-    transform: translateY(-5px) scale(1.04) !important;
-    border-color: #10B981 !important;
-    box-shadow: 0 14px 28px rgba(16, 185, 129, 0.4) !important;
-    background: #22262E !important;
+.profile-edit-badge div[data-testid="stButton"] > button:hover {
+    background: #10B981 !important;
+    border-color: #34D399 !important;
+    transform: scale(1.18) !important;
 }
 
-/* Titles and Role below cards */
+/* Captions Below Card */
 .profile-meta-title {
     text-align: center;
-    font-size: 1.3rem;
-    font-weight: 600;
+    font-size: 1.12rem;
+    font-weight: 700;
     line-height: 1.2;
-    margin-top: 8px;
+    margin-top: 12px;
+    color: #FFFFFF !important;
 }
 
 .profile-meta-role {
     text-align: center;
-    font-size: 0.7rem;
+    font-size: 0.72rem;
     font-family: 'JetBrains Mono', monospace;
     color: #10B981 !important;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-top: 2px;
+    letter-spacing: 0.6px;
+    margin-top: 3px;
 }
 
-/* ==========================================================================
-   PORTAL INTERIOR: CLEAN, BALANCED & THEME ADAPTIVE
-   ========================================================================== */
+/* Interior Dashboard Styling */
 .top-navbar {
     background: var(--secondary-background-color);
     border: 1px solid rgba(16, 185, 129, 0.35);
@@ -574,25 +664,6 @@ div[data-testid="stColumn"] > div:has(.square-profile-card) div.stButton > butto
     margin-bottom: 1rem;
     font-weight: 700;
     color: #10B981;
-}
-
-/* Standard Buttons Inside Dashboard */
-div.stButton > button {
-    border-radius: 10px !important;
-    font-weight: 600 !important;
-    padding: 0.45rem 1.1rem !important;
-    transition: all 0.2s ease !important;
-}
-
-div.stButton > button[kind="primary"] {
-    background: #047857 !important;
-    border-color: #059669 !important;
-    color: #FFFFFF !important;
-}
-
-div.stButton > button[kind="primary"]:hover {
-    background: #059669 !important;
-    border-color: #10B981 !important;
 }
 </style>
 """
@@ -671,73 +742,13 @@ if not st.session_state.logged_in:
     saved_profiles = get_all_verified_profiles()
 
     if st.session_state.show_download_page:
-        st.markdown("---")
         st.markdown(f"""
-            <div style="background: var(--secondary-background-color); border: 1.5px solid #10B981; border-radius: 18px; padding: 2.2rem; margin-bottom: 2rem; text-align: center; box-shadow: 0 8px 24px rgba(0,0,0,0.15);">
-                <div style="font-size: 2.8rem; margin-bottom: 8px;">💻</div>
-                <h2 style="margin-bottom: 8px; font-weight: 800;">ARL TalentMatch Desktop Edition</h2>
-                <p style="max-width: 650px; margin: 0 auto 20px auto; opacity: 0.85;">
-                    Run Attock Refinery's recruitment suite natively on your Windows PC for high-performance offline execution, native OCR processing, and secure cloud synchronization.
-                </p>
-                <a href="{EXE_DIRECT_DOWNLOAD_URL}" target="_blank" style="background: #059669; color: white; padding: 0.75rem 2rem; border-radius: 10px; font-weight: 700; font-size: 1.05rem; text-decoration: none; display: inline-block;">📥 Download Windows Installer (.msi)</a>
-            </div>
-        """, unsafe_allow_html=True)
-
-        if st.button("⬅ Back to Portal Login", use_container_width=True):
-            st.session_state.show_download_page = False
-            st.rerun()
-        st.stop()
-
-    if st.session_state.pending_pin_email:
-        _, mid_col, _ = st.columns([1, 2.2, 1])
-        with mid_col:
-            st.markdown("### 🔐 Security PIN Setup")
-            with st.form("pin_setup_form"):
-                new_pin = st.text_input("Create 4-Digit PIN", type="password", max_chars=4)
-                confirm_pin = st.text_input("Confirm 4-Digit PIN", type="password", max_chars=4)
-                submit_pin = st.form_submit_button("Save PIN & Continue", use_container_width=True)
-            if submit_pin:
-                if len(new_pin) == 4 and new_pin == confirm_pin:
-                    success, msg = save_employee_pin(st.session_state.pending_pin_email, new_pin)
-                    if success:
-                        st.success(msg)
-                        st.session_state.pending_pin_email = None
-                        st.rerun()
-                else:
-                    st.error("Invalid or non-matching PIN.")
-        st.stop()
-
-    elif st.session_state.show_registration:
-        _, mid_col, _ = st.columns([1, 2.2, 1])
-        with mid_col:
-            st.markdown("### 📝 Register Executive Profile")
-            with st.form("universal_registration_form"):
-                reg_name = st.text_input("Full Name")
-                reg_email = st.text_input("Email Address")
-                reg_pass = st.text_input("Master Password", type="password")
-                submit_reg = st.form_submit_button("Register Profile", use_container_width=True)
-            if submit_reg:
-                success, msg = register_initial_employee(reg_name, reg_email, reg_pass)
-                if success:
-                    st.success(msg)
-                    st.session_state.pending_pin_email = reg_email.lower().strip()
-                    st.session_state.show_registration = False
-                    st.rerun()
-                else:
-                    st.error(msg)
-            if st.button("⬅ Back to Profiles", use_container_width=True):
-                st.session_state.show_registration = False
-                st.rerun()
-        st.stop()
-
-    st.markdown(f"""
         <div style="text-align: center; padding: 2.2rem 1rem 1.6rem 1rem;">
             <h1 style="font-size: 2.6rem; font-weight: 800; margin-bottom: 4px;">Who's Screening?</h1>
             <p style="color: #10B981; font-size: 1rem; font-weight: 500;">{APP_TAGLINE}</p>
         </div>
     """, unsafe_allow_html=True)
 
-    # Scoped Netflix-Style Square Cards (Guaranteed 160x160px Square)
     all_items = list(saved_profiles) + [("REGISTER_CARD", "New Profile", "", "Register")]
     cols_per_row = 4
     
@@ -748,35 +759,15 @@ if not st.session_state.logged_in:
             with cols[idx]:
                 if item[0] == "REGISTER_CARD":
                     st.markdown("""
-                        <div style="display:flex; flex-direction:column; align-items:center; margin-bottom:1.8rem;">
-                            <style>
-                                div[data-testid="stColumn"] div.stButton > button {
-                                    width: 160px !important;
-                                    height: 160px !important;
-                                    border-radius: 26px !important;
-                                    background: #181B20 !important;
-                                    border: 2px solid #2D333B !important;
-                                    box-shadow: 0 10px 24px rgba(0,0,0,0.5) !important;
-                                    font-size: 4.5rem !important;
-                                    line-height: 1 !important;
-                                    display: flex !important;
-                                    align-items: center !important;
-                                    justify-content: center !important;
-                                    padding: 0 !important;
-                                    margin: 0 auto !important;
-                                }
-                                div[data-testid="stColumn"] div.stButton > button p {
-                                    font-size: 4.5rem !important;
-                                    margin: 0 !important;
-                                    line-height: 1 !important;
-                                }
-                            </style>
+                        <div class="profile-cell-wrap">
+                            <div class="profile-card-holder">
                     """, unsafe_allow_html=True)
                     if st.button("➕", key=f"add_profile_card_{i}"):
                         st.session_state.show_registration = True
                         st.rerun()
                     st.markdown("""
-                            <div class="profile-meta-title" style="margin-top:12px;">New Profile</div>
+                            </div>
+                            <div class="profile-meta-title">New Profile</div>
                             <div class="profile-meta-role">Register Account</div>
                         </div>
                     """, unsafe_allow_html=True)
@@ -785,28 +776,24 @@ if not st.session_state.logged_in:
                     avatar_sticker = get_user_avatar(p_email)
                     
                     st.markdown("""
-                        <div style="display:flex; flex-direction:column; align-items:center; margin-bottom:1.8rem;">
-                            <div style="position:relative; width:160px; height:160px; margin: 0 auto;">
+                        <div class="profile-cell-wrap">
+                            <div class="profile-card-holder">
                     """, unsafe_allow_html=True)
                     
-                    # Main Square Avatar Card (Strict 165x165px)
+                    # Main Square Avatar Card
                     if st.button(avatar_sticker, key=f"user_card_{i}_{idx}"):
                         show_pin_dialog(p_email, p_name, p_role)
                     
-                    # Top-right corner floating edit icon
-                    st.markdown("""
-                                <div style="position:absolute; top:8px; right:8px; z-index:99; width:34px; height:34px;">
-                    """, unsafe_allow_html=True)
+                    # Corner Edit Pencil inside card box
+                    st.markdown('<div class="profile-edit-badge">', unsafe_allow_html=True)
                     if st.button("✏️", key=f"edit_btn_{i}_{idx}", help="Change Badge"):
                         show_sticker_picker_dialog(p_email, p_name)
-                    st.markdown("""
-                                </div>
-                            </div>
-                    """, unsafe_allow_html=True)
+                    st.markdown('</div>', unsafe_allow_html=True)
                     
-                    # Name aur Role sirf aik dafa neechay
+                    # Name & Role below card
                     st.markdown(f"""
-                            <div class="profile-meta-title" style="margin-top:12px;">{p_name}</div>
+                            </div>
+                            <div class="profile-meta-title">{p_name}</div>
                             <div class="profile-meta-role">{p_role}</div>
                         </div>
                     """, unsafe_allow_html=True)
