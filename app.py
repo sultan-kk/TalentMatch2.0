@@ -423,8 +423,8 @@ def save_candidates_to_repository(new_candidates):
             inserted_count += 1
             if cand_email and cand_email not in ["not provided", "not found", "", "nan"]: existing_emails.add(cand_email)
             if cand_phone and len(cand_phone) >= 7: existing_phones.add(cand_phone)
-        except Exception:
-            pass
+        except Exception as db_err:
+            st.error(f"Supabase Insert Error: {db_err}")
 
     return inserted_count, skipped_count
 
@@ -643,7 +643,6 @@ div[data-testid="stDialog"] {
     color: #86EFAC !important;
 }
 
-/* NETFLIX ROUNDED-SQUARE PROFILE TILES CONTAINER */
 .netflix-card-box {
     background: linear-gradient(145deg, #0F3622 0%, #081F13 100%);
     border: 3px solid #15803D;
@@ -661,7 +660,6 @@ div[data-testid="stDialog"] {
     box-shadow: 0 16px 35px rgba(34, 197, 94, 0.45), inset 0 0 20px rgba(74, 222, 128, 0.2);
 }
 
-/* Specific Compact Badge Button Styling */
 div[data-testid="column"] button {
     background: #0A2315 !important;
     border: 1px solid #166534 !important;
@@ -678,7 +676,6 @@ div[data-testid="column"] button:hover {
     border-color: #4ADE80 !important;
 }
 
-/* General Primary Action Buttons */
 .stButton > button {
     background: linear-gradient(135deg, #15803D 0%, #166534 100%) !important;
     color: #FFFFFF !important;
@@ -1130,21 +1127,31 @@ with tab1:
     uploaded_files = st.file_uploader("Upload Resumes (PDF, DOCX, Images)", type=ACCEPTED_TYPES, accept_multiple_files=True)
     
     g_key = st.secrets.get("GROQ_API_KEY", os.environ.get("GROQ_API_KEY", ""))
-    if st.button("⚡ Extract & Append to Supabase Master Database", type="primary", use_container_width=True, disabled=not (uploaded_files and g_key)):
-        client = Groq(api_key=g_key)
-        batch = []
-        prog = st.progress(0.0, "Extracting candidate records...")
-        for i, file in enumerate(uploaded_files):
-            prog.progress((i + 1) / len(uploaded_files), f"Processing {file.name}...")
-            text = extract_resume_text(file)
-            if text:
-                cands = extract_candidates_for_repo(client, text, file.name)
-                batch.extend(cands)
-        prog.empty()
-        if batch:
-            ins, skp = save_candidates_to_repository(batch)
-            st.success(f"🎉 Processed: {ins} new candidate(s) appended, {skp} duplicate(s) skipped!")
-            st.rerun()
+    
+    if st.button("⚡ Extract & Append to Supabase Master Database", type="primary", use_container_width=True, disabled=not uploaded_files):
+        if not g_key:
+            st.error("❌ Groq API Key is missing in Streamlit Secrets (`GROQ_API_KEY`). Please add it in your Streamlit Cloud settings.")
+        else:
+            try:
+                client = Groq(api_key=g_key)
+                batch = []
+                prog = st.progress(0.0, text="Extracting candidate records...")
+                for i, file in enumerate(uploaded_files):
+                    prog.progress((i + 1) / len(uploaded_files), text=f"Processing {file.name}...")
+                    text = extract_resume_text(file)
+                    if text:
+                        cands = extract_candidates_for_repo(client, text, file.name)
+                        batch.extend(cands)
+                prog.empty()
+                if batch:
+                    ins, skp = save_candidates_to_repository(batch)
+                    st.success(f"🎉 Processed: {ins} new candidate(s) appended, {skp} duplicate(s) skipped!")
+                    st.rerun()
+                else:
+                    st.warning("⚠️ No candidate data could be parsed from the uploaded files. Check file format or text clarity.")
+            except Exception as extraction_err:
+                st.error(f"❌ Error during extraction process: {extraction_err}")
+                
     st.markdown('</div>', unsafe_allow_html=True)
 
 with tab2:
@@ -1157,38 +1164,41 @@ with tab2:
     slider_thresh = st.slider("Highlight Score Threshold (%)", 0, 100, 50, step=5)
     
     df_pool = load_database()
-    if st.button("⚡ Run AI Candidate Screening", type="primary", use_container_width=True, disabled=not (jd_text.strip() and not df_pool.empty and g_key)):
-        client = Groq(api_key=g_key)
-        res = []
-        prog = st.progress(0.0, "Screening against JD...")
-        for idx, row in df_pool.iterrows():
-            prog.progress((idx + 1) / len(df_pool), f"Evaluating {row['Name']}...")
-            score, is_rel, missing = evaluate_candidate_against_jd(client, row, jd_text)
-            if is_rel:
-                res.append({
-                    "job_title": job_role,
-                    "name": row["Name"],
-                    "father_name": row["Father Name"],
-                    "education": row["Qualification"],
-                    "cgpa": row["CGPA"],
-                    "passing_year": row["Passing Year"],
-                    "university_name": row["Institute"],
-                    "dob": row["DOB"],
-                    "email": row["Email"],
-                    "phone": row["Phone Number"],
-                    "experience_years": row["Experience"],
-                    "latest_experience": row["Latest Experience"],
-                    "reference": row["Reference"],
-                    "match_score": score,
-                    "missing_skills": missing,
-                    "pipeline_status": "Shortlisted" if score >= slider_thresh else "Talent Pool"
-                })
-        prog.empty()
-        res.sort(key=lambda x: x["match_score"], reverse=True)
-        st.session_state.screening_results = res
-        save_screened_to_supabase(res)
-        st.success(f"Screening complete! {len(res)} candidate(s) evaluated.")
-        st.rerun()
+    if st.button("⚡ Run AI Candidate Screening", type="primary", use_container_width=True, disabled=not (jd_text.strip() and not df_pool.empty)):
+        if not g_key:
+            st.error("❌ Groq API Key is missing in Streamlit Secrets.")
+        else:
+            client = Groq(api_key=g_key)
+            res = []
+            prog = st.progress(0.0, text="Screening against JD...")
+            for idx, row in df_pool.iterrows():
+                prog.progress((idx + 1) / len(df_pool), text=f"Evaluating {row['Name']}...")
+                score, is_rel, missing = evaluate_candidate_against_jd(client, row, jd_text)
+                if is_rel:
+                    res.append({
+                        "job_title": job_role,
+                        "name": row["Name"],
+                        "father_name": row["Father Name"],
+                        "education": row["Qualification"],
+                        "cgpa": row["CGPA"],
+                        "passing_year": row["Passing Year"],
+                        "university_name": row["Institute"],
+                        "dob": row["DOB"],
+                        "email": row["Email"],
+                        "phone": row["Phone Number"],
+                        "experience_years": row["Experience"],
+                        "latest_experience": row["Latest Experience"],
+                        "reference": row["Reference"],
+                        "match_score": score,
+                        "missing_skills": missing,
+                        "pipeline_status": "Shortlisted" if score >= slider_thresh else "Talent Pool"
+                    })
+            prog.empty()
+            res.sort(key=lambda x: x["match_score"], reverse=True)
+            st.session_state.screening_results = res
+            save_screened_to_supabase(res)
+            st.success(f"Screening complete! {len(res)} candidate(s) evaluated.")
+            st.rerun()
 
     if st.session_state.screening_results:
         st.markdown("---")
