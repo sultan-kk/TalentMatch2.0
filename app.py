@@ -748,14 +748,14 @@ if not st.session_state.logged_in:
                 st.rerun()
         st.stop()
 
-    st.markdown(f"""
+   st.markdown(f"""
         <div style="text-align: center; padding: 2.2rem 1rem 1.6rem 1rem;">
             <h1 style="font-size: 2.6rem; font-weight: 800; margin-bottom: 4px;">Who's Screening?</h1>
             <p style="color: #10B981; font-size: 1rem; font-weight: 500;">{APP_TAGLINE}</p>
         </div>
     """, unsafe_allow_html=True)
 
-    # Scoped Netflix-Style Square Cards (160x160px Direct Key Targeted)
+    # Scoped Netflix-Style Square Cards (Guaranteed 165x165px Square)
     all_items = list(saved_profiles) + [("REGISTER_CARD", "New Profile", "", "Register")]
     cols_per_row = 4
     
@@ -765,39 +765,66 @@ if not st.session_state.logged_in:
         for idx, item in enumerate(row_items):
             with cols[idx]:
                 if item[0] == "REGISTER_CARD":
-                    st.markdown('<div class="profile-cell">', unsafe_allow_html=True)
+                    st.markdown("""
+                        <div style="display:flex; flex-direction:column; align-items:center; margin-bottom:1.8rem;">
+                            <style>
+                                div[data-testid="stColumn"] div.stButton > button {
+                                    width: 165px !important;
+                                    height: 165px !important;
+                                    border-radius: 26px !important;
+                                    background: #181B20 !important;
+                                    border: 2px solid #2D333B !important;
+                                    box-shadow: 0 10px 24px rgba(0,0,0,0.5) !important;
+                                    font-size: 4.8rem !important;
+                                    line-height: 1 !important;
+                                    display: flex !important;
+                                    align-items: center !important;
+                                    justify-content: center !important;
+                                    padding: 0 !important;
+                                    margin: 0 auto !important;
+                                }
+                                div[data-testid="stColumn"] div.stButton > button p {
+                                    font-size: 4.8rem !important;
+                                    margin: 0 !important;
+                                    line-height: 1 !important;
+                                }
+                            </style>
+                    """, unsafe_allow_html=True)
                     if st.button("➕", key=f"add_profile_card_{i}"):
                         st.session_state.show_registration = True
                         st.rerun()
                     st.markdown("""
-                        <div class="profile-meta-title">New Profile</div>
-                        <div class="profile-meta-role">Register Account</div>
-                    </div>
+                            <div class="profile-meta-title" style="margin-top:12px;">New Profile</div>
+                            <div class="profile-meta-role">Register Account</div>
+                        </div>
                     """, unsafe_allow_html=True)
                 else:
                     p_email, p_name, p_pin, p_role = item
                     avatar_sticker = get_user_avatar(p_email)
                     
-                    st.markdown('<div class="profile-cell">', unsafe_allow_html=True)
-                    # Main Solid 160x160 Square Button
+                    st.markdown("""
+                        <div style="display:flex; flex-direction:column; align-items:center; margin-bottom:1.8rem;">
+                            <div style="position:relative; width:165px; height:165px; margin: 0 auto;">
+                    """, unsafe_allow_html=True)
+                    
+                    # Main Square Avatar Card (Strict 165x165px)
                     if st.button(avatar_sticker, key=f"user_card_{i}_{idx}"):
                         show_pin_dialog(p_email, p_name, p_role)
                     
-                    # Name aur Role
-                    st.markdown(f"""
-                        <div class="profile-meta-title">{p_name}</div>
-                        <div class="profile-meta-role">{p_role}</div>
+                    # Top-right corner floating edit icon
+                    st.markdown("""
+                                <div style="position:absolute; top:8px; right:8px; z-index:99; width:34px; height:34px;">
+                    """, unsafe_allow_html=True)
+                    if st.button("✏️", key=f"edit_btn_{i}_{idx}", help="Change Badge"):
+                        show_sticker_picker_dialog(p_email, p_name)
+                    st.markdown("""
+                                </div>
+                            </div>
                     """, unsafe_allow_html=True)
                     
-                    # Sleek Change Badge Option
-                    if st.button("✏️ Change Badge", key=f"edit_btn_{i}_{idx}"):
-                        show_sticker_picker_dialog(p_email, p_name)
-                    st.markdown('</div>', unsafe_allow_html=True)
-                    
-                    # Name & Role below card
+                    # Name aur Role sirf aik dafa neechay
                     st.markdown(f"""
-                            </div>
-                            <div class="profile-meta-title">{p_name}</div>
+                            <div class="profile-meta-title" style="margin-top:12px;">{p_name}</div>
                             <div class="profile-meta-role">{p_role}</div>
                         </div>
                     """, unsafe_allow_html=True)
