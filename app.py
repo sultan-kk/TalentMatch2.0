@@ -1182,7 +1182,7 @@ with tab2:
             client = Groq(api_key=g_key)
             res = []
             prog = st.progress(0.0, text="Screening against JD...")
-            for idx, row in df_pool.iterrows():
+             for idx, row in df_pool.iterrows():
             prog.progress((idx + 1) / len(df_pool), text=f"Evaluating {row['Name']}...")
             
             # Yahan job_role pass kiya hai taake AI strictly match check kare
