@@ -1052,10 +1052,13 @@ def evaluate_candidate_against_jd(client, candidate_row, jd_text, selected_job_t
     try:
         summary = f"Name: {candidate_row['Name']}, Education: {candidate_row['Qualification']}, Institute: {candidate_row['Institute']}, Experience: {candidate_row['Experience']}, Latest Role: {candidate_row['Latest Experience']}"
         
-        prompt = f"""You are an expert HR recruitment filter for Attock Refinery Limited. 
+        prompt = f"""You are an expert HR recruitment evaluator for Attock Refinery Limited (ARL). 
 Evaluate the CANDIDATE against the TARGET JOB TITLE ('{selected_job_title}') and JOB DESCRIPTION.
 
-Check if the candidate's background (Degree, Qualification, or Latest Experience) is relevant or matches the domain of '{selected_job_title}'. For example, if the job is in Human Resources (HR), candidate must have HR, BBA/MBA HR, or administrative background. If completely irrelevant, set 'is_relevant' to false.
+Be fair and practical in evaluation:
+1. Provide a realistic match score from 0 to 100 based on education, experience, and skills overlap.
+2. Set 'is_relevant' to true for any candidate whose background has transferable business, management, technical, or administrative skills related to the department, even if titles don't match word-for-word. Only set 'is_relevant' to false if the resume is entirely unrelated (e.g., an IT developer applying for a heavy mechanical plant operator role, or vice versa).
+3. List any missing skills or gaps.
 
 CANDIDATE: {summary}
 JOB DESCRIPTION / POSITION: {jd_text}
