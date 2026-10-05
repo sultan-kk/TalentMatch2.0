@@ -494,30 +494,21 @@ div[data-testid="stColumn"] > div:has(.square-profile-card) {
     align-items: center !important;
 }
 
-div[data-testid="stColumn"] > div:has(.square-profile-card) div.stButton > button {
-    width: 160px !important;
-    height: 160px !important;
-    min-width: 160px !important;
-    max-width: 160px !important;
-    min-height: 160px !important;
-    max-height: 160px !important;
-    margin: 0 auto !important;
+div[data-testid="stColumn"] div[style*="width:150px; height:150px"] div.stButton > button {
+    width: 150px !important;
+    height: 150px !important;
     border-radius: 24px !important;
     background: #181B20 !important;
     border: 2px solid #2D333B !important;
     box-shadow: 0 10px 22px rgba(0, 0, 0, 0.45) !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
     padding: 0 !important;
-    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    margin: 0 !important;
 }
 
-div[data-testid="stColumn"] > div:has(.square-profile-card) div.stButton > button p {
-    font-size: 4.2rem !important;
+div[data-testid="stColumn"] div[style*="width:150px; height:150px"] div.stButton > button p {
+    font-size: 4.8rem !important;
     line-height: 1 !important;
     margin: 0 !important;
-    padding: 0 !important;
 }
 
 div[data-testid="stColumn"] > div:has(.square-profile-card) div.stButton > button:hover {
