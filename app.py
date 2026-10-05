@@ -737,157 +737,137 @@ def show_sticker_picker_dialog(email, name):
 # =======================================================================
     # 8. AUTHENTICATION & LOGIN SCREEN (BULLETPROOF SQUARE CARDS)
     # =======================================================================
-    # Handle query param triggers from custom square cards
-    params = st.query_params
-    if "select_user" in params:
-        u_email = params["select_user"]
-        st.query_params.clear()
-        # Find user details
-        for p_email, p_name, p_pin, p_role in saved_profiles:
-            if p_email.lower().strip() == u_email.lower().strip():
-                show_pin_dialog(p_email, p_name, p_role)
-                break
-    elif "edit_badge" in params:
-        u_email = params["edit_badge"]
-        st.query_params.clear()
-        for p_email, p_name, p_pin, p_role in saved_profiles:
-            if p_email.lower().strip() == u_email.lower().strip():
-                show_sticker_picker_dialog(p_email, p_name)
-                break
-    elif "register_new" in params:
-        st.query_params.clear()
-        st.session_state.show_registration = True
-        st.rerun()
-
     st.markdown(f"""
-        <div style="text-align: center; padding: 2.5rem 1rem 1.8rem 1rem;">
-            <h1 style="font-size: 2.8rem; font-weight: 800; margin-bottom: 6px; color: #FFFFFF;">Who's Screening?</h1>
-            <p style="color: #10B981; font-size: 1.05rem; font-weight: 500;">{APP_TAGLINE}</p>
+        <div style="text-align: center; padding: 2.2rem 1rem 1.6rem 1rem;">
+            <h1 style="font-size: 2.6rem; font-weight: 800; margin-bottom: 4px; color: #FFFFFF;">Who's Screening?</h1>
+            <p style="color: #10B981; font-size: 1rem; font-weight: 500;">{APP_TAGLINE}</p>
         </div>
     """, unsafe_allow_html=True)
 
-    # High-Performance Pure CSS Cards Grid with Hover & In-Card Edit Icon
-    cards_html = """
-    <style>
-    .netflix-profiles-container {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
-        align-items: flex-start;
-        gap: 35px;
-        max-width: 950px;
-        margin: 0 auto 2.5rem auto;
-    }
-    .profile-card-unit {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        width: 165px;
-        text-decoration: none;
-    }
-    .profile-square-box {
-        position: relative;
-        width: 165px;
-        height: 165px;
-        background: #181B20;
-        border: 2.5px solid #2D333B;
-        border-radius: 28px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        box-shadow: 0 12px 28px rgba(0, 0, 0, 0.6);
-        cursor: pointer;
-        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-        text-decoration: none;
-    }
-    .profile-square-box:hover {
-        transform: translateY(-8px) scale(1.06);
-        border-color: #10B981;
-        box-shadow: 0 18px 38px rgba(16, 185, 129, 0.45), 0 0 20px rgba(52, 211, 153, 0.3);
-        background: #20242B;
-    }
-    .profile-emoji {
-        font-size: 5.5rem;
-        line-height: 1;
-        user-select: none;
-        transition: transform 0.3s ease;
-    }
-    .profile-square-box:hover .profile-emoji {
-        transform: scale(1.08);
-    }
-    .corner-edit-icon {
-        position: absolute;
-        top: 10px;
-        right: 10px;
-        width: 34px;
-        height: 34px;
-        background: rgba(35, 39, 47, 0.9);
-        border: 1.5px solid #10B981;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1rem;
-        color: #FFFFFF;
-        text-decoration: none;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
-        transition: all 0.2s ease;
-        z-index: 10;
-    }
-    .corner-edit-icon:hover {
-        background: #10B981;
-        border-color: #34D399;
-        transform: scale(1.18);
-    }
-    .profile-title-text {
-        text-align: center;
-        font-size: 1.15rem;
-        font-weight: 700;
-        color: #FFFFFF;
-        margin-top: 14px;
-        line-height: 1.2;
-    }
-    .profile-role-badge {
-        text-align: center;
-        font-size: 0.75rem;
-        font-family: 'JetBrains Mono', monospace;
-        color: #10B981;
-        text-transform: uppercase;
-        letter-spacing: 0.6px;
-        margin-top: 3px;
-    }
-    </style>
-    <div class="netflix-profiles-container">
-    """
+    # Scoped Card Styling for Pure Squares & Emerald Hover
+    st.markdown("""
+        <style>
+        /* Card Column Centering */
+        div[data-testid="stColumn"] {
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: center !important;
+            justify-content: flex-start !important;
+        }
 
-    for p_email, p_name, p_pin, p_role in saved_profiles:
-        avatar_sticker = get_user_avatar(p_email)
-        cards_html += f"""
-        <div class="profile-card-unit">
-            <div style="position: relative; width: 165px; height: 165px;">
-                <a href="?select_user={p_email}" target="_self" class="profile-square-box">
-                    <span class="profile-emoji">{avatar_sticker}</span>
-                </a>
-                <a href="?edit_badge={p_email}" target="_self" class="corner-edit-icon" title="Change Badge">✏️</a>
-            </div>
-            <div class="profile-title-text">{p_name}</div>
-            <div class="profile-role-badge">{p_role}</div>
-        </div>
-        """
+        /* Profile Card Button Strict 160x160 Square */
+        div[data-testid="stColumn"] div.stButton > button[key*="user_card_"],
+        div[data-testid="stColumn"] div.stButton > button[key*="add_profile_card_"] {
+            width: 160px !important;
+            height: 160px !important;
+            min-width: 160px !important;
+            max-width: 160px !important;
+            min-height: 160px !important;
+            max-height: 160px !important;
+            border-radius: 28px !important;
+            background: #181B20 !important;
+            border: 2px solid #2D333B !important;
+            box-shadow: 0 10px 24px rgba(0, 0, 0, 0.5) !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            margin: 0 auto !important;
+            padding: 0 !important;
+            transition: all 0.28s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        }
 
-    # Always Render 4th Card: New Profile Registration
-    cards_html += """
-        <div class="profile-card-unit">
-            <a href="?register_new=1" target="_self" class="profile-square-box">
-                <span class="profile-emoji" style="font-size: 4.8rem;">➕</span>
-            </a>
-            <div class="profile-title-text">New Profile</div>
-            <div class="profile-role-badge">Register Account</div>
-        </div>
-    </div>
-    """
+        /* Large Centered Emoji */
+        div[data-testid="stColumn"] div.stButton > button[key*="user_card_"] p,
+        div[data-testid="stColumn"] div.stButton > button[key*="add_profile_card_"] p {
+            font-size: 5rem !important;
+            line-height: 1 !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            transition: transform 0.28s ease !important;
+        }
 
-    st.markdown(cards_html, unsafe_allow_html=True)
+        /* Hover Effect: Lift + Glowing Emerald */
+        div[data-testid="stColumn"] div.stButton > button[key*="user_card_"]:hover,
+        div[data-testid="stColumn"] div.stButton > button[key*="add_profile_card_"]:hover {
+            transform: translateY(-8px) scale(1.05) !important;
+            border-color: #10B981 !important;
+            box-shadow: 0 16px 36px rgba(16, 185, 129, 0.4), 0 0 18px rgba(52, 211, 153, 0.3) !important;
+            background: #22262E !important;
+        }
+
+        div[data-testid="stColumn"] div.stButton > button[key*="user_card_"]:hover p,
+        div[data-testid="stColumn"] div.stButton > button[key*="add_profile_card_"]:hover p {
+            transform: scale(1.08) !important;
+        }
+
+        /* Edit Badge Button Styling */
+        div[data-testid="stColumn"] div.stButton > button[key*="edit_btn_"] {
+            border-radius: 20px !important;
+            font-size: 0.78rem !important;
+            padding: 0.2rem 0.75rem !important;
+            background: rgba(16, 185, 129, 0.1) !important;
+            border: 1px solid rgba(16, 185, 129, 0.4) !important;
+            color: #10B981 !important;
+            margin-top: 6px !important;
+        }
+
+        div[data-testid="stColumn"] div.stButton > button[key*="edit_btn_"]:hover {
+            background: #10B981 !important;
+            color: #FFFFFF !important;
+        }
+
+        .profile-title-text {
+            text-align: center;
+            font-size: 1.12rem;
+            font-weight: 700;
+            color: #FFFFFF;
+            margin-top: 10px;
+            line-height: 1.2;
+        }
+
+        .profile-role-badge {
+            text-align: center;
+            font-size: 0.72rem;
+            font-family: 'JetBrains Mono', monospace;
+            color: #10B981;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            margin-top: 2px;
+        }
+        </style>
+    """, unsafe_allow_html=True)
+
+    # Profiles list including Register card
+    all_items = list(saved_profiles) + [("REGISTER_CARD", "New Profile", "", "Register")]
+    cols_per_row = 4
+
+    for i in range(0, len(all_items), cols_per_row):
+        row_items = all_items[i:i + cols_per_row]
+        cols = st.columns(cols_per_row)
+        for idx, item in enumerate(row_items):
+            with cols[idx]:
+                if item[0] == "REGISTER_CARD":
+                    if st.button("➕", key=f"add_profile_card_{i}_{idx}"):
+                        st.session_state.show_registration = True
+                        st.rerun()
+                    st.markdown("""
+                        <div class="profile-title-text">New Profile</div>
+                        <div class="profile-role-badge">Register Account</div>
+                    """, unsafe_allow_html=True)
+                else:
+                    p_email, p_name, p_pin, p_role = item
+                    avatar_sticker = get_user_avatar(p_email)
+
+                    if st.button(avatar_sticker, key=f"user_card_{i}_{idx}"):
+                        show_pin_dialog(p_email, p_name, p_role)
+
+                    st.markdown(f"""
+                        <div class="profile-title-text">{p_name}</div>
+                        <div class="profile-role-badge">{p_role}</div>
+                    """, unsafe_allow_html=True)
+
+                    if st.button("✏️ Change Badge", key=f"edit_btn_{i}_{idx}"):
+                        show_sticker_picker_dialog(p_email, p_name)
 
     st.markdown("<br><hr style='opacity: 0.25;'>", unsafe_allow_html=True)
     col_dl1, col_dl2 = st.columns([7.5, 2.5], vertical_alignment="center")
@@ -899,7 +879,6 @@ def show_sticker_picker_dialog(email, name):
             st.rerun()
 
     st.stop()
-
 # ===========================================================================
 # 9. OCR & MULTI-RESUME EXTRACTION ENGINE
 # ===========================================================================
