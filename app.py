@@ -1048,12 +1048,17 @@ def extract_candidates_for_repo(client, resume_text: str, file_name: str):
         st.error(f"⚠️ Extraction failed for **{file_name}**: {exc}")
         return []
 
-def evaluate_candidate_against_jd(client, candidate_row, jd_text: str):
+def evaluate_candidate_against_jd(client, candidate_row, jd_text, selected_job_title=""):
     try:
         summary = f"Name: {candidate_row['Name']}, Education: {candidate_row['Qualification']}, Institute: {candidate_row['Institute']}, Experience: {candidate_row['Experience']}, Latest Role: {candidate_row['Latest Experience']}"
-        prompt = f"""Evaluate the CANDIDATE against the JOB DESCRIPTION for Attock Refinery Limited.
+        
+        prompt = f"""You are an expert HR recruitment filter for Attock Refinery Limited. 
+Evaluate the CANDIDATE against the TARGET JOB TITLE ('{selected_job_title}') and JOB DESCRIPTION.
+
+Check if the candidate's background (Degree, Qualification, or Latest Experience) is relevant or matches the domain of '{selected_job_title}'. For example, if the job is in Human Resources (HR), candidate must have HR, BBA/MBA HR, or administrative background. If completely irrelevant, set 'is_relevant' to false.
+
 CANDIDATE: {summary}
-JOB DESCRIPTION: {jd_text}
+JOB DESCRIPTION / POSITION: {jd_text}
 
 Return ONLY valid JSON:
 {{
@@ -1178,10 +1183,13 @@ with tab2:
             res = []
             prog = st.progress(0.0, text="Screening against JD...")
             for idx, row in df_pool.iterrows():
-                prog.progress((idx + 1) / len(df_pool), text=f"Evaluating {row['Name']}...")
-                score, is_rel, missing = evaluate_candidate_against_jd(client, row, jd_text)
-                
-                # Sabhi evaluated candidates ko include karein taake koi result gayab na ho
+            prog.progress((idx + 1) / len(df_pool), text=f"Evaluating {row['Name']}...")
+            
+            # Yahan job_role pass kiya hai taake AI strictly match check kare
+            score, is_rel, missing = evaluate_candidate_against_jd(client, row, jd_text, selected_job_title=job_role)
+            
+            # Sirf wohi candidates show hon gay jo relevant hon ge
+            if is_rel and score >= slider_thresh:
                 res.append({
                     "job_title": job_role,
                     "name": row["Name"],
@@ -1198,7 +1206,7 @@ with tab2:
                     "reference": row["Reference"],
                     "match_score": score,
                     "missing_skills": missing,
-                    "pipeline_status": "Shortlisted" if score >= slider_thresh else "Talent Pool"
+                    "pipeline_status": "Shortlisted"
                 })
             prog.empty()
             res.sort(key=lambda x: x["match_score"], reverse=True)
