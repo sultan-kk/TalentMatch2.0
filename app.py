@@ -315,34 +315,35 @@ def save_candidates_to_repository(new_candidates):
     return inserted, skipped
 
 def save_screened_to_supabase(screened_list):
-    if not supabase or not screened_list: return
+    if not supabase or not screened_list: 
+        return
     current_timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     for r in screened_list:
         skills_str = ", ".join(r.get("missing_skills", [])) if isinstance(r.get("missing_skills"), list) else str(r.get("missing_skills", ""))
         payload = {
-            "job_title": r.get("job_title", "Not Specified"),
-            "candidate_name": r.get("name", "Unknown"),
-            "father_name": r.get("father_name", "Not Provided"),
-            "education": r.get("education", "Not Provided"),
-            "cgpa": r.get("cgpa", "Not Provided"),
-            "passing_year": r.get("passing_year", "Not Provided"),
-            "university_name": r.get("university_name", "Not Provided"),
-            "dob": r.get("dob", "Not Provided"),
-            "email": r.get("email", "Not Provided"),
-            "phone": r.get("phone", "Not Provided"),
+            "job_title": str(r.get("job_title", "Not Specified")),
+            "candidate_name": str(r.get("name", "Unknown")),
+            "father_name": str(r.get("father_name", "Not Provided")),
+            "education": str(r.get("education", "Not Provided")),
+            "cgpa": str(r.get("cgpa", "Not Provided")),
+            "passing_year": str(r.get("passing_year", "Not Provided")),
+            "university_name": str(r.get("university_name", "Not Provided")),
+            "dob": str(r.get("dob", "Not Provided")),
+            "email": str(r.get("email", "Not Provided")),
+            "phone": str(r.get("phone", "Not Provided")),
             "experience_years": str(r.get("experience_years", "0")),
-            "latest_experience": r.get("latest_experience", "Not Provided"),
-            "reference": r.get("reference", "Not Provided"),
+            "latest_experience": str(r.get("latest_experience", "Not Provided")),
+            "reference": str(r.get("reference", "Not Provided")),
             "match_score": float(r.get("match_score", 0)),
             "missing_skills": skills_str,
-            "pipeline_status": r.get("pipeline_status", "Shortlisted"),
+            "pipeline_status": str(r.get("pipeline_status", "Shortlisted")),
             "screened_at": current_timestamp
         }
         try:
+            # Upsert ya direct insert execute karein
             supabase.table("screened_candidates").insert(payload).execute()
-        except Exception:
-            pass
-
+        except Exception as e:
+            st.error(f"Supabase Screened Insert Error: {e}")
 def load_screened_database():
     expected_cols = [
         "Job Title", "Match Score (%)", "Pipeline Status",
