@@ -738,7 +738,7 @@ if not st.session_state.logged_in:
         </div>
     """, unsafe_allow_html=True)
 
-    # Scoped Netflix-Style Square Cards (Strict 150x150 Box)
+    # Scoped Netflix-Style Square Cards (Strict 170x170 Box)
     all_items = list(saved_profiles) + [("REGISTER_CARD", "New Profile", "", "Register")]
     cols_per_row = 4
     
