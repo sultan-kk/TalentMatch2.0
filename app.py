@@ -20,7 +20,6 @@ from email.mime.multipart import MIMEMultipart
 from email.utils import formataddr
 import pandas as pd
 import streamlit as st
-import streamlit.components.v1 as components
 from groq import Groq
 from supabase import create_client, Client
 from PIL import Image, ImageOps, ImageEnhance, ImageDraw
@@ -691,7 +690,7 @@ def generate_screening_excel(results_list) -> bytes:
     return buffer.getvalue()
 
 # ===========================================================================
-# 5. BULLETPROOF THEME & CUSTOM BUTTON CSS (OVERRIDING STREAMLIT CLOUD)
+# 5. NETFLIX-STYLE PROFILE THEME & SINGLE CHARCOAL MODAL CSS
 # ===========================================================================
 ARL_GREEN_CSS = """
 <style>
@@ -701,7 +700,7 @@ html, body, [class*="css"] {
     font-family: 'Plus Jakarta Sans', sans-serif !important;
 }
 
-/* Full Atmospheric Forest Green Background */
+/* Atmospheric Full Dark Forest Green Background */
 .stApp {
     background: radial-gradient(circle at 50% 8%, #0f3d24 0%, #082415 48%, #03120a 100%) !important;
     color: #F8FAFC !important;
@@ -745,15 +744,12 @@ html, body, [class*="css"] {
     box-shadow: 0 0 15px rgba(34, 197, 94, 0.2) !important;
 }
 
-/* Override default Streamlit white button styles */
+/* Global button styling */
 button,
 button[kind="secondary"],
 button[kind="primary"],
-button[data-testid="baseButton-secondary"],
-button[data-testid="baseButton-primary"],
 div[data-testid="stButton"] button {
     background: linear-gradient(145deg, #113f26 0%, #082416 100%) !important;
-    background-color: #082416 !important;
     color: #FFFFFF !important;
     border: 1.5px solid #22C55E !important;
     border-radius: 12px !important;
@@ -761,68 +757,69 @@ div[data-testid="stButton"] button {
     transition: all 0.2s ease-in-out !important;
 }
 
-button:hover,
-div[data-testid="stButton"] button:hover {
-    border-color: #86EFAC !important;
-    background: linear-gradient(145deg, #165332 0%, #0d3822 100%) !important;
-    color: #FFFFFF !important;
+/* ============================================================ */
+/* NETFLIX-STYLE PROFILE TILES (140px CARD + ON-CARD HOVER EDIT)*/
+/* ============================================================ */
+.profile-deck-container {
+    padding: 1.5rem 0;
 }
 
-/* ============================================================ */
-/* SEAMLESS PROFILE TILES (140px CARD + ON-CARD HOVER EDIT PILL)*/
-/* ============================================================ */
-.profile-card-tile {
-    position: relative;
-    width: 140px;
-    height: 140px;
-    margin: 0 auto;
+.profile-deck-container div[data-testid="stColumn"] {
+    position: relative !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
 }
 
-/* 1. Main Avatar Button (140x140 Rounded Square Card) */
-.profile-card-tile .stButton:nth-of-type(1) button {
+/* 1. Big Avatar Card Button (140x140 Rounded Square) */
+.profile-deck-container div[data-testid="stColumn"] > div > div:nth-child(1) button {
     width: 140px !important;
     height: 140px !important;
     border-radius: 24px !important;
     font-size: 4rem !important;
     line-height: 1 !important;
-    margin: 0 auto !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
-    background: linear-gradient(145deg, #124328 0%, #072516 100%) !important;
+    margin: 0 auto !important;
+    background: linear-gradient(145deg, #113f26 0%, #072516 100%) !important;
     border: 2.5px solid #22C55E !important;
     box-shadow: 0 12px 28px rgba(0, 0, 0, 0.65), inset 0 0 18px rgba(34, 197, 94, 0.2) !important;
     transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
     cursor: pointer !important;
-    position: relative !important;
 }
 
-.profile-card-tile:hover .stButton:nth-of-type(1) button {
+.profile-deck-container div[data-testid="stColumn"]:hover > div > div:nth-child(1) button {
     border-color: #86EFAC !important;
-    transform: scale(1.04) !important;
+    transform: scale(1.05) !important;
     box-shadow: 0 16px 36px rgba(34, 197, 94, 0.45), inset 0 0 24px rgba(74, 222, 128, 0.3) !important;
 }
 
-/* 2. Edit Overlay Button (Positioned over bottom half of card, hidden until hover) */
-.profile-card-tile .stButton:nth-of-type(2) {
+/* 2. Edit Button Positioned Directly ON the Card at Bottom (Appears ONLY on hover) */
+.profile-deck-container div[data-testid="stColumn"]:not(:last-child) > div > div:nth-child(2) {
     position: absolute !important;
-    bottom: 8px !important;
-    left: 12px !important;
-    right: 12px !important;
-    z-index: 10 !important;
+    top: 96px !important;
+    left: 50% !important;
+    transform: translateX(-50%) translateY(4px) !important;
+    z-index: 20 !important;
     opacity: 0 !important;
-    transform: translateY(6px) !important;
-    transition: all 0.2s ease-in-out !important;
     pointer-events: none !important;
+    transition: all 0.2s ease-in-out !important;
 }
 
-.profile-card-tile .stButton:nth-of-type(2) button {
-    width: 100% !important;
-    height: 32px !important;
+.profile-deck-container div[data-testid="stColumn"]:not(:last-child):hover > div > div:nth-child(2) {
+    opacity: 1 !important;
+    transform: translateX(-50%) translateY(0) !important;
+    pointer-events: auto !important;
+}
+
+.profile-deck-container div[data-testid="stColumn"]:not(:last-child) > div > div:nth-child(2) button {
+    height: 28px !important;
     min-height: unset !important;
-    padding: 0 !important;
+    padding: 2px 14px !important;
     border-radius: 12px !important;
-    font-size: 0.74rem !important;
+    font-size: 0.72rem !important;
     font-weight: 800 !important;
     letter-spacing: 0.8px !important;
     background: rgba(0, 0, 0, 0.88) !important;
@@ -830,28 +827,19 @@ div[data-testid="stButton"] button:hover {
     color: #4ADE80 !important;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6) !important;
     backdrop-filter: blur(4px) !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
+    white-space: nowrap !important;
     cursor: pointer !important;
 }
 
-/* When mouse enters the profile card, reveal the Edit button! */
-.profile-card-tile:hover .stButton:nth-of-type(2) {
-    opacity: 1 !important;
-    transform: translateY(0) !important;
-    pointer-events: auto !important;
-}
-
-.profile-card-tile .stButton:nth-of-type(2) button:hover {
+.profile-deck-container div[data-testid="stColumn"]:not(:last-child) > div > div:nth-child(2) button:hover {
     background: #000000 !important;
     color: #FFFFFF !important;
     border-color: #86EFAC !important;
-    transform: scale(1.02) !important;
+    transform: scale(1.05) !important;
 }
 
-/* Add Profile Button in Last Column */
-.profile-card-tile.add-card .stButton:first-of-type button {
+/* 3. Add Profile Card in Last Column */
+.profile-deck-container div[data-testid="stColumn"]:last-child > div > div:nth-child(1) button {
     width: 140px !important;
     height: 140px !important;
     border-radius: 24px !important;
@@ -862,14 +850,15 @@ div[data-testid="stButton"] button:hover {
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
+    margin: 0 auto !important;
     transition: all 0.25s ease !important;
 }
 
-.profile-card-tile.add-card:hover .stButton:first-of-type button {
+.profile-deck-container div[data-testid="stColumn"]:last-child > div > div:nth-child(1) button:hover {
     border-color: #86EFAC !important;
     background: rgba(34, 197, 94, 0.22) !important;
     color: #FFFFFF !important;
-    transform: scale(1.04) !important;
+    transform: scale(1.05) !important;
     box-shadow: 0 14px 32px rgba(34, 197, 94, 0.35) !important;
 }
 
@@ -880,7 +869,6 @@ div[data-testid="stButton"] button:hover {
     color: #FFFFFF;
     text-align: center;
     line-height: 1.25;
-    word-break: break-word;
 }
 .arl-tile-role {
     font-size: 0.72rem;
@@ -898,31 +886,56 @@ div[data-testid="stButton"] button:hover {
 }
 
 /* ============================================================ */
-/* CHARCOAL POPUP MODALS & BLURRED BACKDROP                     */
+/* SEAMLESS SINGLE CHARCOAL MODAL & BLURRED BACKDROP            */
 /* ============================================================ */
 div[data-testid="stModalBackdrop"], div[data-testid="stDialogBackdrop"] {
-    background-color: rgba(3, 16, 9, 0.68) !important;
+    background-color: rgba(3, 16, 9, 0.55) !important;
     backdrop-filter: blur(8px) !important;
     -webkit-backdrop-filter: blur(8px) !important;
 }
 
-div[data-testid="stDialog"], div[role="dialog"] {
-    border-radius: 22px !important;
-    border: 1.5px solid #22C55E !important;
-    background: #12161A !important;
-    background-color: #12161A !important;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.9), 0 0 25px rgba(34, 197, 94, 0.25) !important;
-    max-width: 460px !important;
-    margin: auto !important;
-    color: #FFFFFF !important;
+/* Eliminate nested box inside dialog */
+div[data-testid="stDialog"] [data-testid="stForm"],
+div[role="dialog"] [data-testid="stForm"] {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
 }
 
-div[data-testid="stDialog"] > div,
-div[role="dialog"] > div,
-div[data-testid="stDialog"] [data-testid="stVerticalBlock"] {
-    background: transparent !important;
-    background-color: transparent !important;
+/* Single Sleek Charcoal Dialog Box */
+div[data-testid="stDialog"], div[role="dialog"] {
+    border-radius: 20px !important;
+    border: 2px solid #22C55E !important;
+    background: #111417 !important;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.85), 0 0 25px rgba(34, 197, 94, 0.25) !important;
+    max-width: 340px !important;
+    width: 340px !important;
+    margin: auto !important;
+    padding: 1.6rem 1.8rem !important;
+}
+
+div[data-testid="stDialog"] h2,
+div[role="dialog"] h2 {
+    font-size: 1.35rem !important;
+    font-weight: 800 !important;
+    color: #4ADE80 !important;
+    letter-spacing: 1px !important;
+    text-align: center !important;
+    margin: 0 0 1rem 0 !important;
+}
+
+/* PIN Input Field */
+div[data-testid="stDialog"] input[type="password"] {
+    font-size: 1.4rem !important;
+    letter-spacing: 6px !important;
+    text-align: center !important;
+    background: #080a0c !important;
+    border: 1.5px solid #22C55E !important;
     color: #FFFFFF !important;
+    border-radius: 12px !important;
+    height: 48px !important;
 }
 
 /* Modal Pure Sticker Grid Buttons */
@@ -1110,48 +1123,32 @@ if st.session_state.show_download_page:
     st.stop()
 
 # ===========================================================================
-# 7. POPUP DIALOGS (SEAMLESS BACKGROUND BLUR & AUTO-FOCUS)
+# 7. CLEAN SINGLE RECTANGULAR PIN POPUP & PURE STICKER PICKER
 # ===========================================================================
 if hasattr(st, "dialog"):
-    @st.dialog("🔐 Security PIN Verification")
+    @st.dialog("PIN")
     def show_pin_dialog(target_email, p_name, p_role, p_sticker):
-        # Auto-focus the password field so user can type immediately
-        components.html("""
-        <script>
-        function autoFocusPin() {
-            try {
-                const doc = window.parent.document;
-                const pinInput = doc.querySelector('div[role="dialog"] input[type="password"], div[data-testid="stDialog"] input[type="password"]');
-                if (pinInput) {
-                    pinInput.focus();
-                    pinInput.select();
-                } else {
-                    setTimeout(autoFocusPin, 40);
+        # Native direct DOM autofocus without cross-origin iframe issues
+        st.markdown("""
+        <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg'/>" style="display:none;" onerror="
+            let count = 0;
+            const focusInterval = setInterval(() => {
+                const el = window.parent.document.querySelector('div[role=dialog] input[type=password], div[data-testid=stDialog] input[type=password], input[type=password]');
+                if (el) {
+                    el.focus();
+                    clearInterval(focusInterval);
                 }
-            } catch(e) {}
-        }
-        setTimeout(autoFocusPin, 60);
-        </script>
-        """, height=0, width=0)
-
-        st.markdown(f"""
-            <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 14px;">
-                <div style="font-size: 2.6rem; background: #082416; border: 2px solid #4ADE80; border-radius: 16px; width: 62px; height: 62px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(0,0,0,0.5);">
-                    {p_sticker}
-                </div>
-                <div>
-                    <h3 style="margin: 0; color: #4ADE80; font-size: 1.35rem; font-weight: 800;">{p_name}</h3>
-                    <span style="font-size: 0.85rem; color: #86EFAC;">{target_email} &bull; <b>{p_role}</b></span>
-                </div>
-            </div>
+                if (++count > 30) clearInterval(focusInterval);
+            }, 30);
+            this.remove();
+        "/>
         """, unsafe_allow_html=True)
-        
-        with st.form("pin_login_form_dialog"):
-            pin_input = st.text_input("Enter 4-Digit Security PIN", type="password", max_chars=4, placeholder="••••", key="dialog_pin_val")
-            submit = st.form_submit_button("Access Portal ➔ (Press Enter)", use_container_width=True)
-            
-        col_c1, col_c2 = st.columns([1, 1])
-        if submit:
+
+        with st.form("pin_form_clean"):
+            pin_input = st.text_input("PIN", type="password", max_chars=4, placeholder="••••", label_visibility="collapsed", key="clean_pin_input")
+            submitted = st.form_submit_button("Enter ➔", use_container_width=True)
+
+        if submitted or (pin_input and len(pin_input) == 4):
             success, name, role = verify_employee_pin(target_email, pin_input)
             if success:
                 st.session_state.logged_in = True
@@ -1161,22 +1158,10 @@ if hasattr(st, "dialog"):
                 st.session_state.active_pin_user = None
                 st.rerun()
             else:
-                st.error("❌ Incorrect 4-Digit PIN.")
-        with col_c2:
-            if st.button("Cancel", use_container_width=True, key="cancel_pin_dialog_btn"):
-                st.session_state.active_pin_user = None
-                st.rerun()
+                st.error("❌ Incorrect PIN")
 
-    @st.dialog("🎨 Choose Executive Badge")
+    @st.dialog("Choose Badge")
     def show_sticker_dialog(target_email, p_name, p_role, p_sticker):
-        st.markdown(f"""
-            <div style="margin-bottom: 14px; text-align: center;">
-                <h4 style="margin: 0; color: #FFFFFF; font-size: 1.2rem; font-weight: 800;">Select Badge for <span style="color: #4ADE80;">{p_name}</span></h4>
-                <p style="font-size: 0.85rem; color: #86EFAC; margin: 4px 0 0 0;">Click on any sticker to update instantly:</p>
-            </div>
-        """, unsafe_allow_html=True)
-        
-        # PURE STICKER GRID ONLY (6 Columns x 2 Rows)
         st.markdown('<div class="sticker-modal-grid">', unsafe_allow_html=True)
         cols = st.columns(6)
         for idx, (stk, title) in enumerate(PROFESSIONAL_STICKERS.items()):
@@ -1204,12 +1189,12 @@ else:
     def show_sticker_dialog(e, n, r, s): pass
 
 # ===========================================================================
-# 8. AUTHENTICATION & LOGIN SCREEN (SEAMLESS PROFILE TILES)
+# 8. AUTHENTICATION & LOGIN SCREEN (NETFLIX PROFILE DECK)
 # ===========================================================================
 if not st.session_state.logged_in:
     saved_profiles = get_all_verified_profiles()
     
-    # Check if a dialog should be unfurled
+    # Dialog Unfurl
     if st.session_state.get("active_pin_user"):
         t_email, t_name, t_role, t_sticker = st.session_state.active_pin_user
         show_pin_dialog(t_email, t_name, t_role, t_sticker)
@@ -1299,7 +1284,7 @@ if not st.session_state.logged_in:
                         st.session_state.pending_otp_email = None
                         st.rerun()
                         
-            # --- VIEW C: SEAMLESS ROUNDED SQUARE PROFILE TILES (140px + HOVER EDIT OVERLAY) ---
+            # --- VIEW C: SEAMLESS ROUNDED SQUARE PROFILE TILES ---
             elif saved_profiles and not st.session_state.register_mode:
                 st.markdown("""
                     <div style="text-align: center; margin: 15px 0 20px 0;">
@@ -1310,14 +1295,12 @@ if not st.session_state.logged_in:
                     </div>
                 """, unsafe_allow_html=True)
                 
-                # Column Grid for Profiles (No page reload)
+                st.markdown('<div class="profile-deck-container">', unsafe_allow_html=True)
                 p_cols = st.columns(len(saved_profiles) + 1)
                 
                 for idx, (p_email, p_name, p_pin, p_role, p_sticker) in enumerate(saved_profiles):
                     with p_cols[idx]:
-                        st.markdown('<div class="profile-card-tile">', unsafe_allow_html=True)
-                        
-                        # 1. Main Avatar Button (Clicking opens PIN)
+                        # 1. Main Avatar Card Button (Clicking opens PIN)
                         if st.button(p_sticker, key=f"prof_card_{idx}", help=f"Sign in as {p_name}"):
                             st.session_state.active_pin_user = (p_email, p_name, p_role, p_sticker)
                             st.rerun()
@@ -1327,8 +1310,6 @@ if not st.session_state.logged_in:
                             st.session_state.active_sticker_user = (p_email, p_name, p_role, p_sticker)
                             st.rerun()
                             
-                        st.markdown('</div>', unsafe_allow_html=True)
-                        
                         # 3. Name & Role below the card
                         st.markdown(f"""
                             <div style="text-align: center; margin-top: 8px;">
@@ -1339,11 +1320,9 @@ if not st.session_state.logged_in:
                             
                 with p_cols[-1]:
                     # Add Profile Card
-                    st.markdown('<div class="profile-card-tile add-card">', unsafe_allow_html=True)
                     if st.button("＋", key="add_new_prof_btn", help="Register New Profile"):
                         st.session_state.register_mode = True
                         st.rerun()
-                    st.markdown('</div>', unsafe_allow_html=True)
                     st.markdown("""
                         <div style="text-align: center; margin-top: 8px;">
                             <div class="arl-tile-name">Add Profile</div>
@@ -1351,6 +1330,7 @@ if not st.session_state.logged_in:
                         </div>
                     """, unsafe_allow_html=True)
                     
+                st.markdown('</div>', unsafe_allow_html=True)
                 st.markdown("<div style='margin-top: 20px;'></div>", unsafe_allow_html=True)
                         
             # --- VIEW D: REGISTER NEW PROFILE WITH STICKER PICKER ---
@@ -2034,7 +2014,7 @@ with tab3:
 
 # ----------------- TAB 4: ADMIN CONTROLS -----------------
 with tab4:
-    st.markdown('<div class="corp-card"><h4>🛡️ Admin Access & Employee Management</h4></div>', unsafe_allow_html=True)
+    st.markdown('<div class="corp-card"><h4>🛡️️ Admin Access & Employee Management</h4></div>', unsafe_allow_html=True)
     
     if st.session_state.get('hr_role') != "Admin":
         st.error("⛔ **Access Denied**: You do not have Administrator privileges to view this control panel.")
