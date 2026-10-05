@@ -20,6 +20,7 @@ from email.mime.multipart import MIMEMultipart
 from email.utils import formataddr
 import pandas as pd
 import streamlit as st
+import streamlit.components.v1 as components
 from groq import Groq
 from supabase import create_client, Client
 from PIL import Image, ImageOps, ImageEnhance, ImageDraw
@@ -304,58 +305,38 @@ def delete_employee_profile(email):
 # ===========================================================================
 DEFAULT_ARL_CATALOG = {
     "Operations & Refining": [
-        "Process Engineer",
-        "Plant Shift Incharge",
-        "Senior Plant Operator (CDU / Reformer)",
-        "Control Room DCS Operator",
-        "Refining Operations Manager",
-        "Lead Commissioning Engineer"
+        "Process Engineer", "Plant Shift Incharge", "Senior Plant Operator (CDU / Reformer)",
+        "Control Room DCS Operator", "Refining Operations Manager", "Lead Commissioning Engineer"
     ],
     "Maintenance & Engineering": [
-        "Mechanical Maintenance Engineer",
-        "Electrical Maintenance Engineer",
-        "Instrumentation & Control (I&C) Engineer",
-        "Reliability & Inspection Engineer",
-        "Turnaround & Maintenance Planning Specialist",
-        "Rotary Equipment Specialist"
+        "Mechanical Maintenance Engineer", "Electrical Maintenance Engineer",
+        "Instrumentation & Control (I&C) Engineer", "Reliability & Inspection Engineer",
+        "Turnaround & Maintenance Planning Specialist", "Rotary Equipment Specialist"
     ],
     "Technical Services & Quality Control (QC Lab)": [
-        "Technical Services Engineer",
-        "Senior Petroleum Chemist",
-        "Lab Quality Analyst",
-        "Corrosion & Metallurgy Engineer",
-        "Catalyst & Yield Optimization Specialist"
+        "Technical Services Engineer", "Senior Petroleum Chemist", "Lab Quality Analyst",
+        "Corrosion & Metallurgy Engineer", "Catalyst & Yield Optimization Specialist"
     ],
     "Health, Safety, Environment & Security (HSE&S)": [
-        "HSE Lead / Manager",
-        "Process Safety Management (PSM) Specialist",
-        "Fire & Industrial Safety Engineer",
-        "Environmental Compliance Officer"
+        "HSE Lead / Manager", "Process Safety Management (PSM) Specialist",
+        "Fire & Industrial Safety Engineer", "Environmental Compliance Officer"
     ],
     "Supply Chain, Logistics & Procurement": [
-        "Procurement & Contracts Lead",
-        "Crude Oil Logistics & Storage Supervisor",
-        "Commercial & Petroleum Dispatch Executive",
-        "Warehouse & Inventory Controller"
+        "Procurement & Contracts Lead", "Crude Oil Logistics & Storage Supervisor",
+        "Commercial & Petroleum Dispatch Executive", "Warehouse & Inventory Controller"
     ],
     "Finance, Accounts & Commercial": [
-        "Treasury & Budgeting Lead",
-        "Corporate & Cost Accountant",
-        "Internal Audit Executive",
-        "Taxation & Compliance Specialist"
+        "Treasury & Budgeting Lead", "Corporate & Cost Accountant",
+        "Internal Audit Executive", "Taxation & Compliance Specialist"
     ],
     "Human Resources & Administration": [
-        "Talent Acquisition & Recruitment Specialist",
-        "HR Operations & Payroll Executive",
-        "Industrial Relations & Labor Compliance Officer",
-        "Organizational Development (OD) Lead",
+        "Talent Acquisition & Recruitment Specialist", "HR Operations & Payroll Executive",
+        "Industrial Relations & Labor Compliance Officer", "Organizational Development (OD) Lead",
         "Administration & Estate Management Officer"
     ],
     "Information Technology & Industrial Automation": [
-        "SAP ERP Functional Consultant",
-        "SCADA & Process Automation Specialist",
-        "IT Systems & Network Administrator",
-        "Cyber Security Analyst"
+        "SAP ERP Functional Consultant", "SCADA & Process Automation Specialist",
+        "IT Systems & Network Administrator", "Cyber Security Analyst"
     ]
 }
 
@@ -417,7 +398,7 @@ def delete_arl_job_from_db(department, job_title):
     return True, "Removed locally."
 
 # ===========================================================================
-# 4. CANDIDATE REPOSITORY & SCREENED STORAGE (13-COLUMN SEQUENCE)
+# 4. CANDIDATE REPOSITORY & SCREENED STORAGE
 # ===========================================================================
 def load_database():
     expected_cols = [
@@ -452,20 +433,10 @@ def load_database():
         pass
     return pd.DataFrame(columns=expected_cols)
 
-def check_if_exists_in_db(email):
-    if email in ["Not Provided", "Not Found", ""] or not email or not supabase:
-        return False
-    try:
-        response = supabase.table("candidates").select("email").ilike("email", email.lower().strip()).execute()
-        return len(response.data) > 0
-    except Exception:
-        pass
-
 def save_candidates_to_repository(new_candidates):
     if not supabase:
         return 0, 0
     current_timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    
     existing_emails = set()
     existing_phones = set()
     try:
@@ -480,36 +451,26 @@ def save_candidates_to_repository(new_candidates):
 
     inserted_count = 0
     skipped_count = 0
-
     for c in new_candidates:
         cand_email = str(c.get("email", "")).strip().lower()
         cand_phone = re.sub(r"\D", "", str(c.get("phone", "")))
-
         is_dup = False
         if cand_email and cand_email not in ["not provided", "not found", "", "nan"] and cand_email in existing_emails:
             is_dup = True
         elif cand_phone and len(cand_phone) >= 7 and cand_phone in existing_phones:
             is_dup = True
-
         if is_dup:
             skipped_count += 1
             continue
 
         payload = {
-            "candidate_name": c.get("name", "Unknown"),
-            "father_name": c.get("father_name", "Not Provided"),
-            "education": c.get("education", "Not Provided"),
-            "cgpa": c.get("cgpa", "Not Provided"),
-            "passing_year": c.get("passing_year", "Not Provided"),
-            "university_name": c.get("university_name", "Not Provided"),
-            "dob": c.get("dob", "Not Provided"),
-            "email": c.get("email", "Not Provided"),
-            "phone": c.get("phone", "Not Provided"),
-            "experience_years": str(c.get("experience_years", "0")),
-            "latest_experience": c.get("latest_experience", "Not Provided"),
-            "reference": c.get("reference", "Not Provided"),
-            "pipeline_status": "Talent Pool",
-            "added_at": current_timestamp
+            "candidate_name": c.get("name", "Unknown"), "father_name": c.get("father_name", "Not Provided"),
+            "education": c.get("education", "Not Provided"), "cgpa": c.get("cgpa", "Not Provided"),
+            "passing_year": c.get("passing_year", "Not Provided"), "university_name": c.get("university_name", "Not Provided"),
+            "dob": c.get("dob", "Not Provided"), "email": c.get("email", "Not Provided"),
+            "phone": c.get("phone", "Not Provided"), "experience_years": str(c.get("experience_years", "0")),
+            "latest_experience": c.get("latest_experience", "Not Provided"), "reference": c.get("reference", "Not Provided"),
+            "pipeline_status": "Talent Pool", "added_at": current_timestamp
         }
         try:
             supabase.table("candidates").insert(payload).execute()
@@ -518,73 +479,51 @@ def save_candidates_to_repository(new_candidates):
             if cand_phone and len(cand_phone) >= 7: existing_phones.add(cand_phone)
         except Exception:
             pass
-
     return inserted_count, skipped_count
 
 def delete_single_candidate_from_db(email_or_name):
-    if not supabase:
-        return
+    if not supabase: return
     try:
         supabase.table("candidates").delete().or_(f"email.ilike.{email_or_name},candidate_name.ilike.{email_or_name}").execute()
-    except Exception:
-        pass
+    except Exception: pass
 
 def update_candidate_pipeline_status(email, new_status):
-    if not supabase:
-        return
+    if not supabase: return
     try:
         supabase.table("candidates").update({"pipeline_status": new_status}).ilike("email", email).execute()
-    except Exception:
-        pass
+    except Exception: pass
 
 def clear_candidate_database():
-    if not supabase:
-        return
-    try:
-        supabase.table("candidates").delete().neq("id", 0).execute()
-    except Exception:
-        pass
-        
+    if not supabase: return
+    try: supabase.table("candidates").delete().neq("id", 0).execute()
+    except Exception: pass
+
 def save_screened_to_supabase(screened_list):
-    if not supabase or not screened_list:
-        return
+    if not supabase or not screened_list: return
     current_timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     for r in screened_list:
         skills_str = ", ".join(r.get("missing_skills", [])) if isinstance(r.get("missing_skills"), list) else str(r.get("missing_skills", ""))
         payload = {
-            "job_title": r.get("job_title", "Not Specified"),
-            "candidate_name": r.get("name", "Unknown"),
-            "father_name": r.get("father_name", "Not Provided"),
-            "education": r.get("education", "Not Provided"),
-            "cgpa": r.get("cgpa", "Not Provided"),
-            "passing_year": r.get("passing_year", "Not Provided"),
-            "university_name": r.get("university_name", "Not Provided"),
-            "dob": r.get("dob", "Not Provided"),
-            "email": r.get("email", "Not Provided"),
-            "phone": r.get("phone", "Not Provided"),
-            "experience_years": str(r.get("experience_years", "0")),
-            "latest_experience": r.get("latest_experience", "Not Provided"),
-            "reference": r.get("reference", "Not Provided"),
-            "match_score": float(r.get("match_score", 0)),
-            "missing_skills": skills_str,
-            "pipeline_status": r.get("pipeline_status", "Shortlisted"),
+            "job_title": r.get("job_title", "Not Specified"), "candidate_name": r.get("name", "Unknown"),
+            "father_name": r.get("father_name", "Not Provided"), "education": r.get("education", "Not Provided"),
+            "cgpa": r.get("cgpa", "Not Provided"), "passing_year": r.get("passing_year", "Not Provided"),
+            "university_name": r.get("university_name", "Not Provided"), "dob": r.get("dob", "Not Provided"),
+            "email": r.get("email", "Not Provided"), "phone": r.get("phone", "Not Provided"),
+            "experience_years": str(r.get("experience_years", "0")), "latest_experience": r.get("latest_experience", "Not Provided"),
+            "reference": r.get("reference", "Not Provided"), "match_score": float(r.get("match_score", 0)),
+            "missing_skills": skills_str, "pipeline_status": r.get("pipeline_status", "Shortlisted"),
             "screened_at": current_timestamp
         }
-        try:
-            supabase.table("screened_candidates").insert(payload).execute()
-        except Exception:
-            pass
+        try: supabase.table("screened_candidates").insert(payload).execute()
+        except Exception: pass
 
 def load_screened_database():
     expected_cols = [
-        "Job Title", "Match Score (%)", "Pipeline Status",
-        "Name", "Father Name", "Qualification", "CGPA", 
-        "Passing Year", "Institute", "DOB", "Email", 
-        "Phone Number", "Experience", "Latest Experience", "Reference",
-        "Missing Skills", "Screened At"
+        "Job Title", "Match Score (%)", "Pipeline Status", "Name", "Father Name",
+        "Qualification", "CGPA", "Passing Year", "Institute", "DOB", "Email",
+        "Phone Number", "Experience", "Latest Experience", "Reference", "Missing Skills", "Screened At"
     ]
-    if not supabase:
-        return pd.DataFrame(columns=expected_cols)
+    if not supabase: return pd.DataFrame(columns=expected_cols)
     try:
         response = supabase.table("screened_candidates").select("*").order("id", desc=True).execute()
         rows = response.data
@@ -592,51 +531,35 @@ def load_screened_database():
             mapped = []
             for r in rows:
                 mapped.append({
-                    "Job Title": r.get("job_title", "Not Specified"),
-                    "Match Score (%)": r.get("match_score", 0),
-                    "Pipeline Status": r.get("pipeline_status", "Shortlisted"),
-                    "Name": r.get("candidate_name", "Unknown"),
-                    "Father Name": r.get("father_name", "Not Provided"),
-                    "Qualification": r.get("education", "Not Provided"),
-                    "CGPA": r.get("cgpa", "Not Provided"),
-                    "Passing Year": r.get("passing_year", "Not Provided"),
-                    "Institute": r.get("university_name", "Not Provided"),
-                    "DOB": r.get("dob", "Not Provided"),
-                    "Email": r.get("email", "Not Provided"),
-                    "Phone Number": r.get("phone", "Not Provided"),
-                    "Experience": str(r.get("experience_years", "0")),
-                    "Latest Experience": r.get("latest_experience", "Not Provided"),
-                    "Reference": r.get("reference", "Not Provided"),
-                    "Missing Skills": r.get("missing_skills", "None"),
+                    "Job Title": r.get("job_title", "Not Specified"), "Match Score (%)": r.get("match_score", 0),
+                    "Pipeline Status": r.get("pipeline_status", "Shortlisted"), "Name": r.get("candidate_name", "Unknown"),
+                    "Father Name": r.get("father_name", "Not Provided"), "Qualification": r.get("education", "Not Provided"),
+                    "CGPA": r.get("cgpa", "Not Provided"), "Passing Year": r.get("passing_year", "Not Provided"),
+                    "Institute": r.get("university_name", "Not Provided"), "DOB": r.get("dob", "Not Provided"),
+                    "Email": r.get("email", "Not Provided"), "Phone Number": r.get("phone", "Not Provided"),
+                    "Experience": str(r.get("experience_years", "0")), "Latest Experience": r.get("latest_experience", "Not Provided"),
+                    "Reference": r.get("reference", "Not Provided"), "Missing Skills": r.get("missing_skills", "None"),
                     "Screened At": r.get("screened_at", "")
                 })
             return pd.DataFrame(mapped)
-    except Exception:
-        pass
+    except Exception: pass
     return pd.DataFrame(columns=expected_cols)
 
 def update_screened_candidate_status(email, job_title, new_status):
-    if not supabase:
-        return
-    try:
-        supabase.table("screened_candidates").update({"pipeline_status": new_status}).ilike("email", email).ilike("job_title", job_title).execute()
-    except Exception:
-        pass
+    if not supabase: return
+    try: supabase.table("screened_candidates").update({"pipeline_status": new_status}).ilike("email", email).ilike("job_title", job_title).execute()
+    except Exception: pass
 
 def clear_screened_database():
-    if not supabase:
-        return
-    try:
-        supabase.table("screened_candidates").delete().neq("id", 0).execute()
-    except Exception:
-        pass
+    if not supabase: return
+    try: supabase.table("screened_candidates").delete().neq("id", 0).execute()
+    except Exception: pass
 
 def generate_repository_excel(df: pd.DataFrame) -> bytes:
     import openpyxl
     buffer = io.BytesIO()
     export_df = df.copy()
     export_df.insert(0, "Sr. No.", range(1, len(export_df) + 1))
-    
     with pd.ExcelWriter(buffer, engine="openpyxl") as writer:
         export_df.to_excel(writer, index=False, sheet_name="Candidates_Master")
         worksheet = writer.sheets["Candidates_Master"]
@@ -647,7 +570,6 @@ def generate_repository_excel(df: pd.DataFrame) -> bytes:
             worksheet.column_dimensions[col_letter].width = min(max(max_len + 3, 15), 40)
             for cell in col:
                 cell.alignment = openpyxl.styles.Alignment(wrap_text=True, vertical="top")
-                
     buffer.seek(0)
     return buffer.getvalue()
 
@@ -657,22 +579,12 @@ def generate_screening_excel(results_list) -> bytes:
     data = []
     for idx, r in enumerate(results_list, start=1):
         data.append({
-            "Sr. No.": idx,
-            "Job Title": r.get("job_title", "Not Specified"),
-            "Candidate Name": r["name"],
-            "Father Name": r["father_name"],
-            "Qualification": r["education"],
-            "CGPA": r["cgpa"],
-            "Passing Year": r["passing_year"],
-            "Institute": r["university_name"],
-            "DOB": r["dob"],
-            "Email": r["email"],
-            "Phone Number": r["phone"],
-            "Experience": r["experience_years"],
-            "Latest Experience": r["latest_experience"],
-            "Reference": r["reference"],
-            "Match Score (%)": r["match_score"],
-            "Pipeline Status": r["pipeline_status"]
+            "Sr. No.": idx, "Job Title": r.get("job_title", "Not Specified"), "Candidate Name": r["name"],
+            "Father Name": r["father_name"], "Qualification": r["education"], "CGPA": r["cgpa"],
+            "Passing Year": r["passing_year"], "Institute": r["university_name"], "DOB": r["dob"],
+            "Email": r["email"], "Phone Number": r["phone"], "Experience": r["experience_years"],
+            "Latest Experience": r["latest_experience"], "Reference": r["reference"],
+            "Match Score (%)": r["match_score"], "Pipeline Status": r["pipeline_status"]
         })
     export_df = pd.DataFrame(data)
     with pd.ExcelWriter(buffer, engine="openpyxl") as writer:
@@ -685,7 +597,6 @@ def generate_screening_excel(results_list) -> bytes:
             worksheet.column_dimensions[col_letter].width = min(max(max_len + 3, 15), 40)
             for cell in col:
                 cell.alignment = openpyxl.styles.Alignment(wrap_text=True, vertical="top")
-                
     buffer.seek(0)
     return buffer.getvalue()
 
@@ -758,13 +669,13 @@ div[data-testid="stButton"] button {
 }
 
 /* ============================================================ */
-/* NETFLIX-STYLE PROFILE TILES (140px CARD + ON-CARD HOVER EDIT)*/
+/* NETFLIX-STYLE PROFILE TILES (135px CARD + ON-CARD HOVER EDIT)*/
 /* ============================================================ */
 .profile-deck-container {
     padding: 1.5rem 0;
 }
 
-.profile-deck-container div[data-testid="stColumn"] {
+div[data-testid="column"] {
     position: relative !important;
     display: flex !important;
     flex-direction: column !important;
@@ -772,49 +683,66 @@ div[data-testid="stButton"] button {
     justify-content: flex-start !important;
 }
 
-/* 1. Big Avatar Card Button (140x140 Rounded Square) */
-.profile-deck-container div[data-testid="stColumn"] > div > div:nth-child(1) button {
-    width: 140px !important;
-    height: 140px !important;
+div[data-testid="column"] > div {
+    width: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    position: relative !important;
+}
+
+/* 1. Main Avatar Button (135px x 135px Rounded Square Card) */
+div[data-testid="column"] .stButton:nth-of-type(1) {
+    margin: 0 auto !important;
+    width: 135px !important;
+    height: 135px !important;
+}
+
+div[data-testid="column"] .stButton:nth-of-type(1) > button {
+    width: 135px !important;
+    height: 135px !important;
     border-radius: 24px !important;
-    font-size: 4rem !important;
+    font-size: 3.8rem !important;
     line-height: 1 !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
     margin: 0 auto !important;
-    background: linear-gradient(145deg, #113f26 0%, #072516 100%) !important;
+    background: linear-gradient(145deg, #134629 0%, #072416 100%) !important;
     border: 2.5px solid #22C55E !important;
-    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.65), inset 0 0 18px rgba(34, 197, 94, 0.2) !important;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6), inset 0 0 16px rgba(34, 197, 94, 0.2) !important;
     transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+    padding: 0 !important;
     cursor: pointer !important;
 }
 
-.profile-deck-container div[data-testid="stColumn"]:hover > div > div:nth-child(1) button {
+div[data-testid="column"] .stButton:nth-of-type(1) > button:hover {
     border-color: #86EFAC !important;
     transform: scale(1.05) !important;
-    box-shadow: 0 16px 36px rgba(34, 197, 94, 0.45), inset 0 0 24px rgba(74, 222, 128, 0.3) !important;
+    box-shadow: 0 14px 32px rgba(34, 197, 94, 0.45), inset 0 0 20px rgba(74, 222, 128, 0.3) !important;
 }
 
-/* 2. Edit Button Positioned Directly ON the Card at Bottom (Appears ONLY on hover) */
-.profile-deck-container div[data-testid="stColumn"]:not(:last-child) > div > div:nth-child(2) {
+/* 2. Edit Button (Positioned directly ON the bottom of the card, visible ONLY on hover) */
+div[data-testid="column"]:not(:last-child) .stButton:nth-of-type(2) {
     position: absolute !important;
-    top: 96px !important;
+    top: 92px !important;
     left: 50% !important;
     transform: translateX(-50%) translateY(4px) !important;
-    z-index: 20 !important;
+    z-index: 15 !important;
     opacity: 0 !important;
     pointer-events: none !important;
     transition: all 0.2s ease-in-out !important;
+    margin: 0 !important;
+    padding: 0 !important;
 }
 
-.profile-deck-container div[data-testid="stColumn"]:not(:last-child):hover > div > div:nth-child(2) {
+div[data-testid="column"]:not(:last-child):hover .stButton:nth-of-type(2) {
     opacity: 1 !important;
     transform: translateX(-50%) translateY(0) !important;
     pointer-events: auto !important;
 }
 
-.profile-deck-container div[data-testid="stColumn"]:not(:last-child) > div > div:nth-child(2) button {
+div[data-testid="column"]:not(:last-child) .stButton:nth-of-type(2) > button {
     height: 28px !important;
     min-height: unset !important;
     padding: 2px 14px !important;
@@ -825,13 +753,13 @@ div[data-testid="stButton"] button {
     background: rgba(0, 0, 0, 0.88) !important;
     border: 1.5px solid #4ADE80 !important;
     color: #4ADE80 !important;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6) !important;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.6) !important;
     backdrop-filter: blur(4px) !important;
-    white-space: nowrap !important;
     cursor: pointer !important;
+    white-space: nowrap !important;
 }
 
-.profile-deck-container div[data-testid="stColumn"]:not(:last-child) > div > div:nth-child(2) button:hover {
+div[data-testid="column"]:not(:last-child) .stButton:nth-of-type(2) > button:hover {
     background: #000000 !important;
     color: #FFFFFF !important;
     border-color: #86EFAC !important;
@@ -839,27 +767,17 @@ div[data-testid="stButton"] button {
 }
 
 /* 3. Add Profile Card in Last Column */
-.profile-deck-container div[data-testid="stColumn"]:last-child > div > div:nth-child(1) button {
-    width: 140px !important;
-    height: 140px !important;
-    border-radius: 24px !important;
+div[data-testid="column"]:last-child .stButton:nth-of-type(1) > button {
     border: 2.5px dashed #22C55E !important;
     background: rgba(34, 197, 94, 0.08) !important;
     color: #86EFAC !important;
     font-size: 2.8rem !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    margin: 0 auto !important;
-    transition: all 0.25s ease !important;
 }
 
-.profile-deck-container div[data-testid="stColumn"]:last-child > div > div:nth-child(1) button:hover {
+div[data-testid="column"]:last-child .stButton:nth-of-type(1) > button:hover {
     border-color: #86EFAC !important;
     background: rgba(34, 197, 94, 0.22) !important;
     color: #FFFFFF !important;
-    transform: scale(1.05) !important;
-    box-shadow: 0 14px 32px rgba(34, 197, 94, 0.35) !important;
 }
 
 .arl-tile-name {
@@ -889,12 +807,12 @@ div[data-testid="stButton"] button {
 /* SEAMLESS SINGLE CHARCOAL MODAL & BLURRED BACKDROP            */
 /* ============================================================ */
 div[data-testid="stModalBackdrop"], div[data-testid="stDialogBackdrop"] {
-    background-color: rgba(3, 16, 9, 0.55) !important;
+    background-color: rgba(3, 16, 9, 0.6) !important;
     backdrop-filter: blur(8px) !important;
     -webkit-backdrop-filter: blur(8px) !important;
 }
 
-/* Eliminate nested box inside dialog */
+/* Eliminate nested box styling from st.form */
 div[data-testid="stDialog"] [data-testid="stForm"],
 div[role="dialog"] [data-testid="stForm"] {
     background: transparent !important;
@@ -904,14 +822,15 @@ div[role="dialog"] [data-testid="stForm"] {
     margin: 0 !important;
 }
 
-/* Single Sleek Charcoal Dialog Box */
+/* Single Charcoal Box Dialog */
 div[data-testid="stDialog"], div[role="dialog"] {
     border-radius: 20px !important;
     border: 2px solid #22C55E !important;
-    background: #111417 !important;
+    background: #12161A !important;
+    background-color: #12161A !important;
     box-shadow: 0 20px 50px rgba(0, 0, 0, 0.85), 0 0 25px rgba(34, 197, 94, 0.25) !important;
-    max-width: 340px !important;
-    width: 340px !important;
+    max-width: 320px !important;
+    width: 320px !important;
     margin: auto !important;
     padding: 1.6rem 1.8rem !important;
 }
@@ -926,7 +845,7 @@ div[role="dialog"] h2 {
     margin: 0 0 1rem 0 !important;
 }
 
-/* PIN Input Field */
+/* PIN Input Field (Single Clean Field) */
 div[data-testid="stDialog"] input[type="password"] {
     font-size: 1.4rem !important;
     letter-spacing: 6px !important;
@@ -1067,8 +986,6 @@ if "logged_in" not in st.session_state: st.session_state.logged_in = False
 if "hr_name" not in st.session_state: st.session_state.hr_name = ""
 if "hr_email" not in st.session_state: st.session_state.hr_email = ""
 if "hr_role" not in st.session_state: st.session_state.hr_role = "Recruiter"
-if "active_pin_user" not in st.session_state: st.session_state.active_pin_user = None
-if "active_sticker_user" not in st.session_state: st.session_state.active_sticker_user = None
 if "pending_otp_email" not in st.session_state: st.session_state.pending_otp_email = None
 if "pending_pin_email" not in st.session_state: st.session_state.pending_pin_email = None
 if "register_mode" not in st.session_state: st.session_state.register_mode = False
@@ -1123,29 +1040,32 @@ if st.session_state.show_download_page:
     st.stop()
 
 # ===========================================================================
-# 7. CLEAN SINGLE RECTANGULAR PIN POPUP & PURE STICKER PICKER
+# 7. CLEAN SINGLE CHARCOAL PIN DIALOG & BADGE PICKER
 # ===========================================================================
 if hasattr(st, "dialog"):
     @st.dialog("PIN")
-    def show_pin_dialog(target_email, p_name, p_role, p_sticker):
-        # Native direct DOM autofocus without cross-origin iframe issues
-        st.markdown("""
-        <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg'/>" style="display:none;" onerror="
-            let count = 0;
-            const focusInterval = setInterval(() => {
-                const el = window.parent.document.querySelector('div[role=dialog] input[type=password], div[data-testid=stDialog] input[type=password], input[type=password]');
-                if (el) {
-                    el.focus();
-                    clearInterval(focusInterval);
+    def show_pin_dialog(target_email, p_name, p_role):
+        # Immediate Autofocus Script
+        components.html("""
+        <script>
+        (function autoFocus() {
+            var attempts = 0;
+            var timer = setInterval(function() {
+                var doc = window.parent.document;
+                var input = doc.querySelector('div[role="dialog"] input[type="password"], div[data-testid="stDialog"] input[type="password"]');
+                if (input) {
+                    input.focus();
+                    input.select();
+                    clearInterval(timer);
                 }
-                if (++count > 30) clearInterval(focusInterval);
+                if (++attempts > 40) clearInterval(timer);
             }, 30);
-            this.remove();
-        "/>
-        """, unsafe_allow_html=True)
+        })();
+        </script>
+        """, height=0, width=0)
 
         with st.form("pin_form_clean"):
-            pin_input = st.text_input("PIN", type="password", max_chars=4, placeholder="••••", label_visibility="collapsed", key="clean_pin_input")
+            pin_input = st.text_input("PIN", type="password", max_chars=4, placeholder="••••", label_visibility="collapsed", key=f"clean_pin_{target_email}")
             submitted = st.form_submit_button("Enter ➔", use_container_width=True)
 
         if submitted or (pin_input and len(pin_input) == 4):
@@ -1155,20 +1075,18 @@ if hasattr(st, "dialog"):
                 st.session_state.hr_name = name or p_name
                 st.session_state.hr_email = target_email
                 st.session_state.hr_role = role or p_role
-                st.session_state.active_pin_user = None
                 st.rerun()
             else:
                 st.error("❌ Incorrect PIN")
 
     @st.dialog("Choose Badge")
-    def show_sticker_dialog(target_email, p_name, p_role, p_sticker):
+    def show_sticker_dialog(target_email, p_name):
         st.markdown('<div class="sticker-modal-grid">', unsafe_allow_html=True)
         cols = st.columns(6)
         for idx, (stk, title) in enumerate(PROFESSIONAL_STICKERS.items()):
             with cols[idx % 6]:
                 if st.button(stk, key=f"stk_select_{stk}_{idx}", help=title, use_container_width=True):
                     update_user_sticker(target_email, stk)
-                    st.session_state.active_sticker_user = None
                     st.rerun()
         st.markdown('</div>', unsafe_allow_html=True)
                     
@@ -1178,30 +1096,19 @@ if hasattr(st, "dialog"):
         with col_d1:
             if st.button("🗑️ Delete Profile", key=f"del_prof_dialog_{target_email}", use_container_width=True):
                 delete_employee_profile(target_email)
-                st.session_state.active_sticker_user = None
                 st.rerun()
         with col_d2:
             if st.button("Close", key="close_stk_dialog_btn", use_container_width=True):
-                st.session_state.active_sticker_user = None
                 st.rerun()
 else:
-    def show_pin_dialog(e, n, r, s): pass
-    def show_sticker_dialog(e, n, r, s): pass
+    def show_pin_dialog(e, n, r): pass
+    def show_sticker_dialog(e, n): pass
 
 # ===========================================================================
 # 8. AUTHENTICATION & LOGIN SCREEN (NETFLIX PROFILE DECK)
 # ===========================================================================
 if not st.session_state.logged_in:
     saved_profiles = get_all_verified_profiles()
-    
-    # Dialog Unfurl
-    if st.session_state.get("active_pin_user"):
-        t_email, t_name, t_role, t_sticker = st.session_state.active_pin_user
-        show_pin_dialog(t_email, t_name, t_role, t_sticker)
-
-    if st.session_state.get("active_sticker_user"):
-        t_email, t_name, t_role, t_sticker = st.session_state.active_sticker_user
-        show_sticker_dialog(t_email, t_name, t_role, t_sticker)
 
     col_c1, col_c2, col_c3 = st.columns([1, 4.2, 1])
     with col_c2:
@@ -1300,15 +1207,13 @@ if not st.session_state.logged_in:
                 
                 for idx, (p_email, p_name, p_pin, p_role, p_sticker) in enumerate(saved_profiles):
                     with p_cols[idx]:
-                        # 1. Main Avatar Card Button (Clicking opens PIN)
+                        # 1. Main Avatar Card Button (Directly triggers PIN modal on click)
                         if st.button(p_sticker, key=f"prof_card_{idx}", help=f"Sign in as {p_name}"):
-                            st.session_state.active_pin_user = (p_email, p_name, p_role, p_sticker)
-                            st.rerun()
+                            show_pin_dialog(p_email, p_name, p_role)
                             
-                        # 2. Edit Hover Button (Overlay directly on top of the card)
+                        # 2. Edit Button (Sits ON the bottom of the card, reveals on hover)
                         if st.button("✏️ EDIT", key=f"edit_btn_{idx}", help=f"Change badge for {p_name}"):
-                            st.session_state.active_sticker_user = (p_email, p_name, p_role, p_sticker)
-                            st.rerun()
+                            show_sticker_dialog(p_email, p_name)
                             
                         # 3. Name & Role below the card
                         st.markdown(f"""
@@ -1615,8 +1520,6 @@ with col_n2:
                 st.session_state.hr_name = ""
                 st.session_state.hr_email = ""
                 st.session_state.hr_role = "Recruiter"
-                st.session_state.active_pin_user = None
-                st.session_state.active_sticker_user = None
                 st.session_state.screening_results = []
                 try:
                     st.query_params.clear()
@@ -1631,8 +1534,6 @@ with col_n2:
             st.session_state.hr_name = ""
             st.session_state.hr_email = ""
             st.session_state.hr_role = "Recruiter"
-            st.session_state.active_pin_user = None
-            st.session_state.active_sticker_user = None
             st.session_state.screening_results = []
             try:
                 st.query_params.clear()
@@ -2014,7 +1915,7 @@ with tab3:
 
 # ----------------- TAB 4: ADMIN CONTROLS -----------------
 with tab4:
-    st.markdown('<div class="corp-card"><h4>🛡️️ Admin Access & Employee Management</h4></div>', unsafe_allow_html=True)
+    st.markdown('<div class="corp-card"><h4>🛡 Admin Access & Employee Management</h4></div>', unsafe_allow_html=True)
     
     if st.session_state.get('hr_role') != "Admin":
         st.error("⛔ **Access Denied**: You do not have Administrator privileges to view this control panel.")
