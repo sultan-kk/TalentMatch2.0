@@ -1,9 +1,9 @@
 """
-ARL TalentMatch — Official Corporate Edition (Full-Proof Enterprise Suite)
+ARL TalentMatch — Official Corporate Edition (Adaptive Enterprise Suite)
 =============================================================================
 Branding: Attock Refinery Limited (ARL Forest Green & Native Adaptive Theme)
-Features: True Fixed 160x160px Square Profile Cards, In-Card Top-Right Edit Badge,
-Supabase Permanent Badge Sync, Zero CSS Collapse, Tab 2 Clean Sync.
+Features: Permanent Supabase Badges, Strict 135x135px Square Cards, Clean Controls,
+High-Contrast Legibility, Supabase Live Pipeline & Tab 2 Clean Sync.
 """
 
 import io
@@ -34,7 +34,7 @@ EXE_DIRECT_DOWNLOAD_URL = "https://github.com/sultan-kk/TalentMatch2.0/releases/
 
 AVAILABLE_BADGES = [
     "👔", "💼", "🛡️", "🎖️", "⚡", "🔬", "🛢️", "⚙️", 
-    "📈", "🎯", "👑", "🚀", "💡", "💻", "💎", "🏛️️"
+    "📈", "🎯", "👑", "🚀", "💡", "💻", "💎", "🏛️"
 ]
 
 def get_arl_favicon():
@@ -188,6 +188,16 @@ def register_initial_employee(name, email, password):
             return False, msg
     except Exception as e:
         return False, f"Database Error: {e}"
+
+def verify_otp_code(email, entered_otp):
+    if not supabase: return False, "Supabase client not initialized."
+    try:
+        response = supabase.table("hr_users").select("otp").eq("email", email.lower().strip()).execute().data
+        if response and response[0].get("otp") == entered_otp:
+            return True, "OTP verified successfully!"
+    except Exception:
+        pass
+    return False, "Invalid OTP code."
 
 def save_employee_pin(email, pin):
     if not supabase: return False, "Supabase client not initialized."
@@ -409,7 +419,7 @@ def clear_screened_database():
     if supabase: supabase.table("screened_candidates").delete().neq("id", 0).execute()
 
 # ===========================================================================
-# 5. ROBUST & GUARANTEED 160x160 SQUARE PROFILE CARD CSS
+# 5. ISOLATED CSS (STRICT 135x135px SQUARE PROFILE CARDS)
 # ===========================================================================
 ADAPTIVE_CSS = """
 <style>
@@ -423,122 +433,65 @@ html, body, [class*="css"], .stApp {
     display: none !important; 
 }
 
-/* Base button styling inside Dashboard */
-div.stButton > button {
-    border-radius: 10px !important;
-    font-weight: 600 !important;
-    padding: 0.45rem 1.1rem !important;
-    transition: all 0.2s ease !important;
-}
-
-div.stButton > button[kind="primary"] {
-    background: #047857 !important;
-    border-color: #059669 !important;
-    color: #FFFFFF !important;
-}
-
 /* ==========================================================================
-   SOLID 160x160 SQUARE PROFILE BUTTONS (DOES NOT COLLAPSE OR STRETCH)
+   STRICT SQUARE 135px x 135px PROFILE CARDS (PREVENTS RECTANGLE STRETCH)
    ========================================================================== */
-.profile-block {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    width: 160px;
-    margin: 0 auto 1.5rem auto;
+div[data-testid="stColumn"] > div:has(.square-profile-card) {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
 }
 
-.profile-card-wrapper {
-    position: relative;
-    width: 160px;
-    height: 160px;
-}
-
-/* The Big Square Profile Button */
-.profile-card-wrapper div.stButton > button {
+div[data-testid="stColumn"] > div:has(.square-profile-card) div.stButton > button {
     width: 160px !important;
     height: 160px !important;
-    border-radius: 26px !important;
+    min-width: 160px !important;
+    max-width: 160px !important;
+    min-height: 160px !important;
+    max-height: 160px !important;
+    margin: 0 auto !important;
+    border-radius: 24px !important;
     background: #181B20 !important;
     border: 2px solid #2D333B !important;
-    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.45) !important;
+    box-shadow: 0 10px 22px rgba(0, 0, 0, 0.45) !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
     padding: 0 !important;
-    margin: 0 !important;
     transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
-.profile-card-wrapper div.stButton > button p {
-    font-size: 5rem !important;
+div[data-testid="stColumn"] > div:has(.square-profile-card) div.stButton > button p {
+    font-size: 4.2rem !important;
     line-height: 1 !important;
     margin: 0 !important;
     padding: 0 !important;
 }
 
-.profile-card-wrapper div.stButton > button:hover {
-    transform: translateY(-5px) scale(1.03) !important;
+div[data-testid="stColumn"] > div:has(.square-profile-card) div.stButton > button:hover {
+    transform: translateY(-5px) scale(1.04) !important;
     border-color: #10B981 !important;
     box-shadow: 0 14px 28px rgba(16, 185, 129, 0.4) !important;
     background: #22262E !important;
 }
 
-/* Top-Right Pencil Button inside the 160x160 Square */
-.profile-pencil-box {
-    position: absolute;
-    top: 8px;
-    right: 8px;
-    z-index: 99;
-}
-
-.profile-pencil-box div.stButton > button {
-    width: 32px !important;
-    height: 32px !important;
-    min-width: 32px !important;
-    min-height: 32px !important;
-    border-radius: 50% !important;
-    background: #23272F !important;
-    border: 1.5px solid #10B981 !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    padding: 0 !important;
-    margin: 0 !important;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5) !important;
-}
-
-.profile-pencil-box div.stButton > button p {
-    font-size: 0.9rem !important;
-    line-height: 1 !important;
-    margin: 0 !important;
-    padding: 0 !important;
-}
-
-.profile-pencil-box div.stButton > button:hover {
-    background: #10B981 !important;
-    border-color: #34D399 !important;
-    transform: scale(1.15) !important;
-}
-
-/* Captions Below Card */
+/* Titles and Role below cards */
 .profile-meta-title {
     text-align: center;
-    font-size: 1.1rem;
-    font-weight: 700;
+    font-size: 1.3rem;
+    font-weight: 600;
     line-height: 1.2;
-    margin-top: 10px;
+    margin-top: 8px;
 }
 
 .profile-meta-role {
     text-align: center;
-    font-size: 0.72rem;
+    font-size: 0.7rem;
     font-family: 'JetBrains Mono', monospace;
     color: #10B981 !important;
     text-transform: uppercase;
-    letter-spacing: 0.6px;
-    margin-top: 3px;
+    letter-spacing: 0.5px;
+    margin-top: 2px;
 }
 
 /* ==========================================================================
@@ -581,6 +534,25 @@ div.stButton > button[kind="primary"] {
     font-weight: 700;
     color: #10B981;
 }
+
+/* Standard Buttons Inside Dashboard */
+div.stButton > button {
+    border-radius: 10px !important;
+    font-weight: 600 !important;
+    padding: 0.45rem 1.1rem !important;
+    transition: all 0.2s ease !important;
+}
+
+div.stButton > button[kind="primary"] {
+    background: #047857 !important;
+    border-color: #059669 !important;
+    color: #FFFFFF !important;
+}
+
+div.stButton > button[kind="primary"]:hover {
+    background: #059669 !important;
+    border-color: #10B981 !important;
+}
 </style>
 """
 st.markdown(ADAPTIVE_CSS, unsafe_allow_html=True)
@@ -596,6 +568,7 @@ if "profile_avatars" not in st.session_state: st.session_state.profile_avatars =
 if "screening_results" not in st.session_state: st.session_state.screening_results = []
 if "show_registration" not in st.session_state: st.session_state.show_registration = False
 if "pending_pin_email" not in st.session_state: st.session_state.pending_pin_email = None
+if "pending_otp_email" not in st.session_state: st.session_state.pending_otp_email = None
 if "show_download_page" not in st.session_state: st.session_state.show_download_page = False
 
 # ===========================================================================
@@ -741,7 +714,7 @@ if not st.session_state.logged_in:
         </div>
     """, unsafe_allow_html=True)
 
-    # Scoped Netflix-Style Square Cards (160x160px)
+    # Scoped Netflix-Style Square Cards (135x135px)
     all_items = list(saved_profiles) + [("REGISTER_CARD", "New Profile", "", "Register")]
     cols_per_row = 4
     
@@ -750,40 +723,32 @@ if not st.session_state.logged_in:
         cols = st.columns(cols_per_row)
         for idx, item in enumerate(row_items):
             with cols[idx]:
+                st.markdown('<div class="square-profile-card">', unsafe_allow_html=True)
                 if item[0] == "REGISTER_CARD":
-                    st.markdown('<div class="profile-block"><div class="profile-card-wrapper">', unsafe_allow_html=True)
                     if st.button("➕", key=f"add_profile_card_{i}"):
                         st.session_state.show_registration = True
                         st.rerun()
                     st.markdown("""
-                        </div>
                         <div class="profile-meta-title">New Profile</div>
                         <div class="profile-meta-role">Register Account</div>
-                    </div>
                     """, unsafe_allow_html=True)
                 else:
                     p_email, p_name, p_pin, p_role = item
                     avatar_sticker = get_user_avatar(p_email)
                     
-                    st.markdown('<div class="profile-block"><div class="profile-card-wrapper">', unsafe_allow_html=True)
-                    
-                    # Main Square 160x160 Avatar Card
                     if st.button(avatar_sticker, key=f"user_card_{i}_{idx}"):
                         show_pin_dialog(p_email, p_name, p_role)
                     
-                    # Top-Right Pencil Button inside the 160x160 box
-                    st.markdown('<div class="profile-pencil-box">', unsafe_allow_html=True)
-                    if st.button("✏️", key=f"edit_btn_{i}_{idx}", help="Change Badge"):
-                        show_sticker_picker_dialog(p_email, p_name)
-                    st.markdown('</div>', unsafe_allow_html=True)
-                    
-                    # Name & Role below card
-                    st.markdown(f"""
-                        </div>
-                        <div class="profile-meta-title">{p_name}</div>
-                        <div class="profile-meta-role">{p_role}</div>
-                    </div>
-                    """, unsafe_allow_html=True)
+                    c_title, c_edit = st.columns([3.5, 1])
+                    with c_title:
+                        st.markdown(f"""
+                            <div class="profile-meta-title" style="text-align: right; margin-right: 4px;">{p_name}</div>
+                            <div class="profile-meta-role" style="text-align: right; margin-right: 4px;">{p_role}</div>
+                        """, unsafe_allow_html=True)
+                    with c_edit:
+                        if st.button("✏️", key=f"edit_btn_{i}_{idx}", help="Change Badge"):
+                            show_sticker_picker_dialog(p_email, p_name)
+                st.markdown('</div>', unsafe_allow_html=True)
 
     st.markdown("<br><hr style='opacity: 0.25;'>", unsafe_allow_html=True)
     col_dl1, col_dl2 = st.columns([7.5, 2.5], vertical_alignment="center")
