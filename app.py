@@ -1,10 +1,13 @@
+
 """
-Arl TalentMatch:AI-Driven Automated CV Parser & JD Matcher
+ARL HireMatrix Pro — Official Corporate Edition
 =============================================================================
 Branding: Attock Refinery Limited (ARL Official Forest Green & Charcoal Palette)
-Features: Executive Profile Badges, Bulletproof PIN Authentication, Fast 150 DPI OCR,
-Safe Multi-CV Extraction, Exact 13-Column Sequence, ARL Job Hierarchy & Supabase Sync.
-Windows Desktop (.msi) Client Download Support & Desktop Mode Dismissal.
+Features: Clickable Executive Badges, Bulletproof PIN Authentication,
+Fast 150 DPI OCR, Safe Multi-CV Extraction, Exact 13-Column Sequence,
+ARL Cascading Job Hierarchy & Real-Time Supabase Cloud Synchronized Grids.
+Now with: Built-in MovieBox-Style Windows Desktop (.exe) Download Landing Page
+and One-Click Desktop Mode Dismissal (Hide CTA inside Desktop Client).
 """
 
 import io
@@ -20,7 +23,6 @@ from email.mime.multipart import MIMEMultipart
 from email.utils import formataddr
 import pandas as pd
 import streamlit as st
-import streamlit.components.v1 as components
 from groq import Groq
 from supabase import create_client, Client
 from PIL import Image, ImageOps, ImageEnhance, ImageDraw
@@ -28,34 +30,18 @@ from PIL import Image, ImageOps, ImageEnhance, ImageDraw
 # ===========================================================================
 # 1. PAGE CONFIGURATION & ARL GREEN HEXAGON FAVICON
 # ===========================================================================
-APP_NAME = "Arl TalentMatch:AI-Driven Automated CV Parser & JD Matcher"
+APP_NAME = "ARL HireMatrix Pro"
 APP_TAGLINE = "Attock Refinery Limited (ARL) • HR Intelligence & AI Screening Engine"
 GROQ_MODEL = "openai/gpt-oss-120b"
 ACCEPTED_TYPES = ["pdf", "docx", "png", "jpg", "jpeg"]
 
-# Professional Executive Stickers & Avatars
-PROFESSIONAL_STICKERS = {
-    "👔": "Executive / HR Lead",
-    "🛢️": "Refinery Operations",
-    "🔬": "QC Petroleum Chemist",
-    "⚙️": "Process Engineer",
-    "🛡️": "HSE & Safety Lead",
-    "💻": "IT & Automation Specialist",
-    "📊": "Commercial & Finance",
-    "🎯": "Talent Acquisition Lead",
-    "👷": "Plant Maintenance Specialist",
-    "⚡": "Power & Energy Lead",
-    "👑": "Chief Executive",
-    "🚀": "Turnaround Specialist"
-}
-
-# Hosted .msi / .exe release link
+# ⬇️ Hosted .msi / .exe release link
 EXE_DOWNLOAD_URL = "https://github.com/sultan-kk/TalentMatch2.0/releases/download/v1.0/ARL-HireMatrix-Pro_1.0.0_x64_en-US.msi"
 
 def get_arl_favicon():
     img = Image.new("RGBA", (64, 64), (255, 255, 255, 0))
     draw = ImageDraw.Draw(img)
-    draw.polygon([(32, 6), (58, 20), (58, 44), (32, 58), (6, 44), (6, 20)], outline=(34, 197, 94), width=5)
+    draw.polygon([(32, 6), (58, 20), (58, 44), (32, 58), (6, 44), (6, 20)], outline=(22, 101, 52), width=5)
     draw.polygon([(32, 16), (46, 25), (46, 39), (32, 48), (18, 39), (18, 25)], fill=(22, 101, 52))
     return img
 
@@ -74,14 +60,8 @@ if "profile" in st.query_params:
     if isinstance(selected_prof, list):
         selected_prof = selected_prof[0]
     del st.query_params["profile"]
-    st.session_state.selected_profile_email = selected_prof
-
-if "edit_profile" in st.query_params:
-    edit_prof = st.query_params["edit_profile"]
-    if isinstance(edit_prof, list):
-        edit_prof = edit_prof[0]
-    del st.query_params["edit_profile"]
-    st.session_state.editing_sticker_email = edit_prof
+    if not st.session_state.get("selected_profile_email"):
+        st.session_state.selected_profile_email = selected_prof
 
 # ===========================================================================
 # 3. SUPABASE CLOUD DATABASE CONNECTION
@@ -124,18 +104,13 @@ def send_smtp_email(receiver_email, subject, body_text):
     except Exception as e:
         return False, f"Failed to send email: {e}"
 
-# ----------------- SECURITY PIN AUTHENTICATION & STICKERS -----------------
-def get_default_sticker(email: str) -> str:
-    stickers = list(PROFESSIONAL_STICKERS.keys())
-    idx = int(hashlib.md5(email.encode()).hexdigest(), 16) % len(stickers)
-    return stickers[idx]
-
+# ----------------- BULLETPROOF PIN AUTHENTICATION -----------------
 def verify_employee_pin(email, entered_pin):
     clean_email = email.lower().strip()
     entered_str = str(entered_pin).strip()
 
     cached = get_all_verified_profiles()
-    for p_email, p_name, p_pin, p_role, p_sticker in cached:
+    for p_email, p_name, p_pin, p_role in cached:
         if p_email.lower().strip() == clean_email:
             if str(p_pin).strip() == entered_str:
                 return True, p_name, p_role
@@ -165,16 +140,14 @@ def verify_employee_pin(email, entered_pin):
 
 def get_all_verified_profiles():
     if not supabase:
-        return [("admin@arl.com.pk", "ARL Admin", "1234", "Admin", "🛢️")]
+        return [("admin@arl.com.pk", "ARL Admin", "1234", "Admin")]
     profiles = []
     try:
         res = supabase.table("hr_users").select("*").execute()
         if res.data:
             for r in res.data:
                 if r.get("pin"):
-                    email = r.get("email")
-                    sticker = r.get("avatar") or get_default_sticker(email)
-                    profiles.append((email, r.get("name"), str(r.get("pin")), r.get("role", "Recruiter"), sticker))
+                    profiles.append((r.get("email"), r.get("name"), str(r.get("pin")), r.get("role", "Recruiter")))
     except Exception:
         pass
     try:
@@ -182,10 +155,8 @@ def get_all_verified_profiles():
         if res2.data:
             existing_emails = [p[0].lower() for p in profiles]
             for r in res2.data:
-                em = r.get("email", "")
-                if r.get("pin") and em.lower() not in existing_emails:
-                    sticker = r.get("avatar") or get_default_sticker(em)
-                    profiles.append((em, r.get("name"), str(r.get("pin")), r.get("role", "Recruiter"), sticker))
+                if r.get("pin") and r.get("email", "").lower() not in existing_emails:
+                    profiles.append((r.get("email"), r.get("name"), str(r.get("pin")), r.get("role", "Recruiter")))
     except Exception:
         pass
     return profiles
@@ -193,21 +164,7 @@ def get_all_verified_profiles():
 def get_all_verified_profiles_admin():
     return get_all_verified_profiles()
 
-def update_user_sticker(email, sticker):
-    clean_email = email.lower().strip()
-    if not supabase:
-        return False
-    try:
-        supabase.table("hr_users").update({"avatar": sticker}).eq("email", clean_email).execute()
-    except Exception:
-        pass
-    try:
-        supabase.table("employees").update({"avatar": sticker}).eq("email", clean_email).execute()
-    except Exception:
-        pass
-    return True
-
-def register_initial_employee(name, email, password, sticker="👔"):
+def register_initial_employee(name, email, password):
     clean_email = email.lower().strip()
     otp = str(random.randint(100000, 999999))
     if not supabase:
@@ -228,12 +185,11 @@ def register_initial_employee(name, email, password, sticker="👔"):
             "pin": None,
             "role": role,
             "is_verified": 0,
-            "otp": otp,
-            "avatar": sticker
+            "otp": otp
         }
         supabase.table("hr_users").upsert(data).execute()
         
-        success, msg = send_smtp_email(clean_email, "ARL TalentMatch - Verification OTP", f"Your verification code is: {otp}")
+        success, msg = send_smtp_email(clean_email, "ARL HireMatrix Pro - Verification OTP", f"Your verification code is: {otp}")
         if success:
             return True, "Registration initiated! Please check your email for the verification OTP."
         else:
@@ -672,7 +628,7 @@ def generate_screening_excel(results_list) -> bytes:
     return buffer.getvalue()
 
 # ===========================================================================
-# 6. FULL ARL CORPORATE FOREST GREEN & GOLD-MINT ACCENTS THEME CSS
+# 6. ARL CHARCOAL BLACK & OFFICIAL GREEN ACCENTS CSS
 # ===========================================================================
 ARL_GREEN_CSS = """
 <style>
@@ -682,34 +638,27 @@ html, body, [class*="css"] {
     font-family: 'Plus Jakarta Sans', sans-serif !important;
 }
 
-/* Full Atmospheric Forest Green Background */
-.stApp {
-    background: radial-gradient(circle at 50% 8%, #0f3d24 0%, #082415 48%, #03120a 100%) !important;
-    color: #F8FAFC !important;
-}
-
 [data-testid="stSidebar"] { display: none !important; }
 [data-testid="collapsedControl"] { display: none !important; }
 
-/* ARL Corporate Header */
+/* ARL Header */
 .cyber-header-box {
     text-align: center;
-    padding: 1.6rem 1rem 1rem 1rem;
-    margin-bottom: 0.8rem;
+    padding: 1.8rem 1rem 1.2rem 1rem;
+    margin-bottom: 1.2rem;
 }
 
 .cyber-title {
-    font-size: 2.15rem !important;
+    font-size: 3.2rem !important;
     font-weight: 800 !important;
-    letter-spacing: -0.6px !important;
-    color: #FFFFFF !important;
-    margin: 0 0 6px 0 !important;
-    line-height: 1.2 !important;
+    letter-spacing: -0.8px !important;
+    color: #111827 !important;
+    margin: 0 0 8px 0 !important;
 }
 
 .cyber-title-pro {
-    color: #4ADE80 !important;
-    background: linear-gradient(135deg, #86EFAC 0%, #22C55E 100%);
+    color: #166534 !important;
+    background: linear-gradient(135deg, #15803D 0%, #166534 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
 }
@@ -718,212 +667,177 @@ html, body, [class*="css"] {
     display: inline-flex !important;
     align-items: center !important;
     gap: 8px !important;
-    background: rgba(34, 197, 94, 0.15) !important;
-    border: 1.5px solid #22C55E !important;
+    background: rgba(22, 101, 52, 0.08) !important;
+    border: 1.5px solid #166534 !important;
     padding: 5px 20px !important;
     border-radius: 30px !important;
-    font-size: 0.76rem !important;
+    font-size: 0.78rem !important;
     font-weight: 800 !important;
     text-transform: uppercase !important;
     letter-spacing: 1.5px !important;
-    color: #86EFAC !important;
-    box-shadow: 0 0 15px rgba(34, 197, 94, 0.2) !important;
+    color: #166534 !important;
 }
 
-/* ============================================================ */
-/* EXECUTIVE ROUNDED SQUARE PROFILE TILES & BLACK FADE EDIT     */
-/* ============================================================ */
-.arl-profile-grid {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    align-items: flex-start;
-    gap: 24px;
-    padding: 1.5rem 0.5rem 1rem 0.5rem;
+@media (prefers-color-scheme: dark) {
+    .cyber-title {
+        color: #F8FAFC !important;
+    }
+    .cyber-badge {
+        background: rgba(22, 101, 52, 0.2) !important;
+        border-color: #22C55E !important;
+        color: #22C55E !important;
+    }
 }
 
-.arl-profile-tile-wrap {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: 120px;
+/* CLICKABLE PROFILE BADGE CARD (CHARCOAL BLACK WITH ARL GREEN ACCENT) */
+.arl-clickable-badge {
+    text-decoration: none !important;
+    color: inherit !important;
+    display: block !important;
+    cursor: pointer !important;
+    transition: all 0.25s ease-in-out !important;
 }
 
-.arl-profile-card {
+.cyber-badge-card {
     position: relative;
-    width: 115px;
-    height: 115px;
-    border-radius: 22px;
-    background: linear-gradient(145deg, #113f26 0%, #082416 100%);
-    border: 2px solid #22C55E;
-    overflow: hidden;
+    background: linear-gradient(135deg, #181B1E 0%, #111315 100%) !important;
+    border: 1.5px solid #1E2328 !important;
+    border-left: 5px solid #166534 !important;
+    border-radius: 16px !important;
+    padding: 1.5rem 1.8rem !important;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.45) !important;
+    transition: all 0.25s ease-in-out !important;
+}
+
+.arl-clickable-badge:hover .cyber-badge-card {
+    border-color: #22C55E !important;
+    border-left-color: #22C55E !important;
+    box-shadow: 0 14px 35px rgba(0, 0, 0, 0.6), inset 0 0 15px rgba(34, 197, 94, 0.08) !important;
+    transform: translateY(-3px) scale(1.01);
+}
+
+.cyber-top-bar {
     display: flex;
+    justify-content: space-between;
     align-items: center;
-    justify-content: center;
-    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.6), inset 0 0 16px rgba(34, 197, 94, 0.15);
-    transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    margin-bottom: 0.8rem;
+    border-bottom: 1px dashed rgba(255, 255, 255, 0.1);
+    padding-bottom: 0.5rem;
 }
 
-.arl-profile-card:hover {
-    border-color: #86EFAC !important;
-    transform: translateY(-6px) scale(1.04);
-    box-shadow: 0 16px 36px rgba(34, 197, 94, 0.4), inset 0 0 20px rgba(74, 222, 128, 0.25) !important;
-}
-
-.arl-card-main-click {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    height: 100%;
-    text-decoration: none !important;
-    font-size: 3.3rem;
-    cursor: pointer;
-    padding-bottom: 12px;
-}
-
-/* Black Fade Edit Bar on Bottom of Card */
-.arl-card-edit-fade {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 32px;
-    background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.82) 40%, rgba(0, 0, 0, 0.95) 100%);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #CBD5E1;
-    font-size: 0.72rem;
-    font-weight: 800;
-    letter-spacing: 1px;
-    text-decoration: none !important;
-    transition: all 0.2s ease;
-    cursor: pointer;
-    border-top: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-.arl-card-edit-fade:hover {
-    background: rgba(0, 0, 0, 0.98);
-    color: #4ADE80 !important;
-    font-size: 0.76rem;
-    border-top-color: #22C55E;
-}
-
-.arl-tile-badge {
-    position: absolute;
-    top: 6px;
-    right: 6px;
-    background: #082416;
-    border: 1.5px solid #22C55E;
-    border-radius: 50%;
-    width: 24px;
-    height: 24px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.75rem;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
-}
-
-.arl-tile-name {
-    margin-top: 10px;
-    font-size: 0.96rem;
-    font-weight: 800;
-    color: #FFFFFF;
-    text-align: center;
-    width: 120px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    letter-spacing: -0.2px;
-}
-
-.arl-tile-role {
-    font-size: 0.72rem;
+.cyber-access-id {
     font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
     font-weight: 700;
-    color: #86EFAC;
-    background: rgba(34, 197, 94, 0.16);
-    border: 1px solid rgba(34, 197, 94, 0.35);
-    padding: 2px 8px;
-    border-radius: 6px;
-    margin-top: 4px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+    color: #94A3B8;
+    letter-spacing: 1px;
 }
 
-/* Add Profile Square */
-.arl-add-avatar {
-    width: 115px;
-    height: 115px;
-    border-radius: 22px;
-    background: rgba(34, 197, 94, 0.08);
-    border: 2px dashed #22C55E;
+.cyber-status-dot {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #22C55E;
+    letter-spacing: 1px;
+}
+
+.cyber-avatar-ring {
+    width: 58px;
+    height: 58px;
+    border-radius: 50%;
+    background: #14171A;
+    border: 2px solid #166534;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 2.3rem;
-    color: #86EFAC;
-    text-decoration: none !important;
-    transition: all 0.25s ease;
+    font-size: 1.7rem;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+    flex-shrink: 0;
 }
 
-.arl-add-avatar:hover {
-    border-color: #86EFAC;
-    color: #FFFFFF;
-    background: rgba(34, 197, 94, 0.22);
-    box-shadow: 0 10px 25px rgba(34, 197, 94, 0.3);
-    transform: translateY(-6px) scale(1.04);
-}
-
-/* High-Contrast Dialog & Modal Styles */
-div[data-testid="stDialog"], div[role="dialog"] {
-    border-radius: 22px !important;
-    border: 1.5px solid #22C55E !important;
-    background: linear-gradient(145deg, #0e3520 0%, #061c10 100%) !important;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.85) !important;
-}
-
-div[data-testid="stDialog"] > div {
-    background: transparent !important;
-}
-
-div[data-testid="stModalBackdrop"] {
-    backdrop-filter: blur(14px) !important;
-    background: rgba(3, 16, 9, 0.8) !important;
-}
-
-/* High-Contrast Captions & Text Visibility */
-[data-testid="stCaptionContainer"] p, [data-testid="stCaptionContainer"] {
-    color: #A7F3D0 !important;
-    font-weight: 600 !important;
-    font-size: 0.88rem !important;
-}
-
-p, span, label {
+.cyber-name-title {
+    margin: 0;
+    font-size: 1.45rem;
+    font-weight: 800;
     color: #F8FAFC !important;
+    letter-spacing: -0.3px;
 }
 
-/* Glassmorphism Border Wrappers & Containers */
-[data-testid="stVerticalBlock"] > [data-testid="stVerticalBlockBorderWrapper"]:first-child {
-    border: 1.5px solid rgba(74, 222, 128, 0.3) !important;
-    border-radius: 24px !important;
-    padding: 2.2rem 2.2rem !important;
-    background: linear-gradient(135deg, rgba(14, 46, 29, 0.88) 0%, rgba(8, 28, 18, 0.94) 100%) !important;
-    box-shadow: 0 18px 45px rgba(0, 0, 0, 0.6), inset 0 0 25px rgba(34, 197, 94, 0.12) !important;
-    backdrop-filter: blur(16px) !important;
+.cyber-role-pill {
+    background: rgba(34, 197, 94, 0.12);
+    border: 1px solid #166534;
+    color: #22C55E;
+    padding: 2px 10px;
+    border-radius: 6px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
 }
 
-/* Form Styles */
+.cyber-email-mono {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.84rem;
+    color: #94A3B8;
+    background: #0E1012;
+    padding: 4px 10px;
+    border-radius: 6px;
+    display: inline-block;
+    margin-top: 5px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* ARL Green Corporate Buttons */
+.stButton > button {
+    background: linear-gradient(135deg, #166534 0%, #14532D 100%) !important;
+    color: #FFFFFF !important;
+    border: 1.5px solid #22C55E !important;
+    border-radius: 12px !important;
+    font-weight: 700 !important;
+    white-space: nowrap !important;
+    padding: 0.65rem 1.2rem !important;
+    box-shadow: 0 4px 15px rgba(22, 101, 52, 0.3) !important;
+    transition: all 0.25s ease-in-out !important;
+}
+
+.stButton > button:hover {
+    background: linear-gradient(135deg, #15803D 0%, #166534 100%) !important;
+    color: #FFFFFF !important;
+    border-color: #FFFFFF !important;
+    box-shadow: 0 6px 20px rgba(34, 197, 94, 0.5) !important;
+    transform: translateY(-2px);
+}
+
+/* PIN & Login Form Container */
 [data-testid="stForm"] {
-    background: linear-gradient(145deg, rgba(14, 46, 29, 0.92) 0%, rgba(6, 22, 14, 0.96) 100%) !important;
-    border: 1.5px solid rgba(74, 222, 128, 0.3) !important;
+    background: #14171A !important;
+    border: 1.5px solid #1E2328 !important;
     border-radius: 20px !important;
     padding: 2.2rem !important;
-    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.6) !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5) !important;
 }
 
+/* PIN Screen Heading ('🔐 Sign In: ...') */
+[data-testid="stVerticalBlockBorderWrapper"] h3 {
+    color: #22C55E !important;
+    font-weight: 800 !important;
+    font-size: 1.5rem !important;
+    text-shadow: 0 0 12px rgba(34, 197, 94, 0.3) !important;
+    margin-bottom: 6px !important;
+}
+
+/* 'Enter 4-digit PIN for ...' Caption */
+[data-testid="stVerticalBlockBorderWrapper"] [data-testid="stCaptionContainer"] p,
+[data-testid="stVerticalBlockBorderWrapper"] [data-testid="stCaptionContainer"] {
+    color: #CBD5E1 !important;
+    font-size: 0.92rem !important;
+}
+
+/* Form Input Label ('4-Digit PIN') */
 [data-testid="stForm"] label,
 [data-testid="stWidgetLabel"] label,
 [data-testid="stWidgetLabel"] p,
@@ -931,106 +845,88 @@ p, span, label {
     color: #FFFFFF !important;
     font-weight: 700 !important;
     font-size: 1rem !important;
-    letter-spacing: 0.4px !important;
+    letter-spacing: 0.5px !important;
 }
 
-/* Buttons */
-.stButton > button {
-    background: linear-gradient(135deg, #16A34A 0%, #15803D 100%) !important;
-    color: #FFFFFF !important;
-    border: 1.5px solid #4ADE80 !important;
-    border-radius: 12px !important;
-    font-weight: 700 !important;
-    white-space: nowrap !important;
-    padding: 0.65rem 1.2rem !important;
-    box-shadow: 0 4px 18px rgba(22, 163, 74, 0.35) !important;
-    transition: all 0.25s ease-in-out !important;
-}
-
-.stButton > button:hover {
-    background: linear-gradient(135deg, #22C55E 0%, #16A34A 100%) !important;
-    color: #FFFFFF !important;
-    border-color: #FFFFFF !important;
-    box-shadow: 0 6px 24px rgba(74, 222, 128, 0.5) !important;
-    transform: translateY(-2px);
+/* Character counter (0/4) color */
+[data-testid="stInputCounter"] {
+    color: #94A3B8 !important;
 }
 
 /* Navbar */
 .top-navbar {
-    background: linear-gradient(135deg, rgba(14, 46, 29, 0.95) 0%, rgba(8, 28, 18, 0.95) 100%);
-    border: 1.5px solid rgba(74, 222, 128, 0.25);
-    border-bottom: 2.5px solid #22C55E;
+    background: linear-gradient(135deg, #14171A 0%, #1A2026 100%);
+    border: 1.5px solid #1E2328;
+    border-bottom: 2px solid #166534;
     border-radius: 16px;
     padding: 1.1rem 2rem;
     margin-bottom: 1.8rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
 }
 .top-brand-title {
-    font-size: 1.45rem; font-weight: 800; color: #FFFFFF; margin: 0;
+    font-size: 1.55rem; font-weight: 800; color: #FFFFFF; margin: 0;
     display: flex; align-items: center; gap: 10px;
 }
 .top-brand-subtitle {
-    font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1.2px; font-weight: 700; color: #86EFAC; margin: 0;
+    font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1.2px; font-weight: 700; color: #94A3B8; margin: 0;
 }
 
 .corp-hero {
-    background: linear-gradient(135deg, rgba(34, 197, 94, 0.18) 0%, rgba(8, 28, 18, 0.9) 100%);
-    border: 1.5px solid rgba(74, 222, 128, 0.3);
+    background: linear-gradient(135deg, rgba(22, 101, 52, 0.12) 0%, rgba(20, 23, 26, 0.8) 100%);
+    border: 1.5px solid #1E2328;
     border-radius: 16px;
     padding: 2rem 2.5rem;
     margin-bottom: 2rem;
-    border-left: 6px solid #4ADE80;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    border-left: 6px solid #22C55E;
 }
 .corp-badge {
     display: inline-flex; align-items: center; gap: 8px; 
-    background: rgba(34, 197, 94, 0.2); color: #86EFAC; 
+    background: rgba(34, 197, 94, 0.15); color: #22C55E; 
     padding: 5px 14px; border-radius: 6px;
     font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.8rem;
-    border: 1px solid rgba(74, 222, 128, 0.4);
+    border: 1px solid rgba(34, 197, 94, 0.4);
 }
 
 .corp-card {
-    background: rgba(14, 46, 29, 0.65);
-    border: 1.5px solid rgba(74, 222, 128, 0.25);
+    background: var(--background-color);
+    border: 1.5px solid rgba(22, 101, 52, 0.25);
     border-radius: 16px;
     padding: 1.8rem;
     margin-bottom: 1.5rem;
-    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.3);
 }
 
 .corp-card h4 {
     font-size: 1.25rem !important;
     font-weight: 800 !important;
     letter-spacing: -0.2px !important;
-    color: #FFFFFF !important;
+    color: light-dark(#166534, #FFFFFF) !important;
     display: flex !important;
     align-items: center !important;
     gap: 10px !important;
     margin-top: 0 !important;
     margin-bottom: 1.2rem !important;
-    background: linear-gradient(90deg, rgba(34, 197, 94, 0.18) 0%, rgba(22, 101, 52, 0.08) 100%) !important;
-    border-left: 4px solid #4ADE80 !important;
-    border-bottom: 1px solid rgba(74, 222, 128, 0.25) !important;
+    background: linear-gradient(90deg, rgba(34, 197, 94, 0.12) 0%, rgba(22, 101, 52, 0.04) 100%) !important;
+    border-left: 4px solid #166534 !important;
+    border-bottom: 1px solid rgba(22, 101, 52, 0.25) !important;
     border-radius: 8px 12px 12px 8px !important;
     padding: 10px 16px !important;
 }
 
-.metric-box .val { font-size: 1.8rem; font-weight: 800; color: #4ADE80; }
-.metric-box .lbl { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; font-weight: 700; color: #86EFAC; }
+.metric-box .val { font-size: 1.8rem; font-weight: 800; color: #22C55E; }
+.metric-box .lbl { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; font-weight: 700; opacity: 0.85; }
 
-.score-high { color: #4ADE80 !important; font-weight: 800; }
-.score-mid { color: #FBBF24 !important; font-weight: 800; }
-.score-low { color: #F87171 !important; font-weight: 800; }
+.score-high { color: #10B981 !important; font-weight: 800; }
+.score-mid { color: #F59E0B !important; font-weight: 800; }
+.score-low { color: #EF4444 !important; font-weight: 800; }
 
 div[data-baseweb="tab-highlight"], div[data-baseweb="tab-border"] { display: none !important; }
 
 div[data-baseweb="tab-list"] {
-    background: rgba(10, 34, 21, 0.9) !important;
-    border: 1.5px solid rgba(74, 222, 128, 0.25) !important;
+    background: #14171A !important;
+    border: 1.5px solid #1E2328 !important;
     border-radius: 16px !important;
     padding: 6px 10px !important;
     gap: 8px !important;
@@ -1042,21 +938,44 @@ button[data-baseweb="tab"] {
     border: 1.5px solid transparent !important;
     border-radius: 12px !important;
     padding: 8px 20px !important;
-    color: #CBD5E1 !important;
+    color: #94A3B8 !important;
     font-size: 0.92rem !important;
     font-weight: 700 !important;
     transition: all 0.25s ease-in-out !important;
 }
 
 button[data-baseweb="tab"]:hover {
-    color: #4ADE80 !important;
-    background: rgba(34, 197, 94, 0.1) !important;
+    color: #22C55E !important;
+    background: rgba(34, 197, 94, 0.08) !important;
 }
 
 button[data-baseweb="tab"][aria-selected="true"] {
-    background: linear-gradient(135deg, rgba(22, 101, 52, 0.8) 0%, rgba(34, 197, 94, 0.35) 100%) !important;
-    border: 1.5px solid #4ADE80 !important;
-    color: #FFFFFF !important;
+    background: linear-gradient(135deg, rgba(22, 101, 52, 0.6) 0%, rgba(34, 197, 94, 0.2) 100%) !important;
+    border: 1.5px solid #22C55E !important;
+    color: #22C55E !important;
+}
+
+[data-testid="stVerticalBlock"] > [data-testid="stVerticalBlockBorderWrapper"]:first-child {
+    border: 1.5px solid rgba(22, 101, 52, 0.4) !important;
+    border-radius: 24px !important;
+    padding: 2.2rem 2.2rem !important;
+    background: rgba(22, 101, 52, 0.05) !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06) !important;
+}
+
+[data-testid="column"] [data-testid="stVerticalBlockBorderWrapper"], [data-testid="column"] > div {
+    border: none !important;
+    background: transparent !important;
+    padding: 0 !important;
+}
+
+@media (prefers-color-scheme: dark) {
+    [data-testid="stVerticalBlock"] > [data-testid="stVerticalBlockBorderWrapper"]:first-child {
+        border: 1.5px solid rgba(34, 197, 94, 0.35) !important;
+        background: linear-gradient(135deg, rgba(13, 35, 25, 0.82) 0%, rgba(9, 24, 17, 0.92) 100%) !important;
+        box-shadow: 0 16px 40px rgba(0, 0, 0, 0.55), inset 0 0 25px rgba(22, 101, 52, 0.15) !important;
+        backdrop-filter: blur(16px) !important;
+    }
 }
 </style>
 """
@@ -1070,7 +989,6 @@ if "hr_name" not in st.session_state: st.session_state.hr_name = ""
 if "hr_email" not in st.session_state: st.session_state.hr_email = ""
 if "hr_role" not in st.session_state: st.session_state.hr_role = "Recruiter"
 if "selected_profile_email" not in st.session_state: st.session_state.selected_profile_email = None
-if "editing_sticker_email" not in st.session_state: st.session_state.editing_sticker_email = None
 if "pending_otp_email" not in st.session_state: st.session_state.pending_otp_email = None
 if "pending_pin_email" not in st.session_state: st.session_state.pending_pin_email = None
 if "screening_results" not in st.session_state: st.session_state.screening_results = []
@@ -1081,7 +999,7 @@ if "is_desktop_mode" not in st.session_state:
 is_desktop_mode = st.session_state.is_desktop_mode or (st.query_params.get("mode") == "desktop")
 
 # ===========================================================================
-# 7.1 DEDICATED WINDOWS DESKTOP INSTALLER LANDING PAGE
+# 7.1 MOVIEBOX-STYLE DEDICATED DESKTOP DOWNLOAD LANDING PAGE
 # ===========================================================================
 def render_download_landing_page(exe_direct_url: str):
     st.markdown("""
@@ -1089,18 +1007,18 @@ def render_download_landing_page(exe_direct_url: str):
     .dl-hero-box {
         text-align: center;
         padding: 3rem 1.5rem 2.2rem 1.5rem;
-        background: linear-gradient(180deg, rgba(34, 197, 94, 0.22) 0%, rgba(8, 28, 18, 0.95) 100%);
-        border: 1.5px solid rgba(74, 222, 128, 0.35);
-        border-top: 4px solid #4ADE80;
+        background: linear-gradient(180deg, rgba(22, 101, 52, 0.18) 0%, rgba(20, 23, 26, 0.9) 100%);
+        border: 1.5px solid #1E2328;
+        border-top: 3px solid #22C55E;
         border-radius: 24px;
         margin-bottom: 2.5rem;
-        box-shadow: 0 16px 45px rgba(0, 0, 0, 0.6);
+        box-shadow: 0 16px 40px rgba(0, 0, 0, 0.55);
     }
     .dl-badge {
         display: inline-block;
-        background: rgba(34, 197, 94, 0.18);
-        color: #4ADE80;
-        border: 1px solid #22C55E;
+        background: rgba(34, 197, 94, 0.15);
+        color: #22C55E;
+        border: 1px solid #166534;
         padding: 6px 18px;
         border-radius: 30px;
         font-size: 0.78rem;
@@ -1117,7 +1035,7 @@ def render_download_landing_page(exe_direct_url: str):
         line-height: 1.15;
     }
     .dl-subtitle {
-        color: #CBD5E1;
+        color: #94A3B8;
         font-size: 1.15rem;
         max-width: 680px;
         margin: 0 auto 2.2rem auto;
@@ -1127,35 +1045,35 @@ def render_download_landing_page(exe_direct_url: str):
         display: inline-flex;
         align-items: center;
         gap: 12px;
-        background: linear-gradient(135deg, #16A34A 0%, #15803D 100%);
+        background: linear-gradient(135deg, #166534 0%, #15803D 100%);
         color: #FFFFFF !important;
         font-size: 1.18rem;
         font-weight: 800;
         padding: 1.1rem 2.8rem;
         border-radius: 14px;
         text-decoration: none;
-        box-shadow: 0 10px 30px rgba(22, 163, 74, 0.45);
-        border: 1.5px solid #4ADE80;
+        box-shadow: 0 10px 30px rgba(22, 101, 52, 0.45);
+        border: 1.5px solid #22C55E;
         transition: all 0.25s ease-in-out;
     }
     .dl-main-btn:hover {
-        background: linear-gradient(135deg, #22C55E 0%, #16A34A 100%);
+        background: linear-gradient(135deg, #15803D 0%, #166534 100%);
         transform: translateY(-3px) scale(1.02);
-        box-shadow: 0 14px 35px rgba(74, 222, 128, 0.6);
+        box-shadow: 0 14px 35px rgba(34, 197, 94, 0.6);
         border-color: #FFFFFF;
     }
     .step-card {
-        background: rgba(14, 46, 29, 0.8);
-        border: 1.5px solid rgba(74, 222, 128, 0.25);
+        background: #14171A;
+        border: 1.5px solid #1E2328;
         border-radius: 18px;
         padding: 2rem 1.5rem;
         text-align: center;
         height: 100%;
-        box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+        box-shadow: 0 6px 20px rgba(0,0,0,0.3);
         transition: all 0.25s ease;
     }
     .step-card:hover {
-        border-color: #4ADE80;
+        border-color: #22C55E;
         transform: translateY(-4px);
     }
     .step-num {
@@ -1164,11 +1082,11 @@ def render_download_landing_page(exe_direct_url: str):
         height: 48px;
         line-height: 48px;
         border-radius: 50%;
-        background: rgba(34, 197, 94, 0.2);
-        color: #4ADE80;
+        background: rgba(34, 197, 94, 0.15);
+        color: #22C55E;
         font-weight: 800;
         font-size: 1.2rem;
-        border: 1.5px solid #22C55E;
+        border: 1.5px solid #166534;
         margin-bottom: 1.2rem;
         font-family: 'JetBrains Mono', monospace;
     }
@@ -1179,7 +1097,7 @@ def render_download_landing_page(exe_direct_url: str):
         margin-bottom: 0.6rem;
     }
     .step-desc {
-        color: #CBD5E1;
+        color: #94A3B8;
         font-size: 0.92rem;
         line-height: 1.55;
     }
@@ -1195,12 +1113,12 @@ def render_download_landing_page(exe_direct_url: str):
     st.markdown(f"""
         <div class="dl-hero-box">
             <div class="dl-badge">🪟 BUILT FOR WINDOWS 10 / 11</div>
-            <h1 class="dl-title">Arl TalentMatch for Windows</h1>
+            <h1 class="dl-title">ARL HireMatrix Pro for Windows</h1>
             <p class="dl-subtitle">Run Attock Refinery Limited's enterprise candidate extraction, AI matching, and cloud recruitment pipeline as a dedicated, high-speed desktop software.</p>
             <a href="{exe_direct_url}" target="_blank" class="dl-main-btn">
                 <span>⬇️</span> Download for Windows · ARL-HireMatrix-Pro.msi (Free)
             </a>
-            <div style="margin-top: 18px; color: #86EFAC; font-size: 0.85rem; font-family: 'JetBrains Mono', monospace;">
+            <div style="margin-top: 18px; color: #94A3B8; font-size: 0.85rem; font-family: 'JetBrains Mono', monospace;">
                 Official Windows Installer &bull; 64-bit Architecture &bull; Instant Cloud Sync
             </div>
         </div>
@@ -1230,129 +1148,31 @@ def render_download_landing_page(exe_direct_url: str):
             <div class="step-card">
                 <div class="step-num">03</div>
                 <div class="step-title">Open Portal</div>
-                <div class="step-desc">Launch Arl TalentMatch from your desktop and enter your 4-digit PIN to begin candidate screening.</div>
+                <div class="step-desc">Launch ARL HireMatrix Pro from your desktop and enter your 4-digit PIN to begin candidate screening.</div>
             </div>
         """, unsafe_allow_html=True)
 
     st.markdown("<div style='margin-top: 3.5rem;'></div>", unsafe_allow_html=True)
-    st.markdown("<h4 style='color: #4ADE80; margin-bottom: 1rem;'>❓ Desktop App Guidance</h4>", unsafe_allow_html=True)
+    st.markdown("<h4 style='color: #22C55E; margin-bottom: 1rem;'>❓ Desktop App FAQs & Guidance</h4>", unsafe_allow_html=True)
     with st.expander("❓ What should I do if Windows SmartScreen shows a warning?"):
-        st.write("Since this is a custom internal enterprise package, Windows SmartScreen may show a security prompt. Simply click **'More info'** and then click **'Run anyway'**. The application is verified and safe.")
+        st.write("Since this is a custom internal enterprise package without an expensive commercial EV certificate, Windows SmartScreen may show a security prompt. Simply click **'More info'** and then click **'Run anyway'**. The application is 100% virus-free and verified.")
     with st.expander("❓ Will my screened candidate data sync between Desktop and Web?"):
-        st.write("Yes! Both Desktop and Web connect directly to the same Supabase Cloud database in real-time.")
+        st.write("Yes! Both the Desktop application and the Web portal connect directly to the same Supabase Cloud database. Any resume uploaded or candidate screened on the desktop app is immediately available in real-time on the web version.")
+    with st.expander("❓ What are the system requirements?"):
+        st.write("Windows 10 or 11 (64-bit), minimum 4 GB RAM, and an active internet connection for Groq AI screening and Supabase synchronization.")
 
 if st.session_state.show_download_page:
     render_download_landing_page(EXE_DOWNLOAD_URL)
     st.stop()
 
 # ===========================================================================
-# 8. DIALOGS: PIN ENTRY & STICKER PICKER MODALS (BACKGROUND BLUR)
-# ===========================================================================
-def inject_autofocus_script():
-    components.html("""
-    <script>
-    setTimeout(function() {
-        try {
-            var inputs = window.parent.document.querySelectorAll('input[type="password"]');
-            if (inputs && inputs.length > 0) {
-                var target = inputs[inputs.length - 1];
-                target.focus();
-                target.select();
-            }
-        } catch(e) {}
-    }, 120);
-    </script>
-    """, height=0, width=0)
-
-if hasattr(st, "dialog"):
-    @st.dialog("🔐 Security PIN Verification")
-    def pin_entry_modal(target_email, p_match):
-        inject_autofocus_script()
-        st.markdown(f"""
-            <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 14px;">
-                <div style="font-size: 2.6rem; background: #082416; border: 2px solid #4ADE80; border-radius: 16px; width: 62px; height: 62px; display: flex; align-items: center; justify-content: center;">
-                    {p_match[4]}
-                </div>
-                <div>
-                    <h3 style="margin: 0; color: #4ADE80; font-size: 1.35rem; font-weight: 800;">{p_match[1]}</h3>
-                    <span style="font-size: 0.85rem; color: #86EFAC;">{target_email} &bull; <b>{p_match[3]}</b></span>
-                </div>
-            </div>
-        """, unsafe_allow_html=True)
-        
-        with st.form("pin_login_modal_form"):
-            pin_input = st.text_input("Enter 4-Digit PIN", type="password", max_chars=4, placeholder="••••", key="modal_pin_input")
-            submit_log = st.form_submit_button("Access Portal ➔ (Press Enter)", use_container_width=True)
-            
-        col_m1, col_m2 = st.columns([1, 1])
-        if submit_log:
-            success, name, role = verify_employee_pin(target_email, pin_input)
-            if success:
-                st.session_state.logged_in = True
-                st.session_state.hr_name = name if name else p_match[1]
-                st.session_state.hr_email = target_email
-                st.session_state.hr_role = role if role else "Recruiter"
-                st.session_state.selected_profile_email = None
-                st.rerun()
-            else:
-                st.error("❌ Incorrect 4-Digit PIN.")
-        with col_m2:
-            if st.button("Cancel", use_container_width=True, key="cancel_pin_modal_btn"):
-                st.session_state.selected_profile_email = None
-                st.rerun()
-
-    @st.dialog("🎨 Choose Executive Badge")
-    def sticker_picker_modal(target_email, p_match):
-        st.markdown(f"""
-            <div style="margin-bottom: 12px;">
-                <h4 style="margin: 0; color: #FFFFFF; font-size: 1.15rem;">Select Badge for <b>{p_match[1]}</b></h4>
-                <p style="font-size: 0.82rem; color: #86EFAC; margin: 2px 0 0 0;">Click on any professional icon to update instantly:</p>
-            </div>
-        """, unsafe_allow_html=True)
-        
-        cols = st.columns(4)
-        for idx, (stk, title) in enumerate(PROFESSIONAL_STICKERS.items()):
-            with cols[idx % 4]:
-                if st.button(f"{stk}\n{title.split('/')[0].strip()}", key=f"stk_btn_{stk}_{target_email}", use_container_width=True):
-                    update_user_sticker(target_email, stk)
-                    st.session_state.editing_sticker_email = None
-                    st.rerun()
-                    
-        st.markdown("---")
-        col_d1, col_d2 = st.columns([1.5, 1])
-        with col_d1:
-            if st.button("🗑️ Delete This Profile", key=f"del_prof_modal_{target_email}", use_container_width=True):
-                delete_employee_profile(target_email)
-                st.session_state.editing_sticker_email = None
-                st.rerun()
-        with col_d2:
-            if st.button("Done", key="close_stk_modal_btn", use_container_width=True):
-                st.session_state.editing_sticker_email = None
-                st.rerun()
-else:
-    # Fallback for earlier versions
-    def pin_entry_modal(target_email, p_match): pass
-    def sticker_picker_modal(target_email, p_match): pass
-
-# ===========================================================================
-# 8. AUTHENTICATION & LOGIN SCREEN (EXECUTIVE TILES WITH EDIT OVERLAY)
+# 8. AUTHENTICATION & LOGIN SCREEN (CHARCOAL CARDS)
 # ===========================================================================
 if not st.session_state.logged_in:
     saved_profiles = get_all_verified_profiles()
-    
-    # Check if PIN modal or Sticker modal is requested
-    if st.session_state.selected_profile_email and st.session_state.selected_profile_email != "new":
-        target_email = st.session_state.selected_profile_email
-        p_match = next((p for p in saved_profiles if p[0].lower() == target_email.lower()), (target_email, "Executive User", "", "Recruiter", "👔"))
-        pin_entry_modal(target_email, p_match)
-
-    if st.session_state.editing_sticker_email:
-        target_email = st.session_state.editing_sticker_email
-        p_match = next((p for p in saved_profiles if p[0].lower() == target_email.lower()), (target_email, "Executive User", "", "Recruiter", "👔"))
-        sticker_picker_modal(target_email, p_match)
-
-    col_c1, col_c2, col_c3 = st.columns([1, 4.2, 1])
+    col_c1, col_c2, col_c3 = st.columns([1, 3.8, 1])
     with col_c2:
+        # Desktop Download CTA Banner on Login Page with ✕ Dismiss Button
         if not is_desktop_mode:
             c_banner_l, c_banner_r, c_banner_x = st.columns([6.8, 2.5, 0.7], vertical_alignment="center")
             with c_banner_l:
@@ -1374,26 +1194,25 @@ if not st.session_state.logged_in:
                             width: 68px; 
                             height: 68px; 
                             border-radius: 18px; 
-                            background: linear-gradient(135deg, rgba(74, 222, 128, 0.2) 0%, #082416 100%);
-                            border: 2px solid #4ADE80;
+                            background: linear-gradient(135deg, rgba(34, 197, 94, 0.15) 0%, #14171A 100%);
+                            border: 2px solid #166534;
                             display: flex;
                             align-items: center;
                             justify-content: center;
-                            box-shadow: 0 0 25px rgba(34, 197, 94, 0.4);
+                            box-shadow: 0 0 25px rgba(22, 101, 52, 0.35);
                         ">
-                            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#4ADE80" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#22C55E" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                                 <polygon points="12 2 22 7.5 22 16.5 12 22 2 16.5 2 7.5"></polygon>
                             </svg>
                         </div>
                     </div>
-                    <h1 class="cyber-title">Arl TalentMatch: <span class="cyber-title-pro">AI-Driven Automated CV Parser & JD Matcher</span></h1>
+                    <h1 class="cyber-title">ARL HireMatrix <span class="cyber-title-pro">Pro</span></h1>
                     <div class="cyber-badge">
                         <span>◈</span> {APP_TAGLINE} <span>◈</span>
                     </div>
                 </div>
             """, unsafe_allow_html=True)
             
-            # --- VIEW A: SECURITY PIN SETUP ---
             if st.session_state.pending_pin_email:
                 st.markdown("### 🔐 Security PIN Setup")
                 st.info(f"Email verified for **{st.session_state.pending_pin_email}**. Create your 4-digit security PIN.")
@@ -1415,7 +1234,6 @@ if not st.session_state.logged_in:
                         else:
                             st.error(msg)
                             
-            # --- VIEW B: OTP VERIFICATION ---
             elif st.session_state.pending_otp_email:
                 st.markdown("### 📬 Email Verification")
                 st.info(f"Enter the 6-digit security code sent to **{st.session_state.pending_otp_email}**.")
@@ -1437,50 +1255,87 @@ if not st.session_state.logged_in:
                         st.session_state.pending_otp_email = None
                         st.rerun()
                         
-            # --- VIEW C: ROUNDED SQUARE PROFILE TILES WITH BLACK FADE EDIT ---
-            elif saved_profiles and st.session_state.selected_profile_email != "new":
+            elif saved_profiles and not st.session_state.selected_profile_email:
                 st.markdown("""
-                    <div style="text-align: center; margin: 15px 0 10px 0;">
-                        <h2 style="font-size: 1.7rem; font-weight: 800; color: #FFFFFF; letter-spacing: -0.5px; margin-bottom: 4px;">
-                            Select Executive Profile
-                        </h2>
-                        <p style="font-size: 0.88rem; color: #86EFAC; margin: 0;">Click your profile to enter PIN, or click <b>EDIT</b> to change badge:</p>
+                    <div style="margin-bottom: 14px;">
+                        <h3 style="margin: 0 0 0.2rem 0; font-size: 1.3rem; font-weight: 700; color: #22C55E;">👥 Active Executive Profiles</h3>
+                        <p style="font-size: 0.85rem; color: #94A3B8; margin: 0;">Click on your profile card to enter your PIN:</p>
                     </div>
                 """, unsafe_allow_html=True)
                 
-                # HTML Clean List Builder
-                tiles = ['<div class="arl-profile-grid">']
-                for p_email, p_name, p_pin, p_role, p_sticker in saved_profiles:
-                    pin_url = f"?profile={p_email}&mode=desktop" if is_desktop_mode else f"?profile={p_email}"
-                    edit_url = f"?edit_profile={p_email}&mode=desktop" if is_desktop_mode else f"?edit_profile={p_email}"
+                for p_email, p_name, p_pin, p_role in saved_profiles:
+                    col_card, col_del = st.columns([8.6, 1.4], vertical_alignment="center")
+                    with col_card:
+                        st.markdown(f"""
+                            <a href="?profile={p_email}{'&mode=desktop' if is_desktop_mode else ''}" target="_self" class="arl-clickable-badge">
+                                <div class="cyber-badge-card">
+                                    <div class="cyber-top-bar">
+                                        <span class="cyber-access-id">ARL // {hashlib.md5(p_email.encode()).hexdigest()[:8].upper()}</span>
+                                        <span class="cyber-status-dot">ONLINE ◈ CLICK TO SIGN IN ➔</span>
+                                    </div>
+                                    <div style="display: flex; align-items: center; gap: 18px;">
+                                        <div class="cyber-avatar-ring">👤</div>
+                                        <div style="flex-grow: 1;">
+                                            <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                                                <h3 class="cyber-name-title">{p_name}</h3>
+                                                <span class="cyber-role-pill">{p_role}</span>
+                                            </div>
+                                            <div class="cyber-email-mono">✉ {p_email}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
+                        """, unsafe_allow_html=True)
+                    with col_del:
+                        if st.button("🗑️", key=f"del_card_{p_email}", help=f"Delete {p_name}'s profile", use_container_width=True):
+                            delete_employee_profile(p_email)
+                            st.success("Profile removed.")
+                            st.rerun()
+                    st.markdown("<div style='margin-bottom: 12px;'></div>", unsafe_allow_html=True)
+                
+                st.markdown("---")
+                if st.button("➕ Register New Profile", use_container_width=True, key="reg_new_emp_auth_btn"):
+                    st.session_state.selected_profile_email = "new"
+                    st.rerun()
                     
-                    tiles.append(
-                        f'<div class="arl-profile-tile-wrap">'
-                        f'<div class="arl-profile-card">'
-                        f'<a href="{pin_url}" target="_self" class="arl-card-main-click">{p_sticker}</a>'
-                        f'<span class="arl-tile-badge">🛡️</span>'
-                        f'<a href="{edit_url}" target="_self" class="arl-card-edit-fade">✏️ EDIT</a>'
-                        f'</div>'
-                        f'<span class="arl-tile-name">{p_name}</span>'
-                        f'<span class="arl-tile-role">{p_role}</span>'
-                        f'</div>'
-                    )
+            elif st.session_state.selected_profile_email and st.session_state.selected_profile_email != "new":
+                target_email = st.session_state.selected_profile_email
+                p_match = next((p for p in saved_profiles if p[0].lower() == target_email.lower()), (target_email, "Executive User", "", "Recruiter"))
+                st.markdown(f"### 🔐 Sign In: {p_match[1]}")
+                st.caption(f"Enter 4-digit PIN for **{target_email}**")
                 
-                # Add Profile Tile
-                new_url = "?profile=new&mode=desktop" if is_desktop_mode else "?profile=new"
-                tiles.append(
-                    f'<div class="arl-profile-tile-wrap">'
-                    f'<a href="{new_url}" target="_self" class="arl-add-avatar">＋</a>'
-                    f'<span class="arl-tile-name">Add Profile</span>'
-                    f'<span class="arl-tile-role">Register</span>'
-                    f'</div>'
-                )
-                tiles.append('</div>')
-                
-                st.markdown("".join(tiles), unsafe_allow_html=True)
-                st.markdown("<div style='margin-top: 15px;'></div>", unsafe_allow_html=True)
-                        
-            # --- VIEW D: REGISTER NEW PROFILE WITH STICKER PICKER ---
+                with st.form("pin_login_form"):
+                    pin_input = st.text_input("4-Digit PIN", type="password", max_chars=4, placeholder="••••")
+                    submit_log = st.form_submit_button("Access Portal (Press Enter)", use_container_width=True)
+                col_b1, col_b2 = st.columns(2)
+                if submit_log:
+                    success, name, role = verify_employee_pin(target_email, pin_input)
+                    if success:
+                        st.session_state.logged_in = True
+                        st.session_state.hr_name = name if name else p_match[1]
+                        st.session_state.hr_email = target_email
+                        st.session_state.hr_role = role if role else "Recruiter"
+                        st.session_state.selected_profile_email = None
+                        try:
+                            st.query_params.clear()
+                            if is_desktop_mode:
+                                st.query_params["mode"] = "desktop"
+                        except Exception:
+                            pass
+                        st.success(f"Welcome back, {st.session_state.hr_name}!")
+                        st.rerun()
+                    else:
+                        st.error("❌ Incorrect 4-Digit PIN. Please verify.")
+                with col_b2:
+                    if st.button("Switch Profile", use_container_width=True, key="switch_prof_auth_btn"):
+                        st.session_state.selected_profile_email = None
+                        try:
+                            st.query_params.clear()
+                            if is_desktop_mode:
+                                st.query_params["mode"] = "desktop"
+                        except Exception:
+                            pass
+                        st.rerun()
             else:
                 st.markdown("### 📝 Employee / Admin Registration")
                 st.caption("First registered user automatically becomes Admin with dedicated PIN creation.")
@@ -1488,22 +1343,13 @@ if not st.session_state.logged_in:
                     reg_name = st.text_input("Full Name", placeholder="Alex Mercer")
                     reg_email = st.text_input("Company Email (@arl.com.pk)", placeholder="employee@arl.com.pk")
                     reg_pass = st.text_input("Master Password", type="password")
-                    
-                    st.markdown("**Choose your Executive Badge / Sticker:**")
-                    reg_sticker = st.selectbox(
-                        "Professional Sticker",
-                        options=list(PROFESSIONAL_STICKERS.keys()),
-                        format_func=lambda x: f"{x} {PROFESSIONAL_STICKERS[x]}"
-                    )
-                    
                     submit_reg = st.form_submit_button("Send Verification OTP", use_container_width=True)
-                    
                 col_r1, col_r2 = st.columns(2)
                 if submit_reg:
                     if not reg_name.strip() or not reg_email.strip() or not reg_pass.strip():
                         st.warning("Please verify all required fields.")
                     else:
-                        success, msg = register_initial_employee(reg_name, reg_email, reg_pass, sticker=reg_sticker)
+                        success, msg = register_initial_employee(reg_name, reg_email, reg_pass)
                         if success:
                             st.success(msg)
                             st.session_state.pending_otp_email = reg_email.lower().strip()
@@ -1736,20 +1582,20 @@ with col_n1:
                 width: 48px; 
                 height: 48px; 
                 border-radius: 14px; 
-                background: linear-gradient(135deg, rgba(74, 222, 128, 0.25) 0%, #082416 100%);
-                border: 2px solid #4ADE80;
+                background: linear-gradient(135deg, rgba(34, 197, 94, 0.25) 0%, #14171A 100%);
+                border: 2px solid #22C55E;
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                box-shadow: 0 0 20px rgba(34, 197, 94, 0.4);
+                box-shadow: 0 0 20px rgba(34, 197, 94, 0.35);
                 flex-shrink: 0;
             ">
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#4ADE80" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#22C55E" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                     <polygon points="12 2 22 7.5 22 16.5 12 22 2 16.5 2 7.5"></polygon>
                 </svg>
             </div>
             <div>
-                <h2 class="top-brand-title" style="margin: 0; font-size: 1.35rem; color: #FFFFFF;">Arl TalentMatch: <span style="color: #4ADE80;">AI-Driven Automated CV Parser & JD Matcher</span></h2>
+                <h2 class="top-brand-title" style="margin: 0; font-size: 1.55rem; color: #FFFFFF;">ARL HireMatrix <span style="color: #22C55E;">Pro</span></h2>
                 <p class="top-brand-subtitle" style="margin: 4px 0 0 0;">Attock Refinery Limited &bull; Active: <b>{st.session_state.get('hr_name', 'Recruiter')}</b> ({st.session_state.get('hr_email', 'admin@arl.com.pk')}) &bull; Role: <b>{st.session_state.get('hr_role', 'Recruiter')}</b></p>
             </div>
         </div>
@@ -2025,7 +1871,7 @@ with tab2:
                 c1, c2 = st.columns([1.3, 1])
                 with c1:
                     st.markdown(f"**💼 Target Role:** `{cand.get('job_title', 'Not Specified')}`")
-                    st.markdown(f"**✉ Email:** `{cand['email']}` | **📞 Phone:** `{cand['phone']}`")
+                    st.markdown(f"**✉️️ Email:** `{cand['email']}` | **📞 Phone:** `{cand['phone']}`")
                     st.markdown(f"**👤 Father's Name:** {cand['father_name']}")
                     st.markdown(f"**🎓 Qualification:** {cand['education']} (CGPA: {cand['cgpa']} | Year: {cand['passing_year']})")
                     st.markdown(f"**🏫 Institute:** {cand['university_name']}")
@@ -2174,9 +2020,9 @@ with tab4:
         st.markdown("### 👥 Active Employee Profiles & Confidential PINs")
         all_emps = get_all_verified_profiles_admin()
         st.markdown(f"**Total Active Registered Employees:** {len(all_emps)}")
-        for emp_email, emp_name, emp_pin, emp_role, emp_sticker in all_emps:
+        for emp_email, emp_name, emp_pin, emp_role in all_emps:
             col_a1, col_a2, col_a3 = st.columns([2, 1, 1])
-            with col_a1: st.write(f"{emp_sticker} **{emp_name}** ({emp_email}) — *{emp_role}*")
+            with col_a1: st.write(f"👤 **{emp_name}** ({emp_email}) — *{emp_role}*")
             with col_a2: st.write(f"PIN: `{emp_pin}`")
             with col_a3:
                 if emp_email.lower() != st.session_state.get('hr_email', '').lower():
