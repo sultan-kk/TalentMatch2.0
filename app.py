@@ -2,8 +2,8 @@
 ARL TalentMatch — Official Corporate Edition (Full-Proof Enterprise Suite)
 =============================================================================
 Branding: Attock Refinery Limited (ARL Forest Green & Adaptive Theme Palette)
-Features: New Registration Option, In-App Download Suite & FAQs, Netflix Cards, 
-Supabase Live Pipeline, Status Updater, Tab 2 Clear View & Database Grid Cleaner.
+Features: Compact Netflix Profile Grid, Integrated Register Card, Hover Badge Editor,
+Direct Card Click Sign-In, Supabase Live Pipeline & Tab 2 Clear View.
 """
 
 import io
@@ -396,7 +396,7 @@ def clear_screened_database():
     if supabase: supabase.table("screened_candidates").delete().neq("id", 0).execute()
 
 # ===========================================================================
-# 5. HIGH-END CORPORATE CSS
+# 5. HIGH-END CORPORATE CSS (COMPACT NETFLIX CARDS WITH HOVER EDIT)
 # ===========================================================================
 ADAPTIVE_CSS = """
 <style>
@@ -409,22 +409,39 @@ html, body, [class*="css"], .stApp {
 [data-testid="stSidebar"] { display: none !important; }
 [data-testid="collapsedControl"] { display: none !important; }
 
-.netflix-card-box {
+/* Compact Netflix Profile Card Wrapper with Hover Edit Option */
+.profile-card-container {
+    position: relative;
     background: linear-gradient(145deg, #0F3622 0%, #081F13 100%);
-    border: 3px solid #15803D;
-    border-radius: 24px;
-    padding: 1.8rem 1rem;
+    border: 2px solid #15803D;
+    border-radius: 20px;
+    padding: 1.5rem 1rem;
     text-align: center;
-    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
     transition: all 0.25s ease;
-    margin-bottom: 8px;
+    margin-bottom: 12px;
     color: #FFFFFF !important;
 }
 
-.netflix-card-box:hover {
-    transform: translateY(-6px) scale(1.02);
+.profile-card-container:hover {
+    transform: translateY(-5px) scale(1.02);
     border-color: #4ADE80;
-    box-shadow: 0 16px 35px rgba(34, 197, 94, 0.45);
+    box-shadow: 0 12px 25px rgba(34, 197, 94, 0.35);
+}
+
+.profile-card-container:hover .hover-edit-badge {
+    opacity: 1;
+}
+
+.hover-edit-badge {
+    position: absolute;
+    top: 10px;
+    right: 12px;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    background: rgba(16, 185, 129, 0.2);
+    border-radius: 50%;
+    padding: 4px;
 }
 
 .top-navbar {
@@ -506,24 +523,11 @@ def show_sticker_picker_dialog(email, name):
                 st.rerun()
 
 # ===========================================================================
-# 8. AUTHENTICATION & NETFLIX PROFILE GRID SCREEN
+# 8. AUTHENTICATION & COMPACT NETFLIX PROFILE GRID SCREEN
 # ===========================================================================
 if not st.session_state.logged_in:
     saved_profiles = get_all_verified_profiles()
     
-    # Gorgeous Styled Top Download Banner & New Registration Button
-    col_b1, col_b2, col_b3 = st.columns([5.5, 2.5, 2.0], vertical_alignment="center")
-    with col_b1:
-        st.markdown("🚀 **ARL TalentMatch Desktop Suite**")
-    with col_b2:
-        if st.button("📥 View Download & FAQs", key="dl_btn_login_top", use_container_width=True):
-            st.session_state.show_download_page = True
-            st.rerun()
-    with col_b3:
-        if st.button("📝 Register Profile", key="reg_btn_login_top", use_container_width=True):
-            st.session_state.show_registration = True
-            st.rerun()
-
     # Check if user clicked Download Desktop App
     if st.session_state.show_download_page:
         st.markdown("---")
@@ -579,7 +583,7 @@ if not st.session_state.logged_in:
                     st.error("Invalid or non-matching PIN.")
         st.stop()
 
-    elif st.session_state.show_registration or not saved_profiles:
+    elif st.session_state.show_registration:
         _, mid_col, _ = st.columns([1, 2.2, 1])
         with mid_col:
             st.markdown("### 📝 Register Executive Profile")
@@ -603,30 +607,62 @@ if not st.session_state.logged_in:
         st.stop()
 
     st.markdown(f"""
-        <div style="text-align: center; padding: 2rem 1rem 1rem 1rem;">
-            <h1 style="font-size: 3rem; font-weight: 800;">Who's Screening?</h1>
-            <p style="color: #4ADE80; font-size: 1.05rem;">{APP_TAGLINE}</p>
+        <div style="text-align: center; padding: 1.5rem 1rem 0.5rem 1rem;">
+            <h1 style="font-size: 2.8rem; font-weight: 800;">Who's Screening?</h1>
+            <p style="color: #4ADE80; font-size: 1rem;">{APP_TAGLINE}</p>
         </div>
     """, unsafe_allow_html=True)
 
-    card_cols = st.columns(max(len(saved_profiles), 1))
-    for idx, (p_email, p_name, p_pin, p_role) in enumerate(saved_profiles):
-        with card_cols[idx]:
-            avatar_sticker = get_user_avatar(p_email)
-            st.markdown(f"""
-                <div class="netflix-card-box">
-                    <div style="font-size: 3.5rem; margin-bottom: 8px;">{avatar_sticker}</div>
-                    <div style="font-size: 1.15rem; font-weight: 800; margin-bottom: 2px;">{p_name}</div>
-                    <div style="font-size: 0.72rem; font-family: 'JetBrains Mono', monospace; color: #4ADE80; text-transform: uppercase;">{p_role}</div>
-                </div>
-            """, unsafe_allow_html=True)
-            c1, c2 = st.columns([2, 1])
-            with c1:
-                if st.button("🔐 Sign In", key=f"signin_{idx}_{p_email}", use_container_width=True):
-                    show_pin_dialog(p_email, p_name, p_role)
-            with c2:
-                if st.button("✏️", key=f"badge_{idx}_{p_email}", use_container_width=True, help="Change Badge"):
-                    show_sticker_picker_dialog(p_email, p_name)
+    # Responsive Profile Grid (Max 4 per row, compact size)
+    all_items = list(saved_profiles) + [("REGISTER_CARD", "Register Profile", "", "Action")]
+    cols_per_row = 4
+    
+    for i in range(0, len(all_items), cols_per_row):
+        row_items = all_items[i:i + cols_per_row]
+        cols = st.columns(cols_per_row)
+        for idx, item in enumerate(row_items):
+            with cols[idx]:
+                if item[0] == "REGISTER_CARD":
+                    # Register Profile Card
+                    st.markdown("""
+                        <div class="profile-card-container" style="border-style: dashed; border-color: #22C55E;">
+                            <div style="font-size: 3rem; margin-bottom: 6px;">➕</div>
+                            <div style="font-size: 1.05rem; font-weight: 800; margin-bottom: 2px;">New Profile</div>
+                            <div style="font-size: 0.7rem; font-family: 'JetBrains Mono', monospace; color: #4ADE80; text-transform: uppercase;">Register</div>
+                        </div>
+                    """, unsafe_allow_html=True)
+                    if st.button("➕ Register Account", key=f"reg_card_btn_{i}", use_container_width=True):
+                        st.session_state.show_registration = True
+                        st.rerun()
+                else:
+                    p_email, p_name, p_pin, p_role = item
+                    avatar_sticker = get_user_avatar(p_email)
+                    st.markdown(f"""
+                        <div class="profile-card-container">
+                            <div class="hover-edit-badge">✏️</div>
+                            <div style="font-size: 3rem; margin-bottom: 6px;">{avatar_sticker}</div>
+                            <div style="font-size: 1.05rem; font-weight: 800; margin-bottom: 2px;">{p_name}</div>
+                            <div style="font-size: 0.7rem; font-family: 'JetBrains Mono', monospace; color: #4ADE80; text-transform: uppercase;">{p_role}</div>
+                        </div>
+                    """, unsafe_allow_html=True)
+                    
+                    c_signin, c_edit = st.columns([3, 1])
+                    with c_signin:
+                        if st.button("🔐 Sign In", key=f"signin_grid_{i}_{idx}", use_container_width=True):
+                            show_pin_dialog(p_email, p_name, p_role)
+                    with c_edit:
+                        if st.button("⚙️", key=f"edit_grid_{i}_{idx}", use_container_width=True, help="Change Badge"):
+                            show_sticker_picker_dialog(p_email, p_name)
+
+    st.markdown("<br><hr style='border-color: rgba(34,197,94,0.2);'>", unsafe_allow_html=True)
+    col_dl1, col_dl2 = st.columns([7, 3], vertical_alignment="center")
+    with col_dl1:
+        st.markdown("🖥️ **Need desktop offline execution?** Download our official Windows MSI suite.")
+    with col_dl2:
+        if st.button("📥 Download & FAQs", key="dl_portal_bottom", use_container_width=True):
+            st.session_state.show_download_page = True
+            st.rerun()
+
     st.stop()
 
 # ===========================================================================
