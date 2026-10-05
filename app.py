@@ -1,9 +1,9 @@
 """
-ARL TalentMatch — Official Corporate Edition (Adaptive Enterprise Suite)
+ARL TalentMatch — Official Corporate Edition (Full-Proof Enterprise Suite)
 =============================================================================
 Branding: Attock Refinery Limited (ARL Forest Green & Native Adaptive Theme)
-Features: True 175x175px Square Netflix Cards, In-Card Top-Right Edit Badge,
-Centered Captions, Supabase Permanent Badge Sync, Tab 2 Clean Sync.
+Features: True Fixed 160x160px Square Profile Cards, In-Card Top-Right Edit Badge,
+Supabase Permanent Badge Sync, Zero CSS Collapse, Tab 2 Clean Sync.
 """
 
 import io
@@ -33,8 +33,8 @@ ACCEPTED_TYPES = ["pdf", "docx", "png", "jpg", "jpeg"]
 EXE_DIRECT_DOWNLOAD_URL = "https://github.com/sultan-kk/TalentMatch2.0/releases/download/v1.0/ARL-HireMatrix-Pro_1.0.0_x64_en-US.msi"
 
 AVAILABLE_BADGES = [
-    "👔", "💼", "🛡️", "🎖️", "⚡", "🔬", "🛢️", "⚙️️", 
-    "📈", "🎯", "👑", "🚀", "💡", "💻", "💎", "🏛️"
+    "👔", "💼", "🛡️", "🎖️", "⚡", "🔬", "🛢️", "⚙️", 
+    "📈", "🎯", "👑", "🚀", "💡", "💻", "💎", "🏛️️"
 ]
 
 def get_arl_favicon():
@@ -188,16 +188,6 @@ def register_initial_employee(name, email, password):
             return False, msg
     except Exception as e:
         return False, f"Database Error: {e}"
-
-def verify_otp_code(email, entered_otp):
-    if not supabase: return False, "Supabase client not initialized."
-    try:
-        response = supabase.table("hr_users").select("otp").eq("email", email.lower().strip()).execute().data
-        if response and response[0].get("otp") == entered_otp:
-            return True, "OTP verified successfully!"
-    except Exception:
-        pass
-    return False, "Invalid OTP code."
 
 def save_employee_pin(email, pin):
     if not supabase: return False, "Supabase client not initialized."
@@ -419,7 +409,7 @@ def clear_screened_database():
     if supabase: supabase.table("screened_candidates").delete().neq("id", 0).execute()
 
 # ===========================================================================
-# 5. DEDICATED CSS (STRICT 175x175 SQUARE WITH IN-CARD TOP-RIGHT EDIT ICON)
+# 5. ROBUST & GUARANTEED 160x160 SQUARE PROFILE CARD CSS
 # ===========================================================================
 ADAPTIVE_CSS = """
 <style>
@@ -433,34 +423,46 @@ html, body, [class*="css"], .stApp {
     display: none !important; 
 }
 
-/* Container for Square Profile Card (Centered, Fixed 175px) */
-.profile-cell-wrap {
+/* Base button styling inside Dashboard */
+div.stButton > button {
+    border-radius: 10px !important;
+    font-weight: 600 !important;
+    padding: 0.45rem 1.1rem !important;
+    transition: all 0.2s ease !important;
+}
+
+div.stButton > button[kind="primary"] {
+    background: #047857 !important;
+    border-color: #059669 !important;
+    color: #FFFFFF !important;
+}
+
+/* ==========================================================================
+   SOLID 160x160 SQUARE PROFILE BUTTONS (DOES NOT COLLAPSE OR STRETCH)
+   ========================================================================== */
+.profile-block {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    margin-bottom: 2rem;
+    width: 160px;
+    margin: 0 auto 1.5rem auto;
 }
 
-.card-box-holder {
+.profile-card-wrapper {
     position: relative;
-    width: 175px !important;
-    height: 175px !important;
-    margin: 0 auto !important;
+    width: 160px;
+    height: 160px;
 }
 
-/* Force Big Square 175x175px Button */
-.card-box-holder div[data-testid="stButton"]:first-of-type > button {
-    width: 175px !important;
-    height: 175px !important;
-    min-width: 175px !important;
-    max-width: 175px !important;
-    min-height: 175px !important;
-    max-height: 175px !important;
-    border-radius: 28px !important;
+/* The Big Square Profile Button */
+.profile-card-wrapper div.stButton > button {
+    width: 160px !important;
+    height: 160px !important;
+    border-radius: 26px !important;
     background: #181B20 !important;
     border: 2px solid #2D333B !important;
-    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.5) !important;
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.45) !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
@@ -469,53 +471,52 @@ html, body, [class*="css"], .stApp {
     transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
-.card-box-holder div[data-testid="stButton"]:first-of-type > button p {
-    font-size: 5.5rem !important;
+.profile-card-wrapper div.stButton > button p {
+    font-size: 5rem !important;
     line-height: 1 !important;
     margin: 0 !important;
     padding: 0 !important;
 }
 
-.card-box-holder div[data-testid="stButton"]:first-of-type > button:hover {
-    transform: translateY(-6px) scale(1.03) !important;
+.profile-card-wrapper div.stButton > button:hover {
+    transform: translateY(-5px) scale(1.03) !important;
     border-color: #10B981 !important;
-    box-shadow: 0 16px 32px rgba(16, 185, 129, 0.35) !important;
+    box-shadow: 0 14px 28px rgba(16, 185, 129, 0.4) !important;
     background: #22262E !important;
 }
 
-/* Integrated Edit Pencil Icon at Top-Right of Card */
-.corner-edit-btn {
+/* Top-Right Pencil Button inside the 160x160 Square */
+.profile-pencil-box {
     position: absolute;
     top: 8px;
     right: 8px;
-    z-index: 5;
+    z-index: 99;
 }
 
-.corner-edit-btn div.stButton > button {
+.profile-pencil-box div.stButton > button {
     width: 32px !important;
     height: 32px !important;
     min-width: 32px !important;
-    max-width: 32px !important;
     min-height: 32px !important;
-    max-height: 32px !important;
     border-radius: 50% !important;
-    background: rgba(24, 27, 32, 0.9) !important;
-    border: 1px solid rgba(16, 185, 129, 0.5) !important;
-    padding: 0 !important;
+    background: #23272F !important;
+    border: 1.5px solid #10B981 !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4) !important;
-    transition: all 0.2s ease !important;
-}
-
-.corner-edit-btn div.stButton > button p {
-    font-size: 0.95rem !important;
+    padding: 0 !important;
     margin: 0 !important;
-    line-height: 1 !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5) !important;
 }
 
-.corner-edit-btn div.stButton > button:hover {
+.profile-pencil-box div.stButton > button p {
+    font-size: 0.9rem !important;
+    line-height: 1 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.profile-pencil-box div.stButton > button:hover {
     background: #10B981 !important;
     border-color: #34D399 !important;
     transform: scale(1.15) !important;
@@ -524,15 +525,15 @@ html, body, [class*="css"], .stApp {
 /* Captions Below Card */
 .profile-meta-title {
     text-align: center;
-    font-size: 1.15rem;
+    font-size: 1.1rem;
     font-weight: 700;
     line-height: 1.2;
-    margin-top: 12px;
+    margin-top: 10px;
 }
 
 .profile-meta-role {
     text-align: center;
-    font-size: 0.75rem;
+    font-size: 0.72rem;
     font-family: 'JetBrains Mono', monospace;
     color: #10B981 !important;
     text-transform: uppercase;
@@ -580,24 +581,6 @@ html, body, [class*="css"], .stApp {
     font-weight: 700;
     color: #10B981;
 }
-
-div[data-testid="stMainBlockContainer"] div.stButton > button {
-    border-radius: 10px !important;
-    font-weight: 600 !important;
-    padding: 0.45rem 1.1rem !important;
-    transition: all 0.2s ease !important;
-}
-
-div.stButton > button[kind="primary"] {
-    background: #047857 !important;
-    border-color: #059669 !important;
-    color: #FFFFFF !important;
-}
-
-div.stButton > button[kind="primary"]:hover {
-    background: #059669 !important;
-    border-color: #10B981 !important;
-}
 </style>
 """
 st.markdown(ADAPTIVE_CSS, unsafe_allow_html=True)
@@ -613,7 +596,6 @@ if "profile_avatars" not in st.session_state: st.session_state.profile_avatars =
 if "screening_results" not in st.session_state: st.session_state.screening_results = []
 if "show_registration" not in st.session_state: st.session_state.show_registration = False
 if "pending_pin_email" not in st.session_state: st.session_state.pending_pin_email = None
-if "pending_otp_email" not in st.session_state: st.session_state.pending_otp_email = None
 if "show_download_page" not in st.session_state: st.session_state.show_download_page = False
 
 # ===========================================================================
@@ -753,13 +735,13 @@ if not st.session_state.logged_in:
         st.stop()
 
     st.markdown(f"""
-        <div style="text-align: center; padding: 2.2rem 1rem 1.8rem 1rem;">
+        <div style="text-align: center; padding: 2.2rem 1rem 1.6rem 1rem;">
             <h1 style="font-size: 2.6rem; font-weight: 800; margin-bottom: 4px;">Who's Screening?</h1>
             <p style="color: #10B981; font-size: 1rem; font-weight: 500;">{APP_TAGLINE}</p>
         </div>
     """, unsafe_allow_html=True)
 
-    # Scoped Netflix-Style Square Cards (175x175px)
+    # Scoped Netflix-Style Square Cards (160x160px)
     all_items = list(saved_profiles) + [("REGISTER_CARD", "New Profile", "", "Register")]
     cols_per_row = 4
     
@@ -769,44 +751,38 @@ if not st.session_state.logged_in:
         for idx, item in enumerate(row_items):
             with cols[idx]:
                 if item[0] == "REGISTER_CARD":
-                    st.markdown("""
-                        <div class="profile-cell-wrap">
-                            <div class="card-box-holder">
-                    """, unsafe_allow_html=True)
+                    st.markdown('<div class="profile-block"><div class="profile-card-wrapper">', unsafe_allow_html=True)
                     if st.button("➕", key=f"add_profile_card_{i}"):
                         st.session_state.show_registration = True
                         st.rerun()
                     st.markdown("""
-                            </div>
-                            <div class="profile-meta-title">New Profile</div>
-                            <div class="profile-meta-role">Register Account</div>
                         </div>
+                        <div class="profile-meta-title">New Profile</div>
+                        <div class="profile-meta-role">Register Account</div>
+                    </div>
                     """, unsafe_allow_html=True)
                 else:
                     p_email, p_name, p_pin, p_role = item
                     avatar_sticker = get_user_avatar(p_email)
                     
-                    st.markdown("""
-                        <div class="profile-cell-wrap">
-                            <div class="card-box-holder">
-                    """, unsafe_allow_html=True)
+                    st.markdown('<div class="profile-block"><div class="profile-card-wrapper">', unsafe_allow_html=True)
                     
-                    # Main Square Avatar Card
+                    # Main Square 160x160 Avatar Card
                     if st.button(avatar_sticker, key=f"user_card_{i}_{idx}"):
                         show_pin_dialog(p_email, p_name, p_role)
                     
-                    # Corner Edit Button inside card
-                    st.markdown('<div class="corner-edit-btn">', unsafe_allow_html=True)
+                    # Top-Right Pencil Button inside the 160x160 box
+                    st.markdown('<div class="profile-pencil-box">', unsafe_allow_html=True)
                     if st.button("✏️", key=f"edit_btn_{i}_{idx}", help="Change Badge"):
                         show_sticker_picker_dialog(p_email, p_name)
                     st.markdown('</div>', unsafe_allow_html=True)
                     
                     # Name & Role below card
                     st.markdown(f"""
-                            </div>
-                            <div class="profile-meta-title">{p_name}</div>
-                            <div class="profile-meta-role">{p_role}</div>
                         </div>
+                        <div class="profile-meta-title">{p_name}</div>
+                        <div class="profile-meta-role">{p_role}</div>
+                    </div>
                     """, unsafe_allow_html=True)
 
     st.markdown("<br><hr style='opacity: 0.25;'>", unsafe_allow_html=True)
@@ -985,7 +961,7 @@ with tab2:
     if display_results:
         st.markdown("### 📋 Screened Candidates")
         
-        if st.button("🗑️️ Clear Screening View", type="secondary", key="clear_screening_view_btn"):
+        if st.button("🗑️ Clear Screening View", type="secondary", key="clear_screening_view_btn"):
             st.session_state.screening_results = []
             st.success("Screening view reset.")
             st.rerun()
@@ -1044,7 +1020,7 @@ with tab3:
     st.markdown('</div>', unsafe_allow_html=True)
 
 with tab4:
-    st.markdown('<div class="corp-card"><h4>🛡 Admin User Controls</h4>', unsafe_allow_html=True)
+    st.markdown('<div class="corp-card"><h4>🛡️ Admin User Controls</h4>', unsafe_allow_html=True)
     profiles = get_all_verified_profiles()
     for p_em, p_nm, p_p, p_r in profiles:
         c1, c2, c3 = st.columns([3, 1.5, 1], vertical_alignment="center")
