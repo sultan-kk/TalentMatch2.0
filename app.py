@@ -460,7 +460,7 @@ def clear_screened_database():
     if supabase: supabase.table("screened_candidates").delete().neq("id", 0).execute()
 
 # ===========================================================================
-# 5. CSS (DIRECT ENFORCED 165x165 SQUARES & HOVER GLOW)
+# 5. CSS (BULLET-PROOF PROFILE GRID STYLING)
 # ===========================================================================
 ADAPTIVE_CSS = """
 <style>
@@ -474,98 +474,91 @@ html, body, [class*="css"], .stApp {
     display: none !important; 
 }
 
-/* Base button styling inside Dashboard */
-div.stButton > button {
-    border-radius: 10px !important;
-    font-weight: 600 !important;
-    padding: 0.45rem 1.1rem !important;
-    transition: all 0.2s ease !important;
-}
-
-div.stButton > button[kind="primary"] {
-    background: #047857 !important;
-    border-color: #059669 !important;
-    color: #FFFFFF !important;
-}
-
 /* ==========================================================================
-   SOLID 165x165 SQUARE PROFILE BUTTONS
+   SOLID 165x165 SQUARES USING TARGETED :HAS() SELECTOR
    ========================================================================== */
-div[data-testid="stColumn"] {
+
+/* 1. Center the column contents */
+div[data-testid="stColumn"]:has(.profile-card-marker) {
     display: flex !important;
     flex-direction: column !important;
     align-items: center !important;
     justify-content: flex-start !important;
 }
 
-/* Targeted Strict 165x165 Square Buttons */
-div[data-testid="stColumn"] div.stButton > button[key*="ucard_"],
-div[data-testid="stColumn"] div.stButton > button[key*="add_card_"] {
+/* 2. Force inner button wrappers to center */
+div[data-testid="stColumn"]:has(.profile-card-marker) div[data-testid="stButton"] {
+    display: flex !important;
+    justify-content: center !important;
+    width: 100% !important;
+}
+
+/* 3. The BIG SQUARE Avatar Button (Identified by kind="primary") */
+div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="primary"] {
     width: 165px !important;
     height: 165px !important;
     min-width: 165px !important;
     max-width: 165px !important;
     min-height: 165px !important;
     max-height: 165px !important;
-    aspect-ratio: 1 / 1 !important;
-    border-radius: 28px !important;
-    background: #181B20 !important;
+    border-radius: 30px !important;
+    background: linear-gradient(145deg, #181B20 0%, #111317 100%) !important;
     border: 2px solid #2D333B !important;
-    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.5) !important;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5) !important;
+    padding: 0 !important;
+    margin: 0 auto !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
-    margin: 0 auto !important;
-    padding: 0 !important;
-    cursor: pointer !important;
-    transition: all 0.28s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
 }
 
-div[data-testid="stColumn"] div.stButton > button[key*="ucard_"] p,
-div[data-testid="stColumn"] div.stButton > button[key*="add_card_"] p {
-    font-size: 5.2rem !important;
+/* Emoji sizing inside Avatar Button */
+div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="primary"] p {
+    font-size: 5.5rem !important;
     line-height: 1 !important;
     margin: 0 !important;
     padding: 0 !important;
-    transition: transform 0.28s ease !important;
+    transition: transform 0.3s ease !important;
 }
 
-/* Hover Lift + Glowing Emerald */
-div[data-testid="stColumn"] div.stButton > button[key*="ucard_"]:hover,
-div[data-testid="stColumn"] div.stButton > button[key*="add_card_"]:hover {
+/* Hover Effect for Square Card */
+div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="primary"]:hover {
     transform: translateY(-8px) scale(1.05) !important;
     border-color: #10B981 !important;
-    box-shadow: 0 16px 36px rgba(16, 185, 129, 0.4), 0 0 18px rgba(52, 211, 153, 0.3) !important;
-    background: #22262E !important;
+    box-shadow: 0 15px 35px rgba(16, 185, 129, 0.4), 0 0 20px rgba(16, 185, 129, 0.2) !important;
+    background: #1C2026 !important;
 }
 
-div[data-testid="stColumn"] div.stButton > button[key*="ucard_"]:hover p,
-div[data-testid="stColumn"] div.stButton > button[key*="add_card_"]:hover p {
-    transform: scale(1.08) !important;
+div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="primary"]:hover p {
+    transform: scale(1.1) !important;
 }
 
-/* Edit Badge Pill Button */
-div[data-testid="stColumn"] div.stButton > button[key*="ebtn_"] {
+/* 4. The SLEEK PILL "Edit Badge" Button (Identified by kind="secondary") */
+div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="secondary"] {
     border-radius: 20px !important;
-    font-size: 0.78rem !important;
-    padding: 0.22rem 0.8rem !important;
-    background: rgba(16, 185, 129, 0.12) !important;
-    border: 1px solid rgba(16, 185, 129, 0.4) !important;
+    font-size: 0.75rem !important;
+    padding: 0.15rem 0.8rem !important;
+    background: rgba(16, 185, 129, 0.1) !important;
+    border: 1px solid rgba(16, 185, 129, 0.3) !important;
     color: #10B981 !important;
-    margin-top: 6px !important;
+    margin-top: 10px !important;
+    width: auto !important;
+    min-height: 28px !important;
 }
 
-div[data-testid="stColumn"] div.stButton > button[key*="ebtn_"]:hover {
+div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="secondary"]:hover {
     background: #10B981 !important;
     color: #FFFFFF !important;
 }
 
+/* 5. Text Styling below card */
 .profile-meta-title {
     text-align: center;
-    font-size: 1.12rem;
+    font-size: 1.15rem;
     font-weight: 700;
     color: #FFFFFF !important;
-    margin-top: 10px;
+    margin-top: 12px;
     line-height: 1.2;
 }
 
@@ -579,7 +572,34 @@ div[data-testid="stColumn"] div.stButton > button[key*="ebtn_"]:hover {
     margin-top: 2px;
 }
 
-/* Interior Dashboard Styling */
+/* ==========================================================================
+   DASHBOARD / INTERIOR STYLING
+   ========================================================================== */
+/* Protect Standard Buttons Inside Dashboard */
+div[data-testid="stMainBlockContainer"] div.stButton > button {
+    border-radius: 10px !important;
+    font-weight: 600 !important;
+    padding: 0.45rem 1.1rem !important;
+    transition: all 0.2s ease !important;
+}
+
+/* Protect Main Dashboard Primary Buttons */
+div[data-testid="stMainBlockContainer"]:not(:has(.profile-card-marker)) button[kind="primary"] {
+    background: #047857 !important;
+    border-color: #059669 !important;
+    color: #FFFFFF !important;
+    width: auto !important;
+    height: auto !important;
+    font-size: 1rem !important;
+    box-shadow: none !important;
+    transform: none !important;
+}
+
+div[data-testid="stMainBlockContainer"]:not(:has(.profile-card-marker)) button[kind="primary"]:hover {
+    background: #059669 !important;
+    border-color: #10B981 !important;
+}
+
 .top-navbar {
     background: var(--secondary-background-color);
     border: 1px solid rgba(16, 185, 129, 0.35);
@@ -689,7 +709,7 @@ def show_sticker_picker_dialog(email, name):
                 st.rerun()
 
 # ===========================================================================
-# 8. AUTHENTICATION & LOGIN SCREEN (165x165 SQUARES)
+# 8. AUTHENTICATION & LOGIN SCREEN (GUARANTEED 165x165 SQUARES)
 # ===========================================================================
 if not st.session_state.logged_in:
     saved_profiles = get_all_verified_profiles()
@@ -769,8 +789,11 @@ if not st.session_state.logged_in:
         cols = st.columns(cols_per_row)
         for idx, item in enumerate(row_items):
             with cols[idx]:
+                # Secret marker to tell CSS this is a profile column!
+                st.markdown('<div class="profile-card-marker" style="display:none;"></div>', unsafe_allow_html=True)
+                
                 if item[0] == "REGISTER_CARD":
-                    if st.button("➕", key=f"add_card_{i}_{idx}"):
+                    if st.button("➕", key=f"add_card_{i}_{idx}", type="primary"):
                         st.session_state.show_registration = True
                         st.rerun()
                     st.markdown("""
@@ -781,16 +804,18 @@ if not st.session_state.logged_in:
                     p_email, p_name, p_pin, p_role = item
                     avatar_sticker = get_user_avatar(p_email)
 
-                    if st.button(avatar_sticker, key=f"ucard_{i}_{idx}"):
+                    # BIG SQUARE CARD (Type Primary targets the 165x165 CSS)
+                    if st.button(avatar_sticker, key=f"ucard_{i}_{idx}", type="primary"):
                         show_pin_dialog(p_email, p_name, p_role)
+
+                    # SLEEK PILL EDIT BUTTON (Type Secondary targets the sleek styling)
+                    if st.button("✏️ Change Badge", key=f"ebtn_{i}_{idx}", type="secondary"):
+                        show_sticker_picker_dialog(p_email, p_name)
 
                     st.markdown(f"""
                         <div class="profile-meta-title">{p_name}</div>
                         <div class="profile-meta-role">{p_role}</div>
                     """, unsafe_allow_html=True)
-
-                    if st.button("✏️ Change Badge", key=f"ebtn_{i}_{idx}"):
-                        show_sticker_picker_dialog(p_email, p_name)
 
     st.markdown("<br><hr style='opacity: 0.25;'>", unsafe_allow_html=True)
     col_dl1, col_dl2 = st.columns([7.5, 2.5], vertical_alignment="center")
@@ -963,8 +988,7 @@ with col_nav_right:
             st.session_state.hr_name = ""
             st.session_state.hr_email = ""
             st.session_state.hr_role = "Recruiter"
-            st.query_params.clear()
-            st.rerun()
+            st.rerun()  # INSTANT LOGOUT TRIGGER FIXED YAHAN
 
 st.markdown(f"""
     <div class="corp-hero">
@@ -1116,7 +1140,7 @@ with tab3:
     st.markdown('</div>', unsafe_allow_html=True)
 
 with tab4:
-    st.markdown('<div class="corp-card"><h4>🛡️ Admin User Controls</h4>', unsafe_allow_html=True)
+    st.markdown('<div class="corp-card"><h4>🛡️️ Admin User Controls</h4>', unsafe_allow_html=True)
     profiles = get_all_verified_profiles()
     for p_em, p_nm, p_p, p_r in profiles:
         c1, c2, c3 = st.columns([3, 1.5, 1], vertical_alignment="center")
