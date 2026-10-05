@@ -2,8 +2,8 @@
 ARL TalentMatch — Official Corporate Edition (Full-Proof Enterprise Suite)
 =============================================================================
 Branding: Attock Refinery Limited (ARL Forest Green & Adaptive Theme Palette)
-Features: Compact Netflix Profile Grid, Integrated Register Card, Hover Badge Editor,
-Direct Card Click Sign-In, Supabase Live Pipeline & Tab 2 Clear View.
+Features: Responsive Compact Netflix Grid, Direct Card Click Sign-In, 
+Hover Badge Editor, Integrated Register Card, Supabase Live Pipeline & Tab 2 Clear View.
 """
 
 import io
@@ -396,7 +396,7 @@ def clear_screened_database():
     if supabase: supabase.table("screened_candidates").delete().neq("id", 0).execute()
 
 # ===========================================================================
-# 5. HIGH-END CORPORATE CSS (COMPACT NETFLIX CARDS WITH HOVER EDIT)
+# 5. HIGH-END CORPORATE CSS (RESPONSIVE COMPACT NETFLIX CARDS & HOVER EDIT)
 # ===========================================================================
 ADAPTIVE_CSS = """
 <style>
@@ -409,24 +409,25 @@ html, body, [class*="css"], .stApp {
 [data-testid="stSidebar"] { display: none !important; }
 [data-testid="collapsedControl"] { display: none !important; }
 
-/* Compact Netflix Profile Card Wrapper with Hover Edit Option */
+/* Responsive Compact Netflix Profile Card Wrapper */
 .profile-card-container {
     position: relative;
     background: linear-gradient(145deg, #0F3622 0%, #081F13 100%);
     border: 2px solid #15803D;
-    border-radius: 20px;
-    padding: 1.5rem 1rem;
+    border-radius: 18px;
+    padding: 1.2rem 0.8rem;
     text-align: center;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
     transition: all 0.25s ease;
-    margin-bottom: 12px;
+    margin-bottom: 10px;
+    cursor: pointer;
     color: #FFFFFF !important;
 }
 
 .profile-card-container:hover {
-    transform: translateY(-5px) scale(1.02);
+    transform: translateY(-4px) scale(1.02);
     border-color: #4ADE80;
-    box-shadow: 0 12px 25px rgba(34, 197, 94, 0.35);
+    box-shadow: 0 10px 22px rgba(34, 197, 94, 0.35);
 }
 
 .profile-card-container:hover .hover-edit-badge {
@@ -435,13 +436,14 @@ html, body, [class*="css"], .stApp {
 
 .hover-edit-badge {
     position: absolute;
-    top: 10px;
-    right: 12px;
+    top: 8px;
+    right: 10px;
     opacity: 0;
     transition: opacity 0.2s ease;
-    background: rgba(16, 185, 129, 0.2);
+    background: rgba(16, 185, 129, 0.3);
     border-radius: 50%;
-    padding: 4px;
+    padding: 3px 6px;
+    font-size: 0.8rem;
 }
 
 .top-navbar {
@@ -523,7 +525,7 @@ def show_sticker_picker_dialog(email, name):
                 st.rerun()
 
 # ===========================================================================
-# 8. AUTHENTICATION & COMPACT NETFLIX PROFILE GRID SCREEN
+# 8. AUTHENTICATION & RESPONSIVE NETFLIX PROFILE GRID SCREEN
 # ===========================================================================
 if not st.session_state.logged_in:
     saved_profiles = get_all_verified_profiles()
@@ -613,7 +615,7 @@ if not st.session_state.logged_in:
         </div>
     """, unsafe_allow_html=True)
 
-    # Responsive Profile Grid (Max 4 per row, compact size)
+    # Responsive Compact Profile Grid (Max 4 per row, direct click & hover edit)
     all_items = list(saved_profiles) + [("REGISTER_CARD", "Register Profile", "", "Action")]
     cols_per_row = 4
     
@@ -623,35 +625,38 @@ if not st.session_state.logged_in:
         for idx, item in enumerate(row_items):
             with cols[idx]:
                 if item[0] == "REGISTER_CARD":
-                    # Register Profile Card
+                    # Register Card
                     st.markdown("""
                         <div class="profile-card-container" style="border-style: dashed; border-color: #22C55E;">
-                            <div style="font-size: 3rem; margin-bottom: 6px;">➕</div>
-                            <div style="font-size: 1.05rem; font-weight: 800; margin-bottom: 2px;">New Profile</div>
-                            <div style="font-size: 0.7rem; font-family: 'JetBrains Mono', monospace; color: #4ADE80; text-transform: uppercase;">Register</div>
+                            <div style="font-size: 2.5rem; margin-bottom: 4px;">➕</div>
+                            <div style="font-size: 1rem; font-weight: 800; margin-bottom: 2px;">New Profile</div>
+                            <div style="font-size: 0.65rem; font-family: 'JetBrains Mono', monospace; color: #4ADE80; text-transform: uppercase;">Register Account</div>
                         </div>
                     """, unsafe_allow_html=True)
-                    if st.button("➕ Register Account", key=f"reg_card_btn_{i}", use_container_width=True):
+                    if st.button("➕ Register", key=f"reg_card_btn_{i}", use_container_width=True):
                         st.session_state.show_registration = True
                         st.rerun()
                 else:
                     p_email, p_name, p_pin, p_role = item
                     avatar_sticker = get_user_avatar(p_email)
+                    
+                    # Container with hover badge
                     st.markdown(f"""
                         <div class="profile-card-container">
-                            <div class="hover-edit-badge">✏️</div>
-                            <div style="font-size: 3rem; margin-bottom: 6px;">{avatar_sticker}</div>
-                            <div style="font-size: 1.05rem; font-weight: 800; margin-bottom: 2px;">{p_name}</div>
-                            <div style="font-size: 0.7rem; font-family: 'JetBrains Mono', monospace; color: #4ADE80; text-transform: uppercase;">{p_role}</div>
+                            <div class="hover-edit-badge" title="Edit Badge">⚙️</div>
+                            <div style="font-size: 2.5rem; margin-bottom: 4px;">{avatar_sticker}</div>
+                            <div style="font-size: 1rem; font-weight: 800; margin-bottom: 2px;">{p_name}</div>
+                            <div style="font-size: 0.65rem; font-family: 'JetBrains Mono', monospace; color: #4ADE80; text-transform: uppercase;">{p_role}</div>
                         </div>
                     """, unsafe_allow_html=True)
                     
-                    c_signin, c_edit = st.columns([3, 1])
-                    with c_signin:
+                    # Inline tiny triggers for Sign In & Badge Change
+                    c_click, c_badge = st.columns([3, 1])
+                    with c_click:
                         if st.button("🔐 Sign In", key=f"signin_grid_{i}_{idx}", use_container_width=True):
                             show_pin_dialog(p_email, p_name, p_role)
-                    with c_edit:
-                        if st.button("⚙️", key=f"edit_grid_{i}_{idx}", use_container_width=True, help="Change Badge"):
+                    with c_badge:
+                        if st.button("✏️", key=f"edit_grid_{i}_{idx}", use_container_width=True, help="Change Badge"):
                             show_sticker_picker_dialog(p_email, p_name)
 
     st.markdown("<br><hr style='border-color: rgba(34,197,94,0.2);'>", unsafe_allow_html=True)
