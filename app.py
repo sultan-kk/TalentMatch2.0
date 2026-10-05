@@ -2,8 +2,8 @@
 ARL TalentMatch — Official Corporate Edition (Full-Proof Enterprise Suite)
 =============================================================================
 Branding: Attock Refinery Limited (ARL Forest Green & Adaptive Theme Palette)
-Features: Fully Responsive Netflix Grid, Direct Card Click Sign-In, Clean Hover Badge Editor,
-Integrated Register Card, Supabase Live Pipeline, Tab 2 Clear View & Corporate Footer.
+Features: True Netflix Clickable Profile Cards, Zero Ugly Sub-Buttons,
+Clean Login Flow, Supabase Live Pipeline, Tab 2 Clear View & Instant App Sync.
 """
 
 import io
@@ -396,7 +396,7 @@ def clear_screened_database():
     if supabase: supabase.table("screened_candidates").delete().neq("id", 0).execute()
 
 # ===========================================================================
-# 5. HIGH-END CORPORATE CSS (RESPONSIVE NETFLIX CARDS WITH HOVER EDIT)
+# 5. HIGH-END CORPORATE CSS (CLICKABLE PROFILE CARD OVERLAY)
 # ===========================================================================
 ADAPTIVE_CSS = """
 <style>
@@ -409,41 +409,47 @@ html, body, [class*="css"], .stApp {
 [data-testid="stSidebar"] { display: none !important; }
 [data-testid="collapsedControl"] { display: none !important; }
 
-/* Responsive Compact Netflix Profile Card Wrapper */
-.profile-card-container {
-    position: relative;
-    background: linear-gradient(145deg, #0F3622 0%, #081F13 100%);
-    border: 2px solid #15803D;
-    border-radius: 18px;
-    padding: 1.5rem 1rem;
-    text-align: center;
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
-    transition: all 0.25s ease;
-    margin-bottom: 12px;
-    cursor: pointer;
+/* Clickable Profile Card Button Styling */
+div[data-testid="stColumn"] div.stButton > button.profile-card-btn {
+    width: 100% !important;
+    min-height: 180px !important;
+    background: linear-gradient(145deg, #0F3622 0%, #081F13 100%) !important;
+    border: 2px solid #15803D !important;
+    border-radius: 20px !important;
     color: #FFFFFF !important;
+    padding: 1.2rem 0.5rem !important;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4) !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    white-space: pre-wrap !important;
 }
 
-.profile-card-container:hover {
-    transform: translateY(-4px) scale(1.02);
-    border-color: #4ADE80;
-    box-shadow: 0 10px 22px rgba(34, 197, 94, 0.35);
+div[data-testid="stColumn"] div.stButton > button.profile-card-btn:hover {
+    transform: translateY(-5px) scale(1.02) !important;
+    border-color: #4ADE80 !important;
+    box-shadow: 0 12px 24px rgba(34, 197, 94, 0.35) !important;
+    background: linear-gradient(145deg, #13452B 0%, #0A291A 100%) !important;
 }
 
-.profile-card-container:hover .hover-edit-badge {
-    opacity: 1;
+div[data-testid="stColumn"] div.stButton > button.profile-add-btn {
+    width: 100% !important;
+    min-height: 180px !important;
+    background: linear-gradient(145deg, rgba(15, 54, 34, 0.4) 0%, rgba(8, 31, 19, 0.4) 100%) !important;
+    border: 2px dashed #22C55E !important;
+    border-radius: 20px !important;
+    color: #FFFFFF !important;
+    padding: 1.2rem 0.5rem !important;
+    transition: all 0.25s ease !important;
+    white-space: pre-wrap !important;
 }
 
-.hover-edit-badge {
-    position: absolute;
-    top: 10px;
-    right: 12px;
-    opacity: 0;
-    transition: opacity 0.2s ease;
-    background: rgba(16, 185, 129, 0.3);
-    border-radius: 50%;
-    padding: 4px 8px;
-    font-size: 0.85rem;
+div[data-testid="stColumn"] div.stButton > button.profile-add-btn:hover {
+    transform: translateY(-5px) scale(1.02) !important;
+    border-color: #86EFAC !important;
+    background: linear-gradient(145deg, rgba(22, 101, 52, 0.5) 0%, rgba(10, 35, 21, 0.6) 100%) !important;
 }
 
 .top-navbar {
@@ -492,8 +498,6 @@ if "show_registration" not in st.session_state: st.session_state.show_registrati
 if "pending_pin_email" not in st.session_state: st.session_state.pending_pin_email = None
 if "pending_otp_email" not in st.session_state: st.session_state.pending_otp_email = None
 if "show_download_page" not in st.session_state: st.session_state.show_download_page = False
-if "show_policy" not in st.session_state: st.session_state.show_policy = False
-if "show_contact" not in st.session_state: st.session_state.show_contact = False
 
 # ===========================================================================
 # 7. DIALOGS (PIN & BADGE)
@@ -515,47 +519,11 @@ def show_pin_dialog(email, name, role):
         else:
             st.error("❌ Invalid 4-Digit PIN.")
 
-@st.dialog("🎨 Choose Executive Badge")
-def show_sticker_picker_dialog(email, name):
-    st.write(f"Select a corporate avatar badge for **{name}**:")
-    cols = st.columns(4)
-    for idx, badge in enumerate(AVAILABLE_BADGES):
-        with cols[idx % 4]:
-            if st.button(badge, key=f"stk_btn_{email}_{idx}", use_container_width=True):
-                set_user_avatar(email, badge)
-                st.success("Badge updated!")
-                st.rerun()
-
 # ===========================================================================
-# 8. AUTHENTICATION & RESPONSIVE NETFLIX PROFILE GRID SCREEN
+# 8. AUTHENTICATION & TRUE CLICKABLE NETFLIX PROFILE GRID SCREEN
 # ===========================================================================
 if not st.session_state.logged_in:
     saved_profiles = get_all_verified_profiles()
-    
-    # Privacy Policy Page
-    if st.session_state.get("show_policy", False):
-        st.markdown("---")
-        st.markdown("### 🔒 Privacy Policy & Corporate Compliance")
-        st.write("Attock Refinery Limited (ARL) values your privacy and ensures that all recruitment data, candidate resumes, and recruiter credentials processed through TalentMatch Pro are secured under strict enterprise data governance standards.")
-        st.write("- **Data Encryption:** All records stored in Supabase are encrypted at rest and in transit.")
-        st.write("- **Access Control:** Role-based access control (RBAC) ensures only authorized HR personnel can view candidate pipelines.")
-        if st.button("⬅ Back to Portal Login", use_container_width=True):
-            st.session_state.show_policy = False
-            st.rerun()
-        st.stop()
-
-    # Contact Us Page
-    if st.session_state.get("show_contact", False):
-        st.markdown("---")
-        st.markdown("### 📞 Contact Human Resources")
-        st.write("For technical assistance, system access, or recruitment inquiries, please reach out to the ARL HR Digital Transformation Cell:")
-        st.write("- **Organization:** Attock Refinery Limited (ARL)")
-        st.write("- **Email:** recruitment@arl.com.pk / hr@arl.com.pk")
-        st.write("- **Location:** Morgah, Rawalpindi, Pakistan")
-        if st.button("⬅ Back to Portal Login", use_container_width=True):
-            st.session_state.show_contact = False
-            st.rerun()
-        st.stop()
 
     # Download Desktop App Page
     if st.session_state.show_download_page:
@@ -575,7 +543,7 @@ if not st.session_state.logged_in:
         st.markdown("""
         1. **Download Package:** Click the prominent green download button above to download the official `.msi` setup package.
         2. **Run Installer:** Double-click `ARL-HireMatrix-Pro_1.0.0_x64_en-US.msi` to launch the Windows setup wizard.
-        3. **Security Prompt:** If Windows SmartScreen prompts a notification (due to custom corporate signing), click **More info** -> **Run anyway**.
+        3. **Security Prompt:** If Windows SmartScreen prompts a notification, click **More info** -> **Run anyway**.
         4. **Launch Suite:** Open ARL TalentMatch from your desktop shortcut or Windows start menu and sign in using your corporate credentials and PIN.
         """)
 
@@ -636,14 +604,14 @@ if not st.session_state.logged_in:
         st.stop()
 
     st.markdown(f"""
-        <div style="text-align: center; padding: 1.5rem 1rem 1rem 1rem;">
-            <h1 style="font-size: 2.8rem; font-weight: 800;">Who's Screening?</h1>
-            <p style="color: #4ADE80; font-size: 1rem;">{APP_TAGLINE}</p>
+        <div style="text-align: center; padding: 2rem 1rem 1.5rem 1rem;">
+            <h1 style="font-size: 2.8rem; font-weight: 800; margin-bottom: 6px;">Who's Screening?</h1>
+            <p style="color: #4ADE80; font-size: 1.05rem;">{APP_TAGLINE}</p>
         </div>
     """, unsafe_allow_html=True)
 
-    # Fully Responsive Profile Grid (Clickable Cards with hover badge)
-    all_items = list(saved_profiles) + [("REGISTER_CARD", "Register Profile", "", "Action")]
+    # Clean, Fully Clickable Profile Grid (No visible ugly buttons)
+    all_items = list(saved_profiles) + [("REGISTER_CARD", "New Profile", "", "Register")]
     cols_per_row = 4
     
     for i in range(0, len(all_items), cols_per_row):
@@ -652,64 +620,25 @@ if not st.session_state.logged_in:
         for idx, item in enumerate(row_items):
             with cols[idx]:
                 if item[0] == "REGISTER_CARD":
-                    st.markdown("""
-                        <div class="profile-card-container" style="border-style: dashed; border-color: #22C55E;">
-                            <div style="font-size: 2.5rem; margin-bottom: 6px;">➕</div>
-                            <div style="font-size: 1.05rem; font-weight: 800; margin-bottom: 2px;">New Profile</div>
-                            <div style="font-size: 0.7rem; font-family: 'JetBrains Mono', monospace; color: #4ADE80; text-transform: uppercase;">Register Account</div>
-                        </div>
-                    """, unsafe_allow_html=True)
-                    if st.button("➕ Create Profile", key=f"reg_card_btn_{i}", use_container_width=True):
+                    add_label = f"➕\n\nNew Profile\n[REGISTER ACCOUNT]"
+                    if st.button(add_label, key=f"add_profile_card_{i}", use_container_width=True):
                         st.session_state.show_registration = True
                         st.rerun()
                 else:
                     p_email, p_name, p_pin, p_role = item
                     avatar_sticker = get_user_avatar(p_email)
-                    
-                    st.markdown(f"""
-                        <div class="profile-card-container">
-                            <div class="hover-edit-badge" title="Change Badge">⚙️</div>
-                            <div style="font-size: 2.8rem; margin-bottom: 6px;">{avatar_sticker}</div>
-                            <div style="font-size: 1.05rem; font-weight: 800; margin-bottom: 2px;">{p_name}</div>
-                            <div style="font-size: 0.7rem; font-family: 'JetBrains Mono', monospace; color: #4ADE80; text-transform: uppercase;">{p_role}</div>
-                        </div>
-                    """, unsafe_allow_html=True)
-                    
-                    # Direct action triggers (Clean & Minimal)
-                    c_in, c_badge = st.columns([3, 1])
-                    with c_in:
-                        if st.button("Select", key=f"sel_card_{i}_{idx}", use_container_width=True):
-                            show_pin_dialog(p_email, p_name, p_role)
-                    with c_badge:
-                        if st.button("⚙️", key=f"badge_card_{i}_{idx}", use_container_width=True, help="Change Badge"):
-                            show_sticker_picker_dialog(p_email, p_name)
+                    card_label = f"{avatar_sticker}\n\n{p_name}\n[{p_role.upper()}]"
+                    if st.button(card_label, key=f"user_card_{i}_{idx}", use_container_width=True):
+                        show_pin_dialog(p_email, p_name, p_role)
 
     st.markdown("<br><hr style='border-color: rgba(34,197,94,0.2);'>", unsafe_allow_html=True)
-    col_dl1, col_dl2 = st.columns([7, 3], vertical_alignment="center")
+    col_dl1, col_dl2 = st.columns([7.5, 2.5], vertical_alignment="center")
     with col_dl1:
         st.markdown("🖥️ **Need desktop offline execution?** Download our official Windows MSI suite.")
     with col_dl2:
         if st.button("📥 Download & FAQs", key="dl_portal_bottom", use_container_width=True):
             st.session_state.show_download_page = True
             st.rerun()
-
-    # ===========================================================================
-    # PROFESSIONAL SMALL FONT FOOTER
-    # ===========================================================================
-    st.markdown("<br>", unsafe_allow_html=True)
-    f_col1, f_col2, f_col3, f_col4 = st.columns([3, 2, 2, 3])
-    with f_col1:
-        st.markdown("<p style='font-size: 0.75rem; color: #9CA3AF; margin: 0;'>© 2026 Attock Refinery Limited (ARL)</p>", unsafe_allow_html=True)
-    with f_col2:
-        if st.button("Privacy Policy", key="footer_privacy_btn", type="tertiary"):
-            st.session_state.show_policy = True
-            st.rerun()
-    with f_col3:
-        if st.button("Contact Us", key="footer_contact_btn", type="tertiary"):
-            st.session_state.show_contact = True
-            st.rerun()
-    with f_col4:
-        st.markdown("<p style='font-size: 0.75rem; color: #9CA3AF; text-align: right; margin: 0;'>Enterprise HR Portal v2.0</p>", unsafe_allow_html=True)
 
     st.stop()
 
@@ -809,7 +738,7 @@ if st.session_state.show_download_page:
     st.markdown("""
     1. **Download Package:** Click the prominent green download button above to download the official `.msi` setup package.
     2. **Run Installer:** Double-click `ARL-HireMatrix-Pro_1.0.0_x64_en-US.msi` to launch the Windows setup wizard.
-    3. **Security Prompt:** If Windows SmartScreen prompts a notification (due to custom corporate signing), click **More info** -> **Run anyway**.
+    3. **Security Prompt:** If Windows SmartScreen prompts a notification, click **More info** -> **Run anyway**.
     4. **Launch Suite:** Open ARL TalentMatch from your desktop shortcut or Windows start menu and sign in using your corporate credentials and PIN.
     """)
 
@@ -911,7 +840,6 @@ with tab2:
     if display_results:
         st.markdown("### 📋 Screening Results")
         
-        # Clear Screening Results View Button in Tab 2
         if st.button("🗑️ Clear Screening Results View", type="secondary", key="clear_screening_view_btn"):
             st.session_state.screening_results = []
             st.success("Screening results view cleared!")
@@ -947,7 +875,7 @@ with tab3:
         s_df = load_screened_database()
         if not s_df.empty: 
             st.dataframe(s_df, use_container_width=True)
-            if st.button("🗑️ Clear All Screened Records", type="secondary", key="clear_screened_btn"):
+            if st.button("🗑️️ Clear All Screened Records", type="secondary", key="clear_screened_btn"):
                 clear_screened_database()
                 st.success("All screened records have been cleared.")
                 st.rerun()
@@ -966,7 +894,7 @@ with tab3:
     st.markdown('</div>', unsafe_allow_html=True)
 
 with tab4:
-    st.markdown('<div class="corp-card"><h4>🛡️ Admin Controls</h4>', unsafe_allow_html=True)
+    st.markdown('<div class="corp-card"><h4>🛡️️ Admin Controls</h4>', unsafe_allow_html=True)
     profiles = get_all_verified_profiles()
     for p_em, p_nm, p_p, p_r in profiles:
         c1, c2, c3 = st.columns([2, 1, 1])
