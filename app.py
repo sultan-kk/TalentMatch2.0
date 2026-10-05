@@ -460,7 +460,7 @@ def clear_screened_database():
     if supabase: supabase.table("screened_candidates").delete().neq("id", 0).execute()
 
 # ===========================================================================
-# 5. CSS (DIRECT BUTTON TARGETING - GUARANTEED 160x160 SQUARE)
+# 5. ISOLATED CSS (STRICT 135x135px SQUARE PROFILE CARDS)
 # ===========================================================================
 ADAPTIVE_CSS = """
 <style>
@@ -475,93 +475,69 @@ html, body, [class*="css"], .stApp {
 }
 
 /* ==========================================================================
-   SOLID 160x160 SQUARE PROFILE BUTTONS (FAIL-PROOF TARGETING)
+   STRICT SQUARE 135px x 135px PROFILE CARDS (PREVENTS RECTANGLE STRETCH)
    ========================================================================== */
-.profile-cell {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    margin-bottom: 1.5rem;
+div[data-testid="stColumn"] > div:has(.square-profile-card) {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
 }
 
-/* Har Profile Button ko Strict 160px x 160px Square banayein */
-div[data-testid="stColumn"] div.stButton > button[key^="user_card_"],
-div[data-testid="stColumn"] div.stButton > button[key^="add_profile_card_"] {
+div[data-testid="stColumn"] > div:has(.square-profile-card) div.stButton > button {
     width: 160px !important;
     height: 160px !important;
     min-width: 160px !important;
     max-width: 160px !important;
     min-height: 160px !important;
     max-height: 160px !important;
-    aspect-ratio: 1 / 1 !important;
-    border-radius: 28px !important;
+    margin: 0 auto !important;
+    border-radius: 24px !important;
     background: #181B20 !important;
     border: 2px solid #2D333B !important;
-    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.5) !important;
+    box-shadow: 0 10px 22px rgba(0, 0, 0, 0.45) !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
-    margin: 0 auto !important;
     padding: 0 !important;
     transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
-/* Emoji / Badge Size Enhancement */
-div[data-testid="stColumn"] div.stButton > button[key^="user_card_"] p,
-div[data-testid="stColumn"] div.stButton > button[key^="add_profile_card_"] p {
-    font-size: 5rem !important;
+div[data-testid="stColumn"] > div:has(.square-profile-card) div.stButton > button p {
+    font-size: 4.2rem !important;
     line-height: 1 !important;
     margin: 0 !important;
     padding: 0 !important;
 }
 
-div[data-testid="stColumn"] div.stButton > button[key^="user_card_"]:hover,
-div[data-testid="stColumn"] div.stButton > button[key^="add_profile_card_"]:hover {
-    transform: translateY(-6px) scale(1.04) !important;
+div[data-testid="stColumn"] > div:has(.square-profile-card) div.stButton > button:hover {
+    transform: translateY(-5px) scale(1.04) !important;
     border-color: #10B981 !important;
-    box-shadow: 0 14px 28px rgba(16, 185, 129, 0.45) !important;
+    box-shadow: 0 14px 28px rgba(16, 185, 129, 0.4) !important;
     background: #22262E !important;
 }
 
-/* Edit Badge Pill Button */
-div[data-testid="stColumn"] div.stButton > button[key^="edit_btn_"] {
-    background: rgba(16, 185, 129, 0.12) !important;
-    border: 1px solid rgba(16, 185, 129, 0.4) !important;
-    color: #10B981 !important;
-    font-size: 0.75rem !important;
-    padding: 0.2rem 0.6rem !important;
-    border-radius: 12px !important;
-    margin: 4px auto 0 auto !important;
-    display: block !important;
-}
-
-div[data-testid="stColumn"] div.stButton > button[key^="edit_btn_"]:hover {
-    background: #10B981 !important;
-    color: #FFFFFF !important;
-}
-
-/* Captions Below Card */
+/* Titles and Role below cards */
 .profile-meta-title {
     text-align: center;
-    font-size: 1.1rem;
-    font-weight: 700;
+    font-size: 1.3rem;
+    font-weight: 600;
     line-height: 1.2;
-    margin-top: 10px;
+    margin-top: 8px;
 }
 
 .profile-meta-role {
     text-align: center;
-    font-size: 0.72rem;
+    font-size: 0.7rem;
     font-family: 'JetBrains Mono', monospace;
     color: #10B981 !important;
     text-transform: uppercase;
-    letter-spacing: 0.6px;
+    letter-spacing: 0.5px;
     margin-top: 2px;
 }
 
-/* Interior Dashboard Styling */
+/* ==========================================================================
+   PORTAL INTERIOR: CLEAN, BALANCED & THEME ADAPTIVE
+   ========================================================================== */
 .top-navbar {
     background: var(--secondary-background-color);
     border: 1px solid rgba(16, 185, 129, 0.35);
@@ -600,6 +576,7 @@ div[data-testid="stColumn"] div.stButton > button[key^="edit_btn_"]:hover {
     color: #10B981;
 }
 
+/* Standard Buttons Inside Dashboard */
 div.stButton > button {
     border-radius: 10px !important;
     font-weight: 600 !important;
@@ -611,6 +588,11 @@ div.stButton > button[kind="primary"] {
     background: #047857 !important;
     border-color: #059669 !important;
     color: #FFFFFF !important;
+}
+
+div.stButton > button[kind="primary"]:hover {
+    background: #059669 !important;
+    border-color: #10B981 !important;
 }
 </style>
 """
