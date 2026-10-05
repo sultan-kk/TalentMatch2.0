@@ -1,8 +1,9 @@
 """
-ARL TalentMatch — Official Corporate Edition (Full-Proof Enterprise Suite)
+ARL TalentMatch — Official Corporate Edition (Adaptive Enterprise Suite)
 =============================================================================
-Branding: Forest Green Background + High-Contrast Dashboard + Charcoal Cards
-Features: Fully Responsive Layout, Crisp Legibility, Fitted Badges, Supabase Live Pipeline.
+Branding: Attock Refinery Limited (ARL Forest Green & Native Adaptive Theme)
+Features: Light/Dark Theme Responsive, Scoped Profile Grid, Clean Compact Controls,
+High-Contrast Legibility, Supabase Live Pipeline & Tab 2 Clean Sync.
 """
 
 import io
@@ -20,7 +21,7 @@ import pandas as pd
 import streamlit as st
 from groq import Groq
 from supabase import create_client, Client
-from PIL import Image, ImageOps, ImageEnhance, ImageDraw
+from PIL import Image, ImageDraw
 
 # ===========================================================================
 # 1. PAGE CONFIGURATION & ARL FAVICON
@@ -249,7 +250,7 @@ def load_arl_job_catalog():
     return DEFAULT_ARL_CATALOG
 
 # ===========================================================================
-# 4. DATABASE & REPOSITORY STORAGE (STRICT SEQUENCE)
+# 4. DATABASE & REPOSITORY STORAGE
 # ===========================================================================
 def load_database():
     expected_cols = [
@@ -395,7 +396,7 @@ def clear_screened_database():
     if supabase: supabase.table("screened_candidates").delete().neq("id", 0).execute()
 
 # ===========================================================================
-# 5. HIGH-CONTRAST & RESPONSIVE CSS
+# 5. ADAPTIVE CSS (STREAMLIT NATIVE THEME AWARE + SCOPED PROFILE CARDS)
 # ===========================================================================
 ADAPTIVE_CSS = """
 <style>
@@ -403,22 +404,23 @@ ADAPTIVE_CSS = """
 
 html, body, [class*="css"], .stApp {
     font-family: 'Plus Jakarta Sans', sans-serif !important;
-    background: radial-gradient(circle at 50% 15%, #082F19 0%, #04180D 100%) !important;
-    color: #F3F4F6 !important;
 }
 
-[data-testid="stSidebar"] { display: none !important; }
-[data-testid="collapsedControl"] { display: none !important; }
+[data-testid="stSidebar"], [data-testid="collapsedControl"] { 
+    display: none !important; 
+}
 
-/* 2x2 Square Charcoal Black Card Button with Big Fitted Badge */
-div[data-testid="stColumn"] div.stButton > button {
+/* ==========================================================================
+   LOGIN SCREEN: EXCLUSIVELY SCOPED PROFILE BOXES
+   ========================================================================== */
+div[data-testid="stHorizontalBlock"].profile-grid-container div.stButton > button {
     width: 140px !important;
     height: 140px !important;
     margin: 0 auto !important;
     border-radius: 24px !important;
-    background: linear-gradient(145deg, #1F2228 0%, #121417 100%) !important;
-    border: 2px solid #2E333B !important;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.12) !important;
+    background: #181B20 !important;
+    border: 2px solid #2B303A !important;
+    box-shadow: 0 10px 22px rgba(0, 0, 0, 0.45) !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
@@ -426,27 +428,24 @@ div[data-testid="stColumn"] div.stButton > button {
     transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
-div[data-testid="stColumn"] div.stButton > button p {
+div[data-testid="stHorizontalBlock"].profile-grid-container div.stButton > button p {
     font-size: 5rem !important;
     line-height: 1 !important;
     margin: 0 !important;
-    padding: 0 !important;
 }
 
-div[data-testid="stColumn"] div.stButton > button:hover {
-    transform: translateY(-6px) scale(1.05) !important;
-    border-color: #34D399 !important;
-    box-shadow: 0 16px 35px rgba(16, 185, 129, 0.4), 0 0 18px rgba(52, 211, 153, 0.3) !important;
-    background: linear-gradient(145deg, #272C34 0%, #171A1F 100%) !important;
+div[data-testid="stHorizontalBlock"].profile-grid-container div.stButton > button:hover {
+    transform: translateY(-5px) scale(1.05) !important;
+    border-color: #10B981 !important;
+    box-shadow: 0 14px 28px rgba(16, 185, 129, 0.35) !important;
+    background: #20242B !important;
 }
 
-/* External Profile Name & Role Caption */
 .profile-meta-title {
     text-align: center;
     margin-top: 10px;
     font-size: 1.05rem;
     font-weight: 700;
-    color: #FFFFFF !important;
     line-height: 1.2;
 }
 
@@ -455,80 +454,77 @@ div[data-testid="stColumn"] div.stButton > button:hover {
     margin-top: 3px;
     font-size: 0.72rem;
     font-family: 'JetBrains Mono', monospace;
-    color: #4ADE80 !important;
+    color: #10B981 !important;
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
 
-/* Responsive Top Navigation */
+/* ==========================================================================
+   PORTAL INTERIOR: CLEAN, BALANCED & THEME ADAPTIVE
+   ========================================================================== */
 .top-navbar {
-    background: linear-gradient(135deg, #0A2415 0%, #0F3821 100%);
-    border: 1.5px solid #166534;
-    border-bottom: 2px solid #22C55E;
-    border-radius: 16px;
-    padding: 1rem 1.8rem;
-    margin-bottom: 1.5rem;
+    background: var(--secondary-background-color);
+    border: 1px solid rgba(16, 185, 129, 0.35);
+    border-left: 6px solid #10B981;
+    border-radius: 14px;
+    padding: 0.9rem 1.4rem;
+    margin-bottom: 1.2rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    color: #FFFFFF !important;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
 }
 
-/* Hero Section */
 .corp-hero {
-    background: linear-gradient(135deg, rgba(22, 101, 52, 0.35) 0%, rgba(10, 35, 21, 0.95) 100%);
-    border: 1.5px solid #1E7E43;
-    border-radius: 16px;
-    padding: 1.8rem 2.2rem;
-    margin-bottom: 1.8rem;
-    border-left: 6px solid #4ADE80;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+    background: var(--secondary-background-color);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    border-radius: 14px;
+    padding: 1.5rem 1.8rem;
+    margin-bottom: 1.5rem;
+    border-left: 6px solid #10B981;
 }
 
-/* High-Contrast Interior Section Cards */
 .corp-card {
-    background: #0E1310 !important;
-    border: 1.5px solid #22C55E !important;
-    border-radius: 18px !important;
-    padding: 2rem !important;
-    margin-bottom: 1.8rem !important;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6) !important;
+    background: var(--secondary-background-color);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    border-radius: 16px;
+    padding: 1.6rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
 }
 
 .corp-card h4 {
-    color: #FFFFFF !important;
-    font-weight: 800 !important;
-    margin-bottom: 1.2rem !important;
-    letter-spacing: 0.3px !important;
+    margin-top: 0;
+    margin-bottom: 1rem;
+    font-weight: 700;
+    color: #10B981;
 }
 
-/* Form Labels & Text High-Contrast */
-label, p, span, div[data-testid="stMarkdownContainer"] p {
-    color: #E5E7EB !important;
-}
-
-/* Uploader & Input Boxes Contrast */
-div[data-testid="stFileUploader"] {
-    background: #151C17 !important;
-    border: 1.5px dashed #34D399 !important;
-    border-radius: 14px !important;
-    padding: 10px !important;
-}
-
-div[data-testid="stFileUploader"] * {
-    color: #F9FAFB !important;
-}
-
-/* Streamlit Tabs High Contrast */
-button[data-baseweb="tab"] {
-    color: #9CA3AF !important;
+/* Elegant Standard Buttons (Portal inside) */
+div.stButton > button {
+    border-radius: 10px !important;
     font-weight: 600 !important;
+    padding: 0.45rem 1.1rem !important;
+    transition: all 0.2s ease !important;
 }
 
-button[data-baseweb="tab"][aria-selected="true"] {
-    color: #4ADE80 !important;
-    border-bottom-color: #4ADE80 !important;
+/* Primary Button Highlighting */
+div.stButton > button[kind="primary"] {
+    background: #047857 !important;
+    border-color: #059669 !important;
+    color: #FFFFFF !important;
+}
+
+div.stButton > button[kind="primary"]:hover {
+    background: #059669 !important;
+    border-color: #10B981 !important;
+}
+
+/* Pill Action Buttons */
+.compact-action-btn button {
+    border-radius: 20px !important;
+    font-size: 0.85rem !important;
+    padding: 0.35rem 0.9rem !important;
 }
 </style>
 """
@@ -570,37 +566,6 @@ def show_pin_dialog(email, name, role):
 
 @st.dialog("🎨 Choose Executive Badge")
 def show_sticker_picker_dialog(email, name):
-    st.markdown("""
-        <style>
-        div[data-testid="stDialog"] div[data-testid="stColumn"] {
-            padding: 4px !important;
-        }
-        div[data-testid="stDialog"] div.stButton > button {
-            width: 100% !important;
-            height: 60px !important;
-            border-radius: 14px !important;
-            background: #18191C !important;
-            border: 1.5px solid #2A2E33 !important;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4) !important;
-            padding: 0 !important;
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            transition: all 0.2s ease !important;
-        }
-        div[data-testid="stDialog"] div.stButton > button:hover {
-            transform: translateY(-2px) scale(1.05) !important;
-            border-color: #34D399 !important;
-            background: #24272D !important;
-        }
-        div[data-testid="stDialog"] div.stButton > button p {
-            font-size: 2.2rem !important;
-            line-height: 1 !important;
-            margin: 0 !important;
-            padding: 0 !important;
-        }
-        </style>
-    """, unsafe_allow_html=True)
     st.write(f"Select a corporate avatar badge for **{name}**:")
     cols = st.columns(4)
     for idx, badge in enumerate(AVAILABLE_BADGES):
@@ -611,39 +576,39 @@ def show_sticker_picker_dialog(email, name):
                 st.rerun()
 
 # ===========================================================================
-# 8. AUTHENTICATION & CHARCOAL PROFILE CARDS
+# 8. AUTHENTICATION & LOGIN SCREEN
 # ===========================================================================
 if not st.session_state.logged_in:
     saved_profiles = get_all_verified_profiles()
 
     if st.session_state.show_download_page:
         st.markdown("---")
-        st.markdown("""
-            <div style="background: linear-gradient(135deg, #1C1E22 0%, #111215 100%); border: 2px solid #34D399; border-radius: 20px; padding: 2.8rem; margin-bottom: 2rem; text-align: center; box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6);">
-                <div style="font-size: 3.2rem; margin-bottom: 10px;">💻</div>
-                <h1 style="color: #FFFFFF; font-size: 2.4rem; font-weight: 800; margin-bottom: 12px;">ARL TalentMatch Desktop Edition</h1>
-                <p style="color: #A7F3D0; font-size: 1.15rem; max-width: 750px; margin: 0 auto 25px auto; line-height: 1.6;">
-                    Run Attock Refinery's recruitment suite natively on your Windows PC for high-performance offline execution, native local OCR processing, and seamless multi-user collaboration.
+        st.markdown(f"""
+            <div style="background: var(--secondary-background-color); border: 1.5px solid #10B981; border-radius: 18px; padding: 2.2rem; margin-bottom: 2rem; text-align: center; box-shadow: 0 8px 24px rgba(0,0,0,0.15);">
+                <div style="font-size: 2.8rem; margin-bottom: 8px;">💻</div>
+                <h2 style="margin-bottom: 8px; font-weight: 800;">ARL TalentMatch Desktop Edition</h2>
+                <p style="max-width: 650px; margin: 0 auto 20px auto; opacity: 0.85;">
+                    Run Attock Refinery's recruitment suite natively on your Windows PC for high-performance offline execution, native OCR processing, and secure cloud synchronization.
                 </p>
-                <a href="https://github.com/sultan-kk/TalentMatch2.0/releases/download/v1.0/ARL-HireMatrix-Pro_1.0.0_x64_en-US.msi" target="_blank" style="background: #10B981; color: white; padding: 1rem 2.5rem; border-radius: 14px; font-weight: 800; font-size: 1.2rem; text-decoration: none; border: 2px solid #6EE7B7; box-shadow: 0 8px 25px rgba(16, 185, 129, 0.6); display: inline-block;">📥 Download Windows Installer (.msi)</a>
+                <a href="{EXE_DIRECT_DOWNLOAD_URL}" target="_blank" style="background: #059669; color: white; padding: 0.75rem 2rem; border-radius: 10px; font-weight: 700; font-size: 1.05rem; text-decoration: none; display: inline-block;">📥 Download Windows Installer (.msi)</a>
             </div>
         """, unsafe_allow_html=True)
 
         st.markdown("### 🛠️ Installation Instructions")
         st.markdown("""
-        1. **Download Package:** Click the prominent green download button above to download the official `.msi` setup package.
-        2. **Run Installer:** Double-click `ARL-HireMatrix-Pro_1.0.0_x64_en-US.msi` to launch the Windows setup wizard.
-        3. **Security Prompt:** If Windows SmartScreen prompts a notification, click **More info** -> **Run anyway**.
-        4. **Launch Suite:** Open ARL TalentMatch from your desktop shortcut or Windows start menu and sign in using your corporate credentials and PIN.
+        1. **Download:** Click the installer button above to fetch the setup package.
+        2. **Run Setup:** Double-click `ARL-HireMatrix-Pro_1.0.0_x64_en-US.msi` to start the wizard.
+        3. **Security Prompt:** If Windows SmartScreen prompts, click **More info** -> **Run anyway**.
+        4. **Launch Suite:** Open ARL TalentMatch and sign in with your corporate credentials and PIN.
         """)
 
         st.markdown("### ❓ Frequently Asked Questions (FAQs)")
-        with st.expander("Q1: Is my candidate data secure in the desktop version?"):
-            st.write("Yes! The desktop application securely connects to your encrypted Supabase cloud database, ensuring your data remains fully synced and protected under corporate security protocols.")
-        with st.expander("Q2: Do I need an internet connection to run the app?"):
-            st.write("An internet connection is required for AI Groq extraction and cloud database synchronization. Local UI rendering and file caching work seamlessly offline.")
-        with st.expander("Q3: Can multiple HR recruiters use the app simultaneously?"):
-            st.write("Yes, multiple authorized recruiters can sign in concurrently with their unique executive profiles and 4-digit security PINs.")
+        with st.expander("Q1: Is candidate data secure in the desktop version?"):
+            st.write("Yes. The desktop application securely connects to encrypted Supabase cloud databases with identical access control.")
+        with st.expander("Q2: Do I need an internet connection?"):
+            st.write("An internet connection is needed for AI extraction and database synchronization. UI caching works seamlessly.")
+        with st.expander("Q3: Can multiple HR recruiters sign in?"):
+            st.write("Yes, all authorized recruiters can access their personal profiles with their respective 4-digit PINs.")
 
         st.markdown("<br>", unsafe_allow_html=True)
         if st.button("⬅ Back to Portal Login", use_container_width=True):
@@ -694,12 +659,14 @@ if not st.session_state.logged_in:
         st.stop()
 
     st.markdown(f"""
-        <div style="text-align: center; padding: 2.5rem 1rem 1.8rem 1rem;">
-            <h1 style="font-size: 2.8rem; font-weight: 800; margin-bottom: 6px; color: #FFFFFF;">Who's Screening?</h1>
-            <p style="color: #4ADE80; font-size: 1.05rem;">{APP_TAGLINE}</p>
+        <div style="text-align: center; padding: 2.2rem 1rem 1.6rem 1rem;">
+            <h1 style="font-size: 2.6rem; font-weight: 800; margin-bottom: 4px;">Who's Screening?</h1>
+            <p style="color: #10B981; font-size: 1rem; font-weight: 500;">{APP_TAGLINE}</p>
         </div>
     """, unsafe_allow_html=True)
 
+    # Scoped Netflix-Style Square Cards
+    st.markdown('<div class="profile-grid-container">', unsafe_allow_html=True)
     all_items = list(saved_profiles) + [("REGISTER_CARD", "New Profile", "", "Register")]
     cols_per_row = 4
     
@@ -726,19 +693,20 @@ if not st.session_state.logged_in:
                     c_title, c_edit = st.columns([4, 1])
                     with c_title:
                         st.markdown(f"""
-                            <div class="profile-meta-title" style="text-align: left; margin-left: 10px;">{p_name}</div>
-                            <div class="profile-meta-role" style="text-align: left; margin-left: 10px;">{p_role}</div>
+                            <div class="profile-meta-title" style="text-align: left; margin-left: 8px;">{p_name}</div>
+                            <div class="profile-meta-role" style="text-align: left; margin-left: 8px;">{p_role}</div>
                         """, unsafe_allow_html=True)
                     with c_edit:
-                        if st.button("✏️", key=f"edit_btn_{i}_{idx}", help="Change Avatar Badge"):
+                        if st.button("✏️", key=f"edit_btn_{i}_{idx}", help="Change Badge"):
                             show_sticker_picker_dialog(p_email, p_name)
+    st.markdown('</div>', unsafe_allow_html=True)
 
-    st.markdown("<br><hr style='border-color: rgba(52, 211, 153, 0.2);'>", unsafe_allow_html=True)
+    st.markdown("<br><hr style='opacity: 0.25;'>", unsafe_allow_html=True)
     col_dl1, col_dl2 = st.columns([7.5, 2.5], vertical_alignment="center")
     with col_dl1:
-        st.markdown("<span style='color: #A7F3D0;'>🖥️ <b>Need desktop offline execution?</b> Download our official Windows MSI suite.</span>", unsafe_allow_html=True)
+        st.markdown("🖥️ **Need desktop offline execution?** Download our standalone Windows MSI app.")
     with col_dl2:
-        if st.button("📥 Download & FAQs", key="dl_portal_bottom", use_container_width=True):
+        if st.button("📥 Download App & FAQs", key="dl_portal_bottom", use_container_width=True):
             st.session_state.show_download_page = True
             st.rerun()
 
@@ -814,80 +782,47 @@ def generate_ai_interview_questions(client, name, role, skills):
 df_all = load_database()
 user_avatar = get_user_avatar(st.session_state.hr_email)
 
-# Top Styled Banner on Main Dashboard
-col_d1, col_d2 = st.columns([7, 3], vertical_alignment="center")
-with col_d1:
-    st.markdown("🚀 **ARL TalentMatch Desktop Suite** — Standalone Windows app available for offline execution.")
-with col_d2:
-    if st.button("📥 View Download & FAQs", key="dl_btn_dash_top", use_container_width=True):
-        st.session_state.show_download_page = True
-        st.rerun()
-
-if st.session_state.show_download_page:
-    st.markdown("---")
-    st.markdown("""
-        <div style="background: linear-gradient(135deg, #1C1E22 0%, #111215 100%); border: 2px solid #34D399; border-radius: 20px; padding: 2.8rem; margin-bottom: 2rem; text-align: center; box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6);">
-            <div style="font-size: 3.2rem; margin-bottom: 10px;">💻</div>
-            <h1 style="color: #FFFFFF; font-size: 2.4rem; font-weight: 800; margin-bottom: 12px;">ARL TalentMatch Desktop Edition</h1>
-            <p style="color: #A7F3D0; font-size: 1.15rem; max-width: 750px; margin: 0 auto 25px auto; line-height: 1.6;">
-                Run Attock Refinery's recruitment suite natively on your Windows PC for high-performance offline execution, native local OCR processing, and seamless multi-user collaboration.
-            </p>
-            <a href="https://github.com/sultan-kk/TalentMatch2.0/releases/download/v1.0/ARL-HireMatrix-Pro_1.0.0_x64_en-US.msi" target="_blank" style="background: #10B981; color: white; padding: 1rem 2.5rem; border-radius: 14px; font-weight: 800; font-size: 1.2rem; text-decoration: none; border: 2px solid #6EE7B7; box-shadow: 0 8px 25px rgba(16, 185, 129, 0.6); display: inline-block;">📥 Download Windows Installer (.msi)</a>
-        </div>
-    """, unsafe_allow_html=True)
-
-    st.markdown("### 🛠️ Installation Instructions")
-    st.markdown("""
-    1. **Download Package:** Click the prominent green download button above to download the official `.msi` setup package.
-    2. **Run Installer:** Double-click `ARL-HireMatrix-Pro_1.0.0_x64_en-US.msi` to launch the Windows setup wizard.
-    3. **Security Prompt:** If Windows SmartScreen prompts a notification, click **More info** -> **Run anyway**.
-    4. **Launch Suite:** Open ARL TalentMatch from your desktop shortcut or Windows start menu and sign in using your corporate credentials and PIN.
-    """)
-
-    st.markdown("### ❓ Frequently Asked Questions (FAQs)")
-    with st.expander("Q1: Is my candidate data secure in the desktop version?"):
-        st.write("Yes! The desktop application securely connects to your encrypted Supabase cloud database, ensuring your data remains fully synced and protected under corporate security protocols.")
-    with st.expander("Q2: Do I need an internet connection to run the app?"):
-        st.write("An internet connection is required for AI Groq extraction and cloud database synchronization. Local UI rendering and file caching work seamlessly offline.")
-    with st.expander("Q3: Can multiple HR recruiters use the app simultaneously?"):
-        st.write("Yes, multiple authorized recruiters can sign in concurrently with their unique executive profiles and 4-digit security PINs.")
-
-    st.markdown("<br>", unsafe_allow_html=True)
-    if st.button("⬅ Back to Dashboard", use_container_width=True):
-        st.session_state.show_download_page = False
-        st.rerun()
-    st.stop()
-
-col_n1, col_n2 = st.columns([8, 2], vertical_alignment="center")
-with col_n1:
+# Top Bar with Clean Proportional Buttons
+col_nav_left, col_nav_right = st.columns([7, 3], vertical_alignment="center")
+with col_nav_left:
     st.markdown(f"""
-        <div class="top-navbar">
-            <div style="display: flex; align-items: center; gap: 14px;">
-                <div style="font-size: 2.2rem; background: #0A2315; padding: 4px 10px; border-radius: 12px; border: 1.5px solid #4ADE80;">{user_avatar}</div>
-                <div>
-                    <h2 style="font-size: 1.55rem; font-weight: 800; margin: 0; color: #FFFFFF;">{APP_NAME} Pro</h2>
-                    <p style="font-size: 0.75rem; text-transform: uppercase; color: #86EFAC; margin: 0;">Logged In: <b>{st.session_state.hr_name}</b> &bull; Role: <b>{st.session_state.hr_role}</b></p>
-                </div>
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <div style="font-size: 1.8rem; background: rgba(16, 185, 129, 0.15); border: 1px solid #10B981; border-radius: 10px; padding: 4px 10px;">{user_avatar}</div>
+            <div>
+                <h3 style="margin: 0; font-size: 1.35rem; font-weight: 800;">{APP_NAME} Pro</h3>
+                <span style="font-size: 0.8rem; opacity: 0.8;">Logged in as: <b>{st.session_state.hr_name}</b> ({st.session_state.hr_role})</span>
             </div>
         </div>
     """, unsafe_allow_html=True)
-with col_n2:
-    if st.button("🚪 Lock Portal", use_container_width=True):
-        st.session_state.logged_in = False
-        st.rerun()
+
+with col_nav_right:
+    c_btn1, c_btn2 = st.columns([1.2, 1], vertical_alignment="center")
+    with c_btn1:
+        if st.button("📥 Download Suite", key="dash_top_dl_btn", use_container_width=True):
+            st.session_state.show_download_page = True
+            st.rerun()
+    with c_btn2:
+        if st.button("🚪 Lock Portal", key="dash_top_lock_btn", use_container_width=True):
+            st.session_state.logged_in = False
+            st.rerun()
 
 st.markdown(f"""
     <div class="corp-hero">
-        <h1 style="color: #FFFFFF; margin: 0 0 8px 0;">Attock Refinery Executive Suite</h1>
-        <p style="color: #86EFAC; margin: 0;">Total Repository: <b>{len(df_all)} Candidates</b></p>
+        <h2 style="margin: 0 0 6px 0; font-weight: 800;">Attock Refinery Executive Suite</h2>
+        <p style="margin: 0; opacity: 0.85;">Total Central Repository: <b>{len(df_all)} Screened & Registered Candidates</b></p>
     </div>
 """, unsafe_allow_html=True)
 
-tab1, tab2, tab3, tab4 = st.tabs(["📥 1. Talent Repository (Upload)", "🎯 2. JD Screening & Matching", "🗄️ 3. Live Database Grids", "🛡️️ 4. Admin Controls"])
+tab1, tab2, tab3, tab4 = st.tabs([
+    "📥 1. Talent Repository (Upload)", 
+    "🎯 2. JD Screening & Matching", 
+    "🗄️ 3. Live Database Grids", 
+    "🛡️ 4. Admin Controls"
+])
 
 with tab1:
     st.markdown('<div class="corp-card"><h4>📥 Step 1: Ingest & Parse Resumes</h4>', unsafe_allow_html=True)
-    uploaded_files = st.file_uploader("Upload Resumes (PDF, DOCX)", type=ACCEPTED_TYPES, accept_multiple_files=True)
+    uploaded_files = st.file_uploader("Upload Candidate CVs / Resumes (PDF, DOCX)", type=ACCEPTED_TYPES, accept_multiple_files=True)
     g_key = st.secrets.get("GROQ_API_KEY", os.environ.get("GROQ_API_KEY", ""))
     
     if st.button("⚡ Extract & Append to Supabase", type="primary", use_container_width=True, disabled=not uploaded_files):
@@ -904,7 +839,7 @@ TEXT: {text[:15000]}"""
                 batch.extend(parsed.get("candidates", []))
         if batch:
             ins, skp = save_candidates_to_repository(batch)
-            st.success(f"🎉 Processed: {ins} candidate(s) added!")
+            st.success(f"🎉 Success: {ins} candidate(s) parsed and appended to Talent Pool!")
             st.rerun()
     st.markdown('</div>', unsafe_allow_html=True)
 
@@ -913,8 +848,8 @@ with tab2:
     catalog = load_arl_job_catalog()
     dept = st.selectbox("Select Department", list(catalog.keys()))
     job_role = st.selectbox("Select Position", catalog.get(dept, []))
-    jd_text = st.text_area("Job Requirements", height=130)
-    slider_thresh = st.slider("Highlight Score Threshold (%)", 0, 100, 40, step=5)
+    jd_text = st.text_area("Job Description / Requirements", height=130, placeholder="Paste job specs here...")
+    slider_thresh = st.slider("Match Score Threshold (%)", 0, 100, 40, step=5)
     
     if st.button("⚡ Run AI Candidate Screening", type="primary", use_container_width=True, disabled=not (jd_text.strip() and not df_all.empty)):
         client = Groq(api_key=g_key)
@@ -940,11 +875,11 @@ with tab2:
         if not db_s.empty: display_results = db_s.to_dict(orient="records")
 
     if display_results:
-        st.markdown("### 📋 Screening Results")
+        st.markdown("### 📋 Screened Candidates")
         
-        if st.button("🗑️ Clear Screening Results View", type="secondary", key="clear_screening_view_btn"):
+        if st.button("🗑️ Clear Screening View", type="secondary", key="clear_screening_view_btn"):
             st.session_state.screening_results = []
-            st.success("Screening results view cleared!")
+            st.success("Screening view reset.")
             st.rerun()
 
         for rank, cand in enumerate(display_results, 1):
@@ -953,41 +888,46 @@ with tab2:
             c_email = cand.get('Email') or cand.get('email', '')
             c_job = cand.get('Job Title') or cand.get('job_title', job_role)
             
-            with st.expander(f"#{rank} — {c_name} ({c_score}%)"):
-                new_status = st.selectbox("Pipeline Status", ["Shortlisted", "Interviewing", "Offered", "Rejected", "Talent Pool"], index=0, key=f"status_{rank}_{c_email}")
-                if st.button("Update Status", key=f"up_{rank}_{c_email}"):
-                    update_screened_candidate_status_db(c_email, c_job, new_status)
-                    st.success("Status updated!")
+            with st.expander(f"#{rank} — {c_name} • Match: {c_score}%"):
+                col_st1, col_st2 = st.columns([3, 1], vertical_alignment="center")
+                with col_st1:
+                    new_status = st.selectbox("Update Pipeline Status", ["Shortlisted", "Interviewing", "Offered", "Rejected", "Talent Pool"], index=0, key=f"status_{rank}_{c_email}")
+                with col_st2:
+                    if st.button("Save Status", key=f"up_{rank}_{c_email}"):
+                        update_screened_candidate_status_db(c_email, c_job, new_status)
+                        st.success("Status updated!")
 
-                if st.button("📧 Send Interview Call Email", key=f"email_{rank}_{c_email}"):
-                    body = f"Dear {c_name},\n\nYou have been shortlisted for the position of {c_job} at Attock Refinery Limited (ARL).\n\nBest regards,\nHR Team ARL"
-                    ok, msg = send_smtp_email(c_email, f"Interview Call - ARL TalentMatch ({c_job})", body)
-                    if ok: st.success("Email dispatched!")
-                    else: st.error(msg)
-
-                if st.button("💡 Generate AI Interview Questions", key=f"q_{rank}_{c_email}"):
-                    q_text = generate_ai_interview_questions(Groq(api_key=g_key), c_name, c_job, str(cand))
-                    st.info(q_text)
+                c_act1, c_act2 = st.columns(2)
+                with c_act1:
+                    if st.button("📧 Send Interview Call Email", key=f"email_{rank}_{c_email}", use_container_width=True):
+                        body = f"Dear {c_name},\n\nYou have been shortlisted for the position of {c_job} at Attock Refinery Limited (ARL).\n\nBest regards,\nARL HR Team"
+                        ok, msg = send_smtp_email(c_email, f"Interview Call - ARL TalentMatch ({c_job})", body)
+                        if ok: st.success("Email dispatched!")
+                        else: st.error(msg)
+                with c_act2:
+                    if st.button("💡 Generate AI Questions", key=f"q_{rank}_{c_email}", use_container_width=True):
+                        q_text = generate_ai_interview_questions(Groq(api_key=g_key), c_name, c_job, str(cand))
+                        st.info(q_text)
     st.markdown('</div>', unsafe_allow_html=True)
 
 with tab3:
-    st.markdown('<div class="corp-card"><h4>🗄️ Real-Time Synchronized Supabase Grids</h4>', unsafe_allow_html=True)
+    st.markdown('<div class="corp-card"><h4>🗄️ Real-Time Synchronized Database Grids</h4>', unsafe_allow_html=True)
     g1, g2 = st.tabs(["Screened Candidates", "Master Talent Pool"])
     with g1:
         s_df = load_screened_database()
         if not s_df.empty: 
             st.dataframe(s_df, use_container_width=True)
-            if st.button("🗑️ Clear All Screened Records", type="secondary", key="clear_screened_btn"):
+            if st.button("🗑️ Clear Screened Candidates Table", type="secondary", key="clear_screened_btn"):
                 clear_screened_database()
-                st.success("All screened records have been cleared.")
+                st.success("Screened candidates records cleared from Supabase.")
                 st.rerun()
         else: 
-            st.info("No screened records found.")
+            st.info("No screened candidates found.")
     with g2:
         m_df = load_database()
         if not m_df.empty: 
             st.dataframe(m_df, use_container_width=True)
-            if st.button("🗑️ Clear All Master Talent Pool", type="secondary", key="clear_pool_btn"):
+            if st.button("🗑️ Clear Master Talent Pool", type="secondary", key="clear_pool_btn"):
                 clear_candidate_database()
                 st.success("Master talent pool cleared.")
                 st.rerun()
@@ -996,14 +936,14 @@ with tab3:
     st.markdown('</div>', unsafe_allow_html=True)
 
 with tab4:
-    st.markdown('<div class="corp-card"><h4>🛡️ Admin Controls</h4>', unsafe_allow_html=True)
+    st.markdown('<div class="corp-card"><h4>🛡️ Admin User Controls</h4>', unsafe_allow_html=True)
     profiles = get_all_verified_profiles()
     for p_em, p_nm, p_p, p_r in profiles:
-        c1, c2, c3 = st.columns([2, 1, 1])
-        with c1: st.write(f"👤 {p_nm} ({p_em})")
-        with c2: st.write(f"Role: {p_r}")
+        c1, c2, c3 = st.columns([3, 1.5, 1], vertical_alignment="center")
+        with c1: st.write(f"👤 **{p_nm}** ({p_em})")
+        with c2: st.write(f"Role: `{p_r}`")
         with c3:
-            if st.button("Revoke", key=f"rev_{p_em}"):
+            if st.button("Revoke", key=f"rev_{p_em}", type="secondary"):
                 delete_employee_profile(p_em)
                 st.rerun()
     st.markdown('</div>', unsafe_allow_html=True)
