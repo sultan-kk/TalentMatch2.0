@@ -2,8 +2,8 @@
 ARL TalentMatch — Official Corporate Edition (Adaptive Enterprise Suite)
 =============================================================================
 Branding: Attock Refinery Limited (ARL Forest Green & Native Adaptive Theme)
-Features: Permanent Supabase Badges, Strict 135x135px Square Cards, Clean Controls,
-High-Contrast Legibility, Supabase Live Pipeline & Tab 2 Clean Sync.
+Features: In-Card Badge Editor Icon, Strict 140x140px Square Cards, Center Captions,
+Direct Click PIN, Supabase Live Pipeline, Tab 2 Clean Sync.
 """
 
 import io
@@ -419,7 +419,7 @@ def clear_screened_database():
     if supabase: supabase.table("screened_candidates").delete().neq("id", 0).execute()
 
 # ===========================================================================
-# 5. ISOLATED CSS (STRICT 135x135px SQUARE PROFILE CARDS)
+# 5. DEDICATED CSS (INTEGRATED CORNER BADGE EDIT ICON)
 # ===========================================================================
 ADAPTIVE_CSS = """
 <style>
@@ -433,23 +433,22 @@ html, body, [class*="css"], .stApp {
     display: none !important; 
 }
 
-/* ==========================================================================
-   STRICT SQUARE 135px x 135px PROFILE CARDS (PREVENTS RECTANGLE STRETCH)
-   ========================================================================== */
-div[data-testid="stColumn"] > div:has(.square-profile-card) {
-    display: flex !important;
-    justify-content: center !important;
-    align-items: center !important;
+/* Profile Unit Container */
+.profile-card-unit {
+    position: relative;
+    width: 140px;
+    margin: 0 auto 1.4rem auto;
+    text-align: center;
 }
 
-div[data-testid="stColumn"] > div:has(.square-profile-card) div.stButton > button {
-    width: 170px !important;
-    height: 170px !important;
-    min-width: 170px !important;
-    max-width: 170px !important;
-    min-height: 170px !important;
-    max-height: 170px !important;
-    margin: 0 auto !important;
+/* Card Button: Exact 140x140 Square */
+.profile-card-unit div.stButton:first-of-type > button {
+    width: 140px !important;
+    height: 140px !important;
+    min-width: 140px !important;
+    max-width: 140px !important;
+    min-height: 140px !important;
+    max-height: 140px !important;
     border-radius: 24px !important;
     background: #181B20 !important;
     border: 2px solid #2D333B !important;
@@ -458,35 +457,74 @@ div[data-testid="stColumn"] > div:has(.square-profile-card) div.stButton > butto
     align-items: center !important;
     justify-content: center !important;
     padding: 0 !important;
+    margin: 0 !important;
     transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
-div[data-testid="stColumn"] > div:has(.square-profile-card) div.stButton > button p {
-    font-size: 4.2rem !important;
+.profile-card-unit div.stButton:first-of-type > button p {
+    font-size: 4.8rem !important;
     line-height: 1 !important;
     margin: 0 !important;
     padding: 0 !important;
 }
 
-div[data-testid="stColumn"] > div:has(.square-profile-card) div.stButton > button:hover {
-    transform: translateY(-5px) scale(1.04) !important;
+.profile-card-unit div.stButton:first-of-type > button:hover {
+    transform: translateY(-5px) scale(1.03) !important;
     border-color: #10B981 !important;
     box-shadow: 0 14px 28px rgba(16, 185, 129, 0.4) !important;
     background: #22262E !important;
 }
 
+/* Integrated In-Card Edit Pencil Icon (Top Right of Card) */
+.in-card-edit-btn {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    z-index: 10;
+}
+
+.in-card-edit-btn div.stButton > button {
+    width: 30px !important;
+    height: 30px !important;
+    min-width: 30px !important;
+    max-width: 30px !important;
+    min-height: 30px !important;
+    max-height: 30px !important;
+    border-radius: 50% !important;
+    background: rgba(24, 27, 32, 0.85) !important;
+    border: 1px solid rgba(16, 185, 129, 0.5) !important;
+    padding: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4) !important;
+    transition: all 0.2s ease !important;
+}
+
+.in-card-edit-btn div.stButton > button p {
+    font-size: 0.9rem !important;
+    margin: 0 !important;
+    line-height: 1 !important;
+}
+
+.in-card-edit-btn div.stButton > button:hover {
+    background: #10B981 !important;
+    border-color: #34D399 !important;
+    transform: scale(1.15) !important;
+}
+
 /* Titles and Role below cards */
 .profile-meta-title {
     text-align: center;
-    font-size: 1.5rem;
-    font-weight: 650;
+    font-size: 1.05rem;
+    font-weight: 700;
     line-height: 1.2;
-    margin-top: 8px;
+    margin-top: 10px;
 }
 
 .profile-meta-role {
     text-align: center;
-    font-size: 0.7rem;
+    font-size: 0.72rem;
     font-family: 'JetBrains Mono', monospace;
     color: #10B981 !important;
     text-transform: uppercase;
@@ -714,7 +752,7 @@ if not st.session_state.logged_in:
         </div>
     """, unsafe_allow_html=True)
 
-    # Scoped Netflix-Style Square Cards (135x135px)
+    # Scoped Netflix-Style Square Cards with In-Card Corner Edit Button
     all_items = list(saved_profiles) + [("REGISTER_CARD", "New Profile", "", "Register")]
     cols_per_row = 4
     
@@ -723,32 +761,42 @@ if not st.session_state.logged_in:
         cols = st.columns(cols_per_row)
         for idx, item in enumerate(row_items):
             with cols[idx]:
-                st.markdown('<div class="square-profile-card">', unsafe_allow_html=True)
                 if item[0] == "REGISTER_CARD":
+                    st.markdown("""
+                        <div class="profile-card-unit">
+                    """, unsafe_allow_html=True)
                     if st.button("➕", key=f"add_profile_card_{i}"):
                         st.session_state.show_registration = True
                         st.rerun()
                     st.markdown("""
-                        <div class="profile-meta-title">New Profile</div>
-                        <div class="profile-meta-role">Register Account</div>
+                            <div class="profile-meta-title">New Profile</div>
+                            <div class="profile-meta-role">Register Account</div>
+                        </div>
                     """, unsafe_allow_html=True)
                 else:
                     p_email, p_name, p_pin, p_role = item
                     avatar_sticker = get_user_avatar(p_email)
                     
+                    st.markdown("""
+                        <div class="profile-card-unit">
+                    """, unsafe_allow_html=True)
+                    
+                    # Main Square Avatar Card
                     if st.button(avatar_sticker, key=f"user_card_{i}_{idx}"):
                         show_pin_dialog(p_email, p_name, p_role)
                     
-                    c_title, c_edit = st.columns([3.5, 1])
-                    with c_title:
-                        st.markdown(f"""
-                            <div class="profile-meta-title" style="text-align: right; margin-right: 4px;">{p_name}</div>
-                            <div class="profile-meta-role" style="text-align: right; margin-right: 4px;">{p_role}</div>
-                        """, unsafe_allow_html=True)
-                    with c_edit:
-                        if st.button("✏️", key=f"edit_btn_{i}_{idx}", help="Change Badge"):
-                            show_sticker_picker_dialog(p_email, p_name)
-                st.markdown('</div>', unsafe_allow_html=True)
+                    # Corner Edit Button inside card
+                    st.markdown('<div class="in-card-edit-btn">', unsafe_allow_html=True)
+                    if st.button("✏️", key=f"edit_btn_{i}_{idx}", help="Change Badge"):
+                        show_sticker_picker_dialog(p_email, p_name)
+                    st.markdown('</div>', unsafe_allow_html=True)
+                    
+                    # Name & Role below card
+                    st.markdown(f"""
+                            <div class="profile-meta-title">{p_name}</div>
+                            <div class="profile-meta-role">{p_role}</div>
+                        </div>
+                    """, unsafe_allow_html=True)
 
     st.markdown("<br><hr style='opacity: 0.25;'>", unsafe_allow_html=True)
     col_dl1, col_dl2 = st.columns([7.5, 2.5], vertical_alignment="center")
@@ -985,7 +1033,7 @@ with tab3:
     st.markdown('</div>', unsafe_allow_html=True)
 
 with tab4:
-    st.markdown('<div class="corp-card"><h4>🛡️ Admin User Controls</h4>', unsafe_allow_html=True)
+    st.markdown('<div class="corp-card"><h4>🛡️️ Admin User Controls</h4>', unsafe_allow_html=True)
     profiles = get_all_verified_profiles()
     for p_em, p_nm, p_p, p_r in profiles:
         c1, c2, c3 = st.columns([3, 1.5, 1], vertical_alignment="center")
