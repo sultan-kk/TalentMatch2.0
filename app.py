@@ -2,8 +2,8 @@
 ARL TalentMatch — Official Corporate Edition (Full-Proof Enterprise Suite)
 =============================================================================
 Branding: Attock Refinery Limited (ARL Forest Green & Adaptive Theme Palette)
-Features: Netflix Direct Profile Cards, Supabase Live Pipeline, Status Updater,
-SMTP Email Dispatcher, AI Interview Question Generator & Adaptive Text Modes.
+Features: Top Styled Desktop Download Banner, Netflix Direct Profile Cards, 
+Supabase Live Pipeline, Status Updater, SMTP Email Dispatcher & AI Interview Generator.
 """
 
 import io
@@ -396,7 +396,7 @@ def clear_screened_database():
     if supabase: supabase.table("screened_candidates").delete().neq("id", 0).execute()
 
 # ===========================================================================
-# 5. ADAPTIVE THEME CSS
+# 5. ADAPTIVE & STYLISH BANNER CSS
 # ===========================================================================
 ADAPTIVE_CSS = """
 <style>
@@ -408,6 +408,19 @@ html, body, [class*="css"], .stApp {
 
 [data-testid="stSidebar"] { display: none !important; }
 [data-testid="collapsedControl"] { display: none !important; }
+
+/* Gorgeous Top Download Banner */
+.top-download-banner {
+    background: linear-gradient(135deg, #064E3B 0%, #022C22 100%);
+    border: 2px solid #34D399;
+    border-radius: 16px;
+    padding: 1.1rem 1.8rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 8px 25px rgba(5, 150, 105, 0.35);
+}
 
 .netflix-card-box {
     background: linear-gradient(145deg, #0F3622 0%, #081F13 100%);
@@ -511,24 +524,18 @@ def show_sticker_picker_dialog(email, name):
 if not st.session_state.logged_in:
     saved_profiles = get_all_verified_profiles()
     
-    # Desktop App Download Banner on Login Screen
-    c_banner_l, c_banner_r = st.columns([7, 3], vertical_alignment="center")
-    with c_banner_l:
-        st.caption("🖥️ Want to run ARL TalentMatch as a standalone Windows PC software?")
-    with c_banner_r:
-        if st.button("📥 Download Desktop App (.msi)", key="dl_btn_login_top", use_container_width=True):
-            st.session_state.show_download_page = True
-            st.rerun()
-
-    if st.session_state.show_download_page:
-        st.markdown("---")
-        st.markdown("### 💻 ARL TalentMatch Desktop Edition")
-        st.write("You can download the official Windows installer package below:")
-        st.markdown(f"[📥 Click Here to Download ARL TalentMatch Installer]({EXE_DOWNLOAD_URL})", unsafe_allow_html=True)
-        if st.button("⬅ Back to Login", use_container_width=True):
-            st.session_state.show_download_page = False
-            st.rerun()
-        st.stop()
+    # Styled Top Download Banner
+    st.markdown(f"""
+        <div class="top-download-banner">
+            <div>
+                <h4 style="margin: 0; color: #FFFFFF; font-size: 1.1rem; font-weight: 700;">🚀 ARL TalentMatch Desktop Suite</h4>
+                <p style="margin: 2px 0 0 0; color: #A7F3D0; font-size: 0.85rem;">Run this recruitment suite natively on your Windows PC.</p>
+            </div>
+            <div>
+                <a href="{EXE_DOWNLOAD_URL}" target="_blank" style="background: #10B981; color: white; padding: 0.55rem 1.2rem; border-radius: 10px; font-weight: 700; text-decoration: none; border: 1px solid #6EE7B7; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);">📥 Download App (.msi)</a>
+            </div>
+        </div>
+    """, unsafe_allow_html=True)
 
     if st.session_state.pending_pin_email:
         _, mid_col, _ = st.columns([1, 2.2, 1])
@@ -570,7 +577,7 @@ if not st.session_state.logged_in:
         st.stop()
 
     st.markdown(f"""
-        <div style="text-align: center; padding: 2.5rem 1rem;">
+        <div style="text-align: center; padding: 2rem 1rem 1rem 1rem;">
             <h1 style="font-size: 3rem; font-weight: 800;">Who's Screening?</h1>
             <p style="color: #4ADE80; font-size: 1.05rem;">{APP_TAGLINE}</p>
         </div>
@@ -666,6 +673,19 @@ def generate_ai_interview_questions(client, name, role, skills):
 df_all = load_database()
 user_avatar = get_user_avatar(st.session_state.hr_email)
 
+# Top Styled Banner on Main Dashboard
+st.markdown(f"""
+    <div class="top-download-banner">
+        <div>
+            <h4 style="margin: 0; color: #FFFFFF; font-size: 1.1rem; font-weight: 700;">🚀 ARL TalentMatch Desktop Suite</h4>
+            <p style="margin: 2px 0 0 0; color: #A7F3D0; font-size: 0.85rem;">Download the standalone Windows app for offline execution.</p>
+        </div>
+        <div>
+            <a href="{EXE_DOWNLOAD_URL}" target="_blank" style="background: #10B981; color: white; padding: 0.55rem 1.2rem; border-radius: 10px; font-weight: 700; text-decoration: none; border: 1px solid #6EE7B7; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);">📥 Download App (.msi)</a>
+        </div>
+    </div>
+""", unsafe_allow_html=True)
+
 col_n1, col_n2 = st.columns([8, 2], vertical_alignment="center")
 with col_n1:
     st.markdown(f"""
@@ -687,7 +707,7 @@ with col_n2:
 st.markdown(f"""
     <div class="corp-hero">
         <h1 style="color: #FFFFFF; margin: 0 0 8px 0;">Attock Refinery Executive Suite</h1>
-        <p style="color: #86EFAC; margin: 0;">Total Repository: <b>{len(df_all)} Candidates</b> &bull; [📥 Download Desktop App]({EXE_DOWNLOAD_URL})</p>
+        <p style="color: #86EFAC; margin: 0;">Total Repository: <b>{len(df_all)} Candidates</b></p>
     </div>
 """, unsafe_allow_html=True)
 
@@ -789,7 +809,7 @@ with tab3:
     st.markdown('</div>', unsafe_allow_html=True)
 
 with tab4:
-    st.markdown('<div class="corp-card"><h4>🛡️ Admin Controls</h4>', unsafe_allow_html=True)
+    st.markdown('<div class="corp-card"><h4>🛡️️ Admin Controls</h4>', unsafe_allow_html=True)
     profiles = get_all_verified_profiles()
     for p_em, p_nm, p_p, p_r in profiles:
         c1, c2, c3 = st.columns([2, 1, 1])
