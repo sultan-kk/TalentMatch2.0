@@ -1,9 +1,9 @@
 """
 ARL TalentMatch — Official Corporate Edition (Full-Proof Enterprise Suite)
 =============================================================================
-Branding: Attock Refinery Limited (ARL Forest Green & Adaptive Theme Palette)
-Features: True Netflix Square Profile Badges, External Sub-Titles, Direct Click,
-Supabase Live Pipeline, Tab 2 Clear View & Instant App Sync.
+Branding: Forest Green Background + Charcoal Black Netflix Profile Cards
+Features: Large Fitted Emoji Badges, 2x2 Square Rounded Buttons, External Captions,
+Direct Click Sign-In, Supabase Live Pipeline, Tab 2 Clear View & Fast Sync.
 """
 
 import io
@@ -396,7 +396,7 @@ def clear_screened_database():
     if supabase: supabase.table("screened_candidates").delete().neq("id", 0).execute()
 
 # ===========================================================================
-# 5. HIGH-END CORPORATE CSS (SQUARE NETFLIX CARDS WITH EXTERNAL LABELS)
+# 5. FOREST GREEN BACKGROUND + CHARCOAL BLACK CARDS + LARGE FITTED EMOJIS
 # ===========================================================================
 ADAPTIVE_CSS = """
 <style>
@@ -404,39 +404,43 @@ ADAPTIVE_CSS = """
 
 html, body, [class*="css"], .stApp {
     font-family: 'Plus Jakarta Sans', sans-serif !important;
+    background: radial-gradient(circle at 50% 20%, #0A331C 0%, #062313 100%) !important;
 }
 
 [data-testid="stSidebar"] { display: none !important; }
 [data-testid="collapsedControl"] { display: none !important; }
 
-/* 2x2 Square Rounded Button (Passport size se thoda bada) */
+/* 2x2 Square Charcoal Black Card with Large Fitted Badge */
 div[data-testid="stColumn"] div.stButton > button {
-    width: 135px !important;
-    height: 135px !important;
+    width: 150px !important;
+    height: 150px !important;
     margin: 0 auto !important;
-    border-radius: 22px !important;
-    background: linear-gradient(145deg, #0F3622 0%, #081F13 100%) !important;
-    border: 2px solid #166534 !important;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.45) !important;
-    font-size: 3.5rem !important;
+    border-radius: 26px !important;
+    background: linear-gradient(145deg, #1C1E22 0%, #111215 100%) !important;
+    border: 2px solid #2A2E33 !important;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+    font-size: 5rem !important;
+    line-height: 1 !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
+    padding: 0 !important;
     transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    color: #FFFFFF !important;
 }
 
 div[data-testid="stColumn"] div.stButton > button:hover {
-    transform: translateY(-5px) scale(1.04) !important;
-    border-color: #4ADE80 !important;
-    box-shadow: 0 14px 28px rgba(34, 197, 94, 0.4) !important;
-    background: linear-gradient(145deg, #13452B 0%, #0A291A 100%) !important;
+    transform: translateY(-6px) scale(1.05) !important;
+    border-color: #34D399 !important;
+    box-shadow: 0 16px 35px rgba(16, 185, 129, 0.35), 0 0 18px rgba(52, 211, 153, 0.25) !important;
+    background: linear-gradient(145deg, #24272D 0%, #15171B 100%) !important;
 }
 
 /* External Profile Name & Role Caption */
 .profile-meta-title {
     text-align: center;
-    margin-top: 8px;
-    font-size: 1.05rem;
+    margin-top: 12px;
+    font-size: 1.08rem;
     font-weight: 700;
     color: #FFFFFF;
     line-height: 1.2;
@@ -444,7 +448,7 @@ div[data-testid="stColumn"] div.stButton > button:hover {
 
 .profile-meta-role {
     text-align: center;
-    margin-top: 2px;
+    margin-top: 3px;
     font-size: 0.72rem;
     font-family: 'JetBrains Mono', monospace;
     color: #4ADE80;
@@ -475,8 +479,8 @@ div[data-testid="stColumn"] div.stButton > button:hover {
 }
 
 .corp-card {
-    background: var(--secondary-background-color, #0B2517);
-    border: 1.5px solid rgba(34, 197, 94, 0.35);
+    background: #111814;
+    border: 1.5px solid rgba(52, 211, 153, 0.25);
     border-radius: 16px;
     padding: 1.8rem;
     margin-bottom: 1.5rem;
@@ -520,7 +524,7 @@ def show_pin_dialog(email, name, role):
             st.error("❌ Invalid 4-Digit PIN.")
 
 # ===========================================================================
-# 8. AUTHENTICATION & SQUARE NETFLIX PROFILE GRID SCREEN
+# 8. AUTHENTICATION & FITTED CHARCOAL CARDS ON FOREST GREEN BACKGROUND
 # ===========================================================================
 if not st.session_state.logged_in:
     saved_profiles = get_all_verified_profiles()
@@ -529,7 +533,7 @@ if not st.session_state.logged_in:
     if st.session_state.show_download_page:
         st.markdown("---")
         st.markdown("""
-            <div style="background: linear-gradient(135deg, #064E3B 0%, #022C22 100%); border: 2px solid #34D399; border-radius: 20px; padding: 2.8rem; margin-bottom: 2rem; text-align: center; box-shadow: 0 15px 40px rgba(5, 150, 105, 0.3);">
+            <div style="background: linear-gradient(135deg, #1C1E22 0%, #111215 100%); border: 2px solid #34D399; border-radius: 20px; padding: 2.8rem; margin-bottom: 2rem; text-align: center; box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6);">
                 <div style="font-size: 3.2rem; margin-bottom: 10px;">💻</div>
                 <h1 style="color: #FFFFFF; font-size: 2.4rem; font-weight: 800; margin-bottom: 12px;">ARL TalentMatch Desktop Edition</h1>
                 <p style="color: #A7F3D0; font-size: 1.15rem; max-width: 750px; margin: 0 auto 25px auto; line-height: 1.6;">
@@ -605,7 +609,7 @@ if not st.session_state.logged_in:
 
     st.markdown(f"""
         <div style="text-align: center; padding: 2.5rem 1rem 1.8rem 1rem;">
-            <h1 style="font-size: 2.8rem; font-weight: 800; margin-bottom: 6px;">Who's Screening?</h1>
+            <h1 style="font-size: 2.8rem; font-weight: 800; margin-bottom: 6px; color: #FFFFFF;">Who's Screening?</h1>
             <p style="color: #4ADE80; font-size: 1.05rem;">{APP_TAGLINE}</p>
         </div>
     """, unsafe_allow_html=True)
@@ -620,11 +624,9 @@ if not st.session_state.logged_in:
         for idx, item in enumerate(row_items):
             with cols[idx]:
                 if item[0] == "REGISTER_CARD":
-                    # Only badge/icon inside card
                     if st.button("➕", key=f"add_profile_card_{i}", use_container_width=True):
                         st.session_state.show_registration = True
                         st.rerun()
-                    # Name below card
                     st.markdown("""
                         <div class="profile-meta-title">New Profile</div>
                         <div class="profile-meta-role">Register Account</div>
@@ -633,19 +635,17 @@ if not st.session_state.logged_in:
                     p_email, p_name, p_pin, p_role = item
                     avatar_sticker = get_user_avatar(p_email)
                     
-                    # Only sticker/badge inside card
                     if st.button(avatar_sticker, key=f"user_card_{i}_{idx}", use_container_width=True):
                         show_pin_dialog(p_email, p_name, p_role)
-                    # Name & role below card
                     st.markdown(f"""
                         <div class="profile-meta-title">{p_name}</div>
                         <div class="profile-meta-role">{p_role}</div>
                     """, unsafe_allow_html=True)
 
-    st.markdown("<br><hr style='border-color: rgba(34,197,94,0.2);'>", unsafe_allow_html=True)
+    st.markdown("<br><hr style='border-color: rgba(52, 211, 153, 0.2);'>", unsafe_allow_html=True)
     col_dl1, col_dl2 = st.columns([7.5, 2.5], vertical_alignment="center")
     with col_dl1:
-        st.markdown("🖥️ **Need desktop offline execution?** Download our official Windows MSI suite.")
+        st.markdown("<span style='color: #A7F3D0;'>🖥️ <b>Need desktop offline execution?</b> Download our official Windows MSI suite.</span>", unsafe_allow_html=True)
     with col_dl2:
         if st.button("📥 Download & FAQs", key="dl_portal_bottom", use_container_width=True):
             st.session_state.show_download_page = True
@@ -735,7 +735,7 @@ with col_d2:
 if st.session_state.show_download_page:
     st.markdown("---")
     st.markdown("""
-        <div style="background: linear-gradient(135deg, #064E3B 0%, #022C22 100%); border: 2px solid #34D399; border-radius: 20px; padding: 2.8rem; margin-bottom: 2rem; text-align: center; box-shadow: 0 15px 40px rgba(5, 150, 105, 0.3);">
+        <div style="background: linear-gradient(135deg, #1C1E22 0%, #111215 100%); border: 2px solid #34D399; border-radius: 20px; padding: 2.8rem; margin-bottom: 2rem; text-align: center; box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6);">
             <div style="font-size: 3.2rem; margin-bottom: 10px;">💻</div>
             <h1 style="color: #FFFFFF; font-size: 2.4rem; font-weight: 800; margin-bottom: 12px;">ARL TalentMatch Desktop Edition</h1>
             <p style="color: #A7F3D0; font-size: 1.15rem; max-width: 750px; margin: 0 auto 25px auto; line-height: 1.6;">
