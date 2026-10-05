@@ -2,8 +2,8 @@
 ARL TalentMatch — Official Corporate Edition (Adaptive Enterprise Suite)
 =============================================================================
 Branding: Attock Refinery Limited (ARL Forest Green & Native Adaptive Theme)
-Features: Light/Dark Theme Responsive, Scoped Profile Grid, Clean Compact Controls,
-High-Contrast Legibility, Supabase Live Pipeline & Tab 2 Clean Sync.
+Features: True Square Netflix Profile Cards (140x140px), Large Emoji Badges,
+Isolated Custom CSS, Streamlit Light/Dark Theme Support & Supabase Live Sync.
 """
 
 import io
@@ -396,7 +396,7 @@ def clear_screened_database():
     if supabase: supabase.table("screened_candidates").delete().neq("id", 0).execute()
 
 # ===========================================================================
-# 5. ADAPTIVE CSS (STREAMLIT NATIVE THEME AWARE + SCOPED PROFILE CARDS)
+# 5. DEDICATED ISOLATED CSS (STRICT SQUARE 140x140 NETFLIX CARDS)
 # ===========================================================================
 ADAPTIVE_CSS = """
 <style>
@@ -411,52 +411,83 @@ html, body, [class*="css"], .stApp {
 }
 
 /* ==========================================================================
-   LOGIN SCREEN: EXCLUSIVELY SCOPED PROFILE BOXES
+   NETFLIX PROFILE CARDS (STRICT SQUARE 140px X 140px - NO RECTANGLE STRETCH)
    ========================================================================== */
-div[data-testid="stHorizontalBlock"].profile-grid-container div.stButton > button {
+.profile-card-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1.2rem;
+}
+
+.profile-card-wrapper div.stButton {
     width: 140px !important;
     height: 140px !important;
-    margin: 0 auto !important;
-    border-radius: 24px !important;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+}
+
+.profile-card-wrapper div.stButton > button {
+    width: 140px !important;
+    height: 140px !important;
+    min-width: 140px !important;
+    max-width: 140px !important;
+    min-height: 140px !important;
+    max-height: 140px !important;
+    border-radius: 26px !important;
     background: #181B20 !important;
-    border: 2px solid #2B303A !important;
+    border: 2px solid #2D333B !important;
     box-shadow: 0 10px 22px rgba(0, 0, 0, 0.45) !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
     padding: 0 !important;
+    margin: 0 auto !important;
     transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
-div[data-testid="stHorizontalBlock"].profile-grid-container div.stButton > button p {
-    font-size: 5rem !important;
+.profile-card-wrapper div.stButton > button p {
+    font-size: 4.8rem !important;
     line-height: 1 !important;
     margin: 0 !important;
+    padding: 0 !important;
 }
 
-div[data-testid="stHorizontalBlock"].profile-grid-container div.stButton > button:hover {
-    transform: translateY(-5px) scale(1.05) !important;
+.profile-card-wrapper div.stButton > button:hover {
+    transform: translateY(-5px) scale(1.04) !important;
     border-color: #10B981 !important;
-    box-shadow: 0 14px 28px rgba(16, 185, 129, 0.35) !important;
-    background: #20242B !important;
+    box-shadow: 0 14px 28px rgba(16, 185, 129, 0.4) !important;
+    background: #22262E !important;
 }
 
+/* Profile Titles Below Square Cards */
 .profile-meta-title {
     text-align: center;
-    margin-top: 10px;
-    font-size: 1.05rem;
+    font-size: 1rem;
     font-weight: 700;
     line-height: 1.2;
+    margin-top: 8px;
 }
 
 .profile-meta-role {
     text-align: center;
-    margin-top: 3px;
-    font-size: 0.72rem;
+    font-size: 0.7rem;
     font-family: 'JetBrains Mono', monospace;
     color: #10B981 !important;
     text-transform: uppercase;
     letter-spacing: 0.5px;
+    margin-top: 2px;
+}
+
+.tiny-edit-btn div.stButton > button {
+    padding: 2px 6px !important;
+    height: 28px !important;
+    font-size: 0.8rem !important;
+    border-radius: 8px !important;
+    background: rgba(16, 185, 129, 0.1) !important;
+    border: 1px solid rgba(16, 185, 129, 0.3) !important;
 }
 
 /* ==========================================================================
@@ -500,15 +531,14 @@ div[data-testid="stHorizontalBlock"].profile-grid-container div.stButton > butto
     color: #10B981;
 }
 
-/* Elegant Standard Buttons (Portal inside) */
-div.stButton > button {
+/* Standard Buttons Inside Dashboard */
+div[data-testid="stMainBlockContainer"] div.stButton > button:not(.square-badge) {
     border-radius: 10px !important;
     font-weight: 600 !important;
     padding: 0.45rem 1.1rem !important;
     transition: all 0.2s ease !important;
 }
 
-/* Primary Button Highlighting */
 div.stButton > button[kind="primary"] {
     background: #047857 !important;
     border-color: #059669 !important;
@@ -518,13 +548,6 @@ div.stButton > button[kind="primary"] {
 div.stButton > button[kind="primary"]:hover {
     background: #059669 !important;
     border-color: #10B981 !important;
-}
-
-/* Pill Action Buttons */
-.compact-action-btn button {
-    border-radius: 20px !important;
-    font-size: 0.85rem !important;
-    padding: 0.35rem 0.9rem !important;
 }
 </style>
 """
@@ -665,8 +688,7 @@ if not st.session_state.logged_in:
         </div>
     """, unsafe_allow_html=True)
 
-    # Scoped Netflix-Style Square Cards
-    st.markdown('<div class="profile-grid-container">', unsafe_allow_html=True)
+    # Scoped Netflix-Style Square Cards (140x140px)
     all_items = list(saved_profiles) + [("REGISTER_CARD", "New Profile", "", "Register")]
     cols_per_row = 4
     
@@ -676,30 +698,35 @@ if not st.session_state.logged_in:
         for idx, item in enumerate(row_items):
             with cols[idx]:
                 if item[0] == "REGISTER_CARD":
-                    if st.button("➕", key=f"add_profile_card_{i}", use_container_width=True):
+                    st.markdown('<div class="profile-card-wrapper">', unsafe_allow_html=True)
+                    if st.button("➕", key=f"add_profile_card_{i}"):
                         st.session_state.show_registration = True
                         st.rerun()
                     st.markdown("""
                         <div class="profile-meta-title">New Profile</div>
                         <div class="profile-meta-role">Register Account</div>
+                    </div>
                     """, unsafe_allow_html=True)
                 else:
                     p_email, p_name, p_pin, p_role = item
                     avatar_sticker = get_user_avatar(p_email)
                     
-                    if st.button(avatar_sticker, key=f"user_card_{i}_{idx}", use_container_width=True):
+                    st.markdown('<div class="profile-card-wrapper">', unsafe_allow_html=True)
+                    if st.button(avatar_sticker, key=f"user_card_{i}_{idx}"):
                         show_pin_dialog(p_email, p_name, p_role)
                     
-                    c_title, c_edit = st.columns([4, 1])
+                    c_title, c_edit = st.columns([3.5, 1])
                     with c_title:
                         st.markdown(f"""
-                            <div class="profile-meta-title" style="text-align: left; margin-left: 8px;">{p_name}</div>
-                            <div class="profile-meta-role" style="text-align: left; margin-left: 8px;">{p_role}</div>
+                            <div class="profile-meta-title" style="text-align: right; margin-right: 4px;">{p_name}</div>
+                            <div class="profile-meta-role" style="text-align: right; margin-right: 4px;">{p_role}</div>
                         """, unsafe_allow_html=True)
                     with c_edit:
+                        st.markdown('<div class="tiny-edit-btn">', unsafe_allow_html=True)
                         if st.button("✏️", key=f"edit_btn_{i}_{idx}", help="Change Badge"):
                             show_sticker_picker_dialog(p_email, p_name)
-    st.markdown('</div>', unsafe_allow_html=True)
+                        st.markdown('</div>', unsafe_allow_html=True)
+                    st.markdown('</div>', unsafe_allow_html=True)
 
     st.markdown("<br><hr style='opacity: 0.25;'>", unsafe_allow_html=True)
     col_dl1, col_dl2 = st.columns([7.5, 2.5], vertical_alignment="center")
