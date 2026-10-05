@@ -475,21 +475,15 @@ html, body, [class*="css"], .stApp {
     background: #22262E !important;
 }
 
-/* Integrated In-Card Edit Pencil Icon (Top Right of Card) */
-.in-card-edit-btn {
-    position: absolute;
-    top: 6px;
-    right: 6px;
-    z-index: 10;
-}
+
 
 .in-card-edit-btn div.stButton > button {
-    width: 30px !important;
-    height: 30px !important;
-    min-width: 30px !important;
-    max-width: 30px !important;
-    min-height: 30px !important;
-    max-height: 30px !important;
+    width: 170px !important;
+    height: 170px !important;
+    min-width: 170px !important;
+    max-width: 170px !important;
+    min-height: 170px !important;
+    max-height: 170px !important;
     border-radius: 50% !important;
     background: rgba(24, 27, 32, 0.85) !important;
     border: 1px solid rgba(16, 185, 129, 0.5) !important;
@@ -499,6 +493,15 @@ html, body, [class*="css"], .stApp {
     justify-content: center !important;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4) !important;
     transition: all 0.2s ease !important;
+    
+    
+    /* Integrated In-Card Edit Pencil Icon (Top Right of Card) */
+.in-card-edit-btn {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    z-index: 10;
+}
 }
 
 .in-card-edit-btn div.stButton > button p {
@@ -516,8 +519,8 @@ html, body, [class*="css"], .stApp {
 /* Titles and Role below cards */
 .profile-meta-title {
     text-align: center;
-    font-size: 1.05rem;
-    font-weight: 700;
+    font-size: 1.5rem;
+    font-weight: 650;
     line-height: 1.2;
     margin-top: 10px;
 }
