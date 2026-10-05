@@ -682,4 +682,220 @@ Return ONLY valid JSON: {{"match_score": 50, "is_relevant": true, "missing_skill
 """
         res = client.chat.completions.create(
             model=GROQ_MODEL, messages=[{"role": "user", "content": prompt}],
-            response_format={"type": "json_object"},
+            response_format={"type": "json_object"}, temperature=0.2
+        )
+        parsed = json.loads(res.choices[0].message.content.strip())
+        return float(parsed.get("match_score", 50)), True, parsed.get("missing_skills", [])
+    except Exception:
+        return 50.0, True, []
+
+def generate_ai_interview_questions(client, name, role, skills):
+    try:
+        prompt = f"Generate 5 precise interview questions with ideal answers for candidate {name} applying for ARL position {role} with skills: {skills}. Bullet points."
+        res = client.chat.completions.create(
+            model=GROQ_MODEL, messages=[{"role": "user", "content": prompt}], temperature=0.3
+        )
+        return res.choices[0].message.content.strip()
+    except Exception as e:
+        return f"Could not generate questions: {e}"
+
+# ===========================================================================
+# 10. MAIN DASHBOARD & TABS
+# ===========================================================================
+df_all = load_database()
+user_avatar = get_user_avatar(st.session_state.hr_email)
+
+# Top Styled Banner on Main Dashboard
+col_d1, col_d2 = st.columns([7.2, 2.8], vertical_alignment="center")
+with col_d1:
+    st.markdown("🚀 **ARL TalentMatch Desktop Suite** — Standalone Windows installer available for offline execution.")
+with col_d2:
+    if st.button("📥 View Download & FAQs", key="dl_btn_dash_top", use_container_width=True):
+        st.session_state.show_download_page = True
+        st.rerun()
+
+if st.session_state.show_download_page:
+    st.markdown("---")
+    st.markdown("""
+        <div style="background: linear-gradient(135deg, #064E3B 0%, #022C22 100%); border: 2px solid #34D399; border-radius: 20px; padding: 2.8rem; margin-bottom: 2rem; text-align: center; box-shadow: 0 15px 40px rgba(5, 150, 105, 0.3);">
+            <div style="font-size: 3.2rem; margin-bottom: 10px;">💻</div>
+            <h1 style="color: #FFFFFF; font-size: 2.4rem; font-weight: 800; margin-bottom: 12px;">ARL TalentMatch Desktop Edition</h1>
+            <p style="color: #A7F3D0; font-size: 1.15rem; max-width: 750px; margin: 0 auto 25px auto; line-height: 1.6;">
+                Run Attock Refinery's recruitment suite natively on your Windows PC for high-performance offline execution, native local OCR processing, and seamless multi-user collaboration.
+            </p>
+            <a href="https://github.com/sultan-kk/TalentMatch2.0/releases/download/v1.0/ARL-HireMatrix-Pro_1.0.0_x64_en-US.msi" target="_blank" style="background: #10B981; color: white; padding: 1rem 2.5rem; border-radius: 14px; font-weight: 800; font-size: 1.2rem; text-decoration: none; border: 2px solid #6EE7B7; box-shadow: 0 8px 25px rgba(16, 185, 129, 0.6); display: inline-block;">📥 Download Windows Installer (.msi)</a>
+        </div>
+    """, unsafe_allow_html=True)
+
+    st.markdown("### 🛠️ Installation Instructions")
+    st.markdown("""
+    1. **Download Package:** Click the prominent green download button above to download the official `.msi` setup package.
+    2. **Run Installer:** Double-click `ARL-HireMatrix-Pro_1.0.0_x64_en-US.msi` to launch the Windows setup wizard.
+    3. **Security Prompt:** If Windows SmartScreen prompts a notification (due to custom corporate signing), click **More info** -> **Run anyway**.
+    4. **Launch Suite:** Open ARL TalentMatch from your desktop shortcut or Windows start menu and sign in using your corporate credentials and PIN.
+    """)
+
+    st.markdown("### ❓ Frequently Asked Questions (FAQs)")
+    with st.expander("Q1: Is my candidate data secure in the desktop version?"):
+        st.write("Yes! The desktop application securely connects to your encrypted Supabase cloud database, ensuring your data remains fully synced and protected under corporate security protocols.")
+    with st.expander("Q2: Do I need an internet connection to run the app?"):
+        st.write("An internet connection is required for AI Groq extraction and cloud database synchronization. Local UI rendering and file caching work seamlessly offline.")
+    with st.expander("Q3: Can multiple HR recruiters use the app simultaneously?"):
+        st.write("Yes, multiple authorized recruiters can sign in concurrently with their unique executive profiles and 4-digit security PINs.")
+
+    st.markdown("<br>", unsafe_allow_html=True)
+    if st.button("⬅ Back to Dashboard", use_container_width=True):
+        st.session_state.show_download_page = False
+        st.rerun()
+    st.stop()
+
+col_n1, col_n2 = st.columns([8, 2], vertical_alignment="center")
+with col_n1:
+    st.markdown(f"""
+        <div class="top-navbar">
+            <div style="display: flex; align-items: center; gap: 14px;">
+                <div style="font-size: 2.2rem; background: #0A2315; padding: 4px 10px; border-radius: 12px; border: 1.5px solid #4ADE80;">{user_avatar}</div>
+                <div>
+                    <h2 style="font-size: 1.55rem; font-weight: 800; margin: 0; color: #FFFFFF;">{APP_NAME} Pro</h2>
+                    <p style="font-size: 0.75rem; text-transform: uppercase; color: #86EFAC; margin: 0;">Logged In: <b>{st.session_state.hr_name}</b> &bull; Role: <b>{st.session_state.hr_role}</b></p>
+                </div>
+            </div>
+        </div>
+    """, unsafe_allow_html=True)
+with col_n2:
+    if st.button("🚪 Lock Portal", use_container_width=True):
+        st.session_state.logged_in = False
+        st.rerun()
+
+st.markdown(f"""
+    <div class="corp-hero">
+        <h1 style="color: #FFFFFF; margin: 0 0 8px 0;">Attock Refinery Executive Suite</h1>
+        <p style="color: #86EFAC; margin: 0;">Total Repository: <b>{len(df_all)} Candidates</b></p>
+    </div>
+""", unsafe_allow_html=True)
+
+tab1, tab2, tab3, tab4 = st.tabs(["📥 1. Talent Repository (Upload)", "🎯 2. JD Screening & Matching", "🗄️ 3. Live Database Grids", "🛡️ 4. Admin Controls"])
+
+with tab1:
+    st.markdown('<div class="corp-card"><h4>📥 Step 1: Ingest & Parse Resumes</h4>', unsafe_allow_html=True)
+    uploaded_files = st.file_uploader("Upload Resumes (PDF, DOCX)", type=ACCEPTED_TYPES, accept_multiple_files=True)
+    g_key = st.secrets.get("GROQ_API_KEY", os.environ.get("GROQ_API_KEY", ""))
+    
+    if st.button("⚡ Extract & Append to Supabase", type="primary", use_container_width=True, disabled=not uploaded_files):
+        client = Groq(api_key=g_key)
+        batch = []
+        for file in uploaded_files:
+            text = extract_resume_text(file)
+            if text:
+                prompt = f"""Extract JSON for candidate:
+{{"candidates": [{{"name": "Name", "father_name": "Father", "education": "Degree", "cgpa": "3.5", "passing_year": "2024", "university_name": "Inst", "dob": "DOB", "email": "Email", "phone": "Phone", "experience_years": "2", "latest_experience": "Role", "reference": "Ref"}}]}}
+TEXT: {text[:15000]}"""
+                res = client.chat.completions.create(model=GROQ_MODEL, messages=[{"role": "user", "content": prompt}], response_format={"type": "json_object"})
+                parsed = json.loads(res.choices[0].message.content.strip())
+                batch.extend(parsed.get("candidates", []))
+        if batch:
+            ins, skp = save_candidates_to_repository(batch)
+            st.success(f"🎉 Processed: {ins} candidate(s) added!")
+            st.rerun()
+    st.markdown('</div>', unsafe_allow_html=True)
+
+with tab2:
+    st.markdown('<div class="corp-card"><h4>🎯 Step 2: Job Description Screening</h4>', unsafe_allow_html=True)
+    catalog = load_arl_job_catalog()
+    dept = st.selectbox("Select Department", list(catalog.keys()))
+    job_role = st.selectbox("Select Position", catalog.get(dept, []))
+    jd_text = st.text_area("Job Requirements", height=130)
+    slider_thresh = st.slider("Highlight Score Threshold (%)", 0, 100, 40, step=5)
+    
+    if st.button("⚡ Run AI Candidate Screening", type="primary", use_container_width=True, disabled=not (jd_text.strip() and not df_all.empty)):
+        client = Groq(api_key=g_key)
+        res = []
+        for idx, row in df_all.iterrows():
+            score, is_rel, missing = evaluate_candidate_against_jd(client, row, jd_text, selected_job_title=job_role)
+            if score >= slider_thresh:
+                res.append({
+                    "job_title": job_role, "name": row["Name"], "father_name": row["Father Name"],
+                    "education": row["Qualification"], "cgpa": row["CGPA"], "passing_year": row["Passing Year"],
+                    "university_name": row["Institute"], "dob": row["DOB"], "email": row["Email"],
+                    "phone": row["Phone Number"], "experience_years": row["Experience"],
+                    "latest_experience": row["Latest Experience"], "reference": row["Reference"],
+                    "match_score": score, "missing_skills": missing, "pipeline_status": "Shortlisted"
+                })
+        st.session_state.screening_results = res
+        save_screened_to_supabase(res)
+        st.success(f"Screening complete! {len(res)} candidate(s) evaluated and saved to database.")
+
+    display_results = st.session_state.screening_results
+    if not display_results:
+        db_s = load_screened_database()
+        if not db_s.empty: display_results = db_s.to_dict(orient="records")
+
+    if display_results:
+        st.markdown("### 📋 Screening Results")
+        
+        # Clear Screening Results View Button in Tab 2
+        if st.button("🗑️ Clear Screening Results View", type="secondary", key="clear_screening_view_btn"):
+            st.session_state.screening_results = []
+            st.success("Screening results view cleared!")
+            st.rerun()
+
+        for rank, cand in enumerate(display_results, 1):
+            c_name = cand.get('Name') or cand.get('name', 'Unknown')
+            c_score = cand.get('Match Score (%)') if 'Match Score (%)' in cand else cand.get('match_score', 0)
+            c_email = cand.get('Email') or cand.get('email', '')
+            c_job = cand.get('Job Title') or cand.get('job_title', job_role)
+            
+            with st.expander(f"#{rank} — {c_name} ({c_score}%)"):
+                new_status = st.selectbox("Pipeline Status", ["Shortlisted", "Interviewing", "Offered", "Rejected", "Talent Pool"], index=0, key=f"status_{rank}_{c_email}")
+                if st.button("Update Status", key=f"up_{rank}_{c_email}"):
+                    update_screened_candidate_status_db(c_email, c_job, new_status)
+                    st.success("Status updated!")
+
+                if st.button("📧 Send Interview Call Email", key=f"email_{rank}_{c_email}"):
+                    body = f"Dear {c_name},\n\nYou have been shortlisted for the position of {c_job} at Attock Refinery Limited (ARL).\n\nBest regards,\nHR Team ARL"
+                    ok, msg = send_smtp_email(c_email, f"Interview Call - ARL TalentMatch ({c_job})", body)
+                    if ok: st.success("Email dispatched!")
+                    else: st.error(msg)
+
+                if st.button("💡 Generate AI Interview Questions", key=f"q_{rank}_{c_email}"):
+                    q_text = generate_ai_interview_questions(Groq(api_key=g_key), c_name, c_job, str(cand))
+                    st.info(q_text)
+    st.markdown('</div>', unsafe_allow_html=True)
+
+with tab3:
+    st.markdown('<div class="corp-card"><h4>🗄️ Real-Time Synchronized Supabase Grids</h4>', unsafe_allow_html=True)
+    g1, g2 = st.tabs(["Screened Candidates", "Master Talent Pool"])
+    with g1:
+        s_df = load_screened_database()
+        if not s_df.empty: 
+            st.dataframe(s_df, use_container_width=True)
+            if st.button("🗑️ Clear All Screened Records", type="secondary", key="clear_screened_btn"):
+                clear_screened_database()
+                st.success("All screened records have been cleared.")
+                st.rerun()
+        else: 
+            st.info("No screened records found.")
+    with g2:
+        m_df = load_database()
+        if not m_df.empty: 
+            st.dataframe(m_df, use_container_width=True)
+            if st.button("🗑️ Clear All Master Talent Pool", type="secondary", key="clear_pool_btn"):
+                clear_candidate_database()
+                st.success("Master talent pool cleared.")
+                st.rerun()
+        else: 
+            st.info("Master talent pool is empty.")
+    st.markdown('</div>', unsafe_allow_html=True)
+
+with tab4:
+    st.markdown('<div class="corp-card"><h4>🛡️ Admin Controls</h4>', unsafe_allow_html=True)
+    profiles = get_all_verified_profiles()
+    for p_em, p_nm, p_p, p_r in profiles:
+        c1, c2, c3 = st.columns([2, 1, 1])
+        with c1: st.write(f"👤 {p_nm} ({p_em})")
+        with c2: st.write(f"Role: {p_r}")
+        with c3:
+            if st.button("Revoke", key=f"rev_{p_em}"):
+                delete_employee_profile(p_em)
+                st.rerun()
+    st.markdown('</div>', unsafe_allow_html=True)
