@@ -7,7 +7,7 @@ Instant Logout/Lock, Permanent Supabase Badges, Deduplication Engine, Bottom App
 """
 
 import io
-import json
+import jsonF
 import os
 import re
 import hashlib
@@ -775,7 +775,7 @@ if not st.session_state.logged_in:
 
     st.markdown(f"""
         <div style="text-align: center; padding: 2.2rem 1rem 1.6rem 1rem;">
-            <h1 style="font-size: 2.6rem; font-weight: 800; margin-bottom: 4px; color: #FFFFFF;">Who's Screening?</h1>
+            <h1 style="font-size: 2.6rem; font-weight: 800; margin-bottom: 4px; color: #FFFFFF;">TalentMatch</h1>
             <p style="color: #10B981; font-size: 1rem; font-weight: 500;">{APP_TAGLINE}</p>
         </div>
     """, unsafe_allow_html=True)
