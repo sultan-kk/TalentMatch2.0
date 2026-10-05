@@ -736,7 +736,7 @@ def show_sticker_picker_dialog(email, name):
                 st.rerun()
 
 # ===========================================================================
-# 8. AUTHENTICATION & LOGIN SCREEN (PROPER 160x160 SQUARE PROFILE CARDS)
+# 8. AUTHENTICATION & LOGIN SCREEN
 # ===========================================================================
 if not st.session_state.logged_in:
     saved_profiles = get_all_verified_profiles()
@@ -744,6 +744,64 @@ if not st.session_state.logged_in:
     if st.session_state.show_download_page:
         st.markdown("---")
         st.markdown(f"""
+            <div style="background: var(--secondary-background-color); border: 1.5px solid #10B981; border-radius: 18px; padding: 2.2rem; margin-bottom: 2rem; text-align: center; box-shadow: 0 8px 24px rgba(0,0,0,0.15);">
+                <div style="font-size: 2.8rem; margin-bottom: 8px;">💻</div>
+                <h2 style="margin-bottom: 8px; font-weight: 800;">ARL TalentMatch Desktop Edition</h2>
+                <p style="max-width: 650px; margin: 0 auto 20px auto; opacity: 0.85;">
+                    Run Attock Refinery's recruitment suite natively on your Windows PC for high-performance offline execution, native OCR processing, and secure cloud synchronization.
+                </p>
+                <a href="{EXE_DIRECT_DOWNLOAD_URL}" target="_blank" style="background: #059669; color: white; padding: 0.75rem 2rem; border-radius: 10px; font-weight: 700; font-size: 1.05rem; text-decoration: none; display: inline-block;">📥 Download Windows Installer (.msi)</a>
+            </div>
+        """, unsafe_allow_html=True)
+
+        if st.button("⬅ Back to Portal Login", use_container_width=True):
+            st.session_state.show_download_page = False
+            st.rerun()
+        st.stop()
+
+    if st.session_state.pending_pin_email:
+        _, mid_col, _ = st.columns([1, 2.2, 1])
+        with mid_col:
+            st.markdown("### 🔐 Security PIN Setup")
+            with st.form("pin_setup_form"):
+                new_pin = st.text_input("Create 4-Digit PIN", type="password", max_chars=4)
+                confirm_pin = st.text_input("Confirm 4-Digit PIN", type="password", max_chars=4)
+                submit_pin = st.form_submit_button("Save PIN & Continue", use_container_width=True)
+            if submit_pin:
+                if len(new_pin) == 4 and new_pin == confirm_pin:
+                    success, msg = save_employee_pin(st.session_state.pending_pin_email, new_pin)
+                    if success:
+                        st.success(msg)
+                        st.session_state.pending_pin_email = None
+                        st.rerun()
+                else:
+                    st.error("Invalid or non-matching PIN.")
+        st.stop()
+
+    elif st.session_state.show_registration:
+        _, mid_col, _ = st.columns([1, 2.2, 1])
+        with mid_col:
+            st.markdown("### 📝 Register Executive Profile")
+            with st.form("universal_registration_form"):
+                reg_name = st.text_input("Full Name")
+                reg_email = st.text_input("Email Address")
+                reg_pass = st.text_input("Master Password", type="password")
+                submit_reg = st.form_submit_button("Register Profile", use_container_width=True)
+            if submit_reg:
+                success, msg = register_initial_employee(reg_name, reg_email, reg_pass)
+                if success:
+                    st.success(msg)
+                    st.session_state.pending_pin_email = reg_email.lower().strip()
+                    st.session_state.show_registration = False
+                    st.rerun()
+                else:
+                    st.error(msg)
+            if st.button("⬅ Back to Profiles", use_container_width=True):
+                st.session_state.show_registration = False
+                st.rerun()
+        st.stop()
+
+    st.markdown(f"""
         <div style="text-align: center; padding: 2.2rem 1rem 1.6rem 1rem;">
             <h1 style="font-size: 2.6rem; font-weight: 800; margin-bottom: 4px;">Who's Screening?</h1>
             <p style="color: #10B981; font-size: 1rem; font-weight: 500;">{APP_TAGLINE}</p>
@@ -752,7 +810,7 @@ if not st.session_state.logged_in:
 
     all_items = list(saved_profiles) + [("REGISTER_CARD", "New Profile", "", "Register")]
     cols_per_row = 4
-    
+
     for i in range(0, len(all_items), cols_per_row):
         row_items = all_items[i:i + cols_per_row]
         cols = st.columns(cols_per_row)
@@ -775,23 +833,20 @@ if not st.session_state.logged_in:
                 else:
                     p_email, p_name, p_pin, p_role = item
                     avatar_sticker = get_user_avatar(p_email)
-                    
+
                     st.markdown("""
                         <div class="profile-cell-wrap">
                             <div class="profile-card-holder">
                     """, unsafe_allow_html=True)
-                    
-                    # Main Square Avatar Card
+
                     if st.button(avatar_sticker, key=f"user_card_{i}_{idx}"):
                         show_pin_dialog(p_email, p_name, p_role)
-                    
-                    # Corner Edit Pencil inside card box
+
                     st.markdown('<div class="profile-edit-badge">', unsafe_allow_html=True)
                     if st.button("✏️", key=f"edit_btn_{i}_{idx}", help="Change Badge"):
                         show_sticker_picker_dialog(p_email, p_name)
                     st.markdown('</div>', unsafe_allow_html=True)
-                    
-                    # Name & Role below card
+
                     st.markdown(f"""
                             </div>
                             <div class="profile-meta-title">{p_name}</div>
