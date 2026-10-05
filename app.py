@@ -896,7 +896,6 @@ if not st.session_state.logged_in:
         with card_cols[idx]:
             avatar_sticker = get_user_avatar(p_email)
             
-            # Clean Netflix-style profile container box with clickable sign-in trigger
             st.markdown(f"""
                 <div class="netflix-card-box">
                     <div style="font-size: 3.5rem; margin-bottom: 8px;">{avatar_sticker}</div>
@@ -905,7 +904,6 @@ if not st.session_state.logged_in:
                 </div>
             """, unsafe_allow_html=True)
             
-            # Action buttons: Sign In & Compact Badge Editor
             c_act1, c_act2 = st.columns([2, 1])
             with c_act1:
                 if st.button("🔐 Sign In", key=f"signin_card_{idx}_{p_email}", use_container_width=True):
