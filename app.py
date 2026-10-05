@@ -2,7 +2,7 @@
 ARL TalentMatch — Official Corporate Edition (Adaptive Enterprise Suite)
 =============================================================================
 Branding: Attock Refinery Limited (ARL Forest Green & Native Adaptive Theme)
-Features: True Square Netflix Profile Cards (150x150px), In-Card Top-Right Edit Badge,
+Features: True Square Netflix Profile Cards (170x170px), In-Card Top-Right Edit Badge,
 Supabase Permanent Badge Sync, Deduplication, Chronological Bottom-Append.
 """
 
@@ -660,7 +660,7 @@ def show_sticker_picker_dialog(email, name):
     cols = st.columns(4)
     for idx, badge in enumerate(AVAILABLE_BADGES):
         with cols[idx % 4]:
-            if st.button(badge, key=f"stk_btn_{email}_{idx}", use_container_width=True):
+            if st.button(badge, key=f"stk_btn_{email}_{idx}", use_column_width=True):
                 set_user_avatar(email, badge)
                 st.success("Badge permanently saved!")
                 st.rerun()
