@@ -799,16 +799,31 @@ with tab2:
 with tab3:
     st.markdown('<div class="corp-card"><h4>🗄️ Real-Time Synchronized Supabase Grids</h4>', unsafe_allow_html=True)
     g1, g2 = st.tabs(["Screened Candidates", "Master Talent Pool"])
+    
     with g1:
         s_df = load_screened_database()
-        if not s_df.empty: st.dataframe(s_df, use_container_width=True)
-        else: st.info("No screened records found.")
+        if not s_df.empty: 
+            st.dataframe(s_df, use_container_width=True)
+            # Screened records delete / clear karne ka button
+            if st.button("🗑️ Clear All Screened Records", type="secondary", key="clear_screened_btn"):
+                clear_screened_database()
+                st.success("All screened records have been cleared.")
+                st.rerun()
+        else: 
+            st.info("No screened records found.")
+            
     with g2:
         m_df = load_database()
-        if not m_df.empty: st.dataframe(m_df, use_container_width=True)
-        else: st.info("Master talent pool is empty.")
+        if not m_df.empty: 
+            st.dataframe(m_df, use_container_width=True)
+            if st.button("🗑️ Clear All Master Talent Pool", type="secondary", key="clear_pool_btn"):
+                clear_candidate_database()
+                st.success("Master talent pool cleared.")
+                st.rerun()
+        else: 
+            st.info("Master talent pool is empty.")
+            
     st.markdown('</div>', unsafe_allow_html=True)
-
 with tab4:
     st.markdown('<div class="corp-card"><h4>🛡️️ Admin Controls</h4>', unsafe_allow_html=True)
     profiles = get_all_verified_profiles()
