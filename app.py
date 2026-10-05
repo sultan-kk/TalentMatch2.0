@@ -1,9 +1,8 @@
 """
 ARL TalentMatch — Official Corporate Edition (Full-Proof Enterprise Suite)
 =============================================================================
-Branding: Forest Green Background + Charcoal Black Netflix Profile Cards
-Features: Large Fitted Emoji Badges, 2x2 Square Rounded Buttons, Change Badge Dialog,
-Direct Click Sign-In, Supabase Live Pipeline, Tab 2 Clear View & Fast Sync.
+Branding: Forest Green Background + High-Contrast Dashboard + Charcoal Cards
+Features: Fully Responsive Layout, Crisp Legibility, Fitted Badges, Supabase Live Pipeline.
 """
 
 import io
@@ -396,7 +395,7 @@ def clear_screened_database():
     if supabase: supabase.table("screened_candidates").delete().neq("id", 0).execute()
 
 # ===========================================================================
-# 5. FOREST GREEN BACKGROUND + CHARCOAL BLACK CARDS + BIG FITTED EMOJIS
+# 5. HIGH-CONTRAST & RESPONSIVE CSS
 # ===========================================================================
 ADAPTIVE_CSS = """
 <style>
@@ -404,7 +403,8 @@ ADAPTIVE_CSS = """
 
 html, body, [class*="css"], .stApp {
     font-family: 'Plus Jakarta Sans', sans-serif !important;
-    background: radial-gradient(circle at 50% 20%, #0A331C 0%, #062313 100%) !important;
+    background: radial-gradient(circle at 50% 15%, #082F19 0%, #04180D 100%) !important;
+    color: #F3F4F6 !important;
 }
 
 [data-testid="stSidebar"] { display: none !important; }
@@ -412,13 +412,13 @@ html, body, [class*="css"], .stApp {
 
 /* 2x2 Square Charcoal Black Card Button with Big Fitted Badge */
 div[data-testid="stColumn"] div.stButton > button {
-    width: 145px !important;
-    height: 145px !important;
+    width: 140px !important;
+    height: 140px !important;
     margin: 0 auto !important;
-    border-radius: 26px !important;
-    background: linear-gradient(145deg, #1C1E22 0%, #111215 100%) !important;
-    border: 2px solid #2A2E33 !important;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+    border-radius: 24px !important;
+    background: linear-gradient(145deg, #1F2228 0%, #121417 100%) !important;
+    border: 2px solid #2E333B !important;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.12) !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
@@ -426,9 +426,8 @@ div[data-testid="stColumn"] div.stButton > button {
     transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
-/* Force Big Emoji Size Inside Button */
 div[data-testid="stColumn"] div.stButton > button p {
-    font-size: 5.2rem !important;
+    font-size: 5rem !important;
     line-height: 1 !important;
     margin: 0 !important;
     padding: 0 !important;
@@ -437,17 +436,17 @@ div[data-testid="stColumn"] div.stButton > button p {
 div[data-testid="stColumn"] div.stButton > button:hover {
     transform: translateY(-6px) scale(1.05) !important;
     border-color: #34D399 !important;
-    box-shadow: 0 16px 35px rgba(16, 185, 129, 0.35), 0 0 18px rgba(52, 211, 153, 0.25) !important;
-    background: linear-gradient(145deg, #24272D 0%, #15171B 100%) !important;
+    box-shadow: 0 16px 35px rgba(16, 185, 129, 0.4), 0 0 18px rgba(52, 211, 153, 0.3) !important;
+    background: linear-gradient(145deg, #272C34 0%, #171A1F 100%) !important;
 }
 
 /* External Profile Name & Role Caption */
 .profile-meta-title {
     text-align: center;
     margin-top: 10px;
-    font-size: 1.08rem;
+    font-size: 1.05rem;
     font-weight: 700;
-    color: #FFFFFF;
+    color: #FFFFFF !important;
     line-height: 1.2;
 }
 
@@ -456,39 +455,80 @@ div[data-testid="stColumn"] div.stButton > button:hover {
     margin-top: 3px;
     font-size: 0.72rem;
     font-family: 'JetBrains Mono', monospace;
-    color: #4ADE80;
+    color: #4ADE80 !important;
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
 
+/* Responsive Top Navigation */
 .top-navbar {
-    background: linear-gradient(135deg, #0A2315 0%, #0F3622 100%);
+    background: linear-gradient(135deg, #0A2415 0%, #0F3821 100%);
     border: 1.5px solid #166534;
     border-bottom: 2px solid #22C55E;
     border-radius: 16px;
-    padding: 1.1rem 2rem;
-    margin-bottom: 1.8rem;
+    padding: 1rem 1.8rem;
+    margin-bottom: 1.5rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
     color: #FFFFFF !important;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
 }
 
+/* Hero Section */
 .corp-hero {
-    background: linear-gradient(135deg, rgba(22, 101, 52, 0.25) 0%, rgba(10, 35, 21, 0.9) 100%);
-    border: 1.5px solid #166534;
+    background: linear-gradient(135deg, rgba(22, 101, 52, 0.35) 0%, rgba(10, 35, 21, 0.95) 100%);
+    border: 1.5px solid #1E7E43;
     border-radius: 16px;
-    padding: 2rem 2.5rem;
-    margin-bottom: 2rem;
+    padding: 1.8rem 2.2rem;
+    margin-bottom: 1.8rem;
     border-left: 6px solid #4ADE80;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
 }
 
+/* High-Contrast Interior Section Cards */
 .corp-card {
-    background: #111814;
-    border: 1.5px solid rgba(52, 211, 153, 0.25);
-    border-radius: 16px;
-    padding: 1.8rem;
-    margin-bottom: 1.5rem;
+    background: #0E1310 !important;
+    border: 1.5px solid #22C55E !important;
+    border-radius: 18px !important;
+    padding: 2rem !important;
+    margin-bottom: 1.8rem !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6) !important;
+}
+
+.corp-card h4 {
+    color: #FFFFFF !important;
+    font-weight: 800 !important;
+    margin-bottom: 1.2rem !important;
+    letter-spacing: 0.3px !important;
+}
+
+/* Form Labels & Text High-Contrast */
+label, p, span, div[data-testid="stMarkdownContainer"] p {
+    color: #E5E7EB !important;
+}
+
+/* Uploader & Input Boxes Contrast */
+div[data-testid="stFileUploader"] {
+    background: #151C17 !important;
+    border: 1.5px dashed #34D399 !important;
+    border-radius: 14px !important;
+    padding: 10px !important;
+}
+
+div[data-testid="stFileUploader"] * {
+    color: #F9FAFB !important;
+}
+
+/* Streamlit Tabs High Contrast */
+button[data-baseweb="tab"] {
+    color: #9CA3AF !important;
+    font-weight: 600 !important;
+}
+
+button[data-baseweb="tab"][aria-selected="true"] {
+    color: #4ADE80 !important;
+    border-bottom-color: #4ADE80 !important;
 }
 </style>
 """
@@ -532,7 +572,6 @@ def show_pin_dialog(email, name, role):
 def show_sticker_picker_dialog(email, name):
     st.markdown("""
         <style>
-        /* Dialog ke andar grid spacing aur clean badge styling */
         div[data-testid="stDialog"] div[data-testid="stColumn"] {
             padding: 4px !important;
         }
@@ -562,7 +601,6 @@ def show_sticker_picker_dialog(email, name):
         }
         </style>
     """, unsafe_allow_html=True)
-    
     st.write(f"Select a corporate avatar badge for **{name}**:")
     cols = st.columns(4)
     for idx, badge in enumerate(AVAILABLE_BADGES):
@@ -573,12 +611,11 @@ def show_sticker_picker_dialog(email, name):
                 st.rerun()
 
 # ===========================================================================
-# 8. AUTHENTICATION & CHARCOAL PROFILE CARDS ON FOREST GREEN BACKGROUND
+# 8. AUTHENTICATION & CHARCOAL PROFILE CARDS
 # ===========================================================================
 if not st.session_state.logged_in:
     saved_profiles = get_all_verified_profiles()
 
-    # Download Desktop App Page
     if st.session_state.show_download_page:
         st.markdown("---")
         st.markdown("""
@@ -663,7 +700,6 @@ if not st.session_state.logged_in:
         </div>
     """, unsafe_allow_html=True)
 
-    # Netflix-Style Square Cards with Name & Badge Edit Below
     all_items = list(saved_profiles) + [("REGISTER_CARD", "New Profile", "", "Register")]
     cols_per_row = 4
     
@@ -687,7 +723,6 @@ if not st.session_state.logged_in:
                     if st.button(avatar_sticker, key=f"user_card_{i}_{idx}", use_container_width=True):
                         show_pin_dialog(p_email, p_name, p_role)
                     
-                    # Title & Edit Button Row
                     c_title, c_edit = st.columns([4, 1])
                     with c_title:
                         st.markdown(f"""
@@ -848,7 +883,7 @@ st.markdown(f"""
     </div>
 """, unsafe_allow_html=True)
 
-tab1, tab2, tab3, tab4 = st.tabs(["📥 1. Talent Repository (Upload)", "🎯 2. JD Screening & Matching", "🗄️ 3. Live Database Grids", "🛡️ 4. Admin Controls"])
+tab1, tab2, tab3, tab4 = st.tabs(["📥 1. Talent Repository (Upload)", "🎯 2. JD Screening & Matching", "🗄️ 3. Live Database Grids", "🛡️️ 4. Admin Controls"])
 
 with tab1:
     st.markdown('<div class="corp-card"><h4>📥 Step 1: Ingest & Parse Resumes</h4>', unsafe_allow_html=True)
