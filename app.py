@@ -2,7 +2,7 @@
 ARL TalentMatch — Official Corporate Edition
 =============================================================================
 Branding: Attock Refinery Limited (ARL Official Forest Green & Charcoal Palette)
-Features: Netflix-Style Profile Selector, Interactive Avatar Badges, 
+Features: Netflix-Style Direct Clickable Profile Cards, Interactive Avatar Badges, 
 In-Modal PIN Entry with Auto-Focus, Any-Domain Email Registration, 
 Fast OCR, JD Match Screener & Live Supabase Cloud Sync.
 """
@@ -597,7 +597,7 @@ def generate_screening_excel(results_list) -> bytes:
     return buffer.getvalue()
 
 # ===========================================================================
-# 5. NETFLIX-STYLE CINEMATIC ARL FOREST GREEN & CHARCOAL CSS
+# 5. NETFLIX-STYLE ARL FOREST GREEN BACKGROUND & TILE CSS
 # ===========================================================================
 ARL_GREEN_CSS = """
 <style>
@@ -605,7 +605,7 @@ ARL_GREEN_CSS = """
 
 html, body, [class*="css"], .stApp {
     font-family: 'Plus Jakarta Sans', sans-serif !important;
-    background-color: #0B0E11 !important;
+    background: linear-gradient(135deg, #061A10 0%, #0B2517 50%, #05140D 100%) !important;
     color: #F8FAFC !important;
 }
 
@@ -614,16 +614,16 @@ html, body, [class*="css"], .stApp {
 
 /* Backdrop blur when Streamlit modal dialog is open */
 div[data-testid="stModal"] {
-    background-color: rgba(5, 12, 8, 0.78) !important;
+    background-color: rgba(4, 18, 10, 0.85) !important;
     backdrop-filter: blur(12px) !important;
     -webkit-backdrop-filter: blur(12px) !important;
 }
 
 div[data-testid="stDialog"] {
-    background: #14171A !important;
-    border: 2px solid #166534 !important;
+    background: #0D2819 !important;
+    border: 2px solid #22C55E !important;
     border-radius: 20px !important;
-    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.9), 0 0 30px rgba(34, 197, 94, 0.25) !important;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.9), 0 0 35px rgba(34, 197, 94, 0.3) !important;
     color: #FFFFFF !important;
 }
 
@@ -643,117 +643,53 @@ div[data-testid="stDialog"] {
 
 .netflix-subtext {
     font-size: 1.05rem !important;
-    color: #94A3B8 !important;
+    color: #86EFAC !important;
     letter-spacing: 0.5px !important;
 }
 
-/* NETFLIX ROUNDED-SQUARE PROFILE CARDS */
-.netflix-card-wrapper {
-    position: relative;
-    width: 145px;
-    height: 145px;
-    margin: 0 auto 10px auto;
-    border-radius: 22px;
-    background: linear-gradient(145deg, #181D22 0%, #101316 100%);
-    border: 3px solid #1E252B;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6);
-    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-    cursor: pointer;
+/* NETFLIX ROUNDED-SQUARE PROFILE CARDS (DIRECT CLICKABLE TILES) */
+div[data-testid="stColumn"] button {
+    background: linear-gradient(145deg, #0F3622 0%, #081F13 100%) !important;
+    border: 3px solid #15803D !important;
+    border-radius: 22px !important;
+    height: 145px !important;
+    font-size: 1.15rem !important;
+    font-weight: 700 !important;
+    color: #E2E8F0 !important;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6) !important;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
-.netflix-card-wrapper:hover {
-    transform: translateY(-8px) scale(1.05);
-    border-color: #22C55E !important;
-    box-shadow: 0 16px 35px rgba(34, 197, 94, 0.35), inset 0 0 15px rgba(34, 197, 94, 0.15);
+div[data-testid="stColumn"] button:hover {
+    transform: translateY(-8px) scale(1.05) !important;
+    border-color: #4ADE80 !important;
+    box-shadow: 0 16px 35px rgba(34, 197, 94, 0.45), inset 0 0 20px rgba(74, 222, 128, 0.2) !important;
 }
 
-.netflix-avatar-emoji {
-    font-size: 4rem;
-    user-select: none;
-    line-height: 1;
-}
-
-.netflix-user-name {
-    text-align: center;
-    font-size: 1.05rem;
-    font-weight: 700;
-    color: #CBD5E1;
-    margin-top: 6px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.netflix-user-role {
-    text-align: center;
-    font-size: 0.72rem;
-    font-family: 'JetBrains Mono', monospace;
-    font-weight: 700;
-    color: #22C55E;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
-
-/* Edit Sticker Hover Badge in Top-Right */
-.sticker-edit-badge {
-    position: absolute;
-    top: 8px;
-    right: 8px;
-    background: rgba(15, 23, 42, 0.85);
-    border: 1.5px solid #22C55E;
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.9rem;
-    color: #FFFFFF;
-    opacity: 0;
-    transform: scale(0.8);
-    transition: all 0.2s ease-in-out;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-}
-
-.netflix-card-wrapper:hover .sticker-edit-badge {
-    opacity: 1;
-    transform: scale(1);
-}
-
-/* Buttons */
+/* General Buttons */
 .stButton > button {
-    background: linear-gradient(135deg, #166534 0%, #14532D 100%) !important;
+    background: linear-gradient(135deg, #15803D 0%, #166534 100%) !important;
     color: #FFFFFF !important;
-    border: 1.5px solid #22C55E !important;
+    border: 1.5px solid #4ADE80 !important;
     border-radius: 12px !important;
     font-weight: 700 !important;
     padding: 0.65rem 1.2rem !important;
-    box-shadow: 0 4px 15px rgba(22, 101, 52, 0.3) !important;
+    box-shadow: 0 4px 15px rgba(22, 101, 52, 0.4) !important;
     transition: all 0.2s ease-in-out !important;
 }
 
 .stButton > button:hover {
-    background: linear-gradient(135deg, #15803D 0%, #166534 100%) !important;
+    background: linear-gradient(135deg, #16a34a 0%, #15803D 100%) !important;
     border-color: #FFFFFF !important;
-    box-shadow: 0 6px 22px rgba(34, 197, 94, 0.5) !important;
+    box-shadow: 0 6px 22px rgba(74, 222, 128, 0.6) !important;
     transform: translateY(-2px);
-}
-
-/* Secondary Button Styling for Edit & Minor Actions */
-div[data-testid="stHorizontalBlock"] .stButton > button[kind="secondary"] {
-    background: #181D22 !important;
-    border: 1px solid #2A323D !important;
-    color: #CBD5E1 !important;
 }
 
 /* Inside Dialog Styling */
 [data-testid="stDialog"] input {
-    background-color: #0E1012 !important;
+    background-color: #061A10 !important;
     color: #FFFFFF !important;
-    border: 2px solid #166534 !important;
+    border: 2px solid #22C55E !important;
     border-radius: 12px !important;
     font-size: 1.4rem !important;
     text-align: center !important;
@@ -762,47 +698,48 @@ div[data-testid="stHorizontalBlock"] .stButton > button[kind="secondary"] {
 
 /* Top Navbar */
 .top-navbar {
-    background: linear-gradient(135deg, #14171A 0%, #1A2026 100%);
-    border: 1.5px solid #1E2328;
-    border-bottom: 2px solid #166534;
+    background: linear-gradient(135deg, #0A2315 0%, #0F3622 100%);
+    border: 1.5px solid #166534;
+    border-bottom: 2px solid #22C55E;
     border-radius: 16px;
     padding: 1.1rem 2rem;
     margin-bottom: 1.8rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
 }
 .top-brand-title {
     font-size: 1.55rem; font-weight: 800; color: #FFFFFF; margin: 0;
     display: flex; align-items: center; gap: 10px;
 }
 .top-brand-subtitle {
-    font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1.2px; font-weight: 700; color: #94A3B8; margin: 0;
+    font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1.2px; font-weight: 700; color: #86EFAC; margin: 0;
 }
 
 .corp-hero {
-    background: linear-gradient(135deg, rgba(22, 101, 52, 0.18) 0%, rgba(20, 23, 26, 0.9) 100%);
-    border: 1.5px solid #1E2328;
+    background: linear-gradient(135deg, rgba(22, 101, 52, 0.25) 0%, rgba(10, 35, 21, 0.9) 100%);
+    border: 1.5px solid #166534;
     border-radius: 16px;
     padding: 2rem 2.5rem;
     margin-bottom: 2rem;
-    border-left: 6px solid #22C55E;
+    border-left: 6px solid #4ADE80;
 }
 .corp-badge {
     display: inline-flex; align-items: center; gap: 8px; 
-    background: rgba(34, 197, 94, 0.15); color: #22C55E; 
+    background: rgba(34, 197, 94, 0.2); color: #4ADE80; 
     padding: 5px 14px; border-radius: 6px;
     font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.8rem;
     border: 1px solid rgba(34, 197, 94, 0.4);
 }
 
 .corp-card {
-    background: #14171A;
-    border: 1.5px solid rgba(22, 101, 52, 0.3);
+    background: #0B2517;
+    border: 1.5px solid rgba(34, 197, 94, 0.35);
     border-radius: 16px;
     padding: 1.8rem;
     margin-bottom: 1.5rem;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
 }
 
 .corp-card h4 {
@@ -811,22 +748,22 @@ div[data-testid="stHorizontalBlock"] .stButton > button[kind="secondary"] {
     color: #FFFFFF !important;
     margin-top: 0 !important;
     margin-bottom: 1.2rem !important;
-    background: linear-gradient(90deg, rgba(34, 197, 94, 0.15) 0%, rgba(22, 101, 52, 0.05) 100%) !important;
-    border-left: 4px solid #22C55E !important;
+    background: linear-gradient(90deg, rgba(34, 197, 94, 0.25) 0%, rgba(22, 101, 52, 0.05) 100%) !important;
+    border-left: 4px solid #4ADE80 !important;
     padding: 10px 16px !important;
     border-radius: 6px 12px 12px 6px !important;
 }
 
-.metric-box .val { font-size: 1.8rem; font-weight: 800; color: #22C55E; }
+.metric-box .val { font-size: 1.8rem; font-weight: 800; color: #4ADE80; }
 .metric-box .lbl { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; font-weight: 700; opacity: 0.85; }
 
-.score-high { color: #10B981 !important; font-weight: 800; }
-.score-mid { color: #F59E0B !important; font-weight: 800; }
-.score-low { color: #EF4444 !important; font-weight: 800; }
+.score-high { color: #4ADE80 !important; font-weight: 800; }
+.score-mid { color: #FBBF24 !important; font-weight: 800; }
+.score-low { color: #F87171 !important; font-weight: 800; }
 
 div[data-baseweb="tab-list"] {
-    background: #14171A !important;
-    border: 1.5px solid #1E2328 !important;
+    background: #0B2517 !important;
+    border: 1.5px solid #166534 !important;
     border-radius: 16px !important;
     padding: 6px 10px !important;
     gap: 8px !important;
@@ -838,15 +775,15 @@ button[data-baseweb="tab"] {
     border: 1.5px solid transparent !important;
     border-radius: 12px !important;
     padding: 8px 20px !important;
-    color: #94A3B8 !important;
+    color: #86EFAC !important;
     font-size: 0.92rem !important;
     font-weight: 700 !important;
 }
 
 button[data-baseweb="tab"][aria-selected="true"] {
-    background: linear-gradient(135deg, rgba(22, 101, 52, 0.6) 0%, rgba(34, 197, 94, 0.2) 100%) !important;
-    border: 1.5px solid #22C55E !important;
-    color: #22C55E !important;
+    background: linear-gradient(135deg, rgba(22, 101, 52, 0.7) 0%, rgba(34, 197, 94, 0.3) 100%) !important;
+    border: 1.5px solid #4ADE80 !important;
+    color: #FFFFFF !important;
 }
 </style>
 """
@@ -1017,22 +954,19 @@ if not st.session_state.logged_in:
         with card_cols[idx]:
             avatar_sticker = get_user_avatar(p_email)
             
-            st.markdown(f"""
-                <div class="netflix-card-wrapper">
-                    <div class="netflix-avatar-emoji">{avatar_sticker}</div>
-                    <div class="sticker-edit-badge" title="Change Badge">✏️</div>
-                </div>
-                <div class="netflix-user-name">{p_name}</div>
-                <div class="netflix-user-role">{p_role}</div>
-            """, unsafe_allow_html=True)
+            # Direct clickable Netflix card tile
+            card_clicked = st.button(
+                f"{avatar_sticker}\n\n{p_name}\n{p_role}", 
+                key=f"netflix_card_btn_{idx}_{p_email}", 
+                use_container_width=True,
+                help=f"Click to sign in as {p_name}"
+            )
             
-            c_sel, c_edit = st.columns([3, 1.2])
-            with c_sel:
-                if st.button("Sign In", key=f"sel_prof_{idx}_{p_email}", use_container_width=True):
-                    show_pin_dialog(p_email, p_name, p_role)
-            with c_edit:
-                if st.button("🎨", key=f"btn_stk_{idx}_{p_email}", help="Change Avatar Badge", use_container_width=True):
-                    show_sticker_picker_dialog(p_email, p_name)
+            if card_clicked:
+                show_pin_dialog(p_email, p_name, p_role)
+                
+            if st.button("✏️ Change Badge", key=f"btn_stk_{idx}_{p_email}", use_container_width=True):
+                show_sticker_picker_dialog(p_email, p_name)
 
     st.markdown("<div style='margin-top: 3.5rem;'></div>", unsafe_allow_html=True)
     
@@ -1218,11 +1152,11 @@ with col_n1:
     st.markdown(f"""
         <div class="top-navbar">
             <div style="display: flex; align-items: center; gap: 14px;">
-                <div style="font-size: 2.2rem; background: #181D22; padding: 4px 10px; border-radius: 12px; border: 1.5px solid #22C55E;">
+                <div style="font-size: 2.2rem; background: #0A2315; padding: 4px 10px; border-radius: 12px; border: 1.5px solid #4ADE80;">
                     {user_avatar}
                 </div>
                 <div>
-                    <h2 class="top-brand-title">{APP_NAME} <span style="color: #22C55E;">Pro</span></h2>
+                    <h2 class="top-brand-title">{APP_NAME} <span style="color: #4ADE80;">Pro</span></h2>
                     <p class="top-brand-subtitle">Logged In: <b>{st.session_state.get('hr_name')}</b> ({st.session_state.get('hr_email')}) &bull; Role: <b>{st.session_state.get('hr_role')}</b></p>
                 </div>
             </div>
@@ -1241,7 +1175,7 @@ st.markdown(f"""
             <span>🟢 Active Session</span> &bull; <span>Total Repository: {total_repo_db} Candidates</span>
         </div>
         <h1 style="color: #FFFFFF; margin: 0 0 8px 0;">Attock Refinery Executive Suite</h1>
-        <p style="color: #CBD5E1; margin: 0;">Welcome, <b>{st.session_state.get('hr_name')}</b> &mdash; Latest Registered Candidate: <b>{latest_candidate}</b></p>
+        <p style="color: #86EFAC; margin: 0;">Welcome, <b>{st.session_state.get('hr_name')}</b> &mdash; Latest Registered Candidate: <b>{latest_candidate}</b></p>
     </div>
 """, unsafe_allow_html=True)
 
