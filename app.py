@@ -2,8 +2,8 @@
 ARL TalentMatch — Official Corporate Edition (Adaptive Enterprise Suite)
 =============================================================================
 Branding: Attock Refinery Limited (ARL Forest Green & Native Adaptive Theme)
-Features: Permanent Supabase Badges, Strict 135x135px Square Cards, Clean Controls,
-High-Contrast Legibility, Supabase Live Pipeline & Tab 2 Clean Sync.
+Features: Multi-Resume Single-PDF Segmentation, Live Bulk Extraction Progress,
+Permanent Supabase Badges, Responsive High-Contrast Theme Sync.
 """
 
 import io
@@ -418,6 +418,7 @@ def clear_candidate_database():
 def clear_screened_database():
     if supabase: supabase.table("screened_candidates").delete().neq("id", 0).execute()
 
+
 # ===========================================================================
 # 5. ISOLATED CSS (STRICT 135x135px SQUARE PROFILE CARDS)
 # ===========================================================================
@@ -593,28 +594,6 @@ def show_pin_dialog(email, name, role):
 
 @st.dialog("🎨 Choose Executive Badge")
 def show_sticker_picker_dialog(email, name):
-    st.markdown("""
-        <style>
-        div[data-testid="stDialog"] div[data-testid="stColumn"] {
-            padding: 3px !important;
-        }
-        div[data-testid="stDialog"] div.stButton > button {
-            width: 100% !important;
-            height: 55px !important;
-            border-radius: 12px !important;
-            background: #18191C !important;
-            border: 1.5px solid #2A2E33 !important;
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            padding: 0 !important;
-        }
-        div[data-testid="stDialog"] div.stButton > button p {
-            font-size: 2rem !important;
-            margin: 0 !important;
-        }
-        </style>
-    """, unsafe_allow_html=True)
     st.write(f"Select a corporate avatar badge for **{name}**:")
     cols = st.columns(4)
     for idx, badge in enumerate(AVAILABLE_BADGES):
@@ -643,23 +622,6 @@ if not st.session_state.logged_in:
             </div>
         """, unsafe_allow_html=True)
 
-        st.markdown("### 🛠️ Installation Instructions")
-        st.markdown("""
-        1. **Download:** Click the installer button above to fetch the setup package.
-        2. **Run Setup:** Double-click `ARL-HireMatrix-Pro_1.0.0_x64_en-US.msi` to start the wizard.
-        3. **Security Prompt:** If Windows SmartScreen prompts, click **More info** -> **Run anyway**.
-        4. **Launch Suite:** Open ARL TalentMatch and sign in with your corporate credentials and PIN.
-        """)
-
-        st.markdown("### ❓ Frequently Asked Questions (FAQs)")
-        with st.expander("Q1: Is candidate data secure in the desktop version?"):
-            st.write("Yes. The desktop application securely connects to encrypted Supabase cloud databases with identical access control.")
-        with st.expander("Q2: Do I need an internet connection?"):
-            st.write("An internet connection is needed for AI extraction and database synchronization. UI caching works seamlessly.")
-        with st.expander("Q3: Can multiple HR recruiters sign in?"):
-            st.write("Yes, all authorized recruiters can access their personal profiles with their respective 4-digit PINs.")
-
-        st.markdown("<br>", unsafe_allow_html=True)
         if st.button("⬅ Back to Portal Login", use_container_width=True):
             st.session_state.show_download_page = False
             st.rerun()
@@ -714,7 +676,6 @@ if not st.session_state.logged_in:
         </div>
     """, unsafe_allow_html=True)
 
-    # Scoped Netflix-Style Square Cards (135x135px)
     all_items = list(saved_profiles) + [("REGISTER_CARD", "New Profile", "", "Register")]
     cols_per_row = 4
     
@@ -723,32 +684,19 @@ if not st.session_state.logged_in:
         cols = st.columns(cols_per_row)
         for idx, item in enumerate(row_items):
             with cols[idx]:
-                st.markdown('<div class="square-profile-card">', unsafe_allow_html=True)
                 if item[0] == "REGISTER_CARD":
-                    if st.button("➕", key=f"add_profile_card_{i}"):
+                    if st.button("➕\n\nNew Profile", key=f"add_profile_card_{i}", use_container_width=True):
                         st.session_state.show_registration = True
                         st.rerun()
-                    st.markdown("""
-                        <div class="profile-meta-title">New Profile</div>
-                        <div class="profile-meta-role">Register Account</div>
-                    """, unsafe_allow_html=True)
                 else:
                     p_email, p_name, p_pin, p_role = item
                     avatar_sticker = get_user_avatar(p_email)
                     
-                    if st.button(avatar_sticker, key=f"user_card_{i}_{idx}"):
+                    if st.button(f"{avatar_sticker}\n\n{p_name}\n({p_role})", key=f"user_card_{i}_{idx}", use_container_width=True):
                         show_pin_dialog(p_email, p_name, p_role)
                     
-                    c_title, c_edit = st.columns([3.5, 1])
-                    with c_title:
-                        st.markdown(f"""
-                            <div class="profile-meta-title" style="text-align: right; margin-right: 4px;">{p_name}</div>
-                            <div class="profile-meta-role" style="text-align: right; margin-right: 4px;">{p_role}</div>
-                        """, unsafe_allow_html=True)
-                    with c_edit:
-                        if st.button("✏️", key=f"edit_btn_{i}_{idx}", help="Change Badge"):
-                            show_sticker_picker_dialog(p_email, p_name)
-                st.markdown('</div>', unsafe_allow_html=True)
+                    if st.button("✏️ Change Badge", key=f"edit_btn_{i}_{idx}", use_container_width=True):
+                        show_sticker_picker_dialog(p_email, p_name)
 
     st.markdown("<br><hr style='opacity: 0.25;'>", unsafe_allow_html=True)
     col_dl1, col_dl2 = st.columns([7.5, 2.5], vertical_alignment="center")
@@ -762,7 +710,7 @@ if not st.session_state.logged_in:
     st.stop()
 
 # ===========================================================================
-# 9. OCR & EXTRACTION FUNCTIONS
+# 9. OCR & MULTI-RESUME EXTRACTION ENGINE
 # ===========================================================================
 def extract_text_from_pdf(file_bytes: bytes) -> str:
     import pdfplumber
@@ -771,16 +719,17 @@ def extract_text_from_pdf(file_bytes: bytes) -> str:
     with pdfplumber.open(io.BytesIO(file_bytes)) as pdf:
         for idx, page in enumerate(pdf.pages, start=1):
             page_text = page.extract_text() or ""
-            if len(page_text.strip()) > 40:
-                text_parts.append(page_text)
+            if len(page_text.strip()) > 30:
+                text_parts.append(f"--- PAGE {idx} ---\n" + page_text)
             else:
                 try:
                     pil_img = page.to_image(resolution=150).original.convert("L")
                     t1 = pytesseract.image_to_string(pil_img)
-                    if t1.strip(): text_parts.append(t1)
+                    if t1.strip():
+                        text_parts.append(f"--- PAGE {idx} (OCR) ---\n" + t1)
                 except Exception:
                     pass
-    return "\n".join(text_parts)
+    return "\n\n".join(text_parts)
 
 def extract_text_from_docx(file_bytes: bytes) -> str:
     import docx
@@ -796,6 +745,75 @@ def extract_resume_text(uploaded_file):
     except Exception as e:
         st.error(f"Read error: {e}")
     return ""
+
+def parse_multiple_candidates_from_text(client, full_text):
+    """
+    Splits merged/compilation PDFs into distinct candidates and parses each.
+    """
+    chunk_size = 14000
+    overlap = 500
+    chunks = []
+    
+    if len(full_text) <= chunk_size:
+        chunks.append(full_text)
+    else:
+        start = 0
+        while start < len(full_text):
+            chunks.append(full_text[start:start + chunk_size])
+            start += chunk_size - overlap
+
+    all_extracted_candidates = []
+    seen_identifiers = set()
+
+    for chunk in chunks:
+        prompt = f"""You are an expert HR Parser analyzing a combined document containing ONE OR MULTIPLE RESUMES/CVS.
+Detect ALL separate candidates present in this text and return each as a separate item in the 'candidates' array.
+
+Return strictly valid JSON with this exact schema:
+{{
+  "candidates": [
+    {{
+      "name": "Full Name",
+      "father_name": "Father Name or Not Provided",
+      "education": "Degree Name",
+      "cgpa": "CGPA or percentage",
+      "passing_year": "Graduation Year",
+      "university_name": "University/College",
+      "dob": "Date of birth",
+      "email": "Email address",
+      "phone": "Phone number",
+      "experience_years": "Total years of experience (numeric string, e.g. '3')",
+      "latest_experience": "Most recent role & company",
+      "reference": "Reference if any"
+    }}
+  ]
+}}
+
+DOCUMENT TEXT:
+{chunk}
+"""
+        try:
+            res = client.chat.completions.create(
+                model=GROQ_MODEL,
+                messages=[{"role": "user", "content": prompt}],
+                response_format={"type": "json_object"},
+                temperature=0.1
+            )
+            parsed = json.loads(res.choices[0].message.content.strip())
+            for cand in parsed.get("candidates", []):
+                cand_name = str(cand.get("name", "")).strip()
+                cand_email = str(cand.get("email", "")).strip().lower()
+                cand_phone = str(cand.get("phone", "")).strip()
+                
+                # Deduplication key within the same merged document
+                uid = cand_email if cand_email and "not" not in cand_email else f"{cand_name}_{cand_phone}"
+                if cand_name and cand_name.lower() not in ["unknown", "name"] and uid not in seen_identifiers:
+                    seen_identifiers.add(uid)
+                    all_extracted_candidates.append(cand)
+        except Exception:
+            pass
+
+    return all_extracted_candidates
 
 def evaluate_candidate_against_jd(client, candidate_row, jd_text, selected_job_title=""):
     try:
@@ -831,7 +849,6 @@ def generate_ai_interview_questions(client, name, role, skills):
 df_all = load_database()
 user_avatar = get_user_avatar(st.session_state.hr_email)
 
-# Top Bar with Clean Proportional Buttons
 col_nav_left, col_nav_right = st.columns([7, 3], vertical_alignment="center")
 with col_nav_left:
     st.markdown(f"""
@@ -866,30 +883,47 @@ tab1, tab2, tab3, tab4 = st.tabs([
     "📥 1. Talent Repository (Upload)", 
     "🎯 2. JD Screening & Matching", 
     "🗄️ 3. Live Database Grids", 
-    "🛡️ 4. Admin Controls"
+    "🛡️️ 4. Admin Controls"
 ])
 
 with tab1:
-    st.markdown('<div class="corp-card"><h4>📥 Step 1: Ingest & Parse Resumes</h4>', unsafe_allow_html=True)
-    uploaded_files = st.file_uploader("Upload Candidate CVs / Resumes (PDF, DOCX)", type=ACCEPTED_TYPES, accept_multiple_files=True)
+    st.markdown('<div class="corp-card"><h4>📥 Step 1: Ingest & Parse Resumes (Bulk & Combined PDFs Supported)</h4>', unsafe_allow_html=True)
+    uploaded_files = st.file_uploader(
+        "Upload Candidate CVs (PDF, DOCX) — Multiple Files & Merged Multi-Page PDFs Supported",
+        type=ACCEPTED_TYPES,
+        accept_multiple_files=True
+    )
     g_key = st.secrets.get("GROQ_API_KEY", os.environ.get("GROQ_API_KEY", ""))
     
     if st.button("⚡ Extract & Append to Supabase", type="primary", use_container_width=True, disabled=not uploaded_files):
         client = Groq(api_key=g_key)
         batch = []
-        for file in uploaded_files:
-            text = extract_resume_text(file)
-            if text:
-                prompt = f"""Extract JSON for candidate:
-{{"candidates": [{{"name": "Name", "father_name": "Father", "education": "Degree", "cgpa": "3.5", "passing_year": "2024", "university_name": "Inst", "dob": "DOB", "email": "Email", "phone": "Phone", "experience_years": "2", "latest_experience": "Role", "reference": "Ref"}}]}}
-TEXT: {text[:15000]}"""
-                res = client.chat.completions.create(model=GROQ_MODEL, messages=[{"role": "user", "content": prompt}], response_format={"type": "json_object"})
-                parsed = json.loads(res.choices[0].message.content.strip())
-                batch.extend(parsed.get("candidates", []))
+        total_files = len(uploaded_files)
+        
+        progress_bar = st.progress(0)
+        status_text = st.empty()
+        
+        for idx, file in enumerate(uploaded_files, start=1):
+            status_text.markdown(f"⏳ **Reading & Segmenting File {idx} of {total_files}:** `{file.name}`...")
+            progress_bar.progress(int((idx / total_files) * 100))
+            
+            try:
+                text = extract_resume_text(file)
+                if text and len(text.strip()) > 30:
+                    candidates_in_file = parse_multiple_candidates_from_text(client, text)
+                    batch.extend(candidates_in_file)
+            except Exception as err:
+                st.warning(f"⚠ Note on `{file.name}`: {err}")
+        
+        status_text.empty()
+        progress_bar.empty()
+        
         if batch:
             ins, skp = save_candidates_to_repository(batch)
-            st.success(f"🎉 Success: {ins} candidate(s) parsed and appended to Talent Pool!")
+            st.success(f"🎉 Success: Detected & Extracted {len(batch)} candidate(s) across uploaded file(s). Added {ins} new profile(s) to Supabase Talent Pool!")
             st.rerun()
+        else:
+            st.error("No candidate profiles could be extracted from the uploaded file(s). Please verify the contents.")
     st.markdown('</div>', unsafe_allow_html=True)
 
 with tab2:
@@ -926,7 +960,7 @@ with tab2:
     if display_results:
         st.markdown("### 📋 Screened Candidates")
         
-        if st.button("🗑️ Clear Screening View", type="secondary", key="clear_screening_view_btn"):
+        if st.button("🗑️️ Clear Screening View", type="secondary", key="clear_screening_view_btn"):
             st.session_state.screening_results = []
             st.success("Screening view reset.")
             st.rerun()
