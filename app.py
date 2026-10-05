@@ -31,7 +31,7 @@ APP_NAME = "ARL TalentMatch"
 APP_TAGLINE = "Attock Refinery Limited (ARL) • AI-Driven Automated CV Parser & JD Screener"
 GROQ_MODEL = "openai/gpt-oss-120b"
 ACCEPTED_TYPES = ["pdf", "docx", "png", "jpg", "jpeg"]
-EXE_DOWNLOAD_URL = "https://github.com/sultan-kk/TalentMatch2.0/releases/download/v1.0/ARL-TalentMatch_1.0.0_x64_en-US.msi"
+EXE_DOWNLOAD_URL = "https://supabase.com/dashboard/project/nylpzshnuausfuoudziw/editor6/releases/download/v1.0/ARL-TalentMatch_1.0.0_x64_en-US.msi"
 
 # Professional Corporate Badges / Stickers for Avatars
 AVAILABLE_BADGES = [
@@ -333,13 +333,13 @@ def delete_arl_job_from_db(department, job_title):
     return True, "Removed locally."
 
 # ===========================================================================
-# 4. CANDIDATE REPOSITORY & STORAGE
+# 4. CANDIDATE REPOSITORY & STORAGE (STRICT COLUMN SEQUENCE)
 # ===========================================================================
 def load_database():
     expected_cols = [
         "Name", "Father Name", "Qualification", "CGPA", 
         "Passing Year", "Institute", "DOB", "Email", 
-        "Phone Number", "Experience", "Latest Experience", "Reference"
+        "Phone Number", "Experience", "Latest Experience", "Reference", "Pipeline Status", "Added At"
     ]
     if not supabase:
         return pd.DataFrame(columns=expected_cols)
@@ -350,7 +350,7 @@ def load_database():
             mapped_rows = []
             for r in rows:
                 mapped_rows.append({
-                    "Name": r.get("candidate_name") or r.get("name", "Unknown"),
+                    "Name": r.get("candidate_name", "Unknown"),
                     "Father Name": r.get("father_name", "Not Provided"),
                     "Qualification": r.get("education", "Not Provided"),
                     "CGPA": r.get("cgpa", "Not Provided"),
@@ -361,9 +361,13 @@ def load_database():
                     "Phone Number": r.get("phone", "Not Provided"),
                     "Experience": str(r.get("experience_years", "0")),
                     "Latest Experience": r.get("latest_experience", "Not Provided"),
-                    "Reference": r.get("reference", "Not Provided")
+                    "Reference": r.get("reference", "Not Provided"),
+                    "Pipeline Status": r.get("pipeline_status", "Talent Pool"),
+                    "Added At": r.get("added_at", "Not Provided")
                 })
-            return pd.DataFrame(mapped_rows)
+            df = pd.DataFrame(mapped_rows)
+            # Ensure exact column sequence
+            return df[expected_cols]
     except Exception:
         pass
     return pd.DataFrame(columns=expected_cols)
@@ -517,7 +521,8 @@ def load_screened_database():
                     "Missing Skills": r.get("missing_skills", "None"),
                     "Screened At": r.get("screened_at", "")
                 })
-            return pd.DataFrame(mapped)
+            df = pd.DataFrame(mapped)
+            return df[expected_cols]
     except Exception:
         pass
     return pd.DataFrame(columns=expected_cols)
@@ -542,7 +547,8 @@ def generate_repository_excel(df: pd.DataFrame) -> bytes:
     import openpyxl
     buffer = io.BytesIO()
     export_df = df.copy()
-    export_df.insert(0, "Sr. No.", range(1, len(export_df) + 1))
+    if "Sr. No." not in export_df.columns:
+        export_df.insert(0, "Sr. No.", range(1, len(export_df) + 1))
     
     with pd.ExcelWriter(buffer, engine="openpyxl") as writer:
         export_df.to_excel(writer, index=False, sheet_name="Candidates_Master")
@@ -566,7 +572,9 @@ def generate_screening_excel(results_list) -> bytes:
         data.append({
             "Sr. No.": idx,
             "Job Title": r.get("job_title", "Not Specified"),
-            "Candidate Name": r["name"],
+            "Pipeline Status": r["pipeline_status"],
+            "Match Score (%)": r["match_score"],
+            "Name": r["name"],
             "Father Name": r["father_name"],
             "Qualification": r["education"],
             "CGPA": r["cgpa"],
@@ -577,9 +585,7 @@ def generate_screening_excel(results_list) -> bytes:
             "Phone Number": r["phone"],
             "Experience": r["experience_years"],
             "Latest Experience": r["latest_experience"],
-            "Reference": r["reference"],
-            "Match Score (%)": r["match_score"],
-            "Pipeline Status": r["pipeline_status"]
+            "Reference": r["reference"]
         })
     export_df = pd.DataFrame(data)
     with pd.ExcelWriter(buffer, engine="openpyxl") as writer:
@@ -1148,7 +1154,7 @@ with tab1:
                     st.success(f"🎉 Processed: {ins} new candidate(s) appended, {skp} duplicate(s) skipped!")
                     st.rerun()
                 else:
-                    st.warning("⚠️ No candidate data could be parsed from the uploaded files. Check file format or text clarity.")
+                    st.warning("⚠️️ No candidate data could be parsed from the uploaded files. Check file format or text clarity.")
             except Exception as extraction_err:
                 st.error(f"❌ Error during extraction process: {extraction_err}")
                 
