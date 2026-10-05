@@ -462,7 +462,7 @@ div[data-testid="stColumn"] > div:has(.square-profile-card) div.stButton > butto
 }
 
 div[data-testid="stColumn"] > div:has(.square-profile-card) div.stButton > button p {
-    font-size: 6.2rem !important;
+    font-size: 8.2rem !important;
     line-height: 1 !important;
     margin: 0 !important;
     padding: 0 !important;
