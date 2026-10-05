@@ -460,7 +460,7 @@ def clear_screened_database():
     if supabase: supabase.table("screened_candidates").delete().neq("id", 0).execute()
 
 # ===========================================================================
-# 5. CSS (DIRECT & BULLETPROOF SQUARE CARDS)
+# 5. CSS (DIRECT BUTTON TARGETING - GUARANTEED 160x160 SQUARE)
 # ===========================================================================
 ADAPTIVE_CSS = """
 <style>
@@ -474,101 +474,72 @@ html, body, [class*="css"], .stApp {
     display: none !important; 
 }
 
-/* Base button styling inside Dashboard */
-div.stButton > button {
-    border-radius: 10px !important;
-    font-weight: 600 !important;
-    padding: 0.45rem 1.1rem !important;
-    transition: all 0.2s ease !important;
-}
-
-div.stButton > button[kind="primary"] {
-    background: #047857 !important;
-    border-color: #059669 !important;
-    color: #FFFFFF !important;
-}
-
 /* ==========================================================================
-   SOLID 160x160 SQUARE PROFILE CARD ENFORCEMENT
+   SOLID 160x160 SQUARE PROFILE BUTTONS (FAIL-PROOF TARGETING)
    ========================================================================== */
-.netflix-card-outer {
-    position: relative;
-    width: 160px;
-    height: 160px;
-    margin: 0 auto;
+.profile-cell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    margin-bottom: 1.5rem;
 }
 
-/* Enforce EXACT 160px x 160px Square on Main Button */
-.netflix-card-outer div[data-testid="stButton"]:first-child > button {
+/* Har Profile Button ko Strict 160px x 160px Square banayein */
+div[data-testid="stColumn"] div.stButton > button[key^="user_card_"],
+div[data-testid="stColumn"] div.stButton > button[key^="add_profile_card_"] {
     width: 160px !important;
     height: 160px !important;
     min-width: 160px !important;
     max-width: 160px !important;
     min-height: 160px !important;
     max-height: 160px !important;
-    border-radius: 26px !important;
+    aspect-ratio: 1 / 1 !important;
+    border-radius: 28px !important;
     background: #181B20 !important;
     border: 2px solid #2D333B !important;
     box-shadow: 0 10px 24px rgba(0, 0, 0, 0.5) !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
+    margin: 0 auto !important;
     padding: 0 !important;
-    margin: 0 !important;
     transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
-.netflix-card-outer div[data-testid="stButton"]:first-child > button p {
+/* Emoji / Badge Size Enhancement */
+div[data-testid="stColumn"] div.stButton > button[key^="user_card_"] p,
+div[data-testid="stColumn"] div.stButton > button[key^="add_profile_card_"] p {
     font-size: 5rem !important;
     line-height: 1 !important;
     margin: 0 !important;
     padding: 0 !important;
 }
 
-.netflix-card-outer div[data-testid="stButton"]:first-child > button:hover {
-    transform: translateY(-5px) scale(1.04) !important;
+div[data-testid="stColumn"] div.stButton > button[key^="user_card_"]:hover,
+div[data-testid="stColumn"] div.stButton > button[key^="add_profile_card_"]:hover {
+    transform: translateY(-6px) scale(1.04) !important;
     border-color: #10B981 !important;
     box-shadow: 0 14px 28px rgba(16, 185, 129, 0.45) !important;
     background: #22262E !important;
 }
 
-/* Floating Corner Edit Pencil inside the 160x160 Square */
-.netflix-edit-icon {
-    position: absolute;
-    top: 8px;
-    right: 8px;
-    z-index: 99;
+/* Edit Badge Pill Button */
+div[data-testid="stColumn"] div.stButton > button[key^="edit_btn_"] {
+    background: rgba(16, 185, 129, 0.12) !important;
+    border: 1px solid rgba(16, 185, 129, 0.4) !important;
+    color: #10B981 !important;
+    font-size: 0.75rem !important;
+    padding: 0.2rem 0.6rem !important;
+    border-radius: 12px !important;
+    margin: 4px auto 0 auto !important;
+    display: block !important;
 }
 
-.netflix-edit-icon div[data-testid="stButton"] > button {
-    width: 34px !important;
-    height: 34px !important;
-    min-width: 34px !important;
-    max-width: 34px !important;
-    min-height: 34px !important;
-    max-height: 34px !important;
-    border-radius: 50% !important;
-    background: #23272F !important;
-    border: 1.5px solid #10B981 !important;
-    padding: 0 !important;
-    margin: 0 !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5) !important;
-}
-
-.netflix-edit-icon div[data-testid="stButton"] > button p {
-    font-size: 0.95rem !important;
-    line-height: 1 !important;
-    margin: 0 !important;
-    padding: 0 !important;
-}
-
-.netflix-edit-icon div[data-testid="stButton"] > button:hover {
+div[data-testid="stColumn"] div.stButton > button[key^="edit_btn_"]:hover {
     background: #10B981 !important;
-    border-color: #34D399 !important;
-    transform: scale(1.15) !important;
+    color: #FFFFFF !important;
 }
 
 /* Captions Below Card */
@@ -577,7 +548,7 @@ div.stButton > button[kind="primary"] {
     font-size: 1.1rem;
     font-weight: 700;
     line-height: 1.2;
-    margin-top: 12px;
+    margin-top: 10px;
 }
 
 .profile-meta-role {
@@ -587,7 +558,7 @@ div.stButton > button[kind="primary"] {
     color: #10B981 !important;
     text-transform: uppercase;
     letter-spacing: 0.6px;
-    margin-top: 3px;
+    margin-top: 2px;
 }
 
 /* Interior Dashboard Styling */
@@ -628,10 +599,22 @@ div.stButton > button[kind="primary"] {
     font-weight: 700;
     color: #10B981;
 }
+
+div.stButton > button {
+    border-radius: 10px !important;
+    font-weight: 600 !important;
+    padding: 0.45rem 1.1rem !important;
+    transition: all 0.2s ease !important;
+}
+
+div.stButton > button[kind="primary"] {
+    background: #047857 !important;
+    border-color: #059669 !important;
+    color: #FFFFFF !important;
+}
 </style>
 """
 st.markdown(ADAPTIVE_CSS, unsafe_allow_html=True)
-
 # ===========================================================================
 # 6. SESSION STATE INITIALIZATION
 # ===========================================================================
@@ -772,7 +755,7 @@ if not st.session_state.logged_in:
         </div>
     """, unsafe_allow_html=True)
 
-    # Scoped Netflix-Style Square Cards (Strict 160x160 Box)
+    # Scoped Netflix-Style Square Cards (160x160px Direct Key Targeted)
     all_items = list(saved_profiles) + [("REGISTER_CARD", "New Profile", "", "Register")]
     cols_per_row = 4
     
@@ -782,35 +765,32 @@ if not st.session_state.logged_in:
         for idx, item in enumerate(row_items):
             with cols[idx]:
                 if item[0] == "REGISTER_CARD":
-                    st.markdown("""
-                        <div style="display:flex; flex-direction:column; align-items:center; margin-bottom:1.5rem;">
-                            <div class="netflix-card-outer">
-                    """, unsafe_allow_html=True)
+                    st.markdown('<div class="profile-cell">', unsafe_allow_html=True)
                     if st.button("➕", key=f"add_profile_card_{i}"):
                         st.session_state.show_registration = True
                         st.rerun()
                     st.markdown("""
-                            </div>
-                            <div class="profile-meta-title">New Profile</div>
-                            <div class="profile-meta-role">Register Account</div>
-                        </div>
+                        <div class="profile-meta-title">New Profile</div>
+                        <div class="profile-meta-role">Register Account</div>
+                    </div>
                     """, unsafe_allow_html=True)
                 else:
                     p_email, p_name, p_pin, p_role = item
                     avatar_sticker = get_user_avatar(p_email)
                     
-                    st.markdown("""
-                        <div style="display:flex; flex-direction:column; align-items:center; margin-bottom:1.5rem;">
-                            <div class="netflix-card-outer">
-                    """, unsafe_allow_html=True)
-                    
-                    # Main 160x160 Square Card Button
+                    st.markdown('<div class="profile-cell">', unsafe_allow_html=True)
+                    # Main Solid 160x160 Square Button
                     if st.button(avatar_sticker, key=f"user_card_{i}_{idx}"):
                         show_pin_dialog(p_email, p_name, p_role)
                     
-                    # Floating Corner Edit Pencil inside card box
-                    st.markdown('<div class="netflix-edit-icon">', unsafe_allow_html=True)
-                    if st.button("✏️", key=f"edit_btn_{i}_{idx}", help="Change Badge"):
+                    # Name aur Role
+                    st.markdown(f"""
+                        <div class="profile-meta-title">{p_name}</div>
+                        <div class="profile-meta-role">{p_role}</div>
+                    """, unsafe_allow_html=True)
+                    
+                    # Sleek Change Badge Option
+                    if st.button("✏️ Change Badge", key=f"edit_btn_{i}_{idx}"):
                         show_sticker_picker_dialog(p_email, p_name)
                     st.markdown('</div>', unsafe_allow_html=True)
                     
