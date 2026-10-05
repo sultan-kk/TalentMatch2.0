@@ -737,7 +737,7 @@ if not st.session_state.logged_in:
         </div>
     """, unsafe_allow_html=True)
 
-    # Scoped Netflix-Style Square Cards (Guaranteed 165x165px Square)
+    # Scoped Netflix-Style Square Cards (Guaranteed 160x160px Square)
     all_items = list(saved_profiles) + [("REGISTER_CARD", "New Profile", "", "Register")]
     cols_per_row = 4
     
@@ -751,13 +751,13 @@ if not st.session_state.logged_in:
                         <div style="display:flex; flex-direction:column; align-items:center; margin-bottom:1.8rem;">
                             <style>
                                 div[data-testid="stColumn"] div.stButton > button {
-                                    width: 165px !important;
-                                    height: 165px !important;
+                                    width: 160px !important;
+                                    height: 160px !important;
                                     border-radius: 26px !important;
                                     background: #181B20 !important;
                                     border: 2px solid #2D333B !important;
                                     box-shadow: 0 10px 24px rgba(0,0,0,0.5) !important;
-                                    font-size: 4.8rem !important;
+                                    font-size: 4.5rem !important;
                                     line-height: 1 !important;
                                     display: flex !important;
                                     align-items: center !important;
@@ -766,7 +766,7 @@ if not st.session_state.logged_in:
                                     margin: 0 auto !important;
                                 }
                                 div[data-testid="stColumn"] div.stButton > button p {
-                                    font-size: 4.8rem !important;
+                                    font-size: 4.5rem !important;
                                     margin: 0 !important;
                                     line-height: 1 !important;
                                 }
@@ -786,7 +786,7 @@ if not st.session_state.logged_in:
                     
                     st.markdown("""
                         <div style="display:flex; flex-direction:column; align-items:center; margin-bottom:1.8rem;">
-                            <div style="position:relative; width:165px; height:165px; margin: 0 auto;">
+                            <div style="position:relative; width:160px; height:160px; margin: 0 auto;">
                     """, unsafe_allow_html=True)
                     
                     # Main Square Avatar Card (Strict 165x165px)
