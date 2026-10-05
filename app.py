@@ -2,7 +2,7 @@
 ARL TalentMatch — Official Corporate Edition
 =============================================================================
 Branding: Attock Refinery Limited (ARL Official Forest Green & Charcoal Palette)
-Features: Netflix-Style Direct Clickable Profile Cards, Interactive Avatar Badges, 
+Features: Netflix-Style Direct Clickable Profile Cards, Compact Badge Editor, 
 In-Modal PIN Entry with Auto-Focus, Any-Domain Email Registration, 
 Fast OCR, JD Match Screener & Live Supabase Cloud Sync.
 """
@@ -97,7 +97,7 @@ def send_smtp_email(receiver_email, subject, body_text):
 # ----------------- BULLETPROOF AUTHENTICATION -----------------
 def get_user_avatar(email):
     avatars = st.session_state.get("profile_avatars", {})
-    return avatars.get(email.lower().strip(), "👤")
+    return avatars.get(email.lower().strip(), "👑")
 
 def set_user_avatar(email, avatar_char):
     if "profile_avatars" not in st.session_state:
@@ -648,40 +648,41 @@ div[data-testid="stDialog"] {
 }
 
 /* NETFLIX ROUNDED-SQUARE PROFILE CARDS (DIRECT CLICKABLE TILES) */
-div[data-testid="stColumn"] button {
+.netflix-profile-tile {
     background: linear-gradient(145deg, #0F3622 0%, #081F13 100%) !important;
     border: 3px solid #15803D !important;
     border-radius: 22px !important;
-    height: 145px !important;
-    font-size: 1.15rem !important;
-    font-weight: 700 !important;
-    color: #E2E8F0 !important;
+    padding: 1.8rem 1rem !important;
+    text-align: center !important;
     box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6) !important;
     transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    cursor: pointer !important;
+    margin-bottom: 8px !important;
 }
 
-div[data-testid="stColumn"] button:hover {
-    transform: translateY(-8px) scale(1.05) !important;
+.netflix-profile-tile:hover {
+    transform: translateY(-8px) scale(1.03) !important;
     border-color: #4ADE80 !important;
     box-shadow: 0 16px 35px rgba(34, 197, 94, 0.45), inset 0 0 20px rgba(74, 222, 128, 0.2) !important;
 }
 
-/* General Buttons */
+/* Compact Edit Button for Badges */
 .stButton > button {
     background: linear-gradient(135deg, #15803D 0%, #166534 100%) !important;
     color: #FFFFFF !important;
     border: 1.5px solid #4ADE80 !important;
-    border-radius: 12px !important;
+    border-radius: 10px !important;
     font-weight: 700 !important;
-    padding: 0.65rem 1.2rem !important;
-    box-shadow: 0 4px 15px rgba(22, 101, 52, 0.4) !important;
+    font-size: 0.82rem !important;
+    padding: 0.35rem 0.8rem !important;
+    box-shadow: 0 4px 12px rgba(22, 101, 52, 0.3) !important;
     transition: all 0.2s ease-in-out !important;
 }
 
 .stButton > button:hover {
     background: linear-gradient(135deg, #16a34a 0%, #15803D 100%) !important;
     border-color: #FFFFFF !important;
-    box-shadow: 0 6px 22px rgba(74, 222, 128, 0.6) !important;
+    box-shadow: 0 6px 18px rgba(74, 222, 128, 0.5) !important;
     transform: translateY(-2px);
 }
 
@@ -954,19 +955,22 @@ if not st.session_state.logged_in:
         with card_cols[idx]:
             avatar_sticker = get_user_avatar(p_email)
             
-            # Direct clickable Netflix card tile
-            card_clicked = st.button(
-                f"{avatar_sticker}\n\n{p_name}\n{p_role}", 
-                key=f"netflix_card_btn_{idx}_{p_email}", 
-                use_container_width=True,
-                help=f"Click to sign in as {p_name}"
-            )
+            # Proper Netflix Rounded-Square Visual Tile with click trigger via st.button inside container
+            st.markdown(f"""
+                <div class="netflix-profile-tile">
+                    <div style="font-size: 3.5rem; margin-bottom: 8px;">{avatar_sticker}</div>
+                    <div style="font-size: 1.1rem; font-weight: 800; color: #FFFFFF; margin-bottom: 2px;">{p_name}</div>
+                    <div style="font-size: 0.75rem; font-family: 'JetBrains Mono', monospace; font-weight: 700; color: #4ADE80; text-transform: uppercase; letter-spacing: 1px;">{p_role}</div>
+                </div>
+            """, unsafe_allow_html=True)
             
-            if card_clicked:
-                show_pin_dialog(p_email, p_name, p_role)
-                
-            if st.button("✏️ Change Badge", key=f"btn_stk_{idx}_{p_email}", use_container_width=True):
-                show_sticker_picker_dialog(p_email, p_name)
+            c_act1, c_act2 = st.columns(2)
+            with c_act1:
+                if st.button("🔐 Sign In", key=f"signin_card_{idx}_{p_email}", use_container_width=True):
+                    show_pin_dialog(p_email, p_name, p_role)
+            with c_act2:
+                if st.button("✏️ Badge", key=f"btn_stk_{idx}_{p_email}", use_container_width=True, help="Change Badge"):
+                    show_sticker_picker_dialog(p_email, p_name)
 
     st.markdown("<div style='margin-top: 3.5rem;'></div>", unsafe_allow_html=True)
     
