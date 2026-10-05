@@ -30,7 +30,7 @@ APP_NAME = "ARL TalentMatch"
 APP_TAGLINE = "Attock Refinery Limited (ARL) • AI-Driven Automated CV Parser & JD Screener"
 GROQ_MODEL = "openai/gpt-oss-120b"
 ACCEPTED_TYPES = ["pdf", "docx", "png", "jpg", "jpeg"]
-EXE_DOWNLOAD_URL = "https://supabase.com/dashboard/project/nylpzshnuausfuoudziw/editor6/releases/download/v1.0/ARL-TalentMatch_1.0.0_x64_en-US.msi"
+EXE_DOWNLOAD_URL = "https://github.com/sultan-kk/TalentMatch2.0/releases"
 
 AVAILABLE_BADGES = [
     "👔", "💼", "🛡️", "🎖️", "⚡", "🔬", "🛢️", "⚙️", 
@@ -339,7 +339,6 @@ def save_screened_to_supabase(screened_list):
             "screened_at": current_timestamp
         }
         try:
-            # Upsert or Insert safely
             supabase.table("screened_candidates").insert(payload).execute()
         except Exception:
             pass
@@ -397,7 +396,7 @@ def clear_screened_database():
     if supabase: supabase.table("screened_candidates").delete().neq("id", 0).execute()
 
 # ===========================================================================
-# 5. ADAPTIVE THEME CSS (SUPPORTS BOTH LIGHT & DARK MODES)
+# 5. ADAPTIVE THEME CSS
 # ===========================================================================
 ADAPTIVE_CSS = """
 <style>
@@ -410,7 +409,6 @@ html, body, [class*="css"], .stApp {
 [data-testid="stSidebar"] { display: none !important; }
 [data-testid="collapsedControl"] { display: none !important; }
 
-/* Netflix Rounded Profile Cards */
 .netflix-card-box {
     background: linear-gradient(145deg, #0F3622 0%, #081F13 100%);
     border: 3px solid #15803D;
@@ -474,6 +472,7 @@ if "screening_results" not in st.session_state: st.session_state.screening_resul
 if "show_registration" not in st.session_state: st.session_state.show_registration = False
 if "pending_pin_email" not in st.session_state: st.session_state.pending_pin_email = None
 if "pending_otp_email" not in st.session_state: st.session_state.pending_otp_email = None
+if "show_download_page" not in st.session_state: st.session_state.show_download_page = False
 
 # ===========================================================================
 # 7. DIALOGS (PIN & BADGE)
@@ -512,6 +511,25 @@ def show_sticker_picker_dialog(email, name):
 if not st.session_state.logged_in:
     saved_profiles = get_all_verified_profiles()
     
+    # Desktop App Download Banner on Login Screen
+    c_banner_l, c_banner_r = st.columns([7, 3], vertical_alignment="center")
+    with c_banner_l:
+        st.caption("🖥️ Want to run ARL TalentMatch as a standalone Windows PC software?")
+    with c_banner_r:
+        if st.button("📥 Download Desktop App (.msi)", key="dl_btn_login_top", use_container_width=True):
+            st.session_state.show_download_page = True
+            st.rerun()
+
+    if st.session_state.show_download_page:
+        st.markdown("---")
+        st.markdown("### 💻 ARL TalentMatch Desktop Edition")
+        st.write("You can download the official Windows installer package below:")
+        st.markdown(f"[📥 Click Here to Download ARL TalentMatch Installer]({EXE_DOWNLOAD_URL})", unsafe_allow_html=True)
+        if st.button("⬅ Back to Login", use_container_width=True):
+            st.session_state.show_download_page = False
+            st.rerun()
+        st.stop()
+
     if st.session_state.pending_pin_email:
         _, mid_col, _ = st.columns([1, 2.2, 1])
         with mid_col:
@@ -669,7 +687,7 @@ with col_n2:
 st.markdown(f"""
     <div class="corp-hero">
         <h1 style="color: #FFFFFF; margin: 0 0 8px 0;">Attock Refinery Executive Suite</h1>
-        <p style="color: #86EFAC; margin: 0;">Total Repository: <b>{len(df_all)} Candidates</b></p>
+        <p style="color: #86EFAC; margin: 0;">Total Repository: <b>{len(df_all)} Candidates</b> &bull; [📥 Download Desktop App]({EXE_DOWNLOAD_URL})</p>
     </div>
 """, unsafe_allow_html=True)
 
