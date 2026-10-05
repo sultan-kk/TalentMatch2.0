@@ -727,6 +727,7 @@ if not st.session_state.logged_in:
         </div>
     """, unsafe_allow_html=True)
 
+# Scoped Netflix-Style Square Cards (150x150px)
     all_items = list(saved_profiles) + [("REGISTER_CARD", "New Profile", "", "Register")]
     cols_per_row = 4
     
@@ -736,20 +737,47 @@ if not st.session_state.logged_in:
         for idx, item in enumerate(row_items):
             with cols[idx]:
                 if item[0] == "REGISTER_CARD":
-                    if st.button("➕\n\nNew Profile", key=f"add_profile_card_{i}", use_container_width=True):
+                    st.markdown("""
+                        <div style="display:flex; flex-direction:column; align-items:center; margin-bottom:1.5rem;">
+                            <div style="width:150px; height:150px;">
+                    """, unsafe_allow_html=True)
+                    if st.button("➕", key=f"add_profile_card_{i}", use_container_width=True):
                         st.session_state.show_registration = True
                         st.rerun()
+                    st.markdown("""
+                            </div>
+                            <div class="profile-meta-title" style="margin-top:10px;">New Profile</div>
+                            <div class="profile-meta-role">Register Account</div>
+                        </div>
+                    """, unsafe_allow_html=True)
                 else:
                     p_email, p_name, p_pin, p_role = item
                     avatar_sticker = get_user_avatar(p_email)
                     
-                    if st.button(f"{avatar_sticker}\n\n{p_name}\n({p_role})", key=f"user_card_{i}_{idx}", use_container_width=True):
+                    st.markdown("""
+                        <div style="display:flex; flex-direction:column; align-items:center; margin-bottom:1.5rem;">
+                            <div style="position:relative; width:150px; height:150px;">
+                    """, unsafe_allow_html=True)
+                    
+                    # Main Square Avatar Card (Sirf Badge)
+                    if st.button(avatar_sticker, key=f"user_card_{i}_{idx}", use_container_width=True):
                         show_pin_dialog(p_email, p_name, p_role)
                     
-                    if st.button("✏️ Change Badge", key=f"edit_btn_{i}_{idx}", use_container_width=True):
+                    # Corner Edit Pencil Icon (Inside Card)
+                    st.markdown("""
+                        <div style="position:absolute; top:8px; right:8px; z-index:10; width:30px; height:30px;">
+                    """, unsafe_allow_html=True)
+                    if st.button("✏️", key=f"edit_btn_{i}_{idx}", help="Change Badge"):
                         show_sticker_picker_dialog(p_email, p_name)
-
-    st.markdown("<br><hr style='opacity: 0.25;'>", unsafe_allow_html=True)
+                    st.markdown('</div>', unsafe_allow_html=True)
+                    
+                    # Name aur Role Card ke neechay
+                    st.markdown(f"""
+                            </div>
+                            <div class="profile-meta-title" style="margin-top:10px;">{p_name}</div>
+                            <div class="profile-meta-role">({p_role})</div>
+                        </div>
+                    """, unsafe_allow_html=True)
     col_dl1, col_dl2 = st.columns([7.5, 2.5], vertical_alignment="center")
     with col_dl1:
         st.markdown("🖥️ **Need desktop offline execution?** Download our standalone Windows MSI app.")
