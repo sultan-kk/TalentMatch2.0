@@ -535,7 +535,6 @@ div[data-testid="stColumn"] {
     max-width: 165px !important;
     min-height: 165px !important;
     max-height: 165px !important;
-    aspect-ratio: 1 / 1 !important;
     border-radius: 28px !important;
     background: #181B20 !important;
     border: 2px solid #2D333B !important;
