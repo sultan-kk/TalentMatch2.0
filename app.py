@@ -913,7 +913,7 @@ if not st.session_state.logged_in:
             st.markdown("### 📝 Register Executive Profile")
             st.caption("Open to all authorized corporate and external recruitment partners.")
             with st.form("universal_registration_form"):
-                reg_name = st.text_input("Full Name", placeholder="e.g. Sultan Sheraz")
+                reg_name = st.text_input("Full Name", placeholder="Name")
                 reg_email = st.text_input("Email Address", placeholder="name@domain.com")
                 reg_pass = st.text_input("Master Password", type="password")
                 submit_reg = st.form_submit_button("Send Verification OTP", use_container_width=True)
