@@ -460,7 +460,7 @@ def clear_screened_database():
     if supabase: supabase.table("screened_candidates").delete().neq("id", 0).execute()
 
 # ===========================================================================
-# 5. STRICT 150x150 SQUARE CARD CSS (NO STRETCH, LARGE CENTERED BADGE)
+# 5. ISOLATED CSS (STRICT 135x135px SQUARE PROFILE CARDS)
 # ===========================================================================
 ADAPTIVE_CSS = """
 <style>
@@ -474,130 +474,70 @@ html, body, [class*="css"], .stApp {
     display: none !important; 
 }
 
-/* Base button styling inside Dashboard */
-div.stButton > button {
-    border-radius: 10px !important;
-    font-weight: 600 !important;
-    padding: 0.45rem 1.1rem !important;
-    transition: all 0.2s ease !important;
-}
-
-div.stButton > button[kind="primary"] {
-    background: #047857 !important;
-    border-color: #059669 !important;
-    color: #FFFFFF !important;
-}
-
 /* ==========================================================================
-   TARGETED 150x150 SQUARE PROFILE BUTTONS
+   STRICT SQUARE 135px x 135px PROFILE CARDS (PREVENTS RECTANGLE STRETCH)
    ========================================================================== */
-.profile-cell {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 1.5rem;
+div[data-testid="stColumn"] > div:has(.square-profile-card) {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
 }
 
-.profile-card-box {
-    position: relative;
-    width: 150px;
-    height: 150px;
-}
-
-/* Exact Square Dimensions & Large Centered Emoji */
-.profile-card-box div[data-testid="stButton"]:first-child > button {
-    width: 170px !important;
-    height: 170px !important;
-    min-width: 170px !important;
-    max-width: 170px !important;
-    min-height: 170px !important;
-    max-height: 170px !important;
-    border-radius: 26px !important;
+div[data-testid="stColumn"] > div:has(.square-profile-card) div.stButton > button {
+    width: 160px !important;
+    height: 160px !important;
+    min-width: 160px !important;
+    max-width: 160px !important;
+    min-height: 160px !important;
+    max-height: 160px !important;
+    margin: 0 auto !important;
+    border-radius: 24px !important;
     background: #181B20 !important;
     border: 2px solid #2D333B !important;
-    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.45) !important;
+    box-shadow: 0 10px 22px rgba(0, 0, 0, 0.45) !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
     padding: 0 !important;
-    margin: 0 !important;
     transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
-.profile-card-box div[data-testid="stButton"]:first-child > button p {
-    font-size: 5rem !important;
+div[data-testid="stColumn"] > div:has(.square-profile-card) div.stButton > button p {
+    font-size: 4.2rem !important;
     line-height: 1 !important;
     margin: 0 !important;
     padding: 0 !important;
 }
 
-.profile-card-box div[data-testid="stButton"]:first-child > button:hover {
+div[data-testid="stColumn"] > div:has(.square-profile-card) div.stButton > button:hover {
     transform: translateY(-5px) scale(1.04) !important;
     border-color: #10B981 !important;
     box-shadow: 0 14px 28px rgba(16, 185, 129, 0.4) !important;
     background: #22262E !important;
 }
 
-/* Floating Corner Edit Pencil Button */
-.profile-corner-edit {
-    position: absolute;
-    top: 8px;
-    right: 8px;
-    z-index: 99;
-}
-
-.profile-corner-edit div[data-testid="stButton"] > button {
-    width: 34px !important;
-    height: 34px !important;
-    min-width: 34px !important;
-    max-width: 34px !important;
-    min-height: 34px !important;
-    max-height: 34px !important;
-    border-radius: 50% !important;
-    background: #23272F !important;
-    border: 1.5px solid #10B981 !important;
-    padding: 0 !important;
-    margin: 0 !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5) !important;
-}
-
-.profile-corner-edit div[data-testid="stButton"] > button p {
-    font-size: 1rem !important;
-    line-height: 1 !important;
-    margin: 0 !important;
-    padding: 0 !important;
-}
-
-.profile-corner-edit div[data-testid="stButton"] > button:hover {
-    background: #10B981 !important;
-    border-color: #34D399 !important;
-    transform: scale(1.15) !important;
-}
-
-/* Captions Below Card */
+/* Titles and Role below cards */
 .profile-meta-title {
     text-align: center;
-    font-size: 1.1rem;
-    font-weight: 700;
+    font-size: 1.3rem;
+    font-weight: 600;
     line-height: 1.2;
-    margin-top: 12px;
+    margin-top: 8px;
 }
 
 .profile-meta-role {
     text-align: center;
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     font-family: 'JetBrains Mono', monospace;
     color: #10B981 !important;
     text-transform: uppercase;
-    letter-spacing: 0.6px;
-    margin-top: 3px;
+    letter-spacing: 0.5px;
+    margin-top: 2px;
 }
 
-/* Top Navbar & Cards in Dashboard */
+/* ==========================================================================
+   PORTAL INTERIOR: CLEAN, BALANCED & THEME ADAPTIVE
+   ========================================================================== */
 .top-navbar {
     background: var(--secondary-background-color);
     border: 1px solid rgba(16, 185, 129, 0.35);
@@ -634,6 +574,25 @@ div.stButton > button[kind="primary"] {
     margin-bottom: 1rem;
     font-weight: 700;
     color: #10B981;
+}
+
+/* Standard Buttons Inside Dashboard */
+div.stButton > button {
+    border-radius: 10px !important;
+    font-weight: 600 !important;
+    padding: 0.45rem 1.1rem !important;
+    transition: all 0.2s ease !important;
+}
+
+div.stButton > button[kind="primary"] {
+    background: #047857 !important;
+    border-color: #059669 !important;
+    color: #FFFFFF !important;
+}
+
+div.stButton > button[kind="primary"]:hover {
+    background: #059669 !important;
+    border-color: #10B981 !important;
 }
 </style>
 """
