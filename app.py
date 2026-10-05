@@ -1,5 +1,5 @@
 """
-ARL HireMatrix Pro — Official Corporate Edition
+Arl TalentMatch:AI-Driven Automated CV Parser & JD Matcher
 =============================================================================
 Branding: Attock Refinery Limited (ARL Official Forest Green & Charcoal Palette)
 Features: Clickable Executive Badges, Bulletproof PIN Authentication,
@@ -29,7 +29,7 @@ from PIL import Image, ImageOps, ImageEnhance, ImageDraw
 # ===========================================================================
 # 1. PAGE CONFIGURATION & ARL GREEN HEXAGON FAVICON
 # ===========================================================================
-APP_NAME = "ARL HireMatrix Pro"
+APP_NAME = "Arl TalentMatch:AI-Driven Automated CV Parser & JD Matcher"
 APP_TAGLINE = "Attock Refinery Limited (ARL) • HR Intelligence & AI Screening Engine"
 GROQ_MODEL = "openai/gpt-oss-120b"
 ACCEPTED_TYPES = ["pdf", "docx", "png", "jpg", "jpeg"]
@@ -188,7 +188,7 @@ def register_initial_employee(name, email, password):
         }
         supabase.table("hr_users").upsert(data).execute()
         
-        success, msg = send_smtp_email(clean_email, "ARL HireMatrix Pro - Verification OTP", f"Your verification code is: {otp}")
+        success, msg = send_smtp_email(clean_email, "Arl TalentMatch - Verification OTP", f"Your verification code is: {otp}")
         if success:
             return True, "Registration initiated! Please check your email for the verification OTP."
         else:
@@ -648,11 +648,12 @@ html, body, [class*="css"] {
 }
 
 .cyber-title {
-    font-size: 3.2rem !important;
+    font-size: 2.2rem !important;
     font-weight: 800 !important;
     letter-spacing: -0.8px !important;
     color: #111827 !important;
     margin: 0 0 8px 0 !important;
+    line-height: 1.2 !important;
 }
 
 .cyber-title-pro {
@@ -1112,7 +1113,7 @@ def render_download_landing_page(exe_direct_url: str):
     st.markdown(f"""
         <div class="dl-hero-box">
             <div class="dl-badge">🪟 BUILT FOR WINDOWS 10 / 11</div>
-            <h1 class="dl-title">ARL HireMatrix Pro for Windows</h1>
+            <h1 class="dl-title">Arl TalentMatch for Windows</h1>
             <p class="dl-subtitle">Run Attock Refinery Limited's enterprise candidate extraction, AI matching, and cloud recruitment pipeline as a dedicated, high-speed desktop software.</p>
             <a href="{exe_direct_url}" target="_blank" class="dl-main-btn">
                 <span>⬇️</span> Download for Windows · ARL-HireMatrix-Pro.msi (Free)
@@ -1147,7 +1148,7 @@ def render_download_landing_page(exe_direct_url: str):
             <div class="step-card">
                 <div class="step-num">03</div>
                 <div class="step-title">Open Portal</div>
-                <div class="step-desc">Launch ARL HireMatrix Pro from your desktop and enter your 4-digit PIN to begin candidate screening.</div>
+                <div class="step-desc">Launch Arl TalentMatch from your desktop and enter your 4-digit PIN to begin candidate screening.</div>
             </div>
         """, unsafe_allow_html=True)
 
@@ -1205,7 +1206,7 @@ if not st.session_state.logged_in:
                             </svg>
                         </div>
                     </div>
-                    <h1 class="cyber-title">ARL HireMatrix <span class="cyber-title-pro">Pro</span></h1>
+                    <h1 class="cyber-title">Arl TalentMatch: <span class="cyber-title-pro">AI-Driven Automated CV Parser & JD Matcher</span></h1>
                     <div class="cyber-badge">
                         <span>◈</span> {APP_TAGLINE} <span>◈</span>
                     </div>
@@ -1594,7 +1595,7 @@ with col_n1:
                 </svg>
             </div>
             <div>
-                <h2 class="top-brand-title" style="margin: 0; font-size: 1.55rem; color: #FFFFFF;">ARL HireMatrix <span style="color: #22C55E;">Pro</span></h2>
+                <h2 class="top-brand-title" style="margin: 0; font-size: 1.35rem; color: #FFFFFF;">Arl TalentMatch: <span style="color: #22C55E;">AI-Driven Automated CV Parser & JD Matcher</span></h2>
                 <p class="top-brand-subtitle" style="margin: 4px 0 0 0;">Attock Refinery Limited &bull; Active: <b>{st.session_state.get('hr_name', 'Recruiter')}</b> ({st.session_state.get('hr_email', 'admin@arl.com.pk')}) &bull; Role: <b>{st.session_state.get('hr_role', 'Recruiter')}</b></p>
             </div>
         </div>
@@ -1870,7 +1871,7 @@ with tab2:
                 c1, c2 = st.columns([1.3, 1])
                 with c1:
                     st.markdown(f"**💼 Target Role:** `{cand.get('job_title', 'Not Specified')}`")
-                    st.markdown(f"**✉️️ Email:** `{cand['email']}` | **📞 Phone:** `{cand['phone']}`")
+                    st.markdown(f"**✉ Email:** `{cand['email']}` | **📞 Phone:** `{cand['phone']}`")
                     st.markdown(f"**👤 Father's Name:** {cand['father_name']}")
                     st.markdown(f"**🎓 Qualification:** {cand['education']} (CGPA: {cand['cgpa']} | Year: {cand['passing_year']})")
                     st.markdown(f"**🏫 Institute:** {cand['university_name']}")
