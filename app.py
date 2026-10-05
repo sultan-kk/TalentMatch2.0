@@ -524,9 +524,9 @@ html, body, [class*="css"], .stApp {
     color: #10B981;
 }
 
-div[data-testid="stColumn"] div[style*="width:150px; height:150px"] div.stButton > button {
-    width: 150px !important;
-    height: 150px !important;
+div[data-testid="stColumn"] div[style*="width:160px; height:160px"] div.stButton > button {
+    width: 160px !important;
+    height: 160px !important;
     border-radius: 24px !important;
     background: #181B20 !important;
     border: 2px solid #2D333B !important;
