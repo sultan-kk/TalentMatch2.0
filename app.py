@@ -2,8 +2,8 @@
 ARL TalentMatch — Official Corporate Edition (Full-Proof Enterprise Suite)
 =============================================================================
 Branding: Attock Refinery Limited (ARL Forest Green & Adaptive Theme Palette)
-Features: Stunning In-App Download Suite & FAQs, Netflix Cards, Supabase Live Pipeline, 
-Status Updater, Tab 2 Clear View & Database Grid Cleaner.
+Features: New Registration Option, In-App Download Suite & FAQs, Netflix Cards, 
+Supabase Live Pipeline, Status Updater, Tab 2 Clear View & Database Grid Cleaner.
 """
 
 import io
@@ -511,13 +511,17 @@ def show_sticker_picker_dialog(email, name):
 if not st.session_state.logged_in:
     saved_profiles = get_all_verified_profiles()
     
-    # Gorgeous Styled Top Download Banner
-    col_b1, col_b2 = st.columns([7, 3], vertical_alignment="center")
+    # Gorgeous Styled Top Download Banner & New Registration Button
+    col_b1, col_b2, col_b3 = st.columns([5.5, 2.5, 2.0], vertical_alignment="center")
     with col_b1:
-        st.markdown("🚀 **ARL TalentMatch Desktop Suite** — Standalone Windows app available for offline execution.")
+        st.markdown("🚀 **ARL TalentMatch Desktop Suite**")
     with col_b2:
         if st.button("📥 View Download & FAQs", key="dl_btn_login_top", use_container_width=True):
             st.session_state.show_download_page = True
+            st.rerun()
+    with col_b3:
+        if st.button("📝 Register Profile", key="reg_btn_login_top", use_container_width=True):
+            st.session_state.show_registration = True
             st.rerun()
 
     # Check if user clicked Download Desktop App
@@ -593,6 +597,9 @@ if not st.session_state.logged_in:
                     st.rerun()
                 else:
                     st.error(msg)
+            if st.button("⬅ Back to Profiles", use_container_width=True):
+                st.session_state.show_registration = False
+                st.rerun()
         st.stop()
 
     st.markdown(f"""
