@@ -20,6 +20,7 @@ from email.mime.multipart import MIMEMultipart
 from email.utils import formataddr
 import pandas as pd
 import streamlit as st
+import streamlit.components.v1 as components
 from groq import Groq
 from supabase import create_client, Client
 from PIL import Image, ImageOps, ImageEnhance, ImageDraw
@@ -73,8 +74,14 @@ if "profile" in st.query_params:
     if isinstance(selected_prof, list):
         selected_prof = selected_prof[0]
     del st.query_params["profile"]
-    if not st.session_state.get("selected_profile_email"):
-        st.session_state.selected_profile_email = selected_prof
+    st.session_state.selected_profile_email = selected_prof
+
+if "edit_profile" in st.query_params:
+    edit_prof = st.query_params["edit_profile"]
+    if isinstance(edit_prof, list):
+        edit_prof = edit_prof[0]
+    del st.query_params["edit_profile"]
+    st.session_state.editing_sticker_email = edit_prof
 
 # ===========================================================================
 # 3. SUPABASE CLOUD DATABASE CONNECTION
@@ -724,91 +731,121 @@ html, body, [class*="css"] {
 }
 
 /* ============================================================ */
-/* EXECUTIVE ROUNDED SQUARE PROFILE TILES                       */
+/* EXECUTIVE ROUNDED SQUARE PROFILE TILES & BLACK FADE EDIT     */
 /* ============================================================ */
 .arl-profile-grid {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
     align-items: flex-start;
-    gap: 22px;
+    gap: 24px;
     padding: 1.5rem 0.5rem 1rem 0.5rem;
 }
 
-.arl-profile-tile {
-    text-decoration: none !important;
-    color: inherit !important;
+.arl-profile-tile-wrap {
     display: flex;
     flex-direction: column;
     align-items: center;
-    width: 125px;
-    cursor: pointer !important;
-    transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    width: 120px;
 }
 
-.arl-profile-tile:hover {
-    transform: translateY(-8px) scale(1.06);
-}
-
-.arl-tile-avatar {
-    width: 110px;
-    height: 110px;
+.arl-profile-card {
+    position: relative;
+    width: 115px;
+    height: 115px;
     border-radius: 22px;
     background: linear-gradient(145deg, #113f26 0%, #082416 100%);
     border: 2px solid #22C55E;
+    overflow: hidden;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 3.2rem;
     box-shadow: 0 12px 28px rgba(0, 0, 0, 0.6), inset 0 0 16px rgba(34, 197, 94, 0.15);
-    position: relative;
-    transition: all 0.25s ease-in-out;
+    transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
-.arl-profile-tile:hover .arl-tile-avatar {
+.arl-profile-card:hover {
     border-color: #86EFAC !important;
-    box-shadow: 0 14px 34px rgba(34, 197, 94, 0.4), inset 0 0 20px rgba(74, 222, 128, 0.25) !important;
+    transform: translateY(-6px) scale(1.04);
+    box-shadow: 0 16px 36px rgba(34, 197, 94, 0.4), inset 0 0 20px rgba(74, 222, 128, 0.25) !important;
+}
+
+.arl-card-main-click {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    text-decoration: none !important;
+    font-size: 3.3rem;
+    cursor: pointer;
+    padding-bottom: 12px;
+}
+
+/* Black Fade Edit Bar on Bottom of Card */
+.arl-card-edit-fade {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 32px;
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.82) 40%, rgba(0, 0, 0, 0.95) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #CBD5E1;
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 1px;
+    text-decoration: none !important;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.arl-card-edit-fade:hover {
+    background: rgba(0, 0, 0, 0.98);
+    color: #4ADE80 !important;
+    font-size: 0.76rem;
+    border-top-color: #22C55E;
 }
 
 .arl-tile-badge {
     position: absolute;
-    bottom: -6px;
-    right: -6px;
+    top: 6px;
+    right: 6px;
     background: #082416;
     border: 1.5px solid #22C55E;
     border-radius: 50%;
-    width: 28px;
-    height: 28px;
+    width: 24px;
+    height: 24px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 0.85rem;
+    font-size: 0.75rem;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
 }
 
 .arl-tile-name {
     margin-top: 10px;
-    font-size: 0.95rem;
-    font-weight: 700;
-    color: #F1F5F9;
+    font-size: 0.96rem;
+    font-weight: 800;
+    color: #FFFFFF;
     text-align: center;
-    width: 115px;
+    width: 120px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    transition: color 0.2s ease;
-}
-
-.arl-profile-tile:hover .arl-tile-name {
-    color: #4ADE80 !important;
+    letter-spacing: -0.2px;
 }
 
 .arl-tile-role {
     font-size: 0.72rem;
     font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
     color: #86EFAC;
-    background: rgba(34, 197, 94, 0.12);
-    border: 1px solid rgba(34, 197, 94, 0.3);
+    background: rgba(34, 197, 94, 0.16);
+    border: 1px solid rgba(34, 197, 94, 0.35);
     padding: 2px 8px;
     border-radius: 6px;
     margin-top: 4px;
@@ -818,24 +855,54 @@ html, body, [class*="css"] {
 
 /* Add Profile Square */
 .arl-add-avatar {
-    width: 110px;
-    height: 110px;
+    width: 115px;
+    height: 115px;
     border-radius: 22px;
     background: rgba(34, 197, 94, 0.08);
     border: 2px dashed #22C55E;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 2.2rem;
+    font-size: 2.3rem;
     color: #86EFAC;
+    text-decoration: none !important;
     transition: all 0.25s ease;
 }
 
-.arl-profile-tile:hover .arl-add-avatar {
+.arl-add-avatar:hover {
     border-color: #86EFAC;
     color: #FFFFFF;
-    background: rgba(34, 197, 94, 0.2);
-    box-shadow: 0 10px 25px rgba(34, 197, 94, 0.25);
+    background: rgba(34, 197, 94, 0.22);
+    box-shadow: 0 10px 25px rgba(34, 197, 94, 0.3);
+    transform: translateY(-6px) scale(1.04);
+}
+
+/* High-Contrast Dialog & Modal Styles */
+div[data-testid="stDialog"], div[role="dialog"] {
+    border-radius: 22px !important;
+    border: 1.5px solid #22C55E !important;
+    background: linear-gradient(145deg, #0e3520 0%, #061c10 100%) !important;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.85) !important;
+}
+
+div[data-testid="stDialog"] > div {
+    background: transparent !important;
+}
+
+div[data-testid="stModalBackdrop"] {
+    backdrop-filter: blur(14px) !important;
+    background: rgba(3, 16, 9, 0.8) !important;
+}
+
+/* High-Contrast Captions & Text Visibility */
+[data-testid="stCaptionContainer"] p, [data-testid="stCaptionContainer"] {
+    color: #A7F3D0 !important;
+    font-weight: 600 !important;
+    font-size: 0.88rem !important;
+}
+
+p, span, label {
+    color: #F8FAFC !important;
 }
 
 /* Glassmorphism Border Wrappers & Containers */
@@ -863,7 +930,7 @@ html, body, [class*="css"] {
 [data-testid="stForm"] label p {
     color: #FFFFFF !important;
     font-weight: 700 !important;
-    font-size: 0.98rem !important;
+    font-size: 1rem !important;
     letter-spacing: 0.4px !important;
 }
 
@@ -975,7 +1042,7 @@ button[data-baseweb="tab"] {
     border: 1.5px solid transparent !important;
     border-radius: 12px !important;
     padding: 8px 20px !important;
-    color: #94A3B8 !important;
+    color: #CBD5E1 !important;
     font-size: 0.92rem !important;
     font-weight: 700 !important;
     transition: all 0.25s ease-in-out !important;
@@ -1003,6 +1070,7 @@ if "hr_name" not in st.session_state: st.session_state.hr_name = ""
 if "hr_email" not in st.session_state: st.session_state.hr_email = ""
 if "hr_role" not in st.session_state: st.session_state.hr_role = "Recruiter"
 if "selected_profile_email" not in st.session_state: st.session_state.selected_profile_email = None
+if "editing_sticker_email" not in st.session_state: st.session_state.editing_sticker_email = None
 if "pending_otp_email" not in st.session_state: st.session_state.pending_otp_email = None
 if "pending_pin_email" not in st.session_state: st.session_state.pending_pin_email = None
 if "screening_results" not in st.session_state: st.session_state.screening_results = []
@@ -1111,7 +1179,7 @@ def render_download_landing_page(exe_direct_url: str):
         margin-bottom: 0.6rem;
     }
     .step-desc {
-        color: #94A3B8;
+        color: #CBD5E1;
         font-size: 0.92rem;
         line-height: 1.55;
     }
@@ -1178,10 +1246,111 @@ if st.session_state.show_download_page:
     st.stop()
 
 # ===========================================================================
-# 8. AUTHENTICATION & LOGIN SCREEN (CLEAN EXECUTIVE CARDS)
+# 8. DIALOGS: PIN ENTRY & STICKER PICKER MODALS (BACKGROUND BLUR)
+# ===========================================================================
+def inject_autofocus_script():
+    components.html("""
+    <script>
+    setTimeout(function() {
+        try {
+            var inputs = window.parent.document.querySelectorAll('input[type="password"]');
+            if (inputs && inputs.length > 0) {
+                var target = inputs[inputs.length - 1];
+                target.focus();
+                target.select();
+            }
+        } catch(e) {}
+    }, 120);
+    </script>
+    """, height=0, width=0)
+
+if hasattr(st, "dialog"):
+    @st.dialog("🔐 Security PIN Verification")
+    def pin_entry_modal(target_email, p_match):
+        inject_autofocus_script()
+        st.markdown(f"""
+            <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 14px;">
+                <div style="font-size: 2.6rem; background: #082416; border: 2px solid #4ADE80; border-radius: 16px; width: 62px; height: 62px; display: flex; align-items: center; justify-content: center;">
+                    {p_match[4]}
+                </div>
+                <div>
+                    <h3 style="margin: 0; color: #4ADE80; font-size: 1.35rem; font-weight: 800;">{p_match[1]}</h3>
+                    <span style="font-size: 0.85rem; color: #86EFAC;">{target_email} &bull; <b>{p_match[3]}</b></span>
+                </div>
+            </div>
+        """, unsafe_allow_html=True)
+        
+        with st.form("pin_login_modal_form"):
+            pin_input = st.text_input("Enter 4-Digit PIN", type="password", max_chars=4, placeholder="••••", key="modal_pin_input")
+            submit_log = st.form_submit_button("Access Portal ➔ (Press Enter)", use_container_width=True)
+            
+        col_m1, col_m2 = st.columns([1, 1])
+        if submit_log:
+            success, name, role = verify_employee_pin(target_email, pin_input)
+            if success:
+                st.session_state.logged_in = True
+                st.session_state.hr_name = name if name else p_match[1]
+                st.session_state.hr_email = target_email
+                st.session_state.hr_role = role if role else "Recruiter"
+                st.session_state.selected_profile_email = None
+                st.rerun()
+            else:
+                st.error("❌ Incorrect 4-Digit PIN.")
+        with col_m2:
+            if st.button("Cancel", use_container_width=True, key="cancel_pin_modal_btn"):
+                st.session_state.selected_profile_email = None
+                st.rerun()
+
+    @st.dialog("🎨 Choose Executive Badge")
+    def sticker_picker_modal(target_email, p_match):
+        st.markdown(f"""
+            <div style="margin-bottom: 12px;">
+                <h4 style="margin: 0; color: #FFFFFF; font-size: 1.15rem;">Select Badge for <b>{p_match[1]}</b></h4>
+                <p style="font-size: 0.82rem; color: #86EFAC; margin: 2px 0 0 0;">Click on any professional icon to update instantly:</p>
+            </div>
+        """, unsafe_allow_html=True)
+        
+        cols = st.columns(4)
+        for idx, (stk, title) in enumerate(PROFESSIONAL_STICKERS.items()):
+            with cols[idx % 4]:
+                if st.button(f"{stk}\n{title.split('/')[0].strip()}", key=f"stk_btn_{stk}_{target_email}", use_container_width=True):
+                    update_user_sticker(target_email, stk)
+                    st.session_state.editing_sticker_email = None
+                    st.rerun()
+                    
+        st.markdown("---")
+        col_d1, col_d2 = st.columns([1.5, 1])
+        with col_d1:
+            if st.button("🗑️ Delete This Profile", key=f"del_prof_modal_{target_email}", use_container_width=True):
+                delete_employee_profile(target_email)
+                st.session_state.editing_sticker_email = None
+                st.rerun()
+        with col_d2:
+            if st.button("Done", key="close_stk_modal_btn", use_container_width=True):
+                st.session_state.editing_sticker_email = None
+                st.rerun()
+else:
+    # Fallback for earlier versions
+    def pin_entry_modal(target_email, p_match): pass
+    def sticker_picker_modal(target_email, p_match): pass
+
+# ===========================================================================
+# 8. AUTHENTICATION & LOGIN SCREEN (EXECUTIVE TILES WITH EDIT OVERLAY)
 # ===========================================================================
 if not st.session_state.logged_in:
     saved_profiles = get_all_verified_profiles()
+    
+    # Check if PIN modal or Sticker modal is requested
+    if st.session_state.selected_profile_email and st.session_state.selected_profile_email != "new":
+        target_email = st.session_state.selected_profile_email
+        p_match = next((p for p in saved_profiles if p[0].lower() == target_email.lower()), (target_email, "Executive User", "", "Recruiter", "👔"))
+        pin_entry_modal(target_email, p_match)
+
+    if st.session_state.editing_sticker_email:
+        target_email = st.session_state.editing_sticker_email
+        p_match = next((p for p in saved_profiles if p[0].lower() == target_email.lower()), (target_email, "Executive User", "", "Recruiter", "👔"))
+        sticker_picker_modal(target_email, p_match)
+
     col_c1, col_c2, col_c3 = st.columns([1, 4.2, 1])
     with col_c2:
         if not is_desktop_mode:
@@ -1268,121 +1437,50 @@ if not st.session_state.logged_in:
                         st.session_state.pending_otp_email = None
                         st.rerun()
                         
-            # --- VIEW C: ROUNDED SQUARE EXECUTIVE PROFILE TILES ---
-            elif saved_profiles and not st.session_state.selected_profile_email:
+            # --- VIEW C: ROUNDED SQUARE PROFILE TILES WITH BLACK FADE EDIT ---
+            elif saved_profiles and st.session_state.selected_profile_email != "new":
                 st.markdown("""
                     <div style="text-align: center; margin: 15px 0 10px 0;">
                         <h2 style="font-size: 1.7rem; font-weight: 800; color: #FFFFFF; letter-spacing: -0.5px; margin-bottom: 4px;">
                             Select Executive Profile
                         </h2>
-                        <p style="font-size: 0.88rem; color: #86EFAC; margin: 0;">Click your profile tile to enter your 4-digit PIN:</p>
+                        <p style="font-size: 0.88rem; color: #86EFAC; margin: 0;">Click your profile to enter PIN, or click <b>EDIT</b> to change badge:</p>
                     </div>
                 """, unsafe_allow_html=True)
                 
-                # Clean List Build to avoid Markdown Indentation Errors
+                # HTML Clean List Builder
                 tiles = ['<div class="arl-profile-grid">']
                 for p_email, p_name, p_pin, p_role, p_sticker in saved_profiles:
-                    profile_url = f"?profile={p_email}&mode=desktop" if is_desktop_mode else f"?profile={p_email}"
+                    pin_url = f"?profile={p_email}&mode=desktop" if is_desktop_mode else f"?profile={p_email}"
+                    edit_url = f"?edit_profile={p_email}&mode=desktop" if is_desktop_mode else f"?edit_profile={p_email}"
+                    
                     tiles.append(
-                        f'<a href="{profile_url}" target="_self" class="arl-profile-tile">'
-                        f'<div class="arl-tile-avatar">{p_sticker}<span class="arl-tile-badge">🛡️</span></div>'
+                        f'<div class="arl-profile-tile-wrap">'
+                        f'<div class="arl-profile-card">'
+                        f'<a href="{pin_url}" target="_self" class="arl-card-main-click">{p_sticker}</a>'
+                        f'<span class="arl-tile-badge">🛡️</span>'
+                        f'<a href="{edit_url}" target="_self" class="arl-card-edit-fade">✏️ EDIT</a>'
+                        f'</div>'
                         f'<span class="arl-tile-name">{p_name}</span>'
                         f'<span class="arl-tile-role">{p_role}</span>'
-                        f'</a>'
+                        f'</div>'
                     )
                 
                 # Add Profile Tile
+                new_url = "?profile=new&mode=desktop" if is_desktop_mode else "?profile=new"
                 tiles.append(
-                    '<a href="?profile=new" target="_self" class="arl-profile-tile">'
-                    '<div class="arl-add-avatar">＋</div>'
-                    '<span class="arl-tile-name">Add Profile</span>'
-                    '<span class="arl-tile-role">Register</span>'
-                    '</a>'
+                    f'<div class="arl-profile-tile-wrap">'
+                    f'<a href="{new_url}" target="_self" class="arl-add-avatar">＋</a>'
+                    f'<span class="arl-tile-name">Add Profile</span>'
+                    f'<span class="arl-tile-role">Register</span>'
+                    f'</div>'
                 )
                 tiles.append('</div>')
                 
-                # Render Clean HTML Grid
                 st.markdown("".join(tiles), unsafe_allow_html=True)
-                
-                st.markdown("<div style='margin-top: 25px;'></div>", unsafe_allow_html=True)
-                
-                # Executive Badges & Stickers Manager
-                with st.expander("🎨 Manage Executive Badges & Stickers"):
-                    st.caption("Customize your professional avatar badge or remove unused profiles.")
-                    for p_email, p_name, p_pin, p_role, p_sticker in saved_profiles:
-                        cm_1, cm_2, cm_3 = st.columns([3, 4, 1.2], vertical_alignment="center")
-                        with cm_1:
-                            st.write(f"**{p_name}** (`{p_email}`)")
-                        with cm_2:
-                            curr_idx = list(PROFESSIONAL_STICKERS.keys()).index(p_sticker) if p_sticker in PROFESSIONAL_STICKERS else 0
-                            new_stk = st.selectbox(
-                                "Sticker",
-                                options=list(PROFESSIONAL_STICKERS.keys()),
-                                format_func=lambda x: f"{x} {PROFESSIONAL_STICKERS.get(x, '')}",
-                                index=curr_idx,
-                                key=f"sel_stk_{p_email}",
-                                label_visibility="collapsed"
-                            )
-                            if new_stk != p_sticker:
-                                update_user_sticker(p_email, new_stk)
-                                st.rerun()
-                        with cm_3:
-                            if st.button("🗑️", key=f"del_card_{p_email}", help=f"Delete {p_name}"):
-                                delete_employee_profile(p_email)
-                                st.success("Removed.")
-                                st.rerun()
-                                
-            # --- VIEW D: PIN AUTHENTICATION FORM ---
-            elif st.session_state.selected_profile_email and st.session_state.selected_profile_email != "new":
-                target_email = st.session_state.selected_profile_email
-                p_match = next((p for p in saved_profiles if p[0].lower() == target_email.lower()), (target_email, "Executive User", "", "Recruiter", "👔"))
-                
-                st.markdown(f"""
-                    <div style="display: flex; align-items: center; justify-content: center; gap: 14px; margin-bottom: 14px;">
-                        <div style="font-size: 2.8rem; background: #082416; border: 2px solid #4ADE80; border-radius: 18px; width: 68px; height: 68px; display: flex; align-items: center; justify-content: center;">
-                            {p_match[4]}
-                        </div>
-                        <div>
-                            <h3 style="margin: 0; color: #4ADE80; font-size: 1.5rem;">Sign In: {p_match[1]}</h3>
-                            <span style="font-size: 0.85rem; color: #CBD5E1;">{target_email} ({p_match[3]})</span>
-                        </div>
-                    </div>
-                """, unsafe_allow_html=True)
-                
-                with st.form("pin_login_form"):
-                    pin_input = st.text_input("4-Digit Security PIN", type="password", max_chars=4, placeholder="••••")
-                    submit_log = st.form_submit_button("Access Portal (Press Enter)", use_container_width=True)
-                col_b1, col_b2 = st.columns(2)
-                if submit_log:
-                    success, name, role = verify_employee_pin(target_email, pin_input)
-                    if success:
-                        st.session_state.logged_in = True
-                        st.session_state.hr_name = name if name else p_match[1]
-                        st.session_state.hr_email = target_email
-                        st.session_state.hr_role = role if role else "Recruiter"
-                        st.session_state.selected_profile_email = None
-                        try:
-                            st.query_params.clear()
-                            if is_desktop_mode:
-                                st.query_params["mode"] = "desktop"
-                        except Exception:
-                            pass
-                        st.success(f"Welcome back, {st.session_state.hr_name}!")
-                        st.rerun()
-                    else:
-                        st.error("❌ Incorrect 4-Digit PIN. Please verify.")
-                with col_b2:
-                    if st.button("Switch Profile", use_container_width=True, key="switch_prof_auth_btn"):
-                        st.session_state.selected_profile_email = None
-                        try:
-                            st.query_params.clear()
-                            if is_desktop_mode:
-                                st.query_params["mode"] = "desktop"
-                        except Exception:
-                            pass
-                        st.rerun()
+                st.markdown("<div style='margin-top: 15px;'></div>", unsafe_allow_html=True)
                         
-            # --- VIEW E: REGISTER NEW PROFILE WITH STICKER PICKER ---
+            # --- VIEW D: REGISTER NEW PROFILE WITH STICKER PICKER ---
             else:
                 st.markdown("### 📝 Employee / Admin Registration")
                 st.caption("First registered user automatically becomes Admin with dedicated PIN creation.")
