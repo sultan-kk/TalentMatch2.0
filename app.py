@@ -2,8 +2,8 @@
 ARL TalentMatch — Official Corporate Edition (Adaptive Enterprise Suite)
 =============================================================================
 Branding: Attock Refinery Limited (ARL Forest Green & Native Adaptive Theme)
-Features: True Square Netflix Profile Cards (140x140px), Large Emoji Badges,
-Isolated Custom CSS, Streamlit Light/Dark Theme Support & Supabase Live Sync.
+Features: Permanent Supabase Badges, Strict 135x135px Square Cards, Clean Controls,
+High-Contrast Legibility, Supabase Live Pipeline & Tab 2 Clean Sync.
 """
 
 import io
@@ -94,13 +94,32 @@ def send_smtp_email(receiver_email, subject, body_text):
 
 # ----------------- AUTHENTICATION HELPERS -----------------
 def get_user_avatar(email):
-    avatars = st.session_state.get("profile_avatars", {})
-    return avatars.get(email.lower().strip(), "👑")
+    clean_email = email.lower().strip()
+    if "profile_avatars" in st.session_state and clean_email in st.session_state.profile_avatars:
+        return st.session_state.profile_avatars[clean_email]
+    if supabase:
+        try:
+            res = supabase.table("hr_users").select("avatar").eq("email", clean_email).execute()
+            if res.data and res.data[0].get("avatar"):
+                av = res.data[0].get("avatar")
+                if "profile_avatars" not in st.session_state:
+                    st.session_state.profile_avatars = {}
+                st.session_state.profile_avatars[clean_email] = av
+                return av
+        except Exception:
+            pass
+    return "👑"
 
 def set_user_avatar(email, avatar_char):
+    clean_email = email.lower().strip()
     if "profile_avatars" not in st.session_state:
         st.session_state.profile_avatars = {}
-    st.session_state.profile_avatars[email.lower().strip()] = avatar_char
+    st.session_state.profile_avatars[clean_email] = avatar_char
+    if supabase:
+        try:
+            supabase.table("hr_users").update({"avatar": avatar_char}).eq("email", clean_email).execute()
+        except Exception:
+            pass
 
 def verify_employee_pin(email, entered_pin):
     clean_email = email.lower().strip()
@@ -135,6 +154,10 @@ def get_all_verified_profiles():
             for r in res.data:
                 if r.get("pin"):
                     profiles.append((r.get("email"), r.get("name"), str(r.get("pin")), r.get("role", "Recruiter")))
+                    if r.get("avatar"):
+                        if "profile_avatars" not in st.session_state:
+                            st.session_state.profile_avatars = {}
+                        st.session_state.profile_avatars[r.get("email").lower().strip()] = r.get("avatar")
     except Exception:
         pass
     return profiles
@@ -155,7 +178,7 @@ def register_initial_employee(name, email, password):
         
         data = {
             "email": clean_email, "name": name, "password": hash_password(password),
-            "pin": None, "role": role, "is_verified": 0, "otp": otp
+            "pin": None, "role": role, "is_verified": 0, "otp": otp, "avatar": "👑"
         }
         supabase.table("hr_users").upsert(data).execute()
         success, msg = send_smtp_email(clean_email, "ARL TalentMatch - Verification OTP", f"Your verification code is: {otp}")
@@ -396,7 +419,7 @@ def clear_screened_database():
     if supabase: supabase.table("screened_candidates").delete().neq("id", 0).execute()
 
 # ===========================================================================
-# 5. DEDICATED ISOLATED CSS (STRICT SQUARE 140x140 NETFLIX CARDS)
+# 5. ISOLATED CSS (STRICT 135x135px SQUARE PROFILE CARDS)
 # ===========================================================================
 ADAPTIVE_CSS = """
 <style>
@@ -411,32 +434,23 @@ html, body, [class*="css"], .stApp {
 }
 
 /* ==========================================================================
-   NETFLIX PROFILE CARDS (STRICT SQUARE 140px X 140px - NO RECTANGLE STRETCH)
+   STRICT SQUARE 135px x 135px PROFILE CARDS (PREVENTS RECTANGLE STRETCH)
    ========================================================================== */
-.profile-card-wrapper {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 1.2rem;
-}
-
-.profile-card-wrapper div.stButton {
-    width: 140px !important;
-    height: 140px !important;
+div[data-testid="stColumn"] > div:has(.square-profile-card) {
     display: flex !important;
     justify-content: center !important;
     align-items: center !important;
 }
 
-.profile-card-wrapper div.stButton > button {
-    width: 140px !important;
-    height: 140px !important;
-    min-width: 140px !important;
-    max-width: 140px !important;
-    min-height: 140px !important;
-    max-height: 140px !important;
-    border-radius: 26px !important;
+div[data-testid="stColumn"] > div:has(.square-profile-card) div.stButton > button {
+    width: 170px !important;
+    height: 170px !important;
+    min-width: 170px !important;
+    max-width: 170px !important;
+    min-height: 170px !important;
+    max-height: 170px !important;
+    margin: 0 auto !important;
+    border-radius: 24px !important;
     background: #181B20 !important;
     border: 2px solid #2D333B !important;
     box-shadow: 0 10px 22px rgba(0, 0, 0, 0.45) !important;
@@ -444,25 +458,24 @@ html, body, [class*="css"], .stApp {
     align-items: center !important;
     justify-content: center !important;
     padding: 0 !important;
-    margin: 0 auto !important;
     transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
-.profile-card-wrapper div.stButton > button p {
-    font-size: 4.8rem !important;
+div[data-testid="stColumn"] > div:has(.square-profile-card) div.stButton > button p {
+    font-size: 4.2rem !important;
     line-height: 1 !important;
     margin: 0 !important;
     padding: 0 !important;
 }
 
-.profile-card-wrapper div.stButton > button:hover {
+div[data-testid="stColumn"] > div:has(.square-profile-card) div.stButton > button:hover {
     transform: translateY(-5px) scale(1.04) !important;
     border-color: #10B981 !important;
     box-shadow: 0 14px 28px rgba(16, 185, 129, 0.4) !important;
     background: #22262E !important;
 }
 
-/* Profile Titles Below Square Cards */
+/* Titles and Role below cards */
 .profile-meta-title {
     text-align: center;
     font-size: 1rem;
@@ -479,15 +492,6 @@ html, body, [class*="css"], .stApp {
     text-transform: uppercase;
     letter-spacing: 0.5px;
     margin-top: 2px;
-}
-
-.tiny-edit-btn div.stButton > button {
-    padding: 2px 6px !important;
-    height: 28px !important;
-    font-size: 0.8rem !important;
-    border-radius: 8px !important;
-    background: rgba(16, 185, 129, 0.1) !important;
-    border: 1px solid rgba(16, 185, 129, 0.3) !important;
 }
 
 /* ==========================================================================
@@ -532,7 +536,7 @@ html, body, [class*="css"], .stApp {
 }
 
 /* Standard Buttons Inside Dashboard */
-div[data-testid="stMainBlockContainer"] div.stButton > button:not(.square-badge) {
+div.stButton > button {
     border-radius: 10px !important;
     font-weight: 600 !important;
     padding: 0.45rem 1.1rem !important;
@@ -589,13 +593,35 @@ def show_pin_dialog(email, name, role):
 
 @st.dialog("🎨 Choose Executive Badge")
 def show_sticker_picker_dialog(email, name):
+    st.markdown("""
+        <style>
+        div[data-testid="stDialog"] div[data-testid="stColumn"] {
+            padding: 3px !important;
+        }
+        div[data-testid="stDialog"] div.stButton > button {
+            width: 100% !important;
+            height: 55px !important;
+            border-radius: 12px !important;
+            background: #18191C !important;
+            border: 1.5px solid #2A2E33 !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            padding: 0 !important;
+        }
+        div[data-testid="stDialog"] div.stButton > button p {
+            font-size: 2rem !important;
+            margin: 0 !important;
+        }
+        </style>
+    """, unsafe_allow_html=True)
     st.write(f"Select a corporate avatar badge for **{name}**:")
     cols = st.columns(4)
     for idx, badge in enumerate(AVAILABLE_BADGES):
         with cols[idx % 4]:
             if st.button(badge, key=f"stk_btn_{email}_{idx}", use_container_width=True):
                 set_user_avatar(email, badge)
-                st.success("Badge updated!")
+                st.success("Badge permanently saved!")
                 st.rerun()
 
 # ===========================================================================
@@ -688,7 +714,7 @@ if not st.session_state.logged_in:
         </div>
     """, unsafe_allow_html=True)
 
-    # Scoped Netflix-Style Square Cards (140x140px)
+    # Scoped Netflix-Style Square Cards (135x135px)
     all_items = list(saved_profiles) + [("REGISTER_CARD", "New Profile", "", "Register")]
     cols_per_row = 4
     
@@ -697,21 +723,19 @@ if not st.session_state.logged_in:
         cols = st.columns(cols_per_row)
         for idx, item in enumerate(row_items):
             with cols[idx]:
+                st.markdown('<div class="square-profile-card">', unsafe_allow_html=True)
                 if item[0] == "REGISTER_CARD":
-                    st.markdown('<div class="profile-card-wrapper">', unsafe_allow_html=True)
                     if st.button("➕", key=f"add_profile_card_{i}"):
                         st.session_state.show_registration = True
                         st.rerun()
                     st.markdown("""
                         <div class="profile-meta-title">New Profile</div>
                         <div class="profile-meta-role">Register Account</div>
-                    </div>
                     """, unsafe_allow_html=True)
                 else:
                     p_email, p_name, p_pin, p_role = item
                     avatar_sticker = get_user_avatar(p_email)
                     
-                    st.markdown('<div class="profile-card-wrapper">', unsafe_allow_html=True)
                     if st.button(avatar_sticker, key=f"user_card_{i}_{idx}"):
                         show_pin_dialog(p_email, p_name, p_role)
                     
@@ -722,11 +746,9 @@ if not st.session_state.logged_in:
                             <div class="profile-meta-role" style="text-align: right; margin-right: 4px;">{p_role}</div>
                         """, unsafe_allow_html=True)
                     with c_edit:
-                        st.markdown('<div class="tiny-edit-btn">', unsafe_allow_html=True)
                         if st.button("✏️", key=f"edit_btn_{i}_{idx}", help="Change Badge"):
                             show_sticker_picker_dialog(p_email, p_name)
-                        st.markdown('</div>', unsafe_allow_html=True)
-                    st.markdown('</div>', unsafe_allow_html=True)
+                st.markdown('</div>', unsafe_allow_html=True)
 
     st.markdown("<br><hr style='opacity: 0.25;'>", unsafe_allow_html=True)
     col_dl1, col_dl2 = st.columns([7.5, 2.5], vertical_alignment="center")
