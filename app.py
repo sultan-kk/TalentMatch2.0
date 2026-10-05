@@ -2,7 +2,7 @@
 ARL TalentMatch — Official Corporate Edition (Full-Proof Enterprise Suite)
 =============================================================================
 Branding: Attock Refinery Limited (ARL Forest Green & Adaptive Theme Palette)
-Features: Top Styled Desktop Download Banner, Netflix Direct Profile Cards, 
+Features: In-App Styled Download & Instructions Page, FAQ Accordion, Netflix Cards,
 Supabase Live Pipeline, Status Updater, SMTP Email Dispatcher & AI Interview Generator.
 """
 
@@ -30,7 +30,7 @@ APP_NAME = "ARL TalentMatch"
 APP_TAGLINE = "Attock Refinery Limited (ARL) • AI-Driven Automated CV Parser & JD Screener"
 GROQ_MODEL = "openai/gpt-oss-120b"
 ACCEPTED_TYPES = ["pdf", "docx", "png", "jpg", "jpeg"]
-EXE_DOWNLOAD_URL = "https://github.com/sultan-kk/TalentMatch2.0/releases"
+EXE_DIRECT_DOWNLOAD_URL = "https://github.com/sultan-kk/TalentMatch2.0/releases/download/v1.0/ARL-HireMatrix-Pro_1.0.0_x64_en-US.msi"
 
 AVAILABLE_BADGES = [
     "👔", "💼", "🛡️", "🎖️", "⚡", "🔬", "🛢️", "⚙️", 
@@ -315,8 +315,7 @@ def save_candidates_to_repository(new_candidates):
     return inserted, skipped
 
 def save_screened_to_supabase(screened_list):
-    if not supabase or not screened_list: 
-        return
+    if not supabase or not screened_list: return
     current_timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     for r in screened_list:
         skills_str = ", ".join(r.get("missing_skills", [])) if isinstance(r.get("missing_skills"), list) else str(r.get("missing_skills", ""))
@@ -340,10 +339,10 @@ def save_screened_to_supabase(screened_list):
             "screened_at": current_timestamp
         }
         try:
-            # Upsert ya direct insert execute karein
             supabase.table("screened_candidates").insert(payload).execute()
         except Exception as e:
             st.error(f"Supabase Screened Insert Error: {e}")
+
 def load_screened_database():
     expected_cols = [
         "Job Title", "Match Score (%)", "Pipeline Status",
@@ -397,7 +396,7 @@ def clear_screened_database():
     if supabase: supabase.table("screened_candidates").delete().neq("id", 0).execute()
 
 # ===========================================================================
-# 5. ADAPTIVE & STYLISH BANNER CSS
+# 5. HIGH-END CORPORATE CSS
 # ===========================================================================
 ADAPTIVE_CSS = """
 <style>
@@ -410,7 +409,6 @@ html, body, [class*="css"], .stApp {
 [data-testid="stSidebar"] { display: none !important; }
 [data-testid="collapsedControl"] { display: none !important; }
 
-/* Gorgeous Top Download Banner */
 .top-download-banner {
     background: linear-gradient(135deg, #064E3B 0%, #022C22 100%);
     border: 2px solid #34D399;
@@ -525,18 +523,48 @@ def show_sticker_picker_dialog(email, name):
 if not st.session_state.logged_in:
     saved_profiles = get_all_verified_profiles()
     
-    # Styled Top Download Banner
-    st.markdown(f"""
-        <div class="top-download-banner">
-            <div>
-                <h4 style="margin: 0; color: #FFFFFF; font-size: 1.1rem; font-weight: 700;">🚀 ARL TalentMatch Desktop Suite</h4>
-                <p style="margin: 2px 0 0 0; color: #A7F3D0; font-size: 0.85rem;">Run this recruitment suite natively on your Windows PC.</p>
+    # Check if user clicked Download Desktop App
+    if st.session_state.show_download_page:
+        st.markdown("""
+            <div style="background: linear-gradient(135deg, #064E3B 0%, #022C22 100%); border: 2px solid #34D399; border-radius: 20px; padding: 2.5rem; margin-bottom: 2rem; text-align: center;">
+                <h1 style="color: #FFFFFF; font-size: 2.2rem; margin-bottom: 10px;">📥 ARL TalentMatch Desktop Edition</h1>
+                <p style="color: #A7F3D0; font-size: 1.1rem; max-width: 700px; margin: 0 auto 20px auto;">
+                    Run Attock Refinery's recruitment suite natively on your Windows PC for high-performance offline execution and lightning-fast local OCR processing.
+                </p>
+                <a href="https://github.com/sultan-kk/TalentMatch2.0/releases/download/v1.0/ARL-HireMatrix-Pro_1.0.0_x64_en-US.msi" target="_blank" style="background: #10B981; color: white; padding: 0.9rem 2.2rem; border-radius: 12px; font-weight: 800; font-size: 1.15rem; text-decoration: none; border: 2px solid #6EE7B7; box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5);">📥 Download Windows Installer (.msi)</a>
             </div>
-            <div>
-                <a href="{EXE_DOWNLOAD_URL}" target="_blank" style="background: #10B981; color: white; padding: 0.55rem 1.2rem; border-radius: 10px; font-weight: 700; text-decoration: none; border: 1px solid #6EE7B7; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);">📥 Download App (.msi)</a>
-            </div>
-        </div>
-    """, unsafe_allow_html=True)
+        """, unsafe_allow_html=True)
+
+        st.markdown("### 🛠️ Installation Instructions")
+        st.markdown("""
+        1. **Download:** Click the green download button above to download the `.msi` setup package.
+        2. **Run Installer:** Double-click `ARL-HireMatrix-Pro_1.0.0_x64_en-US.msi` to start the setup wizard.
+        3. **Security Prompt:** If Windows SmartScreen prompts a warning (since it's a corporate custom build), click **More info** -> **Run anyway**.
+        4. **Launch:** Open ARL TalentMatch from your desktop shortcut or start menu and sign in using your corporate credentials.
+        """)
+
+        st.markdown("### ❓ Frequently Asked Questions (FAQs)")
+        with st.expander("Q1: Is my candidate data secure in the desktop version?"):
+            st.write("Yes! The desktop application securely connects to your encrypted Supabase cloud database, ensuring your data remains synced and protected under corporate security protocols.")
+        with st.expander("Q2: Do I need an internet connection to run the app?"):
+            st.write("An internet connection is required for AI Groq extraction and cloud database synchronization. Local UI rendering and file caching work seamlessly offline.")
+        with st.expander("Q3: Can multiple HR recruiters use the app simultaneously?"):
+            st.write("Yes, multiple authorized recruiters can sign in with their unique executive profiles and 4-digit security PINs.")
+
+        st.markdown("<br>", unsafe_allow_html=True)
+        if st.button("⬅ Back to Portal Login", use_container_width=True):
+            st.session_state.show_download_page = False
+            st.rerun()
+        st.stop()
+
+    # Styled Top Download Banner on Login
+    col_b1, col_b2 = st.columns([7.5, 2.5], vertical_alignment="center")
+    with col_b1:
+        st.markdown("🚀 **ARL TalentMatch Desktop Suite** — Standalone Windows app available for offline execution.")
+    with col_b2:
+        if st.button("📥 View Download & FAQs", key="dl_btn_login_top", use_container_width=True):
+            st.session_state.show_download_page = True
+            st.rerun()
 
     if st.session_state.pending_pin_email:
         _, mid_col, _ = st.columns([1, 2.2, 1])
@@ -675,17 +703,47 @@ df_all = load_database()
 user_avatar = get_user_avatar(st.session_state.hr_email)
 
 # Top Styled Banner on Main Dashboard
-st.markdown(f"""
-    <div class="top-download-banner">
-        <div>
-            <h4 style="margin: 0; color: #FFFFFF; font-size: 1.1rem; font-weight: 700;">🚀 ARL TalentMatch Desktop Suite</h4>
-            <p style="margin: 2px 0 0 0; color: #A7F3D0; font-size: 0.85rem;">Download the standalone Windows app for offline execution.</p>
+col_d1, col_d2 = st.columns([7.5, 2.5], vertical_alignment="center")
+with col_d1:
+    st.markdown("🚀 **ARL TalentMatch Desktop Suite** — Standalone Windows installer available for offline execution.")
+with col_d2:
+    if st.button("📥 View Download & FAQs", key="dl_btn_dash_top", use_container_width=True):
+        st.session_state.show_download_page = True
+        st.rerun()
+
+if st.session_state.show_download_page:
+    st.markdown("---")
+    st.markdown("""
+        <div style="background: linear-gradient(135deg, #064E3B 0%, #022C22 100%); border: 2px solid #34D399; border-radius: 20px; padding: 2.5rem; margin-bottom: 2rem; text-align: center;">
+            <h1 style="color: #FFFFFF; font-size: 2.2rem; margin-bottom: 10px;">📥 ARL TalentMatch Desktop Edition</h1>
+            <p style="color: #A7F3D0; font-size: 1.1rem; max-width: 700px; margin: 0 auto 20px auto;">
+                Run Attock Refinery's recruitment suite natively on your Windows PC for high-performance offline execution and lightning-fast local OCR processing.
+            </p>
+            <a href="https://github.com/sultan-kk/TalentMatch2.0/releases/download/v1.0/ARL-HireMatrix-Pro_1.0.0_x64_en-US.msi" target="_blank" style="background: #10B981; color: white; padding: 0.9rem 2.2rem; border-radius: 12px; font-weight: 800; font-size: 1.15rem; text-decoration: none; border: 2px solid #6EE7B7; box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5);">📥 Download Windows Installer (.msi)</a>
         </div>
-        <div>
-            <a href="{EXE_DOWNLOAD_URL}" target="_blank" style="background: #10B981; color: white; padding: 0.55rem 1.2rem; border-radius: 10px; font-weight: 700; text-decoration: none; border: 1px solid #6EE7B7; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);">📥 Download App (.msi)</a>
-        </div>
-    </div>
-""", unsafe_allow_html=True)
+    """, unsafe_allow_html=True)
+
+    st.markdown("### 🛠️ Installation Instructions")
+    st.markdown("""
+    1. **Download:** Click the green download button above to download the `.msi` setup package.
+    2. **Run Installer:** Double-click `ARL-HireMatrix-Pro_1.0.0_x64_en-US.msi` to start the setup wizard.
+    3. **Security Prompt:** If Windows SmartScreen prompts a warning, click **More info** -> **Run anyway**.
+    4. **Launch:** Open ARL TalentMatch from your desktop shortcut or start menu and sign in using your corporate credentials.
+    """)
+
+    st.markdown("### ❓ Frequently Asked Questions (FAQs)")
+    with st.expander("Q1: Is my candidate data secure in the desktop version?"):
+        st.write("Yes! The desktop application securely connects to your encrypted Supabase cloud database, ensuring your data remains synced and protected under corporate security protocols.")
+    with st.expander("Q2: Do I need an internet connection to run the app?"):
+        st.write("An internet connection is required for AI Groq extraction and cloud database synchronization. Local UI rendering and file caching work seamlessly offline.")
+    with st.expander("Q3: Can multiple HR recruiters use the app simultaneously?"):
+        st.write("Yes, multiple authorized recruiters can sign in with their unique executive profiles and 4-digit security PINs.")
+
+    st.markdown("<br>", unsafe_allow_html=True)
+    if st.button("⬅ Back to Dashboard", use_container_width=True):
+        st.session_state.show_download_page = False
+        st.rerun()
+    st.stop()
 
 col_n1, col_n2 = st.columns([8, 2], vertical_alignment="center")
 with col_n1:
@@ -770,6 +828,13 @@ with tab2:
 
     if display_results:
         st.markdown("### 📋 Screening Results")
+        
+        # Clear Screening Results View Button in Tab 2
+        if st.button("🗑️ Clear Screening Results View", type="secondary", key="clear_screening_view_btn"):
+            st.session_state.screening_results = []
+            st.success("Screening results view cleared!")
+            st.rerun()
+
         for rank, cand in enumerate(display_results, 1):
             c_name = cand.get('Name') or cand.get('name', 'Unknown')
             c_score = cand.get('Match Score (%)') if 'Match Score (%)' in cand else cand.get('match_score', 0)
@@ -777,20 +842,17 @@ with tab2:
             c_job = cand.get('Job Title') or cand.get('job_title', job_role)
             
             with st.expander(f"#{rank} — {c_name} ({c_score}%)"):
-                # Pipeline Status Update
                 new_status = st.selectbox("Pipeline Status", ["Shortlisted", "Interviewing", "Offered", "Rejected", "Talent Pool"], index=0, key=f"status_{rank}_{c_email}")
                 if st.button("Update Status", key=f"up_{rank}_{c_email}"):
                     update_screened_candidate_status_db(c_email, c_job, new_status)
                     st.success("Status updated!")
 
-                # Email Interview Call
                 if st.button("📧 Send Interview Call Email", key=f"email_{rank}_{c_email}"):
                     body = f"Dear {c_name},\n\nYou have been shortlisted for the position of {c_job} at Attock Refinery Limited (ARL).\n\nBest regards,\nHR Team ARL"
                     ok, msg = send_smtp_email(c_email, f"Interview Call - ARL TalentMatch ({c_job})", body)
                     if ok: st.success("Email dispatched!")
                     else: st.error(msg)
 
-                # AI Interview Questions Generator
                 if st.button("💡 Generate AI Interview Questions", key=f"q_{rank}_{c_email}"):
                     q_text = generate_ai_interview_questions(Groq(api_key=g_key), c_name, c_job, str(cand))
                     st.info(q_text)
@@ -799,19 +861,16 @@ with tab2:
 with tab3:
     st.markdown('<div class="corp-card"><h4>🗄️ Real-Time Synchronized Supabase Grids</h4>', unsafe_allow_html=True)
     g1, g2 = st.tabs(["Screened Candidates", "Master Talent Pool"])
-    
     with g1:
         s_df = load_screened_database()
         if not s_df.empty: 
             st.dataframe(s_df, use_container_width=True)
-            # Screened records delete / clear karne ka button
             if st.button("🗑️ Clear All Screened Records", type="secondary", key="clear_screened_btn"):
                 clear_screened_database()
                 st.success("All screened records have been cleared.")
                 st.rerun()
         else: 
             st.info("No screened records found.")
-            
     with g2:
         m_df = load_database()
         if not m_df.empty: 
@@ -822,10 +881,10 @@ with tab3:
                 st.rerun()
         else: 
             st.info("Master talent pool is empty.")
-            
     st.markdown('</div>', unsafe_allow_html=True)
+
 with tab4:
-    st.markdown('<div class="corp-card"><h4>🛡️️ Admin Controls</h4>', unsafe_allow_html=True)
+    st.markdown('<div class="corp-card"><h4>🛡️ Admin Controls</h4>', unsafe_allow_html=True)
     profiles = get_all_verified_profiles()
     for p_em, p_nm, p_p, p_r in profiles:
         c1, c2, c3 = st.columns([2, 1, 1])
@@ -836,3 +895,4 @@ with tab4:
                 delete_employee_profile(p_em)
                 st.rerun()
     st.markdown('</div>', unsafe_allow_html=True)
+    
