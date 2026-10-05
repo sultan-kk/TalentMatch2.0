@@ -1169,6 +1169,7 @@ with tab2:
     slider_thresh = st.slider("Highlight Score Threshold (%)", 0, 100, 50, step=5)
     
     df_pool = load_database()
+    
     if st.button("⚡ Run AI Candidate Screening", type="primary", use_container_width=True, disabled=not (jd_text.strip() and not df_pool.empty)):
         if not g_key:
             st.error("❌ Groq API Key is missing in Streamlit Secrets.")
@@ -1179,41 +1180,64 @@ with tab2:
             for idx, row in df_pool.iterrows():
                 prog.progress((idx + 1) / len(df_pool), text=f"Evaluating {row['Name']}...")
                 score, is_rel, missing = evaluate_candidate_against_jd(client, row, jd_text)
-                if is_rel:
-                    res.append({
-                        "job_title": job_role,
-                        "name": row["Name"],
-                        "father_name": row["Father Name"],
-                        "education": row["Qualification"],
-                        "cgpa": row["CGPA"],
-                        "passing_year": row["Passing Year"],
-                        "university_name": row["Institute"],
-                        "dob": row["DOB"],
-                        "email": row["Email"],
-                        "phone": row["Phone Number"],
-                        "experience_years": row["Experience"],
-                        "latest_experience": row["Latest Experience"],
-                        "reference": row["Reference"],
-                        "match_score": score,
-                        "missing_skills": missing,
-                        "pipeline_status": "Shortlisted" if score >= slider_thresh else "Talent Pool"
-                    })
+                
+                # Sabhi evaluated candidates ko include karein taake koi result gayab na ho
+                res.append({
+                    "job_title": job_role,
+                    "name": row["Name"],
+                    "father_name": row["Father Name"],
+                    "education": row["Qualification"],
+                    "cgpa": row["CGPA"],
+                    "passing_year": row["Passing Year"],
+                    "university_name": row["Institute"],
+                    "dob": row["DOB"],
+                    "email": row["Email"],
+                    "phone": row["Phone Number"],
+                    "experience_years": row["Experience"],
+                    "latest_experience": row["Latest Experience"],
+                    "reference": row["Reference"],
+                    "match_score": score,
+                    "missing_skills": missing,
+                    "pipeline_status": "Shortlisted" if score >= slider_thresh else "Talent Pool"
+                })
             prog.empty()
             res.sort(key=lambda x: x["match_score"], reverse=True)
+            
+            # Results ko session state aur database dono mein secure kar dein
             st.session_state.screening_results = res
             save_screened_to_supabase(res)
-            st.success(f"Screening complete! {len(res)} candidate(s) evaluated.")
-            st.rerun()
+            st.success(f"Screening complete! {len(res)} candidate(s) evaluated and saved.")
 
-    if st.session_state.screening_results:
+    # Session state ya Database se persistent results show karein taake gayab na hon
+    display_results = st.session_state.screening_results
+    if not display_results:
+        # Agar session state khali ho toh database se load kar lein
+        db_screened = load_screened_database()
+        if not db_screened.empty:
+            display_results = db_screened.to_dict(orient="records")
+
+    if display_results:
         st.markdown("---")
-        for rank, cand in enumerate(st.session_state.screening_results, 1):
-            with st.expander(f"#{rank} — {cand['name']} ({cand['match_score']}%) | {cand['pipeline_status']}"):
-                st.write(f"**Education:** {cand['education']} | **Institute:** {cand['university_name']}")
-                st.write(f"**Experience:** {cand['experience_years']} years | **Latest:** {cand['latest_experience']}")
-                st.write(f"**Skills Gap:** {', '.join(cand['missing_skills']) if cand['missing_skills'] else 'None'}")
-    st.markdown('</div>', unsafe_allow_html=True)
+        st.markdown(f"### 📋 Screening Results ({len(display_results)} Candidates)")
+        for rank, cand in enumerate(display_results, 1):
+            # Safe key-value extraction for both dict and dataframe rows
+            c_name = cand.get('Name') or cand.get('name', 'Unknown')
+            c_score = cand.get('Match Score (%)') if 'Match Score (%)' in cand else cand.get('match_score', 0)
+            c_status = cand.get('Pipeline Status') if 'Pipeline Status' in cand else cand.get('pipeline_status', 'Talent Pool')
+            c_edu = cand.get('Qualification') if 'Qualification' in cand else cand.get('education', 'Not Provided')
+            c_inst = cand.get('Institute') if 'Institute' in cand else cand.get('university_name', 'Not Provided')
+            c_exp = cand.get('Experience') if 'Experience' in cand else cand.get('experience_years', '0')
+            c_latest = cand.get('Latest Experience') if 'Latest Experience' in cand else cand.get('latest_experience', 'Not Provided')
+            c_missing = cand.get('Missing Skills') if 'Missing Skills' in cand else cand.get('missing_skills', 'None')
 
+            with st.expander(f"#{rank} — {c_name} ({c_score}%) | Status: {c_status}"):
+                st.write(f"**Education:** {c_edu} | **Institute:** {c_inst}")
+                st.write(f"**Experience:** {c_exp} years | **Latest Role:** {c_latest}")
+                st.write(f"**Skills Gap:** {c_missing}")
+    else:
+        st.info("ℹ️ No screening results available yet. Run the AI screening above to evaluate candidates.")
+        
+    st.markdown('</div>', unsafe_allow_html=True)
 with tab3:
     st.markdown('<div class="corp-card"><h4>🗄️ Real-Time Synchronized Supabase Grids</h4>', unsafe_allow_html=True)
     g1, g2 = st.tabs(["Screened Candidates", "Master Talent Pool"])
