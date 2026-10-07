@@ -773,40 +773,10 @@ if not st.session_state.logged_in:
                 st.rerun()
         st.stop()
 
-    # --- MODIFICATION: Download App Banner moved to TOP ---
-    col_dl1, col_dl2 = st.columns([7.5, 2.5], vertical_alignment="center")
-    with col_dl1:
-        st.markdown("🖥️ **Need desktop offline execution?** Download our standalone Windows MSI app.")
-    with col_dl2:
-        if st.button("📥 Download App & FAQs", key="dl_portal_top", use_container_width=True):
-            st.session_state.show_download_page = True
-            st.rerun()
-
-    st.markdown("<hr style='opacity: 0.25; margin-top: 0.5rem; margin-bottom: 0.5rem;'>", unsafe_allow_html=True)
-
-    # --- MODIFICATION: Theme Adaptive App Name and Tagline ---
     st.markdown(f"""
-        <style>
-        .talent-header {{
-            text-align: center;
-            padding: 1.5rem 1rem 2rem 1rem;
-        }}
-        .talent-title {{
-            font-size: 2.8rem;
-            font-weight: 800;
-            margin-bottom: 4px;
-            color: var(--text-color);
-        }}
-        .talent-tagline {{
-            font-size: 1.05rem;
-            font-weight: 500;
-            color: var(--text-color);
-            opacity: 0.85;
-        }}
-        </style>
-        <div class="talent-header">
-            <h1 class="talent-title">{APP_NAME}</h1>
-            <div class="talent-tagline">{APP_TAGLINE}</div>
+        <div style="text-align: center; padding: 2.2rem 1rem 1.6rem 1rem;">
+            <h1 style="font-size: 2.6rem; font-weight: 800; margin-bottom: 4px; color: #FFFFFF;">TalentMatch</h1>
+            <p style="color: #10B981; font-size: 1rem; font-weight: 500;">{APP_TAGLINE}</p>
         </div>
     """, unsafe_allow_html=True)
 
@@ -846,6 +816,15 @@ if not st.session_state.logged_in:
                         <div class="profile-meta-role">{p_role}</div>
                     """, unsafe_allow_html=True)
 
+    st.markdown("<br><hr style='opacity: 0.25;'>", unsafe_allow_html=True)
+    col_dl1, col_dl2 = st.columns([7.5, 2.5], vertical_alignment="center")
+    with col_dl1:
+        st.markdown("🖥️ **Need desktop offline execution?** Download our standalone Windows MSI app.")
+    with col_dl2:
+        if st.button("📥 Download App & FAQs", key="dl_portal_bottom", use_container_width=True):
+            st.session_state.show_download_page = True
+            st.rerun()
+
     st.stop()
 
 # ===========================================================================
@@ -881,12 +860,6 @@ def extract_resume_text(uploaded_file):
         b = uploaded_file.read()
         if name.endswith("pdf"): return extract_text_from_pdf(b)
         elif name.endswith("docx"): return extract_text_from_docx(b)
-        # --- FIX 1: Add Image extraction support (pytesseract) for png/jpg/jpeg ---
-        elif name.endswith(("png", "jpg", "jpeg")):
-            import pytesseract
-            pil_img = Image.open(io.BytesIO(b)).convert("L")
-            return pytesseract.image_to_string(pil_img)
-        # --------------------------------------------------------------------------
     except Exception as e:
         st.error(f"Read error: {e}")
     return ""
@@ -941,16 +914,7 @@ DOCUMENT TEXT:
                 response_format={"type": "json_object"},
                 temperature=0.1
             )
-            
-            # --- FIX 2: Robust JSON string parsing to handle markdown blocks ---
-            content = res.choices[0].message.content.strip()
-            start_idx = content.find('{')
-            end_idx = content.rfind('}')
-            if start_idx != -1 and end_idx != -1:
-                content = content[start_idx:end_idx+1]
-            parsed = json.loads(content)
-            # -------------------------------------------------------------------
-            
+            parsed = json.loads(res.choices[0].message.content.strip())
             for cand in parsed.get("candidates", []):
                 cand_name = str(cand.get("name", "")).strip()
                 cand_email = str(cand.get("email", "")).strip().lower()
@@ -978,16 +942,7 @@ Return ONLY valid JSON: {{"match_score": 50, "is_relevant": true, "missing_skill
             model=GROQ_MODEL, messages=[{"role": "user", "content": prompt}],
             response_format={"type": "json_object"}, temperature=0.2
         )
-        
-        # --- FIX 2: Robust JSON string parsing applied here too ---
-        content = res.choices[0].message.content.strip()
-        start_idx = content.find('{')
-        end_idx = content.rfind('}')
-        if start_idx != -1 and end_idx != -1:
-            content = content[start_idx:end_idx+1]
-        parsed = json.loads(content)
-        # ----------------------------------------------------------
-        
+        parsed = json.loads(res.choices[0].message.content.strip())
         return float(parsed.get("match_score", 50)), True, parsed.get("missing_skills", [])
     except Exception:
         return 50.0, True, []
@@ -1005,20 +960,6 @@ def generate_ai_interview_questions(client, name, role, skills):
 # ===========================================================================
 # 10. MAIN DASHBOARD & TABS
 # ===========================================================================
-
-# --- MODIFICATION: Slide-up Animation for Dashboard View ---
-st.markdown("""
-    <style>
-    @keyframes slideUpFade {
-        0% { opacity: 0; transform: translateY(40px); }
-        100% { opacity: 1; transform: translateY(0); }
-    }
-    div[data-testid="stMainBlockContainer"] {
-        animation: slideUpFade 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-    }
-    </style>
-""", unsafe_allow_html=True)
-
 df_all = load_database()
 user_avatar = get_user_avatar(st.session_state.hr_email)
 
@@ -1046,7 +987,7 @@ with col_nav_right:
             st.session_state.hr_name = ""
             st.session_state.hr_email = ""
             st.session_state.hr_role = "Recruiter"
-            st.rerun()
+            st.rerun()  # INSTANT LOGOUT TRIGGER FIXED YAHAN
 
 st.markdown(f"""
     <div class="corp-hero">
@@ -1063,12 +1004,6 @@ tab1, tab2, tab3, tab4 = st.tabs([
 ])
 
 with tab1:
-    # --- MODIFICATION: Persisted Extraction Toast/Success Message ---
-    if st.session_state.get("extraction_done"):
-        st.toast("✅ Data extraction finished successfully!", icon="✅")
-        st.success(st.session_state.get("extraction_msg", "Candidates successfully extracted and saved!"))
-        st.session_state.extraction_done = False  # Reset flag to avoid re-showing
-
     st.markdown('<div class="corp-card"><h4>📥 Step 1: Ingest & Parse Resumes (Bulk & Combined PDFs Supported)</h4>', unsafe_allow_html=True)
     uploaded_files = st.file_uploader(
         "Upload Candidate CVs (PDF, DOCX) — Multiple Files & Merged Multi-Page PDFs Supported",
@@ -1105,10 +1040,7 @@ with tab1:
             msg = f"🎉 Processed {len(batch)} candidate(s): **{ins} new candidate(s) appended to bottom of list**."
             if skp > 0:
                 msg += f" ({skp} duplicate(s) automatically skipped)."
-            
-            # --- MODIFICATION: Setting state for success message to persist ---
-            st.session_state.extraction_done = True
-            st.session_state.extraction_msg = msg
+            st.success(msg)
             st.rerun()
         else:
             st.error("No candidate profiles could be extracted from the uploaded file(s). Please verify the contents.")
@@ -1207,7 +1139,7 @@ with tab3:
     st.markdown('</div>', unsafe_allow_html=True)
 
 with tab4:
-    st.markdown('<div class="corp-card"><h4>🛡 Admin User Controls</h4>', unsafe_allow_html=True)
+    st.markdown('<div class="corp-card"><h4>🛡️️ Admin User Controls</h4>', unsafe_allow_html=True)
     profiles = get_all_verified_profiles()
     for p_em, p_nm, p_p, p_r in profiles:
         c1, c2, c3 = st.columns([3, 1.5, 1], vertical_alignment="center")
@@ -1218,3 +1150,5 @@ with tab4:
                 delete_employee_profile(p_em)
                 st.rerun()
     st.markdown('</div>', unsafe_allow_html=True)
+
+
