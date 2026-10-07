@@ -773,7 +773,6 @@ if not st.session_state.logged_in:
                 st.rerun()
         st.stop()
 
-    # --- MODIFICATION: Download App Banner moved to TOP ---
     col_dl1, col_dl2 = st.columns([7.5, 2.5], vertical_alignment="center")
     with col_dl1:
         st.markdown("🖥️ **Need desktop offline execution?** Download our standalone Windows MSI app.")
@@ -784,7 +783,6 @@ if not st.session_state.logged_in:
 
     st.markdown("<hr style='opacity: 0.25; margin-top: 0.5rem; margin-bottom: 0.5rem;'>", unsafe_allow_html=True)
 
-    # --- MODIFICATION: Theme Adaptive App Name and Tagline ---
     st.markdown(f"""
         <style>
         .talent-header {{
@@ -818,7 +816,6 @@ if not st.session_state.logged_in:
         cols = st.columns(cols_per_row)
         for idx, item in enumerate(row_items):
             with cols[idx]:
-                # Secret marker to tell CSS this is a profile column!
                 st.markdown('<div class="profile-card-marker" style="display:none;"></div>', unsafe_allow_html=True)
                 
                 if item[0] == "REGISTER_CARD":
@@ -833,11 +830,9 @@ if not st.session_state.logged_in:
                     p_email, p_name, p_pin, p_role = item
                     avatar_sticker = get_user_avatar(p_email)
 
-                    # BIG SQUARE CARD (Type Primary targets the 165x165 CSS)
                     if st.button(avatar_sticker, key=f"ucard_{i}_{idx}", type="primary"):
                         show_pin_dialog(p_email, p_name, p_role)
 
-                    # SLEEK PILL EDIT BUTTON (Type Secondary targets the sleek styling)
                     if st.button("✏️ Change Badge", key=f"ebtn_{i}_{idx}", type="secondary"):
                         show_sticker_picker_dialog(p_email, p_name)
 
@@ -854,6 +849,9 @@ if not st.session_state.logged_in:
 def extract_text_from_pdf(file_bytes: bytes) -> str:
     import pdfplumber
     import pytesseract
+    # --- PATH UPDATE FOR WINDOWS ---
+    pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
+    
     text_parts = []
     with pdfplumber.open(io.BytesIO(file_bytes)) as pdf:
         for idx, page in enumerate(pdf.pages, start=1):
@@ -866,8 +864,9 @@ def extract_text_from_pdf(file_bytes: bytes) -> str:
                     t1 = pytesseract.image_to_string(pil_img)
                     if t1.strip():
                         text_parts.append(f"--- PAGE {idx} (OCR) ---\n" + t1)
-                except Exception:
-                    pass
+                except Exception as e:
+                    if "tesseract" in str(e).lower():
+                        st.error("⚠️ Tesseract Missing: PDF image layer skipped.")
     return "\n\n".join(text_parts)
 
 def extract_text_from_docx(file_bytes: bytes) -> str:
@@ -881,14 +880,18 @@ def extract_resume_text(uploaded_file):
         b = uploaded_file.read()
         if name.endswith("pdf"): return extract_text_from_pdf(b)
         elif name.endswith("docx"): return extract_text_from_docx(b)
-        # --- FIX 1: Add Image extraction support (pytesseract) for png/jpg/jpeg ---
         elif name.endswith(("png", "jpg", "jpeg")):
             import pytesseract
+            # --- PATH UPDATE FOR WINDOWS ---
+            pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
+            
             pil_img = Image.open(io.BytesIO(b)).convert("L")
             return pytesseract.image_to_string(pil_img)
-        # --------------------------------------------------------------------------
     except Exception as e:
-        st.error(f"Read error: {e}")
+        if "tesseract" in str(e).lower():
+            st.error(f"❌ Tesseract-OCR PC mein install nahi hai! Is liye '{uploaded_file.name}' se text read nahi ho saka.")
+        else:
+            st.error(f"Read error on {uploaded_file.name}: {e}")
     return ""
 
 def parse_multiple_candidates_from_text(client, full_text):
@@ -942,14 +945,16 @@ DOCUMENT TEXT:
                 temperature=0.1
             )
             
-            # --- FIX 2: Robust JSON string parsing to handle markdown blocks ---
             content = res.choices[0].message.content.strip()
             start_idx = content.find('{')
             end_idx = content.rfind('}')
+            
             if start_idx != -1 and end_idx != -1:
                 content = content[start_idx:end_idx+1]
-            parsed = json.loads(content)
-            # -------------------------------------------------------------------
+                parsed = json.loads(content)
+            else:
+                st.error("⚠ AI ne sahi JSON format nahi diya.")
+                parsed = {}
             
             for cand in parsed.get("candidates", []):
                 cand_name = str(cand.get("name", "")).strip()
@@ -960,8 +965,8 @@ DOCUMENT TEXT:
                 if cand_name and cand_name.lower() not in ["unknown", "name"] and uid not in seen_identifiers:
                     seen_identifiers.add(uid)
                     all_extracted_candidates.append(cand)
-        except Exception:
-            pass
+        except Exception as e:
+            st.error(f"❌ Groq API ya Data Parsing Error: {e}")
 
     return all_extracted_candidates
 
@@ -979,17 +984,18 @@ Return ONLY valid JSON: {{"match_score": 50, "is_relevant": true, "missing_skill
             response_format={"type": "json_object"}, temperature=0.2
         )
         
-        # --- FIX 2: Robust JSON string parsing applied here too ---
         content = res.choices[0].message.content.strip()
         start_idx = content.find('{')
         end_idx = content.rfind('}')
         if start_idx != -1 and end_idx != -1:
             content = content[start_idx:end_idx+1]
-        parsed = json.loads(content)
-        # ----------------------------------------------------------
-        
+            parsed = json.loads(content)
+        else:
+            parsed = {"match_score": 50, "is_relevant": True, "missing_skills": ["JSON Error"]}
+            
         return float(parsed.get("match_score", 50)), True, parsed.get("missing_skills", [])
-    except Exception:
+    except Exception as e:
+        st.error(f"❌ Groq API Screening Error: {e}")
         return 50.0, True, []
 
 def generate_ai_interview_questions(client, name, role, skills):
@@ -1000,13 +1006,13 @@ def generate_ai_interview_questions(client, name, role, skills):
         )
         return res.choices[0].message.content.strip()
     except Exception as e:
+        st.error(f"❌ Groq API Error (Questions): {e}")
         return f"Could not generate questions: {e}"
 
 # ===========================================================================
 # 10. MAIN DASHBOARD & TABS
 # ===========================================================================
 
-# --- MODIFICATION: Slide-up Animation for Dashboard View ---
 st.markdown("""
     <style>
     @keyframes slideUpFade {
@@ -1063,11 +1069,10 @@ tab1, tab2, tab3, tab4 = st.tabs([
 ])
 
 with tab1:
-    # --- MODIFICATION: Persisted Extraction Toast/Success Message ---
     if st.session_state.get("extraction_done"):
         st.toast("✅ Data extraction finished successfully!", icon="✅")
         st.success(st.session_state.get("extraction_msg", "Candidates successfully extracted and saved!"))
-        st.session_state.extraction_done = False  # Reset flag to avoid re-showing
+        st.session_state.extraction_done = False
 
     st.markdown('<div class="corp-card"><h4>📥 Step 1: Ingest & Parse Resumes (Bulk & Combined PDFs Supported)</h4>', unsafe_allow_html=True)
     uploaded_files = st.file_uploader(
@@ -1090,12 +1095,25 @@ with tab1:
             progress_bar.progress(int((idx / total_files) * 100))
             
             try:
+                # 1. PEHLAY TEXT EXTRACT KAREGA
                 text = extract_resume_text(file)
-                if text and len(text.strip()) > 30:
-                    candidates_in_file = parse_multiple_candidates_from_text(client, text)
+                
+                # 2. CHECK KAREGA KE FILE SE LAFZ READ HUE YA NAHI
+                if not text or len(text.strip()) < 30:
+                    st.error(f"❌ File '{file.name}' se text read nahi ho saka! Agar yeh image/scanned PDF hai toh PC mein Tesseract-OCR zaroori hai.")
+                    continue
+                
+                # 3. AGAR TEXT MIL GAYA TOH AI KO BHEJEGA
+                st.info(f"📄 '{file.name}' se {len(text)} characters read ho gaye. AI parsing shuru...")
+                candidates_in_file = parse_multiple_candidates_from_text(client, text)
+                
+                if not candidates_in_file:
+                    st.warning(f"⚠ AI ne '{file.name}' read ki lekin valid candidate data wapis nahi kiya.")
+                else:
                     batch.extend(candidates_in_file)
+                    
             except Exception as err:
-                st.warning(f"⚠ Note on `{file.name}`: {err}")
+                st.error(f"⚠ Unexpected Error on `{file.name}`: {err}")
         
         status_text.empty()
         progress_bar.empty()
@@ -1106,12 +1124,11 @@ with tab1:
             if skp > 0:
                 msg += f" ({skp} duplicate(s) automatically skipped)."
             
-            # --- MODIFICATION: Setting state for success message to persist ---
             st.session_state.extraction_done = True
             st.session_state.extraction_msg = msg
             st.rerun()
         else:
-            st.error("No candidate profiles could be extracted from the uploaded file(s). Please verify the contents.")
+            st.error("No candidate profiles could be extracted. Upar diye gaye Red errors ko check karein.")
     st.markdown('</div>', unsafe_allow_html=True)
 
 with tab2:
