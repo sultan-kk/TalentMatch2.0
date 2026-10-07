@@ -32,7 +32,7 @@ APP_TAGLINE = "Attock Refinery Limited (ARL) • AI-Driven Automated CV Parser &
 GROQ_MODEL = "openai/gpt-oss-120b"
 VISION_MODEL = "llama-3.2-11b-vision-preview"
 ACCEPTED_TYPES = ["pdf", "docx", "png", "jpg", "jpeg"]
-EXE_DIRECT_DOWNLOAD_URL = "https://github.com/sultan-kk/TalentMatch2.0/releases/download/v1.0/Arl_TalentMatch.exe"
+EXE_DIRECT_DOWNLOAD_URL = "https://github.com/sultan-kk/TalentMatch2.0/releases/download/v1.0/TalentMatch.msi"
 AVAILABLE_BADGES = ["👔", "💼", "🛡️", "🎖️", "⚡", "🔬", "🛢️", "⚙️", "📈", "🎯", "👑", "🚀", "💡", "💻", "💎", "🏛️"]
 
 def get_arl_favicon():
