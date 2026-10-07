@@ -29,7 +29,7 @@ from PIL import Image, ImageDraw
 # ===========================================================================
 APP_NAME = "ARL TalentMatch"
 APP_TAGLINE = "Attock Refinery Limited (ARL) • AI-Driven Automated CV Parser & JD Screener"
-GROQ_MODEL = "openai/gpt-oss-120b"
+GROQ_MODEL = "llama-3.3-70b-versatile"
 VISION_MODEL = "llama-3.2-11b-vision-preview"
 ACCEPTED_TYPES = ["pdf", "docx", "png", "jpg", "jpeg"]
 EXE_DIRECT_DOWNLOAD_URL = "https://github.com/sultan-kk/TalentMatch2.0/releases/download/v1.0/TalentMatch.msi"
