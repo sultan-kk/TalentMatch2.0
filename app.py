@@ -881,6 +881,12 @@ def extract_resume_text(uploaded_file):
         b = uploaded_file.read()
         if name.endswith("pdf"): return extract_text_from_pdf(b)
         elif name.endswith("docx"): return extract_text_from_docx(b)
+        # --- FIX 1: Add Image extraction support (pytesseract) for png/jpg/jpeg ---
+        elif name.endswith(("png", "jpg", "jpeg")):
+            import pytesseract
+            pil_img = Image.open(io.BytesIO(b)).convert("L")
+            return pytesseract.image_to_string(pil_img)
+        # --------------------------------------------------------------------------
     except Exception as e:
         st.error(f"Read error: {e}")
     return ""
@@ -935,7 +941,16 @@ DOCUMENT TEXT:
                 response_format={"type": "json_object"},
                 temperature=0.1
             )
-            parsed = json.loads(res.choices[0].message.content.strip())
+            
+            # --- FIX 2: Robust JSON string parsing to handle markdown blocks ---
+            content = res.choices[0].message.content.strip()
+            start_idx = content.find('{')
+            end_idx = content.rfind('}')
+            if start_idx != -1 and end_idx != -1:
+                content = content[start_idx:end_idx+1]
+            parsed = json.loads(content)
+            # -------------------------------------------------------------------
+            
             for cand in parsed.get("candidates", []):
                 cand_name = str(cand.get("name", "")).strip()
                 cand_email = str(cand.get("email", "")).strip().lower()
@@ -963,7 +978,16 @@ Return ONLY valid JSON: {{"match_score": 50, "is_relevant": true, "missing_skill
             model=GROQ_MODEL, messages=[{"role": "user", "content": prompt}],
             response_format={"type": "json_object"}, temperature=0.2
         )
-        parsed = json.loads(res.choices[0].message.content.strip())
+        
+        # --- FIX 2: Robust JSON string parsing applied here too ---
+        content = res.choices[0].message.content.strip()
+        start_idx = content.find('{')
+        end_idx = content.rfind('}')
+        if start_idx != -1 and end_idx != -1:
+            content = content[start_idx:end_idx+1]
+        parsed = json.loads(content)
+        # ----------------------------------------------------------
+        
         return float(parsed.get("match_score", 50)), True, parsed.get("missing_skills", [])
     except Exception:
         return 50.0, True, []
