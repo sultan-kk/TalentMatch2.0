@@ -403,7 +403,7 @@ def save_screened_to_supabase(screened_list):
             supabase.table("screened_candidates").insert(payload).execute()
         except Exception as e:
             st.error(f"Supabase Screened Insert Error: {e}")
-            def load_screened_database():
+def load_screened_database():
     expected_cols = [
         "Job Title", "Match Score (%)", "Pipeline Status",
         "Name", "Father Name", "Qualification", "CGPA", 
