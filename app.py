@@ -480,139 +480,171 @@ ADAPTIVE_CSS = """
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap');
 
-/* Pura background black se ARL Dark Green kiya gaya hai */
+/* Dynamic App Theme Adaptation */
 html, body, [class*="css"], .stApp {
     font-family: 'Plus Jakarta Sans', sans-serif !important;
-    background-color: #03170C !important; 
-    color: #E2E8F0 !important;
 }
 
-/* Streamlit ka default header transparent kiya */
+/* Hide default streamlit clutter */
 .stApp > header {
     background-color: transparent !important;
 }
-
 [data-testid="stSidebar"], [data-testid="collapsedControl"] {
     display: none !important;
 }
 
+/* Profile Card Container Alignment */
 div[data-testid="stColumn"]:has(.profile-card-marker) {
     display: flex !important;
     flex-direction: column !important;
     align-items: center !important;
     justify-content: flex-start !important;
+    position: relative !important;
+    padding-top: 15px !important;
 }
 
-div[data-testid="stColumn"]:has(.profile-card-marker) div[data-testid="stButton"] {
+/* Centering the primary buttons inside columns */
+div[data-testid="stColumn"]:has(.profile-card-marker) div[data-testid="stButton"]:first-child {
     display: flex !important;
     justify-content: center !important;
     width: 100% !important;
 }
 
-/* Profile cards ka black gradient green gradient mein change kiya */
-div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="primary"] {
+/* 🟢 THE CHARCOAL CARDS WITH GLOWING GREEN BORDER */
+div[data-testid="stColumn"]:has(.profile-card-marker) div[data-testid="stButton"]:first-child button {
     width: 165px !important;
     height: 165px !important;
     min-width: 165px !important;
     max-width: 165px !important;
     min-height: 165px !important;
     max-height: 165px !important;
-    border-radius: 30px !important;
-    background: linear-gradient(145deg, #0A3622 0%, #041F12 100%) !important;
-    border: 2px solid #10B981 !important;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5) !important;
+    border-radius: 26px !important;
+    background: linear-gradient(145deg, #2D3238 0%, #1A1D21 100%) !important; /* Premium Charcoal */
+    border: 2px solid rgba(16, 185, 129, 0.5) !important;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25) !important;
     padding: 0 !important;
     margin: 0 auto !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
     transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+    z-index: 1;
 }
 
-div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="primary"] p {
-    font-size: 5.5rem !important;
+/* Avatar Emoji inside card */
+div[data-testid="stColumn"]:has(.profile-card-marker) div[data-testid="stButton"]:first-child button p {
+    font-size: 5rem !important;
     line-height: 1 !important;
     margin: 0 !important;
     padding: 0 !important;
     transition: transform 0.3s ease !important;
 }
 
-div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="primary"]:hover {
-    transform: translateY(-8px) scale(1.05) !important;
-    border-color: #34D399 !important;
-    box-shadow: 0 15px 35px rgba(16, 185, 129, 0.4), 0 0 20px rgba(16, 185, 129, 0.2) !important;
-    background: #0D4A2E !important;
+/* Card Hover Effect (Glowing Border) */
+div[data-testid="stColumn"]:has(.profile-card-marker) div[data-testid="stButton"]:first-child button:hover {
+    transform: translateY(-6px) !important;
+    border-color: #10B981 !important;
+    box-shadow: 0 0 22px rgba(16, 185, 129, 0.6), inset 0 0 12px rgba(16, 185, 129, 0.2) !important;
+}
+div[data-testid="stColumn"]:has(.profile-card-marker) div[data-testid="stButton"]:first-child button:hover p {
+    transform: scale(1.08) !important;
 }
 
-div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="secondary"] {
-    border-radius: 20px !important;
-    font-size: 0.75rem !important;
-    padding: 0.15rem 0.8rem !important;
-    background: rgba(16, 185, 129, 0.15) !important;
-    border: 1px solid rgba(16, 185, 129, 0.4) !important;
-    color: #34D399 !important;
-    margin-top: 10px !important;
+/* ✏️ "CHANGE BADGE" ICON BUTTON (Absolute Positioned over Card) */
+div[data-testid="stColumn"]:has(.profile-card-marker) div[data-testid="stButton"]:nth-of-type(2) {
+    position: absolute !important;
+    top: 5px !important;
+    right: 50%;
+    margin-right: -95px; /* Adjusting perfectly to top right of the 165px card */
     width: auto !important;
-    min-height: 28px !important;
+    z-index: 10 !important;
+}
+div[data-testid="stColumn"]:has(.profile-card-marker) div[data-testid="stButton"]:nth-of-type(2) button {
+    border-radius: 50% !important;
+    width: 36px !important;
+    height: 36px !important;
+    min-height: 36px !important;
+    padding: 0 !important;
+    background: rgba(20, 20, 20, 0.65) !important;
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    transition: all 0.2s ease !important;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.3) !important;
+}
+div[data-testid="stColumn"]:has(.profile-card-marker) div[data-testid="stButton"]:nth-of-type(2) button:hover {
+    background: rgba(16, 185, 129, 0.9) !important;
+    border-color: #10B981 !important;
+    transform: scale(1.1);
+}
+div[data-testid="stColumn"]:has(.profile-card-marker) div[data-testid="stButton"]:nth-of-type(2) button p {
+    font-size: 16px !important;
+    margin: 0 !important;
 }
 
+/* 📝 ALIGNED PROFILE NAMES CONTAINER */
+.profile-meta-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    height: 60px; /* Fixed height to prevent misalignment */
+    margin-top: 15px;
+    width: 100%;
+    max-width: 170px;
+    margin-left: auto;
+    margin-right: auto;
+}
 .profile-meta-title {
-    text-align: center;
     font-size: 1.15rem;
     font-weight: 700;
-    color: #FFFFFF !important;
-    margin-top: 12px;
+    color: var(--text-color) !important; /* Adaptive */
     line-height: 1.2;
-}
-
-.profile-meta-role {
     text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 100%;
+}
+.profile-meta-role {
     font-size: 0.72rem;
     font-family: 'JetBrains Mono', monospace;
-    color: #34D399 !important;
+    color: #10B981 !important; /* ARL Green */
     text-transform: uppercase;
     letter-spacing: 0.6px;
-    margin-top: 2px;
+    margin-top: 4px;
+    text-align: center;
 }
 
-div[data-testid="stMainBlockContainer"]:not(:has(.profile-card-marker)) button[kind="primary"] {
-    background: #047857 !important;
-    border-color: #059669 !important;
-    color: #FFFFFF !important;
-}
-
-/* Sections/Cards ka background dark green kiya gaya hai */
-.top-navbar, .corp-hero, .corp-card {
-    background: #072C1A !important;
-    border: 1px solid rgba(16, 185, 129, 0.35);
-    border-left: 6px solid #10B981;
+/* Sections/Cards Background adaptive to light/dark mode */
+.corp-hero, .corp-card {
+    background: var(--secondary-background-color) !important;
+    border: 1px solid rgba(16, 185, 129, 0.25);
+    border-left: 5px solid #10B981;
     border-radius: 14px;
-    padding: 0.9rem 1.4rem;
-    margin-bottom: 1.2rem;
-}
-
-.top-navbar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.corp-hero {
     padding: 1.5rem 1.8rem;
     margin-bottom: 1.5rem;
+    color: var(--text-color) !important;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
 }
-
-.corp-card {
-    padding: 1.6rem;
-    margin-bottom: 1.5rem;
-    border-radius: 16px;
-}
-
 .corp-card h4 {
     margin-top: 0;
     margin-bottom: 1rem;
     font-weight: 700;
-    color: #34D399;
+    color: #10B981;
+}
+
+/* Beautiful Download Banner Style */
+.download-banner {
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    border-radius: 12px;
+    padding: 2.5rem;
+    text-align: center;
+    margin-bottom: 2rem;
+    color: var(--text-color);
 }
 </style>
 """
@@ -683,18 +715,20 @@ if not st.session_state.logged_in:
     if st.session_state.show_download_page:
         st.markdown("---")
         st.markdown(f"""
-            <div style="background: var(--secondary-background-color); border: 1.5px solid #10B981; border-radius: 18px; padding: 2.2rem; margin-bottom: 2rem; text-align: center;">
-                <div style="font-size: 2.8rem; margin-bottom: 8px;">💻</div>
-                <h2 style="margin-bottom: 8px; font-weight: 800;">ARL TalentMatch Desktop Edition</h2>
-                <p style="max-width: 650px; margin: 0 auto 20px auto; opacity: 0.85;">
-                    Run Attock Refinery's recruitment suite natively on your Windows PC for high-performance offline execution and cloud synchronization.
+            <div class="download-banner">
+                <div style="font-size: 3.5rem; margin-bottom: 10px;">💻</div>
+                <h2 style="margin-bottom: 10px; font-weight: 800;">ARL TalentMatch Desktop Edition</h2>
+                <p style="max-width: 650px; margin: 0 auto 25px auto; opacity: 0.85; line-height: 1.5;">
+                    Run Attock Refinery's recruitment suite natively on your Windows PC for high-performance offline execution, local file parsing, and cloud synchronization.
                 </p>
-                <a href="{EXE_DIRECT_DOWNLOAD_URL}" target="_blank" style="background: #059669; color: white; padding: 0.75rem 2rem; border-radius: 10px; font-weight: 700; font-size: 1.05rem; text-decoration: none; display: inline-block;">📥 Download Windows Installer (.msi)</a>
+                <a href="{EXE_DIRECT_DOWNLOAD_URL}" target="_blank" style="background: #10B981; color: white; padding: 0.85rem 2.5rem; border-radius: 8px; font-weight: 700; font-size: 1.1rem; text-decoration: none; display: inline-block; box-shadow: 0 4px 10px rgba(16, 185, 129, 0.4);">📥 Download Windows Installer (.msi)</a>
             </div>
         """, unsafe_allow_html=True)
-        if st.button("⬅ Back to Portal Login", use_container_width=True):
-            st.session_state.show_download_page = False
-            st.rerun()
+        _, mid_col, _ = st.columns([1, 1, 1])
+        with mid_col:
+            if st.button("⬅ Back to Portal Login", use_container_width=True):
+                st.session_state.show_download_page = False
+                st.rerun()
         st.stop()
 
     if st.session_state.pending_pin_email:
@@ -739,21 +773,25 @@ if not st.session_state.logged_in:
                 st.rerun()
         st.stop()
 
-    col_dl1, col_dl2 = st.columns([7.5, 2.5], vertical_alignment="center")
-    with col_dl1:
-        st.markdown("🖥️ **Need desktop offline execution?** Download our standalone Windows MSI app.")
-    with col_dl2:
-        if st.button("📥 Download App & FAQs", key="dl_portal_top", use_container_width=True):
+    # BEAUTIFUL APP HEADER & COMPACT DOWNLOAD BANNER
+    col_t1, col_t2 = st.columns([7.5, 2.5], vertical_alignment="center")
+    with col_t1:
+        st.markdown("""
+            <div>
+                <h1 style="font-size: 2.8rem; font-weight: 800; background: -webkit-linear-gradient(45deg, #10B981, #047857); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 0.2rem;">
+                    🏢 ARL TalentMatch
+                </h1>
+                <div style="font-size: 1rem; color: var(--text-color); opacity: 0.85; font-weight: 600; letter-spacing: 0.5px;">
+                    Attock Refinery Limited • Enterprise Recruitment & AI Screening
+                </div>
+            </div>
+        """, unsafe_allow_html=True)
+    with col_t2:
+        if st.button("📥 Get Desktop App", use_container_width=True, help="Download Standalone Windows MSI"):
             st.session_state.show_download_page = True
             st.rerun()
 
-    st.markdown("<hr style='opacity: 0.25; margin-top: 0.5rem; margin-bottom: 0.5rem;'>", unsafe_allow_html=True)
-    st.markdown(f"""
-        <div style="text-align: center; padding: 1.5rem 1rem 2rem 1rem;">
-            <h1 style="font-size: 2.8rem; font-weight: 800; margin-bottom: 4px;">{APP_NAME}</h1>
-            <div style="font-size: 1.05rem; font-weight: 500; opacity: 0.85;">{APP_TAGLINE}</div>
-        </div>
-    """, unsafe_allow_html=True)
+    st.markdown("<hr style='border: none; border-top: 1px solid rgba(16, 185, 129, 0.2); margin: 1.8rem 0;'>", unsafe_allow_html=True)
 
     all_items = list(saved_profiles) + [("REGISTER_CARD", "New Profile", "", "Register")]
     cols_per_row = 4
@@ -764,23 +802,30 @@ if not st.session_state.logged_in:
             with cols[idx]:
                 st.markdown('<div class="profile-card-marker" style="display:none;"></div>', unsafe_allow_html=True)
                 if item[0] == "REGISTER_CARD":
-                    if st.button("➕", key=f"add_card_{i}_{idx}", type="primary"):
+                    if st.button("➕", key=f"add_card_{i}_{idx}"):
                         st.session_state.show_registration = True
                         st.rerun()
                     st.markdown("""
-                        <div class="profile-meta-title">New Profile</div>
-                        <div class="profile-meta-role">Register Account</div>
+                        <div class="profile-meta-container">
+                            <div class="profile-meta-title" title="New Profile">New Profile</div>
+                            <div class="profile-meta-role">Register Account</div>
+                        </div>
                     """, unsafe_allow_html=True)
                 else:
                     p_email, p_name, p_pin, p_role = item
                     avatar_sticker = get_user_avatar(p_email)
-                    if st.button(avatar_sticker, key=f"ucard_{i}_{idx}", type="primary"):
+                    
+                    if st.button(avatar_sticker, key=f"ucard_{i}_{idx}"):
                         show_pin_dialog(p_email, p_name, p_role)
-                    if st.button("✏️ Change Badge", key=f"ebtn_{i}_{idx}", type="secondary"):
+                    # Small overlay button for changing badge
+                    if st.button("✏️", key=f"ebtn_{i}_{idx}", help="Change Avatar Badge"):
                         show_sticker_picker_dialog(p_email, p_name)
+                        
                     st.markdown(f"""
-                        <div class="profile-meta-title">{p_name}</div>
-                        <div class="profile-meta-role">{p_role}</div>
+                        <div class="profile-meta-container">
+                            <div class="profile-meta-title" title="{p_name}">{p_name}</div>
+                            <div class="profile-meta-role">{p_role}</div>
+                        </div>
                     """, unsafe_allow_html=True)
     st.stop()
 
@@ -1004,35 +1049,35 @@ For each question, provide a brief 'Ideal Answer Guide' to help the HR interview
 df_all = load_database()
 user_avatar = get_user_avatar(st.session_state.hr_email)
 
-col_nav_left, col_nav_right = st.columns([7, 3], vertical_alignment="center")
-with col_nav_left:
-    st.markdown(f"""
-        <div style="display: flex; align-items: center; gap: 12px;">
-            <div style="font-size: 1.8rem; background: rgba(16, 185, 129, 0.15); border: 1px solid #10B981; border-radius: 10px; padding: 4px 10px;">{user_avatar}</div>
+st.markdown(f"""
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 25px;">
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <div style="font-size: 2.2rem; background: linear-gradient(145deg, #2D3238, #1A1D21); border: 2px solid #10B981; border-radius: 16px; width: 65px; height: 65px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(16, 185, 129, 0.2);">{user_avatar}</div>
             <div>
-                <h3 style="margin: 0; font-size: 1.35rem; font-weight: 800;">{APP_NAME} Pro</h3>
-                <span style="font-size: 0.8rem; opacity: 0.8;">Logged in as: <b>{st.session_state.hr_name}</b> ({st.session_state.hr_role})</span>
+                <h2 style="margin: 0; font-size: 1.8rem; font-weight: 800; background: -webkit-linear-gradient(45deg, #10B981, #047857); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">{APP_NAME} Enterprise Portal</h2>
+                <span style="font-size: 0.95rem; opacity: 0.85; color: var(--text-color); font-weight: 500;">Executive Session: <b>{st.session_state.hr_name}</b> &nbsp;|&nbsp; Role: <span style="color: #10B981;">{st.session_state.hr_role}</span></span>
             </div>
         </div>
-    """, unsafe_allow_html=True)
-with col_nav_right:
-    c_btn1, c_btn2 = st.columns([1.2, 1], vertical_alignment="center")
-    with c_btn1:
-        if st.button("📥 Download Suite", key="dash_top_dl_btn", use_container_width=True):
-            st.session_state.show_download_page = True
-            st.rerun()
-    with c_btn2:
-        if st.button("🚪 Lock Portal", key="dash_top_lock_btn", use_container_width=True):
-            st.session_state.logged_in = False
-            st.session_state.hr_name = ""
-            st.session_state.hr_email = ""
-            st.session_state.hr_role = "Recruiter"
-            st.rerun()
+    </div>
+""", unsafe_allow_html=True)
+
+col_nav_right1, col_nav_right2 = st.columns([1, 1])
+with col_nav_right1:
+    if st.button("📥 Download Suite", key="dash_top_dl_btn", use_container_width=True):
+        st.session_state.show_download_page = True
+        st.rerun()
+with col_nav_right2:
+    if st.button("🚪 Lock Portal", key="dash_top_lock_btn", use_container_width=True):
+        st.session_state.logged_in = False
+        st.session_state.hr_name = ""
+        st.session_state.hr_email = ""
+        st.session_state.hr_role = "Recruiter"
+        st.rerun()
 
 st.markdown(f"""
-    <div class="corp-hero">
-        <h2 style="margin: 0 0 6px 0; font-weight: 800;">Attock Refinery Executive Suite</h2>
-        <p style="margin: 0; opacity: 0.85;">Total Central Repository: <b>{len(df_all)} Screened & Registered Candidates</b></p>
+    <div class="corp-hero" style="margin-top: 15px;">
+        <h2 style="margin: 0 0 8px 0; font-weight: 800; color: var(--text-color);">Attock Refinery Master Repository</h2>
+        <p style="margin: 0; opacity: 0.85; font-size: 1.05rem;">Total Database Records: <b>{len(df_all)} Screened & Registered Candidates</b></p>
     </div>
 """, unsafe_allow_html=True)
 
