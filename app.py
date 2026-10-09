@@ -480,8 +480,16 @@ ADAPTIVE_CSS = """
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap');
 
+/* Pura background black se ARL Dark Green kiya gaya hai */
 html, body, [class*="css"], .stApp {
     font-family: 'Plus Jakarta Sans', sans-serif !important;
+    background-color: #03170C !important; 
+    color: #E2E8F0 !important;
+}
+
+/* Streamlit ka default header transparent kiya */
+.stApp > header {
+    background-color: transparent !important;
 }
 
 [data-testid="stSidebar"], [data-testid="collapsedControl"] {
@@ -501,6 +509,7 @@ div[data-testid="stColumn"]:has(.profile-card-marker) div[data-testid="stButton"
     width: 100% !important;
 }
 
+/* Profile cards ka black gradient green gradient mein change kiya */
 div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="primary"] {
     width: 165px !important;
     height: 165px !important;
@@ -509,8 +518,8 @@ div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="primary"] {
     min-height: 165px !important;
     max-height: 165px !important;
     border-radius: 30px !important;
-    background: linear-gradient(145deg, #181B20 0%, #111317 100%) !important;
-    border: 2px solid #2D333B !important;
+    background: linear-gradient(145deg, #0A3622 0%, #041F12 100%) !important;
+    border: 2px solid #10B981 !important;
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5) !important;
     padding: 0 !important;
     margin: 0 auto !important;
@@ -530,18 +539,18 @@ div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="primary"] p {
 
 div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="primary"]:hover {
     transform: translateY(-8px) scale(1.05) !important;
-    border-color: #10B981 !important;
+    border-color: #34D399 !important;
     box-shadow: 0 15px 35px rgba(16, 185, 129, 0.4), 0 0 20px rgba(16, 185, 129, 0.2) !important;
-    background: #1C2026 !important;
+    background: #0D4A2E !important;
 }
 
 div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="secondary"] {
     border-radius: 20px !important;
     font-size: 0.75rem !important;
     padding: 0.15rem 0.8rem !important;
-    background: rgba(16, 185, 129, 0.1) !important;
-    border: 1px solid rgba(16, 185, 129, 0.3) !important;
-    color: #10B981 !important;
+    background: rgba(16, 185, 129, 0.15) !important;
+    border: 1px solid rgba(16, 185, 129, 0.4) !important;
+    color: #34D399 !important;
     margin-top: 10px !important;
     width: auto !important;
     min-height: 28px !important;
@@ -560,7 +569,7 @@ div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="secondary"] {
     text-align: center;
     font-size: 0.72rem;
     font-family: 'JetBrains Mono', monospace;
-    color: #10B981 !important;
+    color: #34D399 !important;
     text-transform: uppercase;
     letter-spacing: 0.6px;
     margin-top: 2px;
@@ -572,40 +581,38 @@ div[data-testid="stMainBlockContainer"]:not(:has(.profile-card-marker)) button[k
     color: #FFFFFF !important;
 }
 
-.top-navbar {
-    background: var(--secondary-background-color);
+/* Sections/Cards ka background dark green kiya gaya hai */
+.top-navbar, .corp-hero, .corp-card {
+    background: #072C1A !important;
     border: 1px solid rgba(16, 185, 129, 0.35);
     border-left: 6px solid #10B981;
     border-radius: 14px;
     padding: 0.9rem 1.4rem;
     margin-bottom: 1.2rem;
+}
+
+.top-navbar {
     display: flex;
     justify-content: space-between;
     align-items: center;
 }
 
 .corp-hero {
-    background: var(--secondary-background-color);
-    border: 1px solid rgba(16, 185, 129, 0.3);
-    border-radius: 14px;
     padding: 1.5rem 1.8rem;
     margin-bottom: 1.5rem;
-    border-left: 6px solid #10B981;
 }
 
 .corp-card {
-    background: var(--secondary-background-color);
-    border: 1px solid rgba(16, 185, 129, 0.3);
-    border-radius: 16px;
     padding: 1.6rem;
     margin-bottom: 1.5rem;
+    border-radius: 16px;
 }
 
 .corp-card h4 {
     margin-top: 0;
     margin-bottom: 1rem;
     font-weight: 700;
-    color: #10B981;
+    color: #34D399;
 }
 </style>
 """
@@ -878,23 +885,30 @@ def parse_multiple_candidates_from_text(client, full_text):
     seen_identifiers = set()
 
     for chunk in chunks:
-        prompt = f"""You are an expert HR Parser analyzing a combined document containing ONE OR MULTIPLE RESUMES/CVS. Detect ALL separate candidates present in this text and return each as a separate item in the 'candidates' array.
-Return strictly valid JSON with this exact schema:
+        prompt = f"""You are an expert ATS (Applicant Tracking System) AI Assistant. Your task is to extract highly accurate information for ONE OR MULTIPLE candidates from the provided unstructured document text.
+
+CRITICAL RULES:
+1. Extract ALL unique candidates found in the text.
+2. Clean and standardize the data (e.g., proper capitalization, standard date formats).
+3. If a specific field is completely missing, output exactly "Not Provided".
+4. Return ONLY a valid JSON object matching the exact schema below. Do not add markdown code blocks (like ```json), just output the raw JSON.
+
+EXPECTED JSON SCHEMA:
 {{
   "candidates": [
     {{
       "name": "Full Name",
-      "father_name": "Father Name or Not Provided",
-      "education": "Degree Name",
+      "father_name": "Father's Name or 'Not Provided'",
+      "education": "Highest Degree Name",
       "cgpa": "CGPA or percentage",
-      "passing_year": "Graduation Year",
-      "university_name": "University/College",
+      "passing_year": "Graduation Year (YYYY)",
+      "university_name": "University or College Name",
       "dob": "Date of birth",
-      "email": "Email address",
-      "phone": "Phone number",
-      "experience_years": "Total years of experience (numeric string, e.g. '3')",
-      "latest_experience": "Most recent role & company",
-      "reference": "Reference if any"
+      "email": "Email address (lowercase)",
+      "phone": "Phone number (standardized)",
+      "experience_years": "Total years of experience (numeric string, e.g. '3', or '0')",
+      "latest_experience": "Most recent job title and company",
+      "reference": "Reference details if any"
     }}
   ]
 }}
@@ -933,12 +947,20 @@ DOCUMENT TEXT:
 
 def evaluate_candidate_against_jd(client, candidate_row, jd_text, selected_job_title=""):
     try:
-        summary = f"Name: {candidate_row['Name']}, Edu: {candidate_row['Qualification']}, Inst: {candidate_row['Institute']}, Exp: {candidate_row['Experience']}, Latest: {candidate_row['Latest Experience']}"
-        prompt = f"""Evaluate CANDIDATE against ARL position '{selected_job_title}' and JD. Provide match_score (0-100), is_relevant (true), and missing_skills list.
-CANDIDATE: {summary}
-JD: {jd_text}
-Return ONLY valid JSON:
-{{"match_score": 50, "is_relevant": true, "missing_skills": []}}
+        summary = f"Name: {candidate_row['Name']}, Edu: {candidate_row['Qualification']}, Inst: {candidate_row['Institute']}, Exp: {candidate_row['Experience']} years, Latest Role: {candidate_row['Latest Experience']}"
+        prompt = f"""You are an Expert Technical Recruiter at Attock Refinery Limited (ARL). Evaluate the following CANDIDATE strictly against the provided Job Description (JD) for the role of '{selected_job_title}'.
+
+EVALUATION CRITERIA:
+- Analyze the candidate's education, years of experience, and latest role context.
+- Compare these against the core hard skills, soft skills, and domain experience required in the JD.
+- Provide a realistic and harsh `match_score` (0-100) based on strict alignment.
+- Identify up to 5 critical `missing_skills` that the candidate lacks for this specific role.
+
+CANDIDATE SUMMARY: {summary}
+JOB DESCRIPTION: {jd_text}
+
+Return ONLY valid JSON with this exact structure (No markdown, no extra text):
+{{"match_score": 75, "is_relevant": true, "missing_skills": ["Skill 1", "Skill 2"]}}
 """
         res = client.chat.completions.create(
             model=GROQ_MODEL,
@@ -961,7 +983,12 @@ Return ONLY valid JSON:
 
 def generate_ai_interview_questions(client, name, role, skills):
     try:
-        prompt = f"Generate 5 precise interview questions with ideal answers for candidate {name} applying for ARL position {role} with skills: {skills}. Bullet points."
+        prompt = f"""Act as a Senior Hiring Manager at Attock Refinery Limited (ARL). Generate 5 highly specific, technical, and behavioral interview questions for candidate '{name}' applying for the '{role}' position. 
+
+Tailor the questions based on the candidate's profile summary: {skills}. 
+
+For each question, provide a brief 'Ideal Answer Guide' to help the HR interviewer evaluate the candidate effectively. Format the output clearly using Markdown bullet points and bold text for readability."""
+        
         res = client.chat.completions.create(
             model=GROQ_MODEL,
             messages=[{"role": "user", "content": prompt}],
