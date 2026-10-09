@@ -39,9 +39,7 @@ def get_arl_favicon():
     """Generates an authentic, elegant, and attractive ARL geometric favicon."""
     img = Image.new("RGBA", (128, 128), (255, 255, 255, 0))
     draw = ImageDraw.Draw(img)
-    # Deep charcoal circular base with crisp green border
     draw.ellipse([(8, 8), (120, 120)], fill=(28, 30, 34), outline=(16, 185, 129), width=6)
-    # Elegant stylized geometric 'A'
     draw.line([(64, 25), (32, 95)], fill=(16, 185, 129), width=12)
     draw.line([(64, 25), (96, 95)], fill=(16, 185, 129), width=12)
     draw.line([(42, 65), (86, 65)], fill=(16, 185, 129), width=10)
@@ -78,7 +76,6 @@ def send_smtp_email(receiver_email, subject, body_text):
         sender_password = st.secrets["SMTP_PASSWORD"]
     except Exception:
         return False, "SMTP credentials are not configured in Streamlit secrets."
-
     try:
         msg = MIMEMultipart()
         msg['From'] = formataddr(("ARL Recruitment Notifications", sender_email))
@@ -127,16 +124,13 @@ def set_user_avatar(email, avatar_char):
 def verify_employee_pin(email, entered_pin):
     clean_email = email.lower().strip()
     entered_str = str(entered_pin).strip()
-
     cached = get_all_verified_profiles()
     for p_email, p_name, p_pin, p_role in cached:
         if p_email.lower().strip() == clean_email:
             if str(p_pin).strip() == entered_str:
                 return True, p_name, p_role
-
     if not supabase:
         return False, None, None
-
     try:
         res = supabase.table("hr_users").select("*").ilike("email", clean_email).execute()
         if res.data:
@@ -145,7 +139,6 @@ def verify_employee_pin(email, entered_pin):
                 return True, rec.get("name", "Employee"), rec.get("role", "Recruiter")
     except Exception:
         pass
-
     return False, None, None
 
 def get_all_verified_profiles():
@@ -175,23 +168,14 @@ def register_initial_employee(name, email, password):
         existing = supabase.table("hr_users").select("pin").eq("email", clean_email).execute().data
         if existing and existing[0].get("pin"):
             return False, "This email is already registered. Please sign in."
-        
         count_res = supabase.table("hr_users").select("email", count="exact").execute()
         count = count_res.count if count_res.count is not None else 0
         role = "Admin" if count == 0 else "Recruiter"
-        
         data = {
-            "email": clean_email,
-            "name": name,
-            "password": hash_password(password),
-            "pin": None,
-            "role": role,
-            "is_verified": 0,
-            "otp": otp,
-            "avatar": "👑"
+            "email": clean_email, "name": name, "password": hash_password(password),
+            "pin": None, "role": role, "is_verified": 0, "otp": otp, "avatar": "👑"
         }
         supabase.table("hr_users").upsert(data).execute()
-        
         success, msg = send_smtp_email(clean_email, "ARL TalentMatch - Verification OTP", f"Your verification code is: {otp}")
         if success:
             return True, "Registration initiated! Check your email for verification OTP."
@@ -322,13 +306,21 @@ def save_candidates_to_repository(new_candidates):
     return inserted, skipped
 
 # ===========================================================================
-# 5. CSS (BULLET-PROOF ADVANCED LOGIC STYLING)
+# 5. CSS (SEAMLESS GLASSMORPHISM & PENCIL OVERLAP FIX)
 # ===========================================================================
 ADAPTIVE_CSS = """
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap');
 
-html, body, [class*="css"], .stApp { font-family: 'Plus Jakarta Sans', sans-serif !important; }
+/* --- MAIN BACKGROUND (Deep Bright Green Radial Gradient) --- */
+html, body, [class*="css"], .stApp { 
+    font-family: 'Plus Jakarta Sans', sans-serif !important; 
+    color: #E2E8F0 !important;
+}
+.stApp {
+    background: radial-gradient(circle at top right, #055030 0%, #01150c 100%) !important;
+    background-attachment: fixed !important;
+}
 .stApp > header { background-color: transparent !important; }
 [data-testid="stSidebar"], [data-testid="collapsedControl"] { display: none !important; }
 
@@ -342,7 +334,7 @@ div[data-testid="stColumn"]:has(.profile-card-marker) {
     padding-top: 15px !important;
 }
 
-/* THE MAIN AVATAR CARD (Targeting strictly primary button) */
+/* THE MAIN AVATAR CARD */
 div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="primary"] {
     width: 165px !important;
     height: 165px !important;
@@ -351,9 +343,11 @@ div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="primary"] {
     min-height: 165px !important;
     max-height: 165px !important;
     border-radius: 26px !important;
-    background: linear-gradient(145deg, #2D3238 0%, #1A1D21 100%) !important;
-    border: 2px solid rgba(16, 185, 129, 0.4) !important;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3) !important;
+    background: rgba(6, 68, 41, 0.6) !important;
+    backdrop-filter: blur(10px) !important;
+    -webkit-backdrop-filter: blur(10px) !important;
+    border: 2px solid rgba(16, 185, 129, 0.6) !important;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4) !important;
     padding: 0 !important;
     margin: 0 auto !important;
     display: flex !important;
@@ -371,27 +365,30 @@ div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="primary"] p {
 div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="primary"]:hover {
     transform: translateY(-6px) !important;
     border-color: #10B981 !important;
-    box-shadow: 0 0 25px rgba(16, 185, 129, 0.5), inset 0 0 15px rgba(16, 185, 129, 0.2) !important;
+    box-shadow: 0 0 25px rgba(16, 185, 129, 0.7), inset 0 0 15px rgba(16, 185, 129, 0.3) !important;
 }
 
-/* THE EDIT PENCIL BADGE (Targeting strictly secondary button, mathematically locked) */
-div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="secondary"] {
+/* --- THE EDIT PENCIL BADGE (Overlap Fix) --- */
+div[data-testid="stColumn"]:has(.profile-card-marker) div[data-testid="element-container"]:has(button[kind="secondary"]) {
     position: absolute !important;
-    top: 25px !important; 
-    left: 50% !important;
-    margin-left: 55px !important; /* Mathematically locked to the right edge of 165px card */
+    top: 20px !important;
+    right: 50% !important;
+    margin-right: -75px !important;
+    z-index: 10 !important;
+    width: auto !important;
+}
+div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="secondary"] {
     width: 34px !important;
     height: 34px !important;
     min-width: 34px !important;
     min-height: 34px !important;
     border-radius: 50% !important;
-    background: #1C1E22 !important;
-    border: 1px solid #10B981 !important;
+    background: rgba(16, 185, 129, 0.85) !important; 
+    border: 2px solid #01150c !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
     box-shadow: 0 4px 10px rgba(0,0,0,0.5) !important;
-    z-index: 10 !important;
     padding: 0 !important;
     transition: all 0.2s ease !important;
 }
@@ -411,14 +408,28 @@ div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="secondary"]:h
     align-items: center;
     justify-content: flex-start;
     height: 60px;
-    margin-top: 15px;
+    margin-top: 15px; 
     width: 100%;
     max-width: 170px;
 }
-.profile-meta-title { font-size: 1.15rem; font-weight: 700; color: var(--text-color) !important; line-height: 1.2; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; }
+.profile-meta-title { font-size: 1.15rem; font-weight: 700; color: #FFFFFF !important; line-height: 1.2; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; }
 .profile-meta-role { font-size: 0.72rem; font-family: 'JetBrains Mono', monospace; color: #10B981 !important; text-transform: uppercase; letter-spacing: 0.6px; margin-top: 4px; text-align: center; }
 
-/* --- 2. ADVANCED VERTICAL CENTERED MATTE PIN MODAL --- */
+
+/* --- 2. THE P.I.N MODAL & PURE GLASSMORPHISM --- */
+
+/* 1. Blur the entire background screen when modal opens */
+div[data-testid="stModal"] {
+    backdrop-filter: blur(8px) !important;
+    -webkit-backdrop-filter: blur(8px) !important;
+    background: rgba(1, 21, 12, 0.5) !important; /* Dark overlay */
+}
+/* Disable streamlit default modal background tint */
+div[data-testid="stModal"] > div:first-child { 
+    background: transparent !important; 
+}
+
+/* 2. Position the Modal exactly at center */
 div[data-testid="stModal"], div[data-testid="stDialog"], div[role="dialog"] {
     top: 50% !important;
     transform: translateY(-50%) !important;
@@ -428,84 +439,104 @@ div[data-testid="stModal"], div[data-testid="stDialog"], div[role="dialog"] {
     align-items: center !important;
     justify-content: center !important;
 }
+
+/* 3. The Modal Body (No White Shadow, Pure Glass) */
 div[role="dialog"] {
-    background: #181A1E !important; /* Deep Matte Charcoal */
-    border: 1px solid #2D3238 !important;
+    background: rgba(4, 45, 26, 0.5) !important; /* Deep Green Glass */
+    backdrop-filter: blur(25px) !important;
+    -webkit-backdrop-filter: blur(25px) !important;
+    border: 1px solid rgba(16, 185, 129, 0.4) !important;
     border-radius: 20px !important;
-    box-shadow: 0 25px 60px rgba(0,0,0,0.8) !important;
-    padding: 2rem !important;
+    box-shadow: none !important; /* <--- WHITE SHADOW COMPLETELY REMOVED */
+    padding: 2.5rem 2rem !important;
     width: 340px !important;
 }
-/* Hide the default generic Streamlit Header/Close Button */
-div[role="dialog"] > div:first-child > div:first-child { 
-    display: none !important; 
-}
+/* Hide default cross/header */
+div[role="dialog"] > div:first-child > div:first-child { display: none !important; }
+
 /* The P.I.N Title */
 .pin-modal-title {
     text-align: center;
-    font-size: 1.6rem;
+    font-size: 1.8rem;
     font-weight: 800;
     color: #10B981;
-    letter-spacing: 6px;
+    letter-spacing: 8px;
     margin-bottom: 25px;
     margin-top: -10px;
-    text-shadow: 0 0 10px rgba(16, 185, 129, 0.2);
+    text-shadow: 0 0 15px rgba(16, 185, 129, 0.5);
 }
-/* Center and style the Streamlit Input Field (4 Dots) */
+
+/* --- THE SEAMLESS PIN ENTRY (NO TEXT BOX) --- */
+/* Remove Streamlit's inner grey backgrounds & borders entirely */
+.pin-input-container div[data-baseweb="base-input"],
 .pin-input-container div[data-baseweb="input"] {
     background-color: transparent !important;
+    background: transparent !important;
     border: none !important;
-}
-.pin-input-container input {
-    text-align: center !important;
-    font-size: 2.2rem !important;
-    letter-spacing: 20px !important;
-    background: #0E1012 !important;
-    color: #10B981 !important;
-    border: 1px solid #2D3238 !important;
-    border-radius: 12px !important;
-    padding: 15px 0 !important;
-    font-family: 'JetBrains Mono', monospace !important;
-    transition: border-color 0.3s ease;
-}
-.pin-input-container input:focus {
-    border-color: #10B981 !important;
     box-shadow: none !important;
 }
-.pin-input-container input::placeholder {
-    color: #33383F !important;
-    letter-spacing: 20px !important;
-    transform: translateY(-5px); /* Perfectly aligns dots visually */
+
+/* Style just the typing text */
+.pin-input-container input {
+    text-align: center !important;
+    font-size: 2.8rem !important;
+    letter-spacing: 25px !important;
+    background: transparent !important; /* No background */
+    color: #10B981 !important;
+    border: none !important; /* No bounding box */
+    border-bottom: 2px solid rgba(16, 185, 129, 0.3) !important; /* Just a sleek underline */
+    border-radius: 0 !important;
+    padding: 10px 0 !important;
+    font-family: 'JetBrains Mono', monospace !important;
+    transition: all 0.3s ease;
 }
-/* Form Submit Button inside PIN dialog */
+.pin-input-container input:focus { 
+    border-bottom: 2px solid #34D399 !important; 
+    box-shadow: none !important; 
+}
+.pin-input-container input::placeholder { 
+    color: rgba(16, 185, 129, 0.25) !important; 
+    letter-spacing: 25px !important; 
+    transform: translateY(-5px); 
+}
+
+/* Hide the eye icon to keep the UI perfectly clean */
+.pin-input-container svg, 
+.pin-input-container [role="button"] {
+    display: none !important;
+}
+
+/* Access Portal Button */
 div[role="dialog"] button[kind="primaryFormSubmit"] {
     background: #10B981 !important;
-    color: #03170C !important;
+    color: #01150c !important;
     font-weight: 800 !important;
     border-radius: 10px !important;
     border: none !important;
-    margin-top: 15px !important;
+    margin-top: 25px !important;
     height: 48px !important;
     font-size: 1.05rem !important;
     transition: all 0.3s ease !important;
 }
-div[role="dialog"] button[kind="primaryFormSubmit"]:hover {
-    background: #059669 !important;
-    transform: scale(1.02);
+div[role="dialog"] button[kind="primaryFormSubmit"]:hover { 
+    background: #059669 !important; 
+    transform: scale(1.02); 
 }
 
-/* Sections/Cards Background adaptive to light/dark mode */
+/* Sections/Cards Glassmorphism */
 .corp-hero, .corp-card {
-    background: var(--secondary-background-color) !important;
-    border: 1px solid rgba(16, 185, 129, 0.25);
-    border-left: 5px solid #10B981;
+    background: rgba(4, 45, 26, 0.55) !important;
+    backdrop-filter: blur(14px) !important;
+    -webkit-backdrop-filter: blur(14px) !important;
+    border: 1px solid rgba(16, 185, 129, 0.35) !important;
+    border-left: 5px solid #10B981 !important;
     border-radius: 14px;
     padding: 1.5rem 1.8rem;
     margin-bottom: 1.5rem;
-    color: var(--text-color) !important;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    color: #FFFFFF !important;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3) !important;
 }
-.corp-card h4 { margin-top: 0; margin-bottom: 1rem; font-weight: 700; color: #10B981; }
+.corp-card h4 { margin-top: 0; margin-bottom: 1rem; font-weight: 700; color: #34D399; }
 </style>
 """
 st.markdown(ADAPTIVE_CSS, unsafe_allow_html=True)
@@ -527,16 +558,17 @@ if "show_download_page" not in st.session_state: st.session_state.show_download_
 # ===========================================================================
 # 7. DIALOGS (MINIMALIST PIN & BADGE)
 # ===========================================================================
-@st.dialog(" ")  # Kept empty space to trick streamlit header, our CSS hides it completely anyway
+@st.dialog(" ")  
 def show_pin_dialog(email, name, role):
     st.markdown("<div class='pin-modal-title'>P.I.N</div>", unsafe_allow_html=True)
     with st.form(f"modal_pin_form_{email}", clear_on_submit=True):
         st.markdown('<div class="pin-input-container">', unsafe_allow_html=True)
+        # Added input with no label and placeholder for clean dots
         pin_val = st.text_input("Enter PIN", type="password", max_chars=4, placeholder="••••", label_visibility="collapsed")
         st.markdown('</div>', unsafe_allow_html=True)
         
         submit_btn = st.form_submit_button("Access Portal ➔", use_container_width=True)
-    
+        
     if submit_btn:
         ok, u_name, u_role = verify_employee_pin(email, pin_val)
         if ok:
@@ -567,13 +599,13 @@ if not st.session_state.logged_in:
 
     if st.session_state.show_download_page:
         st.markdown(f"""
-            <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; padding: 2.5rem; text-align: center; margin-bottom: 2rem;">
+            <div style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.4); border-radius: 16px; padding: 3rem; text-align: center; margin-bottom: 2rem; backdrop-filter: blur(10px);">
                 <div style="font-size: 3.5rem; margin-bottom: 10px;">💻</div>
-                <h2 style="margin-bottom: 10px; font-weight: 800;">ARL TalentMatch Desktop</h2>
-                <p style="max-width: 650px; margin: 0 auto 25px auto; opacity: 0.85; line-height: 1.5;">
+                <h2 style="margin-bottom: 10px; font-weight: 800; color: #fff;">ARL TalentMatch Desktop</h2>
+                <p style="max-width: 650px; margin: 0 auto 25px auto; opacity: 0.9; line-height: 1.5; color: #E2E8F0;">
                     Run Attock Refinery's recruitment suite natively on your Windows PC.
                 </p>
-                <a href="{EXE_DIRECT_DOWNLOAD_URL}" target="_blank" style="background: #10B981; color: white; padding: 0.85rem 2.5rem; border-radius: 8px; font-weight: 700; text-decoration: none; display: inline-block;">📥 Download Installer</a>
+                <a href="{EXE_DIRECT_DOWNLOAD_URL}" target="_blank" style="background: #10B981; color: #01150c; padding: 0.85rem 2.5rem; border-radius: 8px; font-weight: 800; text-decoration: none; display: inline-block;">📥 Download Installer</a>
             </div>
         """, unsafe_allow_html=True)
         if st.button("⬅ Back to Login", use_container_width=True):
@@ -618,29 +650,27 @@ if not st.session_state.logged_in:
                 st.rerun()
         st.stop()
 
-    # --- ADVANCED BEAUTIFUL ENTERPRISE HEADER WITH SVG LOGO ---
     col_t1, col_t2 = st.columns([7.5, 2.5], vertical_alignment="center")
     with col_t1:
         st.markdown("""
             <div style="display: flex; align-items: center; gap: 20px;">
-                <!-- Elegant Geometric ARL Logo SVG -->
                 <svg width="60" height="60" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
                     <defs>
                         <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" style="stop-color:#10B981;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#047857;stop-opacity:1" />
+                            <stop offset="0%" style="stop-color:#34D399;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#10B981;stop-opacity:1" />
                         </linearGradient>
                     </defs>
-                    <circle cx="50" cy="50" r="46" fill="#1C1E22" stroke="url(#grad)" stroke-width="4"/>
+                    <circle cx="50" cy="50" r="46" fill="rgba(1, 21, 12, 0.8)" stroke="url(#grad)" stroke-width="4"/>
                     <path d="M50 20 L25 75" stroke="url(#grad)" stroke-width="10" stroke-linecap="round"/>
                     <path d="M50 20 L75 75" stroke="url(#grad)" stroke-width="10" stroke-linecap="round"/>
                     <path d="M35 55 L65 55" stroke="url(#grad)" stroke-width="8" stroke-linecap="round"/>
                 </svg>
                 <div>
-                    <h1 style="font-size: 2.6rem; font-weight: 800; color: var(--text-color); margin: 0; padding: 0; line-height: 1;">
+                    <h1 style="font-size: 2.6rem; font-weight: 800; color: #fff; margin: 0; padding: 0; line-height: 1;">
                         ARL <span style="color: #10B981;">TalentMatch</span>
                     </h1>
-                    <div style="font-size: 0.95rem; color: #94A3B8; font-weight: 600; letter-spacing: 1px; margin-top: 5px;">
+                    <div style="font-size: 0.95rem; color: #A7F3D0; font-weight: 600; letter-spacing: 1px; margin-top: 5px;">
                         ENTERPRISE RECRUITMENT & AI SCREENING SUITE
                     </div>
                 </div>
@@ -651,7 +681,7 @@ if not st.session_state.logged_in:
             st.session_state.show_download_page = True
             st.rerun()
 
-    st.markdown("<hr style='border: none; border-top: 1px solid rgba(16, 185, 129, 0.2); margin: 2rem 0;'>", unsafe_allow_html=True)
+    st.markdown("<hr style='border: none; border-top: 1px solid rgba(16, 185, 129, 0.3); margin: 2rem 0;'>", unsafe_allow_html=True)
 
     all_items = list(saved_profiles) + [("REGISTER_CARD", "New Profile", "", "Register")]
     cols_per_row = 4
@@ -663,11 +693,9 @@ if not st.session_state.logged_in:
                 st.markdown('<div class="profile-card-marker" style="display:none;"></div>', unsafe_allow_html=True)
                 
                 if item[0] == "REGISTER_CARD":
-                    # For Register card, we only render the primary button
                     if st.button("➕", key=f"add_card_{i}_{idx}", type="primary"):
                         st.session_state.show_registration = True
                         st.rerun()
-                        
                     st.markdown("""
                         <div class="profile-meta-container">
                             <div class="profile-meta-title" title="New Profile">New Profile</div>
@@ -679,15 +707,12 @@ if not st.session_state.logged_in:
                     p_email, p_name, p_pin, p_role = item
                     avatar_sticker = get_user_avatar(p_email)
                     
-                    # 1. Main Avatar Card (type="primary")
                     if st.button(avatar_sticker, key=f"ucard_{i}_{idx}", type="primary"):
                         show_pin_dialog(p_email, p_name, p_role)
                         
-                    # 2. The Edit Pencil Badge (type="secondary" - automatically positioned by advanced CSS)
                     if st.button("✏️", key=f"ebtn_{i}_{idx}", type="secondary", help="Change Avatar"):
                         show_sticker_picker_dialog(p_email, p_name)
                         
-                    # 3. Name & Role alignment
                     st.markdown(f"""
                         <div class="profile-meta-container">
                             <div class="profile-meta-title" title="{p_name}">{p_name}</div>
@@ -782,10 +807,10 @@ user_avatar = get_user_avatar(st.session_state.hr_email)
 st.markdown(f"""
     <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 25px;">
         <div style="display: flex; align-items: center; gap: 15px;">
-            <div style="font-size: 2.2rem; background: linear-gradient(145deg, #2D3238, #1A1D21); border: 2px solid #10B981; border-radius: 16px; width: 65px; height: 65px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(16, 185, 129, 0.2);">{user_avatar}</div>
+            <div style="font-size: 2.2rem; background: rgba(6, 68, 41, 0.6); backdrop-filter: blur(10px); border: 2px solid #10B981; border-radius: 16px; width: 65px; height: 65px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(16, 185, 129, 0.2);">{user_avatar}</div>
             <div>
-                <h2 style="margin: 0; font-size: 1.8rem; font-weight: 800; background: -webkit-linear-gradient(45deg, #10B981, #047857); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">{APP_NAME} Enterprise Portal</h2>
-                <span style="font-size: 0.95rem; opacity: 0.85; color: var(--text-color); font-weight: 500;">Executive Session: <b>{st.session_state.hr_name}</b> &nbsp;|&nbsp; Role: <span style="color: #10B981;">{st.session_state.hr_role}</span></span>
+                <h2 style="margin: 0; font-size: 1.8rem; font-weight: 800; color: #fff;">{APP_NAME} Enterprise Portal</h2>
+                <span style="font-size: 0.95rem; opacity: 0.9; color: #E2E8F0; font-weight: 500;">Executive Session: <b>{st.session_state.hr_name}</b> &nbsp;|&nbsp; Role: <span style="color: #34D399;">{st.session_state.hr_role}</span></span>
             </div>
         </div>
     </div>
@@ -806,8 +831,8 @@ with col_nav_right2:
 
 st.markdown(f"""
     <div class="corp-hero" style="margin-top: 15px;">
-        <h2 style="margin: 0 0 8px 0; font-weight: 800; color: var(--text-color);">Attock Refinery Master Repository</h2>
-        <p style="margin: 0; opacity: 0.85; font-size: 1.05rem;">Total Database Records: <b>{len(df_all)} Candidates</b></p>
+        <h2 style="margin: 0 0 8px 0; font-weight: 800; color: #fff;">Attock Refinery Master Repository</h2>
+        <p style="margin: 0; opacity: 0.9; color: #E2E8F0; font-size: 1.05rem;">Total Database Records: <b>{len(df_all)} Candidates</b></p>
     </div>
 """, unsafe_allow_html=True)
 
