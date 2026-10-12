@@ -33,6 +33,13 @@ ACCEPTED_TYPES = ["pdf", "docx", "png", "jpg", "jpeg"]
 EXE_DIRECT_DOWNLOAD_URL = "https://github.com/sultan-kk/TalentMatch2.0/releases/download/v1.0/TalentMatch.msi"
 AVAILABLE_BADGES = ["👔", "💼", "🛡️", "🎖️", "⚡", "🔬", "🛢️", "⚙️", "📈", "🎯", "👑", "🚀", "💡", "💻", "💎", "🏛️"]
 
+# ---------------- THE EXACT COLUMN SEQUENCE WITH SR. NO. ----------------
+EXPECTED_COLUMNS = [
+    "Sr. No.", "Name", "Father Name", "Qualification", "CGPA", "Passing Year", 
+    "Institute", "DOB", "Email", "Phone Number", "Experience", 
+    "Latest Experience", "Reference", "Pipeline Status", "Added At"
+]
+
 def get_arl_favicon():
     img = Image.new("RGBA", (128, 128), (255, 255, 255, 0))
     draw = ImageDraw.Draw(img)
@@ -228,36 +235,48 @@ def load_arl_job_catalog():
     return DEFAULT_ARL_CATALOG
 
 # ===========================================================================
-# 4. DATABASE STORAGE LOGIC
+# 4. DATABASE STORAGE LOGIC (ASCENDING ORDER FOR SR. NO.)
 # ===========================================================================
 def load_database():
-    expected_cols = ["Name", "Father Name", "Qualification", "CGPA", "Passing Year", "Institute", "DOB", "Email", "Phone Number", "Experience", "Latest Experience", "Reference", "Pipeline Status", "Added At"]
-    if not supabase: return pd.DataFrame(columns=expected_cols)
+    if not supabase: return pd.DataFrame(columns=EXPECTED_COLUMNS)
     try:
+        # Fetch data ordered by ID ascending (oldest first, newest last so Sr. No. increments down)
         response = supabase.table("candidates").select("*").order("id", desc=False).execute()
         rows = response.data
         if rows:
             mapped = []
-            for r in rows:
+            for idx, r in enumerate(rows, start=1):
                 mapped.append({
-                    "Name": r.get("candidate_name", "Unknown"), "Father Name": r.get("father_name", "Not Provided"),
-                    "Qualification": r.get("education", "Not Provided"), "CGPA": r.get("cgpa", "Not Provided"),
-                    "Passing Year": r.get("passing_year", "Not Provided"), "Institute": r.get("university_name", "Not Provided"),
-                    "DOB": r.get("dob", "Not Provided"), "Email": r.get("email", "Not Provided"),
-                    "Phone Number": r.get("phone", "Not Provided"), "Experience": str(r.get("experience_years", "0")),
-                    "Latest Experience": r.get("latest_experience", "Not Provided"), "Reference": r.get("reference", "Not Provided"),
-                    "Pipeline Status": r.get("pipeline_status", "Talent Pool"), "Added At": r.get("added_at", "Not Provided")
+                    "Sr. No.": idx,  # Dynamic sequential Sr. No.
+                    "Name": r.get("candidate_name", "Unknown"), 
+                    "Father Name": r.get("father_name", "Not Provided"),
+                    "Qualification": r.get("education", "Not Provided"), 
+                    "CGPA": r.get("cgpa", "Not Provided"),
+                    "Passing Year": r.get("passing_year", "Not Provided"), 
+                    "Institute": r.get("university_name", "Not Provided"),
+                    "DOB": r.get("dob", "Not Provided"), 
+                    "Email": r.get("email", "Not Provided"),
+                    "Phone Number": r.get("phone", "Not Provided"), 
+                    "Experience": str(r.get("experience_years", "0")),
+                    "Latest Experience": r.get("latest_experience", "Not Provided"), 
+                    "Reference": r.get("reference", "Not Provided"),
+                    "Pipeline Status": r.get("pipeline_status", "Talent Pool"), 
+                    "Added At": r.get("added_at", "Not Provided")
                 })
-            df = pd.DataFrame(mapped)[expected_cols]
-            df.index = range(1, len(df) + 1)
+            df = pd.DataFrame(mapped)[EXPECTED_COLUMNS]
             return df
     except Exception: pass
-    return pd.DataFrame(columns=expected_cols)
+    return pd.DataFrame(columns=EXPECTED_COLUMNS)
 
 def load_screened_database():
     if "screening_results" in st.session_state and st.session_state.screening_results:
-        return pd.DataFrame(st.session_state.screening_results)
-    return pd.DataFrame(columns=["job_title", "name", "email", "match_score"])
+        screened_cols = ["Sr. No.", "Job Role", "Match Score (%)"] + [col for col in EXPECTED_COLUMNS if col != "Sr. No."]
+        df = pd.DataFrame(st.session_state.screening_results)
+        for col in screened_cols:
+            if col not in df.columns:
+                df[col] = "Not Provided"
+        return df[screened_cols]
+    return pd.DataFrame()
 
 def clear_screened_database():
     st.session_state.screening_results = []
@@ -317,12 +336,36 @@ def save_candidates_to_repository(new_candidates):
     return inserted, skipped
 
 # ===========================================================================
-# 4.5 CUSTOM RENDERER FOR TEXT WRAPPED HTML TABLES
+# 4.5 CUSTOM RENDERER FOR HTML TABLES & EXCEL EXPORT
 # ===========================================================================
 def render_wrapped_table(df):
-    """Renders a pandas DataFrame as a beautifully styled, text-wrapping HTML table."""
     html = df.to_html(index=False, classes="styled-table", escape=False)
     st.markdown(f'<div class="table-container">{html}</div>', unsafe_allow_html=True)
+
+def get_excel_download_link(df, sheet_name="Candidates"):
+    output = io.BytesIO()
+    with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+        df.to_excel(writer, index=False, sheet_name=sheet_name)
+        workbook = writer.book
+        worksheet = writer.sheets[sheet_name]
+        
+        header_format = workbook.add_format({
+            'bold': True, 'text_wrap': True, 'valign': 'top', 
+            'fg_color': '#059669', 'font_color': 'white', 'border': 1
+        })
+        cell_format = workbook.add_format({
+            'text_wrap': True, 'valign': 'top', 'border': 1
+        })
+        
+        for col_num, value in enumerate(df.columns.values):
+            worksheet.write(0, col_num, value, header_format)
+            
+        for i, col in enumerate(df.columns):
+            column_len = max(df[col].astype(str).map(len).max(), len(str(col))) + 2
+            width = min(column_len, 35)
+            worksheet.set_column(i, i, width, cell_format)
+            
+    return output.getvalue()
 
 
 # ===========================================================================
@@ -332,47 +375,27 @@ ADAPTIVE_CSS = """
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap');
 
-/* --- STRUCTURAL CSS & GLOBAL APP FEEL --- */
 html, body, [class*="css"], .stApp { font-family: 'Plus Jakarta Sans', sans-serif !important; }
 .stApp > header { background-color: transparent !important; }
 [data-testid="stSidebar"], [data-testid="collapsedControl"] { display: none !important; }
 
-/* Disable Text Selection and Typing Cursor globally for a Native App feel */
 html, body, .stApp, [data-testid="stAppViewContainer"], .main, h1, h2, h3, h4, h5, h6, p, label, .stMarkdown, div:not(.styled-table *), span {
-    cursor: default !important;
-    user-select: none !important;
-    -webkit-user-select: none !important;
+    cursor: default !important; user-select: none !important; -webkit-user-select: none !important;
 }
 
-/* Re-enable typing cursor ONLY for necessary text inputs */
 textarea, div[data-testid="stForm"] input, [data-testid="stTextInput"] input {
-    cursor: text !important;
-    user-select: auto !important;
-    -webkit-user-select: auto !important;
+    cursor: text !important; user-select: auto !important; -webkit-user-select: auto !important;
 }
 
-/* Rounded UI */
 button[kind="primary"], button[kind="secondary"] { border-radius: 12px !important; }
 
-/* Style the Streamlit File Uploader */
 [data-testid="stFileUploader"] > section {
-    background-color: transparent !important;
-    border: 2px dashed rgba(16, 185, 129, 0.5) !important;
-    border-radius: 16px !important;
-    padding: 2.5rem !important;
-    transition: all 0.3s ease !important;
-    margin-bottom: 1.5rem !important;
+    background-color: transparent !important; border: 2px dashed rgba(16, 185, 129, 0.5) !important;
+    border-radius: 16px !important; padding: 2.5rem !important; transition: all 0.3s ease !important; margin-bottom: 1.5rem !important;
 }
 [data-testid="stFileUploader"] > section:hover { border-color: #10B981 !important; background-color: rgba(16, 185, 129, 0.05) !important; }
+[data-testid="stFileUploader"] button { display: inline-flex !important; visibility: visible !important; opacity: 1 !important; }
 
-/* Make sure the X button for removing files in uploader stays visible */
-[data-testid="stFileUploader"] button {
-    display: inline-flex !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-}
-
-/* 1. PROFILE CARDS */
 div[data-testid="stColumn"]:has(.profile-card-marker) {
     position: relative !important; display: flex !important; flex-direction: column !important;
     align-items: center !important; justify-content: flex-start !important; padding-top: 15px !important;
@@ -386,7 +409,6 @@ div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="primary"] {
 div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="primary"] p { font-size: 5rem !important; line-height: 1 !important; margin: 0 !important; transition: transform 0.3s ease !important; cursor: pointer !important; }
 div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="primary"]:hover { transform: translateY(-6px) !important; }
 
-/* THE EDIT PENCIL BADGE */
 div[data-testid="stColumn"]:has(.profile-card-marker) div[data-testid="element-container"]:has(button[kind="secondary"]) {
     position: absolute !important; top: 20px !important; right: 50% !important; margin-right: -75px !important; z-index: 10 !important; width: auto !important;
 }
@@ -402,33 +424,12 @@ div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="secondary"]:h
 .profile-meta-title { font-size: 1.15rem; font-weight: 700; line-height: 1.2; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; }
 .profile-meta-role { font-size: 0.72rem; font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 0.6px; margin-top: 4px; text-align: center; }
 
+.table-container { width: 100%; overflow-x: auto; border-radius: 12px; border: 1px solid rgba(16, 185, 129, 0.3); margin-top: 10px; }
+.styled-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; font-family: 'Plus Jakarta Sans', sans-serif; text-align: left; }
+.styled-table th { background-color: rgba(16, 185, 129, 0.15); color: #10B981; font-weight: 700; padding: 12px 15px; border-bottom: 2px solid rgba(16, 185, 129, 0.3); }
+.styled-table td { padding: 12px 15px; white-space: normal !important; word-wrap: break-word; border-bottom: 1px solid rgba(16, 185, 129, 0.1); vertical-align: top; user-select: auto !important; }
 
-/* ========================================= */
-/* 2. CUSTOM HTML TABLE (TEXT WRAP FEATURE)  */
-/* ========================================= */
-.table-container {
-    width: 100%; overflow-x: auto; border-radius: 12px; border: 1px solid rgba(16, 185, 129, 0.3); margin-top: 10px;
-}
-.styled-table {
-    width: 100%; border-collapse: collapse; font-size: 0.9rem; font-family: 'Plus Jakarta Sans', sans-serif; text-align: left;
-}
-.styled-table th {
-    background-color: rgba(16, 185, 129, 0.15); color: #10B981; font-weight: 700; padding: 12px 15px; border-bottom: 2px solid rgba(16, 185, 129, 0.3);
-}
-.styled-table td {
-    padding: 12px 15px; white-space: normal !important; /* FORCES TEXT WRAPPING */
-    word-wrap: break-word; border-bottom: 1px solid rgba(16, 185, 129, 0.1); vertical-align: top;
-    user-select: auto !important; /* Allow users to select text in the table */
-}
-
-/* ========================================= */
-/* 3. P.I.N MODAL (Transparent & Centered)   */
-/* ========================================= */
-div[data-testid="stDialog"] > div {
-    backdrop-filter: blur(25px) !important; -webkit-backdrop-filter: blur(25px) !important;
-    border-radius: 20px !important; box-shadow: 0 10px 40px rgba(0,0,0,0.3) !important;
-    padding: 2.5rem 2rem !important; width: 340px !important;
-}
+div[data-testid="stDialog"] > div { backdrop-filter: blur(25px) !important; -webkit-backdrop-filter: blur(25px) !important; border-radius: 20px !important; box-shadow: 0 10px 40px rgba(0,0,0,0.3) !important; padding: 2.5rem 2rem !important; width: 340px !important; }
 div[data-testid="stDialog"] button[aria-label="Close"] { display: none !important; }
 .pin-modal-title { text-align: center; font-size: 1.8rem; font-weight: 800; letter-spacing: 8px; margin-bottom: 30px; margin-top: -10px; }
 
@@ -436,109 +437,60 @@ div[data-testid="InputInstructions"], div[role="dialog"] small, div[role="dialog
     display: none !important; visibility: hidden !important; opacity: 0 !important; height: 0 !important; margin: 0 !important; padding: 0 !important;
 }
 
-div[role="dialog"] div[data-testid="stTextInput"] div[data-baseweb="base-input"], 
-div[role="dialog"] div[data-testid="stTextInput"] div[data-baseweb="input"] {
-    background-color: transparent !important; background: transparent !important; border: none !important; box-shadow: none !important;
-}
-
-div[role="dialog"] div[data-testid="stTextInput"] input {
-    text-align: center !important; font-size: 4rem !important; letter-spacing: 30px !important;
-    background: transparent !important; background-color: transparent !important;
-    border: none !important; box-shadow: none !important; outline: none !important;
-    border-radius: 0 !important; padding: 10px 0 !important; margin-bottom: 15px !important; margin-left: 20px !important;
-    font-family: 'JetBrains Mono', monospace !important; color: #10B981 !important;
-    caret-color: transparent !important; cursor: default !important;
-    border-bottom: 2px solid rgba(16, 185, 129, 0.4) !important;
-}
+div[role="dialog"] div[data-testid="stTextInput"] div[data-baseweb="base-input"], div[role="dialog"] div[data-testid="stTextInput"] div[data-baseweb="input"] { background-color: transparent !important; background: transparent !important; border: none !important; box-shadow: none !important; }
+div[role="dialog"] div[data-testid="stTextInput"] input { text-align: center !important; font-size: 4rem !important; letter-spacing: 30px !important; background: transparent !important; background-color: transparent !important; border: none !important; box-shadow: none !important; outline: none !important; border-radius: 0 !important; padding: 10px 0 !important; margin-bottom: 15px !important; margin-left: 20px !important; font-family: 'JetBrains Mono', monospace !important; color: #10B981 !important; caret-color: transparent !important; cursor: default !important; border-bottom: 2px solid rgba(16, 185, 129, 0.4) !important; }
 div[role="dialog"] div[data-testid="stTextInput"] input:focus { border: none !important; outline: none !important; box-shadow: none !important; background: transparent !important; border-bottom: 2px solid #10B981 !important;}
 div[role="dialog"] div[data-testid="stTextInput"] button { display: none !important; visibility: hidden !important; width: 0 !important;}
 
-/* Download Setup Button Animation */
 @keyframes pulseGlow { 0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); } 70% { box-shadow: 0 0 0 20px rgba(16, 185, 129, 0); } 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); } }
 
-
-/* ========================================= */
-/* === THEME COLORS: DARK MODE (HIGH CONTRAST) */
-/* ========================================= */
 @media (prefers-color-scheme: dark) {
-    .stApp, [data-testid="stAppViewContainer"], .main, body, html { 
-        background: #0B1120 !important; /* Premium Dark Slate / Almost Black */
-        background-color: #0B1120 !important; 
-        color: #F8FAFC !important; 
-    }
-    
+    .stApp, [data-testid="stAppViewContainer"], .main, body, html { background: #0B1120 !important; background-color: #0B1120 !important; color: #F8FAFC !important; }
     h1, h2, h3, h4, h5, h6, p, label, .stMarkdown, div { color: #F8FAFC; }
     h1 span:not(.dl-title-gradient), h2 span, h3 span { color: #10B981 !important; }
-
     div[data-testid="stTabs"] button * { color: #CBD5E1 !important; }
     div[data-testid="stTabs"] button[aria-selected="true"] * { color: #10B981 !important; font-weight: 800 !important; }
-
     button[kind="secondary"] { background-color: #1E293B !important; border: 1px solid #334155 !important; }
     button[kind="secondary"] * { color: #F8FAFC !important; }
     button[kind="secondary"]:hover { border-color: #10B981 !important; background-color: rgba(16, 185, 129, 0.1) !important;}
-    
     div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="secondary"] { background-color: rgba(16, 185, 129, 0.85) !important; border: 2px solid #0B1120 !important; }
-
     button[kind="primary"], button[kind="primaryFormSubmit"] { background-color: #10B981 !important; border: none !important; cursor: pointer !important;}
     button[kind="primary"] *, button[kind="primaryFormSubmit"] * { color: #01150c !important; font-weight: 800 !important; cursor: pointer !important;}
     button[kind="primary"]:disabled { background-color: #1E293B !important; border: 1px solid #334155 !important;}
     button[kind="primary"]:disabled * { color: #64748B !important; }
-
     div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="primary"] { background: #1E293B !important; border: 1px solid #334155 !important; }
     div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="primary"]:hover { border-color: #10B981 !important; box-shadow: 0 0 20px rgba(16, 185, 129, 0.2) !important;}
-    
     div[data-testid="stDialog"] > div { background: #1E293B !important; border: 1px solid rgba(16, 185, 129, 0.4) !important; }
     .pin-modal-title { color: #10B981 !important; text-shadow: none !important; }
-    
-    /* High Contrast Spacious Cards */
     .corp-hero { background: #1E293B !important; border: 1px solid #334155 !important; border-left: 5px solid #10B981 !important; padding: 2rem 2.5rem; border-radius: 16px; margin-bottom: 2rem; margin-top: 1rem;}
     .corp-card { background: #1E293B !important; border: 1px solid #334155 !important; padding: 2.5rem; border-radius: 16px; margin-bottom: 2rem; }
     .corp-card h4 { color: #34D399 !important; font-size: 1.4rem; margin-bottom: 1.5rem; }
-
-    /* Custom Table Dark */
     .styled-table td { color: #F8FAFC; border-bottom: 1px solid #334155; }
     .styled-table tr:hover { background-color: rgba(16, 185, 129, 0.05); }
 }
 
-
-/* ========================================= */
-/* === THEME COLORS: LIGHT MODE (CLEAN SAAS) */
-/* ========================================= */
 @media (prefers-color-scheme: light) {
-    html, body, .stApp, [data-testid="stAppViewContainer"], .main { 
-        background: #F8FAFC !important; background-color: #F8FAFC !important; background-image: none !important; 
-    }
-    
+    html, body, .stApp, [data-testid="stAppViewContainer"], .main { background: #F8FAFC !important; background-color: #F8FAFC !important; background-image: none !important; }
     h1, h2, h3, h4, h5, h6, p, label, .stMarkdown, div { color: #0F172A !important; }
-
     div[data-testid="stTabs"] button * { color: #64748B !important; }
     div[data-testid="stTabs"] button[aria-selected="true"] * { color: #059669 !important; font-weight: 800 !important; }
-
     button[kind="secondary"] { background-color: #FFFFFF !important; border: 1px solid #E2E8F0 !important; }
     button[kind="secondary"] * { color: #0F172A !important; }
     button[kind="secondary"]:hover { border-color: #059669 !important; background-color: #F4FBF7 !important;}
-    
     div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="secondary"] { background-color: #10B981 !important; border: 2px solid #FFFFFF !important; }
     div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="secondary"] p { color: #FFFFFF !important; }
-
     button[kind="primary"], button[kind="primaryFormSubmit"] { background-color: #10B981 !important; border: none !important; cursor: pointer !important;}
     button[kind="primary"] *, button[kind="primaryFormSubmit"] * { color: #FFFFFF !important; font-weight: 800 !important; cursor: pointer !important;}
     button[kind="primary"]:disabled { background-color: #E2E8F0 !important; border: none !important; }
     button[kind="primary"]:disabled * { color: #94A3B8 !important; }
-
     div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="primary"] { background: #FFFFFF !important; border: 1px solid #E2E8F0 !important; box-shadow: 0 4px 10px rgba(0,0,0,0.05) !important;}
     div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="primary"] p { color: #000000 !important; }
     div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="primary"]:hover { border-color: #10B981 !important; box-shadow: 0 10px 25px rgba(16, 185, 129, 0.15) !important;}
-    
     div[data-testid="stDialog"] > div { background: #FFFFFF !important; border: 1px solid rgba(16, 185, 129, 0.4) !important; }
     .pin-modal-title { color: #059669 !important; text-shadow: none !important; }
-    
-    /* Light High Contrast Spacious Cards */
     .corp-hero { background: #FFFFFF !important; border: 1px solid #E2E8F0 !important; border-left: 5px solid #10B981 !important; padding: 2rem 2.5rem; border-radius: 16px; margin-bottom: 2rem; margin-top: 1rem; box-shadow: 0 4px 15px rgba(0,0,0,0.03) !important;}
     .corp-card { background: #FFFFFF !important; border: 1px solid #E2E8F0 !important; padding: 2.5rem; border-radius: 16px; margin-bottom: 2rem; box-shadow: 0 4px 15px rgba(0,0,0,0.03) !important;}
     .corp-card h4 { color: #059669 !important; font-size: 1.4rem; margin-bottom: 1.5rem;}
-    
-    /* Custom Table Light */
     .styled-table td { color: #0F172A; border-bottom: 1px solid #E2E8F0; }
     .styled-table th { color: #059669; }
     .styled-table tr:hover { background-color: rgba(16, 185, 129, 0.05); }
@@ -559,21 +511,18 @@ if "profile_avatars" not in st.session_state: st.session_state.profile_avatars =
 if "screening_results" not in st.session_state: st.session_state.screening_results = []
 if "show_registration" not in st.session_state: st.session_state.show_registration = False
 if "pending_pin_email" not in st.session_state: st.session_state.pending_pin_email = None
-if "pending_otp_email" not in st.session_state: st.session_state.pending_otp_email = None
 if "show_download_page" not in st.session_state: st.session_state.show_download_page = False
 if "upload_success_msg" not in st.session_state: st.session_state.upload_success_msg = ""
-if "uploader_key" not in st.session_state: st.session_state.uploader_key = 1 # Added to clear uploader
+if "uploader_key" not in st.session_state: st.session_state.uploader_key = 1
 
 
 # ===========================================================================
-# 7. DIALOGS (MINIMALIST PIN)
+# 7. DIALOGS
 # ===========================================================================
 @st.dialog(" ")  
 def show_pin_dialog(email, name, role):
     st.markdown("<div class='pin-modal-title'>P.I.N</div>", unsafe_allow_html=True)
-    
     pin_val = st.text_input("Enter PIN", type="password", max_chars=4, placeholder="••••", label_visibility="collapsed", key=f"pin_entry_{email}")
-    
     if pin_val:
         ok, u_name, u_role = verify_employee_pin(email, pin_val)
         if ok:
@@ -615,7 +564,7 @@ if not st.session_state.logged_in:
                     <span style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16,185,129,0.3); color: white; padding: 10px 20px; border-radius: 12px; font-weight: 600; font-size: 1rem;">🔒 Offline Security</span>
                     <span style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16,185,129,0.3); color: white; padding: 10px 20px; border-radius: 12px; font-weight: 600; font-size: 1rem;">🚀 Native Windows OS</span>
                 </div>
-                <a href="{EXE_DIRECT_DOWNLOAD_URL}" target="_blank" style="background: #10B981; color: #01150c; padding: 1.2rem 3.5rem; font-size: 1.2rem; font-weight: 800; border-radius: 50px; text-decoration: none; display: inline-block; box-shadow: 0 0 20px rgba(16, 185, 129, 0.4); transition: transform 0.2s;">📥 Download Setup (v1.0)</a>
+                <a href="{EXE_DIRECT_DOWNLOAD_URL}" target="_blank" style="background: #10B981; color: #01150c; padding: 1.2rem 3.5rem; font-size: 1.2rem; font-weight: 800; border-radius: 50px; text-decoration: none; display: inline-block; box-shadow: 0 0 20px rgba(16, 185, 129, 0.4);">📥 Download Setup (v1.0)</a>
                 <p style="color: #94a3b8; font-size: 0.9rem; margin-top: 25px; font-weight: 500;">Supported on Windows 10/11 • 64-bit Architecture • 125 MB</p>
             </div>
         """, unsafe_allow_html=True)
@@ -739,22 +688,14 @@ if not st.session_state.logged_in:
 # ===========================================================================
 # 9. OCR & MULTI-RESUME EXTRACTION ENGINE
 # ===========================================================================
-
 def extract_text_from_image(file_bytes: bytes, client: Groq = None) -> str:
     try:
         from PIL import Image
         import pytesseract
         img = Image.open(io.BytesIO(file_bytes))
         extracted_text = pytesseract.image_to_string(img)
-        if extracted_text and len(extracted_text.strip()) > 5:
-            return extracted_text.strip()
-        else:
-            return ""
-    except ImportError:
-        st.error("❌ 'pytesseract' is missing! Cannot scan images.")
-        return ""
-    except Exception as e: 
-        return ""
+        return extracted_text.strip() if extracted_text else ""
+    except Exception: return ""
 
 def extract_text_from_pdf(file_bytes: bytes, client: Groq = None) -> str:
     text_parts = []
@@ -772,13 +713,10 @@ def extract_text_from_pdf(file_bytes: bytes, client: Groq = None) -> str:
                     pix = page.get_pixmap(dpi=150)
                     img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
                     vision_text = pytesseract.image_to_string(img)
-                    if vision_text:
-                        text_parts.append(vision_text.strip())
-                except Exception:
-                    pass 
+                    if vision_text: text_parts.append(vision_text.strip())
+                except Exception: pass 
         return "\n\n---NEXT CANDIDATE PAGE---\n\n".join(text_parts)
-    except ImportError:
-        pass
+    except ImportError: pass
 
     try:
         import pdfplumber
@@ -793,13 +731,10 @@ def extract_text_from_pdf(file_bytes: bytes, client: Groq = None) -> str:
                         import pytesseract
                         pil_img = page.to_image(resolution=150).original
                         vision_text = pytesseract.image_to_string(pil_img)
-                        if vision_text:
-                            text_parts.append(vision_text.strip())
-                    except Exception:
-                        pass
+                        if vision_text: text_parts.append(vision_text.strip())
+                    except Exception: pass
         return "\n\n---NEXT CANDIDATE PAGE---\n\n".join(text_parts)
-    except ImportError:
-        pass
+    except ImportError: pass
 
     try:
         import PyPDF2
@@ -808,8 +743,7 @@ def extract_text_from_pdf(file_bytes: bytes, client: Groq = None) -> str:
             text = page.extract_text()
             if text: text_parts.append(text)
         return "\n\n---NEXT CANDIDATE PAGE---\n\n".join(text_parts)
-    except Exception as e:
-        return ""
+    except Exception: return ""
 
 def extract_text_from_docx(file_bytes: bytes) -> str:
     import docx
@@ -834,7 +768,6 @@ def parse_multiple_candidates_from_text(client, full_text):
     seen_identifiers = set()
 
     for chunk in chunks:
-        # HIGHLY OPTIMIZED PROMPT - EXCLUDES INTERNSHIPS
         prompt = f"""
         You are an elite HR AI Resume Parser. The document text provided below contains ONE OR MULTIPLE resumes/CVs stitched together. 
         Your task is to carefully read the text, identify EVERY DISTINCT CANDIDATE separately, and extract their details.
@@ -844,12 +777,12 @@ def parse_multiple_candidates_from_text(client, full_text):
         You MUST STRICTLY EXCLUDE any "Internships", "Trainee Programs", "Academic Projects", "Apprenticeships", and "Student Roles" from this calculation. 
         If a candidate ONLY has internship or trainee experience, their "experience_years" MUST be strictly "0".
 
-        Return ONLY a strictly valid JSON object with a "candidates" array. 
+        Return ONLY a strictly valid JSON object with a "candidates" array matching exact keys: name, father_name, education, cgpa, passing_year, university_name, dob, email, phone, experience_years, latest_experience, reference.
+        
         Example Output Format:
         {{
             "candidates": [
-                {{"name": "Ali Khan", "email": "ali@gmail.com", "phone": "03001234567", "education": "BS Computer Science", "experience_years": "2"}},
-                {{"name": "Sara Ahmed", "email": "sara.a@yahoo.com", "phone": "03331234567", "education": "MBA HR", "experience_years": "0"}}
+                {{"name": "Ali Khan", "father_name": "Muhammad Khan", "education": "BS Computer Science", "cgpa": "3.5", "passing_year": "2023", "university_name": "COMSATS", "dob": "Not Provided", "email": "ali@gmail.com", "phone": "03001234567", "experience_years": "2", "latest_experience": "Software Engineer at ABC", "reference": "Not Provided"}}
             ]
         }}
 
@@ -858,20 +791,14 @@ def parse_multiple_candidates_from_text(client, full_text):
         """
         try:
             res = client.chat.completions.create(
-                model=GROQ_MODEL, 
-                messages=[{"role": "user", "content": prompt}], 
-                response_format={"type": "json_object"}, 
-                temperature=0.1
+                model=GROQ_MODEL, messages=[{"role": "user", "content": prompt}], 
+                response_format={"type": "json_object"}, temperature=0.1
             )
             content = res.choices[0].message.content.strip()
-            
-            if "```json" in content:
-                content = content.split("```json")[1].split("```")[0].strip()
-            elif "```" in content:
-                content = content.split("```")[1].split("```")[0].strip()
+            if "```json" in content: content = content.split("```json")[1].split("```")[0].strip()
+            elif "```" in content: content = content.split("```")[1].split("```")[0].strip()
                 
             parsed = json.loads(content)
-            
             for cand in parsed.get("candidates", []):
                 uid = str(cand.get("email", "")).lower() or f"{cand.get('name', '')}_{cand.get('phone', '')}"
                 if uid not in seen_identifiers and cand.get("name") and cand.get("name").lower() != "unknown":
@@ -887,15 +814,11 @@ def evaluate_candidate_against_jd(client, candidate_row, jd_text, selected_job_t
         prompt = f"""Evaluate candidate for '{selected_job_title}'. CANDIDATE: {candidate_row['Name']} - {candidate_row['Qualification']} - {candidate_row['Experience']} yrs. JD: {jd_text}. Return strictly valid JSON: {{"match_score": 75, "missing_skills": ["Skill 1"]}}"""
         res = client.chat.completions.create(model=GROQ_MODEL, messages=[{"role": "user", "content": prompt}], response_format={"type": "json_object"}, temperature=0.2)
         content = res.choices[0].message.content.strip()
-        if "```json" in content:
-            content = content.split("```json")[1].split("```")[0].strip()
-        elif "```" in content:
-            content = content.split("```")[1].split("```")[0].strip()
+        if "```json" in content: content = content.split("```json")[1].split("```")[0].strip()
+        elif "```" in content: content = content.split("```")[1].split("```")[0].strip()
         parsed = json.loads(content)
         return float(parsed.get("match_score", 50)), True, parsed.get("missing_skills", [])
-    except Exception as e: 
-        st.error(f"⚠️ AI JD Evaluation Error: {str(e)}")
-        return 50.0, True, []
+    except Exception: return 50.0, True, []
 
 
 # ===========================================================================
@@ -943,28 +866,19 @@ tab1, tab2, tab3, tab4 = st.tabs(["📥 1. Repository Upload", "🎯 2. JD Scree
 
 with tab1:
     st.markdown('<div class="corp-card"><h4>📥 Step 1: Ingest & Parse Resumes</h4>', unsafe_allow_html=True)
-    
     if st.session_state.upload_success_msg:
         st.success(st.session_state.upload_success_msg)
         st.session_state.upload_success_msg = "" 
 
-    # Dynamic Key to Clear File Uploader upon Success
-    uploaded_files = st.file_uploader(
-        "Upload Candidates (PDF, DOCX, JPG)", 
-        type=ACCEPTED_TYPES, 
-        accept_multiple_files=True,
-        key=f"uploader_{st.session_state.uploader_key}"
-    )
-    
+    uploaded_files = st.file_uploader("Upload Candidates (PDF, DOCX, JPG)", type=ACCEPTED_TYPES, accept_multiple_files=True, key=f"uploader_{st.session_state.uploader_key}")
     g_key = st.secrets.get("GROQ_API_KEY", os.environ.get("GROQ_API_KEY", ""))
     
     if st.button("⚡ Extract & Append", type="primary", use_container_width=True, disabled=not uploaded_files):
         if not g_key:
-            st.error("⚠️ GROQ_API_KEY is missing! Please add it to your environment variables or Streamlit secrets.")
+            st.error("⚠️ GROQ_API_KEY is missing!")
         else:
             client = Groq(api_key=g_key)
             batch = []
-            
             with st.spinner("🧠 AI & OCR are actively reading CVs... Please wait."):
                 for file in uploaded_files:
                     text = extract_resume_text(file, client=client)
@@ -975,10 +889,10 @@ with tab1:
                 if batch:
                     ins, skp = save_candidates_to_repository(batch)
                     st.session_state.upload_success_msg = f"✅ Processed successfully! Extracted {len(batch)} candidates. Saved {ins} new records (Skipped {skp} duplicates)."
-                    st.session_state.uploader_key += 1  # THIS CLEARS THE UPLOADER
+                    st.session_state.uploader_key += 1
                     st.rerun() 
                 else:
-                    st.warning("⚠️ No valid candidates found. Ensure files contain readable text or check for OCR/API errors above.")
+                    st.warning("⚠️ No valid candidates found.")
     st.markdown('</div>', unsafe_allow_html=True)
 
 with tab2:
@@ -993,14 +907,23 @@ with tab2:
         client = Groq(api_key=g_key)
         res = []
         with st.spinner("🎯 AI is comparing candidates against JD requirements..."):
-            for _, row in df_all.iterrows():
+            for idx, (_, row) in enumerate(df_all.iterrows(), start=1):
                 score, _, missing = evaluate_candidate_against_jd(client, row, jd_text, selected_job_title=job_role)
-                if score >= slider_thresh: res.append({"job_title": job_role, "name": row["Name"], "email": row["Email"], "match_score": score})
+                if score >= slider_thresh: 
+                    screened_row = {
+                        "Sr. No.": idx,
+                        "Job Role": job_role,
+                        "Match Score (%)": f"{score}%"
+                    }
+                    for col in EXPECTED_COLUMNS:
+                        if col != "Sr. No.":
+                            screened_row[col] = row[col]
+                    res.append(screened_row)
             st.session_state.screening_results = res
             st.success("Screening complete!")
     st.markdown('</div>', unsafe_allow_html=True)
 
-# ----------------- TAB 3: DATABASE GRIDS (WITH TEXT WRAP) -----------------
+# ----------------- TAB 3: DATABASE GRIDS (WITH FORMATED EXCEL) -----------------
 with tab3:
     st.markdown('<div class="corp-card"><h4>🗄️ Real-Time Synchronized Database Grids</h4>', unsafe_allow_html=True)
     g1, g2 = st.tabs(["Screened Candidates", "Master Talent Pool"])
@@ -1010,64 +933,31 @@ with tab3:
         if not s_df.empty:
             render_wrapped_table(s_df)
             st.markdown("<br>", unsafe_allow_html=True)
-            if st.button("🗑️ Clear Screened Candidates Table", type="secondary", key="clear_screened_btn"):
-                clear_screened_database()
-                st.success("Screened candidates records cleared from Supabase.")
-                st.rerun()
+            col1, col2 = st.columns([1, 1])
+            with col1:
+                excel_data_s = get_excel_download_link(s_df, sheet_name="Screened Candidates")
+                st.download_button("📥 Download Formatted Excel (.xlsx)", data=excel_data_s, file_name=f'ARL_Screened_{datetime.now().strftime("%Y-%m-%d")}.xlsx', mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', use_container_width=True)
+            with col2:
+                if st.button("🗑️ Clear Screened Table", type="secondary", key="clear_screened_btn", use_container_width=True):
+                    clear_screened_database()
+                    st.success("Cleared successfully.")
+                    st.rerun()
         else:
             st.info("No screened candidates found.")
             
     with g2:
         m_df = load_database()
         if not m_df.empty:
-            # Drop the noisy columns for display to make it neat
-            display_df = m_df.drop(columns=["DOB", "Reference", "Latest Experience", "Added At"], errors="ignore")
-            render_wrapped_table(display_df)
+            render_wrapped_table(m_df)
             st.markdown("<br>", unsafe_allow_html=True)
-            
             col1, col2 = st.columns([1, 1])
             with col1:
-                # Formatted Excel Download
-                output = io.BytesIO()
-                with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
-                    display_df.to_excel(writer, index=False, sheet_name='Talent Pool')
-                    
-                    # Get the xlsxwriter workbook and worksheet objects
-                    workbook = writer.book
-                    worksheet = writer.sheets['Talent Pool']
-                    
-                    # Define formats
-                    header_format = workbook.add_format({
-                        'bold': True, 'text_wrap': True, 'valign': 'top', 
-                        'fg_color': '#059669', 'font_color': 'white', 'border': 1
-                    })
-                    cell_format = workbook.add_format({
-                        'text_wrap': True, 'valign': 'top', 'border': 1
-                    })
-                    
-                    # Write the headers with format
-                    for col_num, value in enumerate(display_df.columns.values):
-                        worksheet.write(0, col_num, value, header_format)
-                        
-                    # Format all columns, set width, and apply cell format
-                    for i, col in enumerate(display_df.columns):
-                        column_len = max(display_df[col].astype(str).map(len).max(), len(str(col))) + 2
-                        width = min(column_len, 35) # Cap width to force text wrap on long text
-                        worksheet.set_column(i, i, width, cell_format)
-
-                excel_data = output.getvalue()
-                
-                st.download_button(
-                    label="📥 Download Formatted Excel (.xlsx)",
-                    data=excel_data,
-                    file_name=f'ARL_TalentPool_{datetime.now().strftime("%Y-%m-%d")}.xlsx',
-                    mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-                    use_container_width=True
-                )
+                excel_data_m = get_excel_download_link(m_df, sheet_name="Talent Pool")
+                st.download_button("📥 Download Formatted Excel (.xlsx)", data=excel_data_m, file_name=f'ARL_TalentPool_{datetime.now().strftime("%Y-%m-%d")}.xlsx', mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', use_container_width=True)
             with col2:
-                if st.button("🗑️ Clear Master Talent Pool", type="secondary", key="clear_pool_btn", use_container_width=True):
+                if st.button("🗑️ Clear Master Pool", type="secondary", key="clear_pool_btn", use_container_width=True):
                     clear_candidate_database()
-                    st.success("Master talent pool cleared.")
+                    st.success("Talent pool cleared.")
                     st.rerun()
         else:
             st.info("Master talent pool is empty.")
