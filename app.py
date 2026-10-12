@@ -332,7 +332,7 @@ def save_candidates_to_repository(new_candidates):
 
 
 # ===========================================================================
-# 5. ADAPTIVE CSS (FIXED TABS, BUTTONS, & LIGHT/DARK MODE)
+# 5. ADAPTIVE CSS (BOMBPROOF OVERRIDES FOR STREAMLIT)
 # ===========================================================================
 ADAPTIVE_CSS = """
 <style>
@@ -413,40 +413,44 @@ div[role="dialog"] button[kind="primaryFormSubmit"]:hover { transform: scale(1.0
 /* ========================================= */
 @media (prefers-color-scheme: dark) {
     /* Background Override */
-    .stApp, [data-testid="stAppViewContainer"], .main {
+    .stApp, [data-testid="stAppViewContainer"], .main, body, html {
         background: radial-gradient(circle at top right, #055030 0%, #01150c 100%) !important;
+        background-color: #01150c !important;
         color: #E2E8F0 !important;
     }
     
-    /* Tabs Fix (Dark Mode) */
-    button[data-baseweb="tab"] p, button[data-baseweb="tab"] div, button[data-baseweb="tab"] span { 
-        color: #A7F3D0 !important; 
-    }
-    button[data-baseweb="tab"][aria-selected="true"] p, button[data-baseweb="tab"][aria-selected="true"] span { 
-        color: #10B981 !important; 
-        font-weight: 800 !important; 
-    }
+    /* Global Default Text overrides for dark mode */
+    h1, h2, h3, h4, h5, h6, p, label, .stMarkdown, div { color: #FFFFFF; }
+    h1 span, h2 span, h3 span { color: #10B981 !important; }
 
-    /* Secondary Buttons -> Charcoal background, White Text */
-    button[kind="secondary"], button[kind="secondaryFormSubmit"] {
+    /* --- TABS TEXT FIX (Dark Mode) --- */
+    div[data-testid="stTabs"] button * { color: #FFFFFF !important; }
+    div[data-testid="stTabs"] button[aria-selected="true"] * { color: #10B981 !important; font-weight: 800 !important; }
+
+    /* --- SECONDARY BUTTONS (Download, Lock, Revoke) --- */
+    button[kind="secondary"] {
         background-color: #36454F !important;
         border: 1px solid #10B981 !important;
     }
-    button[kind="secondary"] p, button[kind="secondary"] div, button[kind="secondary"] span { 
-        color: #FFFFFF !important; 
-    }
-    button[kind="secondary"]:hover, button[kind="secondaryFormSubmit"]:hover { 
-        background-color: #10B981 !important; 
-    }
-    button[kind="secondary"]:hover p, button[kind="secondary"]:hover div { 
-        color: #01150c !important; 
-    }
+    /* Select ALL nested elements inside secondary buttons to force white text */
+    button[kind="secondary"] * { color: #FFFFFF !important; }
+    
+    button[kind="secondary"]:hover { background-color: #10B981 !important; }
+    button[kind="secondary"]:hover * { color: #01150c !important; }
 
-    /* Pencil override (keep green) */
+    /* Pencil override (keep it green) */
     div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="secondary"] {
         background-color: rgba(16, 185, 129, 0.85) !important;
         border: 2px solid #01150c !important;
     }
+
+    /* --- PRIMARY BUTTONS (Extract & Append, Run AI) --- */
+    button[kind="primary"] { background-color: #10B981 !important; border: none !important; }
+    button[kind="primary"] * { color: #01150c !important; font-weight: 800 !important; }
+    
+    /* Disabled Primary Button (Extract & Append before upload) */
+    button[kind="primary"]:disabled { background-color: rgba(16, 185, 129, 0.2) !important; }
+    button[kind="primary"]:disabled * { color: #64748b !important; }
 
     /* Avatar Primary Buttons */
     div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="primary"] {
@@ -467,7 +471,6 @@ div[role="dialog"] button[kind="primaryFormSubmit"]:hover { transform: scale(1.0
         background: rgba(4, 45, 26, 0.55) !important; 
         border: 1px solid rgba(16, 185, 129, 0.35) !important;
         border-left: 5px solid #10B981 !important; 
-        color: #FFFFFF !important;
     }
     .corp-card h4 { color: #34D399 !important; }
 }
@@ -477,40 +480,28 @@ div[role="dialog"] button[kind="primaryFormSubmit"]:hover { transform: scale(1.0
 /* === THEME COLORS (LIGHT MODE OVERRIDES)== */
 /* ========================================= */
 @media (prefers-color-scheme: light) {
-    /* Background Override -> Pure Light */
-    .stApp, [data-testid="stAppViewContainer"], .main { 
+    /* Hard Target to force Light mode background to overcome Streamlit injecting styles */
+    html, body, .stApp, [data-testid="stAppViewContainer"], .main { 
+        background: #F4FBF7 !important;
         background-color: #F4FBF7 !important; 
         background-image: none !important;
     }
     
     /* General Text overrides */
-    h1, h2, h3, h4, h5, h6, p, label, .stMarkdown, div {
-        color: #0F172A !important;
-    }
+    h1, h2, h3, h4, h5, h6, p, label, .stMarkdown, div { color: #0F172A !important; }
 
-    /* Tabs Fix (Light Mode) */
-    button[data-baseweb="tab"] p, button[data-baseweb="tab"] div, button[data-baseweb="tab"] span { 
-        color: #475569 !important; 
-    }
-    button[data-baseweb="tab"][aria-selected="true"] p, button[data-baseweb="tab"][aria-selected="true"] span { 
-        color: #059669 !important; 
-        font-weight: 800 !important; 
-    }
+    /* --- TABS TEXT FIX (Light Mode) --- */
+    div[data-testid="stTabs"] button * { color: #475569 !important; }
+    div[data-testid="stTabs"] button[aria-selected="true"] * { color: #059669 !important; font-weight: 800 !important; }
 
-    /* Secondary Buttons -> White background, Black Text */
-    button[kind="secondary"], button[kind="secondaryFormSubmit"] {
+    /* --- SECONDARY BUTTONS (Download, Lock, Revoke) --- */
+    button[kind="secondary"] {
         background-color: #FFFFFF !important; 
         border: 1px solid #059669 !important;
     }
-    button[kind="secondary"] p, button[kind="secondary"] div, button[kind="secondary"] span { 
-        color: #000000 !important; 
-    }
-    button[kind="secondary"]:hover, button[kind="secondaryFormSubmit"]:hover { 
-        background-color: #059669 !important; 
-    }
-    button[kind="secondary"]:hover p, button[kind="secondary"]:hover div { 
-        color: #FFFFFF !important; 
-    }
+    button[kind="secondary"] * { color: #000000 !important; }
+    button[kind="secondary"]:hover { background-color: #059669 !important; }
+    button[kind="secondary"]:hover * { color: #FFFFFF !important; }
 
     /* Pencil override (keep green) */
     div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="secondary"] {
@@ -519,10 +510,17 @@ div[role="dialog"] button[kind="primaryFormSubmit"]:hover { transform: scale(1.0
     }
     div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="secondary"] p { color: #FFFFFF !important; }
 
+    /* --- PRIMARY BUTTONS --- */
+    button[kind="primary"] { background-color: #10B981 !important; border: none !important; }
+    button[kind="primary"] * { color: #FFFFFF !important; font-weight: 800 !important; }
+    button[kind="primary"]:disabled { background-color: rgba(16, 185, 129, 0.2) !important; }
+    button[kind="primary"]:disabled * { color: #94a3b8 !important; }
+
     /* Avatar Primary Buttons */
     div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="primary"] {
         background: rgba(255, 255, 255, 0.8) !important; border: 2px solid rgba(16, 185, 129, 0.5) !important;
     }
+    div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="primary"] p { color: #000000 !important; }
     .profile-meta-title { color: #0F172A !important; }
     
     /* Modals */
