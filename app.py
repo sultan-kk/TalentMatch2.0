@@ -29,7 +29,6 @@ from PIL import Image, ImageDraw
 APP_NAME = "ARL TalentMatch"
 APP_TAGLINE = "Attock Refinery Limited (ARL) • AI-Driven Automated CV Parser & JD Screener"
 GROQ_MODEL = "openai/gpt-oss-120b"
-VISION_MODEL = "llama-3.2-11b-vision-preview" # Ensure your proxy supports this or change it to your proxy's vision model
 ACCEPTED_TYPES = ["pdf", "docx", "png", "jpg", "jpeg"]
 EXE_DIRECT_DOWNLOAD_URL = "https://github.com/sultan-kk/TalentMatch2.0/releases/download/v1.0/TalentMatch.msi"
 AVAILABLE_BADGES = ["👔", "💼", "🛡️", "🎖️", "⚡", "🔬", "🛢️", "⚙️", "📈", "🎯", "👑", "🚀", "💡", "💻", "💎", "🏛️"]
@@ -423,11 +422,6 @@ div[role="dialog"] div[data-testid="stTextInput"] input {
 div[role="dialog"] div[data-testid="stTextInput"] input:focus { border: none !important; outline: none !important; box-shadow: none !important; background: transparent !important; border-bottom: 2px solid #10B981 !important;}
 div[role="dialog"] div[data-testid="stTextInput"] button { display: none !important; visibility: hidden !important; width: 0 !important;}
 
-/* Download Setup Button Animation */
-@keyframes pulseGlow { 0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); } 70% { box-shadow: 0 0 0 20px rgba(16, 185, 129, 0); } 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); } }
-.dl-btn { background: #10B981 !important; color: #FFFFFF !important; padding: 1.2rem 3.5rem !important; border-radius: 50px !important; font-weight: 800 !important; font-size: 1.2rem !important; text-decoration: none !important; display: inline-block !important; transition: all 0.3s ease !important; animation: pulseGlow 2s infinite !important; }
-.dl-btn:hover { transform: translateY(-3px) scale(1.02) !important; background: #059669 !important; }
-
 
 /* ========================================= */
 /* === THEME COLORS: DARK MODE (HIGH CONTRAST) */
@@ -466,11 +460,7 @@ div[role="dialog"] div[data-testid="stTextInput"] button { display: none !import
     .corp-hero { background: #1E293B !important; border: 1px solid #334155 !important; border-left: 5px solid #10B981 !important; padding: 2rem 2.5rem; border-radius: 16px; margin-bottom: 2rem; margin-top: 1rem;}
     .corp-card { background: #1E293B !important; border: 1px solid #334155 !important; padding: 2.5rem; border-radius: 16px; margin-bottom: 2rem; }
     .corp-card h4 { color: #34D399 !important; font-size: 1.4rem; margin-bottom: 1.5rem; }
-
-    .dl-card { background: #1E293B; border: 1px solid #334155; border-top: 4px solid #10B981; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
-    .dl-feature-badge { background: #0B1120; border: 1px solid #334155; color: #F8FAFC; }
 }
-
 
 /* ========================================= */
 /* === THEME COLORS: LIGHT MODE (CLEAN SAAS) */
@@ -508,9 +498,6 @@ div[role="dialog"] div[data-testid="stTextInput"] button { display: none !import
     .corp-hero { background: #FFFFFF !important; border: 1px solid #E2E8F0 !important; border-left: 5px solid #10B981 !important; padding: 2rem 2.5rem; border-radius: 16px; margin-bottom: 2rem; margin-top: 1rem; box-shadow: 0 4px 15px rgba(0,0,0,0.03) !important;}
     .corp-card { background: #FFFFFF !important; border: 1px solid #E2E8F0 !important; padding: 2.5rem; border-radius: 16px; margin-bottom: 2rem; box-shadow: 0 4px 15px rgba(0,0,0,0.03) !important;}
     .corp-card h4 { color: #059669 !important; font-size: 1.4rem; margin-bottom: 1.5rem;}
-    
-    .dl-card { background: #FFFFFF; border: 1px solid #E2E8F0; border-top: 4px solid #10B981; box-shadow: 0 20px 50px rgba(16, 185, 129, 0.1); }
-    .dl-feature-badge { background: #F8FAFC; border: 1px solid #E2E8F0; color: #0F172A; }
 }
 </style>
 """
@@ -571,22 +558,21 @@ if not st.session_state.logged_in:
     saved_profiles = get_all_verified_profiles()
 
     if st.session_state.show_download_page:
+        # Re-engineered Desktop Download Page using robust inline styles
         st.markdown(f"""
-            <div class="dl-hero-container">
-                <div class="dl-card">
-                    <div class="dl-icon">💻</div>
-                    <h1 class="dl-title">ARL TalentMatch <span class="dl-title-gradient">Desktop</span></h1>
-                    <p class="dl-subtitle">
-                        Experience lightning-fast CV parsing and seamless JD screening natively on Windows. No browser limits, full offline enterprise security.
-                    </p>
-                    <div class="dl-features">
-                        <div class="dl-feature-badge"><span style="color:#10B981; font-size: 1.2rem;">⚡</span> 10x Faster Engine</div>
-                        <div class="dl-feature-badge"><span style="color:#10B981; font-size: 1.2rem;">🔒</span> Offline Security</div>
-                        <div class="dl-feature-badge"><span style="color:#10B981; font-size: 1.2rem;">🚀</span> Native Windows OS</div>
-                    </div>
-                    <a href="{EXE_DIRECT_DOWNLOAD_URL}" target="_blank" class="dl-btn">📥 Download Setup (v1.0)</a>
-                    <div style="margin-top: 25px; font-size: 0.85rem; opacity: 0.6; font-weight: 500;">Supported on Windows 10/11 • 64-bit Architecture • 125 MB</div>
+            <div style="background: linear-gradient(135deg, #0f172a 0%, #064e3b 100%); padding: 4rem 2rem; border-radius: 24px; text-align: center; border: 1px solid #10b981; box-shadow: 0 20px 50px rgba(0,0,0,0.5); max-width: 800px; margin: 2rem auto;">
+                <div style="font-size: 6rem; margin-bottom: 20px; text-shadow: 0 10px 20px rgba(0,0,0,0.5);">💻</div>
+                <h1 style="color: white; font-weight: 900; font-size: 3.5rem; margin-bottom: 15px; line-height: 1.1;">ARL TalentMatch <span style="color: #34d399;">Desktop</span></h1>
+                <p style="color: #a7f3d0; font-size: 1.2rem; max-width: 650px; margin: 0 auto 30px auto; line-height: 1.6;">
+                    Experience lightning-fast CV parsing and seamless JD screening natively on Windows. No browser limits, full offline enterprise security.
+                </p>
+                <div style="display: flex; justify-content: center; gap: 15px; margin-bottom: 40px; flex-wrap: wrap;">
+                    <span style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16,185,129,0.3); color: white; padding: 10px 20px; border-radius: 12px; font-weight: 600; font-size: 1rem;">⚡ 10x Faster Engine</span>
+                    <span style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16,185,129,0.3); color: white; padding: 10px 20px; border-radius: 12px; font-weight: 600; font-size: 1rem;">🔒 Offline Security</span>
+                    <span style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16,185,129,0.3); color: white; padding: 10px 20px; border-radius: 12px; font-weight: 600; font-size: 1rem;">🚀 Native Windows OS</span>
                 </div>
+                <a href="{EXE_DIRECT_DOWNLOAD_URL}" target="_blank" style="background: #10B981; color: #01150c; padding: 1.2rem 3.5rem; font-size: 1.2rem; font-weight: 800; border-radius: 50px; text-decoration: none; display: inline-block; box-shadow: 0 0 20px rgba(16, 185, 129, 0.4); transition: transform 0.2s;">📥 Download Setup (v1.0)</a>
+                <p style="color: #94a3b8; font-size: 0.9rem; margin-top: 25px; font-weight: 500;">Supported on Windows 10/11 • 64-bit Architecture • 125 MB</p>
             </div>
         """, unsafe_allow_html=True)
         
@@ -707,22 +693,32 @@ if not st.session_state.logged_in:
 
 
 # ===========================================================================
-# 9. OCR & MULTI-RESUME EXTRACTION ENGINE
+# 9. OCR & MULTI-RESUME EXTRACTION ENGINE (TESSERACT OCR INTEGRATION)
 # ===========================================================================
+
 def extract_text_from_image(file_bytes: bytes, client: Groq = None) -> str:
-    if not client: 
-        st.error("⚠️ AI Client missing for image extraction.")
-        return ""
+    """Extracts text from PNG/JPG/JPEG using Tesseract OCR locally (No Vision API Needed)."""
     try:
-        b64_img = base64.b64encode(file_bytes).decode("utf-8")
-        resp = client.chat.completions.create(
-            model=VISION_MODEL,
-            messages=[{"role": "user", "content": [{"type": "text", "text": "Extract pure clean text from resume."}, {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{b64_img}"}}] }],
-            max_tokens=2500, temperature=0.1
-        )
-        return resp.choices[0].message.content.strip()
+        from PIL import Image
+        import pytesseract
+        
+        # Open image from bytes
+        img = Image.open(io.BytesIO(file_bytes))
+        
+        # Run local OCR
+        extracted_text = pytesseract.image_to_string(img)
+        
+        if extracted_text and len(extracted_text.strip()) > 5:
+            return extracted_text.strip()
+        else:
+            st.warning("⚠️ OCR completed, but no readable text was found in the image.")
+            return ""
+            
+    except ImportError:
+        st.error("❌ 'pytesseract' library is missing! Please install it via pip.")
+        return ""
     except Exception as e: 
-        st.error(f"⚠️ Image Extract Error: {e}")
+        st.error(f"❌ Image OCR Error: {e}. (Make sure Tesseract-OCR is installed on your system)")
         return ""
 
 def extract_text_from_pdf(file_bytes: bytes, client: Groq = None) -> str:
@@ -737,19 +733,17 @@ def extract_text_from_pdf(file_bytes: bytes, client: Groq = None) -> str:
             if text and len(text.strip()) > 20:
                 text_parts.append(text)
             else:
-                if client:
-                    try:
-                        pix = page.get_pixmap(dpi=150)
-                        b64_img = base64.b64encode(pix.tobytes("jpeg")).decode("utf-8")
-                        resp = client.chat.completions.create(
-                            model=VISION_MODEL,
-                            messages=[{"role": "user", "content": [{"type": "text", "text": "Extract all text precisely from this scanned resume/CV document page."}, {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{b64_img}"}}] }],
-                            max_tokens=2500, temperature=0.1
-                        )
-                        if resp.choices[0].message.content:
-                            text_parts.append(resp.choices[0].message.content.strip())
-                    except Exception as e:
-                        st.error(f"⚠️ PDF Vision OCR Error (Page Level): {e}")
+                # Local OCR Fallback for Scanned PDF Pages
+                try:
+                    from PIL import Image
+                    import pytesseract
+                    pix = page.get_pixmap(dpi=150)
+                    img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
+                    vision_text = pytesseract.image_to_string(img)
+                    if vision_text:
+                        text_parts.append(vision_text.strip())
+                except Exception as e:
+                    pass # Skip if local OCR fails on page
         return "\n\n---NEXT CANDIDATE PAGE---\n\n".join(text_parts)
     except ImportError:
         pass
@@ -763,21 +757,16 @@ def extract_text_from_pdf(file_bytes: bytes, client: Groq = None) -> str:
                 if text and len(text.strip()) > 20:
                     text_parts.append(text)
                 else:
-                    if client:
-                        try:
-                            pil_img = page.to_image(resolution=150).original
-                            img_byte_arr = io.BytesIO()
-                            pil_img.save(img_byte_arr, format='JPEG')
-                            b64_img = base64.b64encode(img_byte_arr.getvalue()).decode("utf-8")
-                            resp = client.chat.completions.create(
-                                model=VISION_MODEL,
-                                messages=[{"role": "user", "content": [{"type": "text", "text": "Extract all text precisely from this scanned resume/CV document page."}, {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{b64_img}"}}] }],
-                                max_tokens=2500, temperature=0.1
-                            )
-                            if resp.choices[0].message.content:
-                                text_parts.append(resp.choices[0].message.content.strip())
-                        except Exception as e:
-                            st.error(f"⚠️ PDF Vision OCR Error (pdfplumber): {e}")
+                    # Local OCR Fallback
+                    try:
+                        from PIL import Image
+                        import pytesseract
+                        pil_img = page.to_image(resolution=150).original
+                        vision_text = pytesseract.image_to_string(pil_img)
+                        if vision_text:
+                            text_parts.append(vision_text.strip())
+                    except Exception as e:
+                        pass
         return "\n\n---NEXT CANDIDATE PAGE---\n\n".join(text_parts)
     except ImportError:
         pass
@@ -940,10 +929,10 @@ with tab1:
             client = Groq(api_key=g_key)
             batch = []
             
-            with st.spinner("🧠 AI is actively reading and extracting multiple CVs... Please wait."):
+            with st.spinner("🧠 AI & OCR are actively reading CVs... Please wait."):
                 for file in uploaded_files:
                     text = extract_resume_text(file, client=client)
-                    if text and len(text.strip()) > 30:
+                    if text and len(text.strip()) > 15:
                         candidates = parse_multiple_candidates_from_text(client, text)
                         batch.extend(candidates)
                 
@@ -952,7 +941,7 @@ with tab1:
                     st.session_state.upload_success_msg = f"✅ Processed successfully! Extracted {len(batch)} candidates. Saved {ins} new records (Skipped {skp} duplicates)."
                     st.rerun() # Reloads app to update grids, message shown on reload
                 else:
-                    st.warning("⚠️ No valid candidates found. Ensure files contain readable text or check for API errors above.")
+                    st.warning("⚠️ No valid candidates found. Ensure files contain readable text or check for OCR/API errors above.")
     st.markdown('</div>', unsafe_allow_html=True)
 
 with tab2:
