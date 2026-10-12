@@ -338,10 +338,24 @@ ADAPTIVE_CSS = """
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap');
 
-/* --- STRUCTURAL CSS (Applies to both modes) --- */
+/* --- STRUCTURAL CSS & GLOBAL APP FEEL --- */
 html, body, [class*="css"], .stApp { font-family: 'Plus Jakarta Sans', sans-serif !important; }
 .stApp > header { background-color: transparent !important; }
 [data-testid="stSidebar"], [data-testid="collapsedControl"] { display: none !important; }
+
+/* Disable Text Selection and Typing Cursor globally for a Native App feel */
+html, body, .stApp, [data-testid="stAppViewContainer"], .main, h1, h2, h3, h4, h5, h6, p, label, .stMarkdown, div, span {
+    cursor: default !important;
+    user-select: none !important;
+    -webkit-user-select: none !important;
+}
+
+/* Re-enable typing cursor ONLY for necessary text inputs (JD Screening & Registration) */
+textarea, div[data-testid="stForm"] input {
+    cursor: text !important;
+    user-select: auto !important;
+    -webkit-user-select: auto !important;
+}
 
 /* 1. PERFECTLY ALIGNED PROFILE CARDS */
 div[data-testid="stColumn"]:has(.profile-card-marker) {
@@ -353,8 +367,9 @@ div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="primary"] {
     border-radius: 26px !important; backdrop-filter: blur(10px) !important; -webkit-backdrop-filter: blur(10px) !important;
     padding: 0 !important; margin: 0 auto !important; display: flex !important; align-items: center !important; justify-content: center !important;
     transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important; z-index: 1 !important;
+    cursor: pointer !important;
 }
-div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="primary"] p { font-size: 5rem !important; line-height: 1 !important; margin: 0 !important; transition: transform 0.3s ease !important; }
+div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="primary"] p { font-size: 5rem !important; line-height: 1 !important; margin: 0 !important; transition: transform 0.3s ease !important; cursor: pointer !important; }
 div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="primary"]:hover { transform: translateY(-6px) !important; }
 
 /* THE EDIT PENCIL BADGE */
@@ -364,9 +379,9 @@ div[data-testid="stColumn"]:has(.profile-card-marker) div[data-testid="element-c
 div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="secondary"] {
     width: 34px !important; height: 34px !important; min-width: 34px !important; min-height: 34px !important;
     border-radius: 50% !important; display: flex !important; align-items: center !important; justify-content: center !important;
-    padding: 0 !important; transition: all 0.2s ease !important;
+    padding: 0 !important; transition: all 0.2s ease !important; cursor: pointer !important;
 }
-div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="secondary"] p { font-size: 14px !important; margin: 0 !important; }
+div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="secondary"] p { font-size: 14px !important; margin: 0 !important; cursor: pointer !important;}
 div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="secondary"]:hover { transform: scale(1.15) !important; }
 
 /* TEXT ALIGNMENT */
@@ -395,9 +410,7 @@ div[data-testid="stDialog"] button[aria-label="Close"] { display: none !importan
 /* P.I.N Title Style */
 .pin-modal-title { text-align: center; font-size: 1.8rem; font-weight: 800; letter-spacing: 8px; margin-bottom: 30px; margin-top: -10px; }
 
-/* ----------------------------------------------------- */
-/* HIDE STREAMLIT INSTRUCTIONS ("Press enter" & "0/4")   */
-/* ----------------------------------------------------- */
+/* HIDE STREAMLIT INSTRUCTIONS ("Press enter" & "0/4") */
 div[data-testid="InputInstructions"], 
 div[data-testid="stTextInput"] small,
 div[data-testid="stTextInput"] > div > div:nth-child(2) { 
@@ -406,27 +419,28 @@ div[data-testid="stTextInput"] > div > div:nth-child(2) {
 }
 
 /* Strip Default Input Box & Borders */
-div[data-testid="stTextInput"] div[data-baseweb="base-input"], 
-div[data-testid="stTextInput"] div[data-baseweb="input"] {
+div[role="dialog"] div[data-testid="stTextInput"] div[data-baseweb="base-input"], 
+div[role="dialog"] div[data-testid="stTextInput"] div[data-baseweb="input"] {
     background-color: transparent !important; background: transparent !important;
     border: none !important; box-shadow: none !important;
 }
 
-/* Minimalist PIN Dots styling - NO BORDERS OR TYPING LINES */
-div[data-testid="stTextInput"] input {
-    text-align: center !important; font-size: 3rem !important; letter-spacing: 25px !important;
+/* PURE TRANSPARENT PIN DOTS (No border, no line, no caret) */
+div[role="dialog"] div[data-testid="stTextInput"] input {
+    text-align: center !important; font-size: 4rem !important; letter-spacing: 30px !important;
     background: transparent !important; background-color: transparent !important;
     border: none !important; box-shadow: none !important; outline: none !important;
-    border-radius: 0 !important; padding: 10px 0 !important; margin-bottom: 15px !important;
+    border-radius: 0 !important; padding: 10px 0 !important; margin-bottom: 15px !important; margin-left: 20px !important;
     font-family: 'JetBrains Mono', monospace !important; color: #10B981 !important;
-    caret-color: transparent !important; /* HIDES THE BLINKING CURSOR COMPLETELY */
+    caret-color: transparent !important; /* HIDES THE BLINKING CURSOR */
+    cursor: default !important; /* HIDES I-BEAM CURSOR */
 }
-div[data-testid="stTextInput"] input:focus { 
+div[role="dialog"] div[data-testid="stTextInput"] input:focus { 
     border: none !important; outline: none !important; box-shadow: none !important; background: transparent !important; 
 }
 
 /* Hide Eye Icon Aggressively */
-div[data-testid="stTextInput"] button { display: none !important; visibility: hidden !important; }
+div[role="dialog"] div[data-testid="stTextInput"] button { display: none !important; visibility: hidden !important; }
 
 
 /* ========================================= */
@@ -442,24 +456,15 @@ div[data-testid="stTextInput"] button { display: none !important; visibility: hi
     70% { box-shadow: 0 0 0 20px rgba(16, 185, 129, 0); }
     100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
 }
-.dl-hero-container {
-    display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2rem 1rem 1rem 1rem;
-}
-.dl-card {
-    border-radius: 24px; padding: 4rem 3rem; text-align: center; max-width: 800px; width: 100%;
-    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); transition: all 0.3s ease;
-}
+.dl-hero-container { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2rem 1rem 1rem 1rem; }
+.dl-card { border-radius: 24px; padding: 4rem 3rem; text-align: center; max-width: 800px; width: 100%; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); transition: all 0.3s ease; }
 .dl-icon { font-size: 6rem; margin-bottom: 20px; animation: float 4s ease-in-out infinite; }
 .dl-title { margin: 0 0 15px 0; font-weight: 900; font-size: 3.2rem; line-height: 1.1; }
 .dl-title-gradient { background: -webkit-linear-gradient(45deg, #10B981, #34D399); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
 .dl-subtitle { font-size: 1.15rem; margin: 0 auto 30px auto; max-width: 600px; line-height: 1.6; }
 .dl-features { display: flex; justify-content: center; gap: 20px; margin-bottom: 40px; flex-wrap: wrap; }
 .dl-feature-badge { border-radius: 12px; padding: 10px 20px; font-size: 0.95rem; font-weight: 600; display: flex; align-items: center; gap: 8px; }
-.dl-btn {
-    background: #10B981 !important; color: #FFFFFF !important; padding: 1.2rem 3.5rem !important; border-radius: 50px !important;
-    font-weight: 800 !important; font-size: 1.2rem !important; text-decoration: none !important; display: inline-block !important;
-    transition: all 0.3s ease !important; animation: pulseGlow 2s infinite !important;
-}
+.dl-btn { background: #10B981 !important; color: #FFFFFF !important; padding: 1.2rem 3.5rem !important; border-radius: 50px !important; font-weight: 800 !important; font-size: 1.2rem !important; text-decoration: none !important; display: inline-block !important; transition: all 0.3s ease !important; animation: pulseGlow 2s infinite !important; }
 .dl-btn:hover { transform: translateY(-3px) scale(1.02) !important; background: #059669 !important; }
 
 
@@ -467,100 +472,57 @@ div[data-testid="stTextInput"] button { display: none !important; visibility: hi
 /* === THEME COLORS (DARK MODE DEFAULT) ==== */
 /* ========================================= */
 @media (prefers-color-scheme: dark) {
-    .stApp, [data-testid="stAppViewContainer"], .main, body, html {
-        background: radial-gradient(circle at top right, #055030 0%, #01150c 100%) !important; background-color: #01150c !important; color: #E2E8F0 !important;
-    }
-    
+    .stApp, [data-testid="stAppViewContainer"], .main, body, html { background: radial-gradient(circle at top right, #055030 0%, #01150c 100%) !important; background-color: #01150c !important; color: #E2E8F0 !important; }
     h1, h2, h3, h4, h5, h6, p, label, .stMarkdown, div { color: #FFFFFF; }
     h1 span:not(.dl-title-gradient), h2 span, h3 span { color: #10B981 !important; }
-
-    /* Tabs Fix */
     div[data-testid="stTabs"] button * { color: #FFFFFF !important; }
     div[data-testid="stTabs"] button[aria-selected="true"] * { color: #10B981 !important; font-weight: 800 !important; }
-
-    /* Secondary Buttons */
     button[kind="secondary"] { background-color: #36454F !important; border: 1px solid #10B981 !important; }
     button[kind="secondary"] * { color: #FFFFFF !important; }
     button[kind="secondary"]:hover { background-color: #10B981 !important; }
     button[kind="secondary"]:hover * { color: #01150c !important; }
-
-    /* Pencil override */
-    div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="secondary"] {
-        background-color: rgba(16, 185, 129, 0.85) !important; border: 2px solid #01150c !important;
-    }
-
-    /* Primary Buttons */
-    button[kind="primary"], button[kind="primaryFormSubmit"] { background-color: #10B981 !important; border: none !important; }
-    button[kind="primary"] *, button[kind="primaryFormSubmit"] * { color: #01150c !important; font-weight: 800 !important; }
+    div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="secondary"] { background-color: rgba(16, 185, 129, 0.85) !important; border: 2px solid #01150c !important; }
+    button[kind="primary"], button[kind="primaryFormSubmit"] { background-color: #10B981 !important; border: none !important; cursor: pointer !important;}
+    button[kind="primary"] *, button[kind="primaryFormSubmit"] * { color: #01150c !important; font-weight: 800 !important; cursor: pointer !important;}
     button[kind="primary"]:disabled { background-color: rgba(16, 185, 129, 0.2) !important; }
     button[kind="primary"]:disabled * { color: #64748b !important; }
-
-    /* Avatar Primary Buttons */
-    div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="primary"] {
-        background: rgba(6, 68, 41, 0.6) !important; border: 2px solid rgba(16, 185, 129, 0.6) !important;
-    }
+    div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="primary"] { background: rgba(6, 68, 41, 0.6) !important; border: 2px solid rgba(16, 185, 129, 0.6) !important; }
     .profile-meta-title { color: #FFFFFF !important; }
-    
-    /* Modal Dialog */
     div[data-testid="stDialog"] > div { background: rgba(4, 45, 26, 0.8) !important; border: 1px solid #10B981 !important; }
     .pin-modal-title { color: #10B981 !important; text-shadow: 0 0 15px rgba(16, 185, 129, 0.5) !important; }
-    
-    /* Glass Cards */
     .corp-hero, .corp-card { background: rgba(4, 45, 26, 0.55) !important; border: 1px solid rgba(16, 185, 129, 0.35) !important; border-left: 5px solid #10B981 !important; }
     .corp-card h4 { color: #34D399 !important; }
-
-    /* Download Page Theme (Dark) */
     .dl-card { background: rgba(4, 45, 26, 0.65); border: 1px solid rgba(16, 185, 129, 0.4); border-top: 4px solid #10B981; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
     .dl-icon { text-shadow: 0 15px 25px rgba(0,0,0,0.5); }
     .dl-subtitle { color: #A7F3D0; }
     .dl-feature-badge { background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.2); color: #E2E8F0; }
 }
 
-
 /* ========================================= */
 /* === THEME COLORS (LIGHT MODE OVERRIDES)== */
 /* ========================================= */
 @media (prefers-color-scheme: light) {
-    html, body, .stApp, [data-testid="stAppViewContainer"], .main { 
-        background: #F4FBF7 !important; background-color: #F4FBF7 !important; background-image: none !important;
-    }
-    
+    html, body, .stApp, [data-testid="stAppViewContainer"], .main { background: #F4FBF7 !important; background-color: #F4FBF7 !important; background-image: none !important; }
     h1, h2, h3, h4, h5, h6, p, label, .stMarkdown, div { color: #0F172A !important; }
-
-    /* Tabs Fix */
     div[data-testid="stTabs"] button * { color: #475569 !important; }
     div[data-testid="stTabs"] button[aria-selected="true"] * { color: #059669 !important; font-weight: 800 !important; }
-
-    /* Secondary Buttons */
     button[kind="secondary"] { background-color: #FFFFFF !important; border: 1px solid #059669 !important; }
     button[kind="secondary"] * { color: #000000 !important; }
     button[kind="secondary"]:hover { background-color: #059669 !important; }
     button[kind="secondary"]:hover * { color: #FFFFFF !important; }
-
-    /* Pencil override */
     div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="secondary"] { background-color: #10B981 !important; border: 2px solid #FFFFFF !important; }
     div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="secondary"] p { color: #FFFFFF !important; }
-
-    /* Primary Buttons */
-    button[kind="primary"], button[kind="primaryFormSubmit"] { background-color: #10B981 !important; border: none !important; }
-    button[kind="primary"] *, button[kind="primaryFormSubmit"] * { color: #FFFFFF !important; font-weight: 800 !important; }
+    button[kind="primary"], button[kind="primaryFormSubmit"] { background-color: #10B981 !important; border: none !important; cursor: pointer !important;}
+    button[kind="primary"] *, button[kind="primaryFormSubmit"] * { color: #FFFFFF !important; font-weight: 800 !important; cursor: pointer !important;}
     button[kind="primary"]:disabled { background-color: rgba(16, 185, 129, 0.2) !important; }
     button[kind="primary"]:disabled * { color: #94a3b8 !important; }
-
-    /* Avatar Primary Buttons */
     div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="primary"] { background: rgba(255, 255, 255, 0.9) !important; border: 2px solid rgba(16, 185, 129, 0.5) !important; }
     div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="primary"] p { color: #000000 !important; }
     .profile-meta-title { color: #0F172A !important; }
-    
-    /* Modal Dialog */
     div[data-testid="stDialog"] > div { background: #FFFFFF !important; border: 1px solid rgba(16, 185, 129, 0.4) !important; }
     .pin-modal-title { color: #059669 !important; text-shadow: none !important; }
-    
-    /* Glass Cards */
     .corp-hero, .corp-card { background: #FFFFFF !important; border: 1px solid rgba(16, 185, 129, 0.3) !important; border-left: 5px solid #10B981 !important; box-shadow: 0 4px 15px rgba(0,0,0,0.05) !important; }
     .corp-card h4 { color: #059669 !important; }
-
-    /* Download Page Theme (Light) */
     .dl-card { background: #FFFFFF; border: 1px solid rgba(16, 185, 129, 0.3); border-top: 4px solid #10B981; box-shadow: 0 20px 50px rgba(16, 185, 129, 0.15); }
     .dl-icon { text-shadow: 0 15px 25px rgba(16, 185, 129, 0.2); }
     .dl-subtitle { color: #475569; }
@@ -568,7 +530,6 @@ div[data-testid="stTextInput"] button { display: none !important; visibility: hi
 }
 </style>
 """
-st.markdown(ADAPTIVE_CSS, unsafe_allow_html=True)
 
 
 # ===========================================================================
