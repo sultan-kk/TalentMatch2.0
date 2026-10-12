@@ -317,7 +317,7 @@ def save_candidates_to_repository(new_candidates):
     return inserted, skipped
 
 # ===========================================================================
-# 4.5 CUSTOM RENDERER FOR TEXT WRAPPED HTML TABLES (Excel Style)
+# 4.5 CUSTOM RENDERER FOR TEXT WRAPPED HTML TABLES
 # ===========================================================================
 def render_wrapped_table(df):
     """Renders a pandas DataFrame as a beautifully styled, text-wrapping HTML table."""
@@ -1027,13 +1027,41 @@ with tab3:
             
             col1, col2 = st.columns([1, 1])
             with col1:
-                # Add a CSV Download Button for Excel compatibility
-                csv = m_df.to_csv(index=False).encode('utf-8')
+                # Formatted Excel Download
+                output = io.BytesIO()
+                with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+                    display_df.to_excel(writer, index=False, sheet_name='Talent Pool')
+                    
+                    # Get the xlsxwriter workbook and worksheet objects
+                    workbook = writer.book
+                    worksheet = writer.sheets['Talent Pool']
+                    
+                    # Define formats
+                    header_format = workbook.add_format({
+                        'bold': True, 'text_wrap': True, 'valign': 'top', 
+                        'fg_color': '#059669', 'font_color': 'white', 'border': 1
+                    })
+                    cell_format = workbook.add_format({
+                        'text_wrap': True, 'valign': 'top', 'border': 1
+                    })
+                    
+                    # Write the headers with format
+                    for col_num, value in enumerate(display_df.columns.values):
+                        worksheet.write(0, col_num, value, header_format)
+                        
+                    # Format all columns, set width, and apply cell format
+                    for i, col in enumerate(display_df.columns):
+                        column_len = max(display_df[col].astype(str).map(len).max(), len(str(col))) + 2
+                        width = min(column_len, 35) # Cap width to force text wrap on long text
+                        worksheet.set_column(i, i, width, cell_format)
+
+                excel_data = output.getvalue()
+                
                 st.download_button(
-                    label="📥 Download as Excel (CSV)",
-                    data=csv,
-                    file_name='ARL_TalentPool.csv',
-                    mime='text/csv',
+                    label="📥 Download Formatted Excel (.xlsx)",
+                    data=excel_data,
+                    file_name=f'ARL_TalentPool_{datetime.now().strftime("%Y-%m-%d")}.xlsx',
+                    mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
                     use_container_width=True
                 )
             with col2:
