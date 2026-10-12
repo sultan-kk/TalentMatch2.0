@@ -206,6 +206,16 @@ def save_employee_pin(email, pin):
     except Exception as e:
         return False, str(e)
 
+def delete_employee_profile(email):
+    clean_email = email.lower().strip()
+    if supabase:
+        try:
+            supabase.table("hr_users").delete().eq("email", clean_email).execute()
+        except Exception:
+            pass
+    if "profile_avatars" in st.session_state and clean_email in st.session_state.profile_avatars:
+        del st.session_state.profile_avatars[clean_email]
+
 # ===========================================================================
 # 3. ARL JOB CATALOG
 # ===========================================================================
@@ -257,6 +267,22 @@ def load_database():
             return df
     except Exception: pass
     return pd.DataFrame(columns=expected_cols)
+
+def load_screened_database():
+    if "screening_results" in st.session_state and st.session_state.screening_results:
+        return pd.DataFrame(st.session_state.screening_results)
+    return pd.DataFrame(columns=["job_title", "name", "email", "match_score"])
+
+def clear_screened_database():
+    st.session_state.screening_results = []
+
+def clear_candidate_database():
+    if supabase:
+        try:
+            # Requires matching a condition to delete rows in Supabase
+            supabase.table("candidates").delete().neq("candidate_name", "THIS_WILL_NEVER_MATCH_123").execute()
+        except Exception: 
+            pass
 
 def save_candidates_to_repository(new_candidates):
     if not supabase: return 0, 0
@@ -588,326 +614,4 @@ def show_sticker_picker_dialog(email, name):
         with cols[idx % 4]:
             if st.button(badge, key=f"stk_btn_{email}_{idx}", use_container_width=True):
                 set_user_avatar(email, badge)
-                st.success("Badge permanently saved!")
-                st.rerun()
-
-# ===========================================================================
-# 8. AUTHENTICATION & LOGIN SCREEN
-# ===========================================================================
-if not st.session_state.logged_in:
-    saved_profiles = get_all_verified_profiles()
-
-    if st.session_state.show_download_page:
-        st.markdown(f"""
-            <div style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.4); border-radius: 16px; padding: 3rem; text-align: center; margin-bottom: 2rem; backdrop-filter: blur(10px);">
-                <div style="font-size: 3.5rem; margin-bottom: 10px;">💻</div>
-                <h2 style="margin-bottom: 10px; font-weight: 800; color: #fff;">ARL TalentMatch Desktop</h2>
-                <p style="max-width: 650px; margin: 0 auto 25px auto; opacity: 0.9; line-height: 1.5; color: #E2E8F0;">
-                    Run Attock Refinery's recruitment suite natively on your Windows PC.
-                </p>
-                <a href="{EXE_DIRECT_DOWNLOAD_URL}" target="_blank" style="background: #10B981; color: #01150c; padding: 0.85rem 2.5rem; border-radius: 8px; font-weight: 800; text-decoration: none; display: inline-block;">📥 Download Installer</a>
-            </div>
-        """, unsafe_allow_html=True)
-        if st.button("⬅ Back to Login", use_container_width=True):
-            st.session_state.show_download_page = False
-            st.rerun()
-        st.stop()
-
-    if st.session_state.pending_pin_email:
-        _, mid_col, _ = st.columns([1, 2.2, 1])
-        with mid_col:
-            st.markdown("### 🔐 Security PIN Setup")
-            with st.form("pin_setup_form"):
-                new_pin = st.text_input("Create 4-Digit PIN", type="password", max_chars=4)
-                confirm_pin = st.text_input("Confirm 4-Digit PIN", type="password", max_chars=4)
-                submit_pin = st.form_submit_button("Save PIN & Continue", use_container_width=True)
-            if submit_pin:
-                if len(new_pin) == 4 and new_pin == confirm_pin:
-                    success, msg = save_employee_pin(st.session_state.pending_pin_email, new_pin)
-                    if success:
-                        st.session_state.pending_pin_email = None
-                        st.rerun()
-        st.stop()
-
-    elif st.session_state.show_registration:
-        _, mid_col, _ = st.columns([1, 2.2, 1])
-        with mid_col:
-            st.markdown("### 📝 Register Executive")
-            with st.form("universal_registration_form"):
-                reg_name = st.text_input("Full Name")
-                reg_email = st.text_input("Email Address")
-                reg_pass = st.text_input("Master Password", type="password")
-                submit_reg = st.form_submit_button("Register Profile", use_container_width=True)
-            if submit_reg:
-                success, msg = register_initial_employee(reg_name, reg_email, reg_pass)
-                if success:
-                    st.session_state.pending_pin_email = reg_email.lower().strip()
-                    st.session_state.show_registration = False
-                    st.rerun()
-                else: st.error(msg)
-            if st.button("⬅ Back", use_container_width=True):
-                st.session_state.show_registration = False
-                st.rerun()
-        st.stop()
-
-    col_t1, col_t2 = st.columns([7.5, 2.5], vertical_alignment="center")
-    with col_t1:
-        st.markdown("""
-            <div style="display: flex; align-items: center; gap: 20px;">
-                <svg width="60" height="60" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-                    <defs>
-                        <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" style="stop-color:#34D399;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#10B981;stop-opacity:1" />
-                        </linearGradient>
-                    </defs>
-                    <circle cx="50" cy="50" r="46" fill="rgba(1, 21, 12, 0.8)" stroke="url(#grad)" stroke-width="4"/>
-                    <path d="M50 20 L25 75" stroke="url(#grad)" stroke-width="10" stroke-linecap="round"/>
-                    <path d="M50 20 L75 75" stroke="url(#grad)" stroke-width="10" stroke-linecap="round"/>
-                    <path d="M35 55 L65 55" stroke="url(#grad)" stroke-width="8" stroke-linecap="round"/>
-                </svg>
-                <div>
-                    <h1 style="font-size: 2.6rem; font-weight: 800; color: #fff; margin: 0; padding: 0; line-height: 1;">
-                        ARL <span style="color: #10B981;">TalentMatch</span>
-                    </h1>
-                    <div style="font-size: 0.95rem; color: #A7F3D0; font-weight: 600; letter-spacing: 1px; margin-top: 5px;">
-                        ENTERPRISE RECRUITMENT & AI SCREENING SUITE
-                    </div>
-                </div>
-            </div>
-        """, unsafe_allow_html=True)
-    with col_t2:
-        if st.button("📥 Get Desktop App", use_container_width=True, help="Download Standalone Windows MSI"):
-            st.session_state.show_download_page = True
-            st.rerun()
-
-    st.markdown("<hr style='border: none; border-top: 1px solid rgba(16, 185, 129, 0.3); margin: 2rem 0;'>", unsafe_allow_html=True)
-
-    all_items = list(saved_profiles) + [("REGISTER_CARD", "New Profile", "", "Register")]
-    cols_per_row = 4
-    for i in range(0, len(all_items), cols_per_row):
-        row_items = all_items[i:i + cols_per_row]
-        cols = st.columns(cols_per_row)
-        for idx, item in enumerate(row_items):
-            with cols[idx]:
-                st.markdown('<div class="profile-card-marker" style="display:none;"></div>', unsafe_allow_html=True)
-                
-                if item[0] == "REGISTER_CARD":
-                    if st.button("➕", key=f"add_card_{i}_{idx}", type="primary"):
-                        st.session_state.show_registration = True
-                        st.rerun()
-                    st.markdown("""
-                        <div class="profile-meta-container">
-                            <div class="profile-meta-title" title="New Profile">New Profile</div>
-                            <div class="profile-meta-role">Register Account</div>
-                        </div>
-                    """, unsafe_allow_html=True)
-                    
-                else:
-                    p_email, p_name, p_pin, p_role = item
-                    avatar_sticker = get_user_avatar(p_email)
-                    
-                    if st.button(avatar_sticker, key=f"ucard_{i}_{idx}", type="primary"):
-                        show_pin_dialog(p_email, p_name, p_role)
-                        
-                    if st.button("✏️", key=f"ebtn_{i}_{idx}", type="secondary", help="Change Avatar"):
-                        show_sticker_picker_dialog(p_email, p_name)
-                        
-                    st.markdown(f"""
-                        <div class="profile-meta-container">
-                            <div class="profile-meta-title" title="{p_name}">{p_name}</div>
-                            <div class="profile-meta-role">{p_role}</div>
-                        </div>
-                    """, unsafe_allow_html=True)
-    st.stop()
-
-# ===========================================================================
-# 9. OCR & MULTI-RESUME EXTRACTION ENGINE
-# ===========================================================================
-def extract_text_from_image(file_bytes: bytes, client: Groq = None) -> str:
-    g_key = st.secrets.get("GROQ_API_KEY", os.environ.get("GROQ_API_KEY", ""))
-    if g_key:
-        try:
-            g_client = client or Groq(api_key=g_key)
-            b64_img = base64.b64encode(file_bytes).decode("utf-8")
-            resp = g_client.chat.completions.create(
-                model=VISION_MODEL,
-                messages=[{"role": "user", "content": [{"type": "text", "text": "Extract pure clean text from resume."}, {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{b64_img}"}}] }],
-                max_tokens=2500, temperature=0.1
-            )
-            return resp.choices[0].message.content.strip()
-        except Exception: pass
-    return ""
-
-def extract_text_from_pdf(file_bytes: bytes, client: Groq = None) -> str:
-    import pdfplumber
-    text_parts = []
-    with pdfplumber.open(io.BytesIO(file_bytes)) as pdf:
-        for idx, page in enumerate(pdf.pages, start=1):
-            page_text = page.extract_text() or ""
-            if len(page_text.strip()) > 30: text_parts.append(page_text)
-    return "\n\n".join(text_parts)
-
-def extract_text_from_docx(file_bytes: bytes) -> str:
-    import docx
-    document = docx.Document(io.BytesIO(file_bytes))
-    return "\n".join([p.text for p in document.paragraphs if p.text.strip()])
-
-def extract_resume_text(uploaded_file, client: Groq = None):
-    name = uploaded_file.name.lower()
-    try:
-        uploaded_file.seek(0)
-        b = uploaded_file.read()
-        if name.endswith(".pdf"): return extract_text_from_pdf(b, client=client)
-        elif name.endswith(".docx"): return extract_text_from_docx(b)
-        elif name.endswith((".png", ".jpg", ".jpeg")): return extract_text_from_image(b, client=client)
-    except Exception as e: st.error(f"Read error: {e}")
-    return ""
-
-def parse_multiple_candidates_from_text(client, full_text):
-    chunk_size = 14000
-    chunks = [full_text[i:i+chunk_size] for i in range(0, len(full_text), chunk_size - 500)]
-    all_extracted_candidates, seen_identifiers = [], set()
-
-    for chunk in chunks:
-        prompt = f"""Extract candidates to valid JSON format. Return purely JSON: {{"candidates": [{{"name": "...", "email": "...", "phone": "...", "education": "...", "experience_years": "0"}}]}} Document: {chunk}"""
-        try:
-            res = client.chat.completions.create(model=GROQ_MODEL, messages=[{"role": "user", "content": prompt}], response_format={"type": "json_object"}, temperature=0.1)
-            content = res.choices[0].message.content.strip()
-            parsed = json.loads(content[content.find('{'):content.rfind('}')+1]) if '{' in content else {}
-            for cand in parsed.get("candidates", []):
-                uid = str(cand.get("email", "")).lower() or f"{cand.get('name', '')}_{cand.get('phone', '')}"
-                if uid not in seen_identifiers:
-                    seen_identifiers.add(uid)
-                    all_extracted_candidates.append(cand)
-        except Exception: pass
-    return all_extracted_candidates
-
-def evaluate_candidate_against_jd(client, candidate_row, jd_text, selected_job_title=""):
-    try:
-        prompt = f"""Evaluate candidate for '{selected_job_title}'. CANDIDATE: {candidate_row['Name']} - {candidate_row['Qualification']} - {candidate_row['Experience']} yrs. JD: {jd_text}. Return strictly valid JSON: {{"match_score": 75, "missing_skills": ["Skill 1"]}}"""
-        res = client.chat.completions.create(model=GROQ_MODEL, messages=[{"role": "user", "content": prompt}], response_format={"type": "json_object"}, temperature=0.2)
-        content = res.choices[0].message.content.strip()
-        parsed = json.loads(content[content.find('{'):content.rfind('}')+1]) if '{' in content else {}
-        return float(parsed.get("match_score", 50)), True, parsed.get("missing_skills", [])
-    except Exception: return 50.0, True, []
-
-def generate_ai_interview_questions(client, name, role, skills):
-    try:
-        res = client.chat.completions.create(model=GROQ_MODEL, messages=[{"role": "user", "content": f"Generate 5 precise interview questions with ideal answers for candidate {name} applying for {role}. Skills: {skills}"}], temperature=0.3)
-        return res.choices[0].message.content.strip()
-    except Exception as e: return f"Error: {e}"
-
-# ===========================================================================
-# 10. MAIN DASHBOARD & TABS
-# ===========================================================================
-df_all = load_database()
-user_avatar = get_user_avatar(st.session_state.hr_email)
-
-st.markdown(f"""
-    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 25px;">
-        <div style="display: flex; align-items: center; gap: 15px;">
-            <div style="font-size: 2.2rem; background: rgba(6, 68, 41, 0.6); backdrop-filter: blur(10px); border: 2px solid #10B981; border-radius: 16px; width: 65px; height: 65px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(16, 185, 129, 0.2);">{user_avatar}</div>
-            <div>
-                <h2 style="margin: 0; font-size: 1.8rem; font-weight: 800; color: #fff;">{APP_NAME} Enterprise Portal</h2>
-                <span style="font-size: 0.95rem; opacity: 0.9; color: #E2E8F0; font-weight: 500;">Executive Session: <b>{st.session_state.hr_name}</b> &nbsp;|&nbsp; Role: <span style="color: #34D399;">{st.session_state.hr_role}</span></span>
-            </div>
-        </div>
-    </div>
-""", unsafe_allow_html=True)
-
-col_nav_right1, col_nav_right2 = st.columns([1, 1])
-with col_nav_right1:
-    if st.button("📥 Download Suite", key="dash_top_dl_btn", use_container_width=True):
-        st.session_state.show_download_page = True
-        st.rerun()
-with col_nav_right2:
-    if st.button("🚪 Lock Portal", key="dash_top_lock_btn", use_container_width=True):
-        st.session_state.logged_in = False
-        st.session_state.hr_name = ""
-        st.session_state.hr_email = ""
-        st.session_state.hr_role = "Recruiter"
-        st.rerun()
-
-st.markdown(f"""
-    <div class="corp-hero" style="margin-top: 15px;">
-        <h2 style="margin: 0 0 8px 0; font-weight: 800; color: #fff;">Attock Refinery Master Repository</h2>
-        <p style="margin: 0; opacity: 0.9; color: #E2E8F0; font-size: 1.05rem;">Total Database Records: <b>{len(df_all)} Candidates</b></p>
-    </div>
-""", unsafe_allow_html=True)
-
-tab1, tab2, tab3 = st.tabs(["📥 1. Repository Upload", "🎯 2. JD Screening", "🗄️ 3. Live Database Grids"])
-
-with tab1:
-    st.markdown('<div class="corp-card"><h4>📥 Step 1: Ingest & Parse Resumes</h4>', unsafe_allow_html=True)
-    uploaded_files = st.file_uploader("Upload Candidates (PDF, DOCX, JPG)", type=ACCEPTED_TYPES, accept_multiple_files=True)
-    g_key = st.secrets.get("GROQ_API_KEY", os.environ.get("GROQ_API_KEY", ""))
-    
-    if st.button("⚡ Extract & Append", type="primary", use_container_width=True, disabled=not uploaded_files):
-        client = Groq(api_key=g_key)
-        batch = []
-        for file in uploaded_files:
-            text = extract_resume_text(file, client=client)
-            if len(text.strip()) > 30:
-                batch.extend(parse_multiple_candidates_from_text(client, text))
-        if batch:
-            ins, skp = save_candidates_to_repository(batch)
-            st.success(f"Processed {len(batch)} candidates. Saved {ins} new records.")
-            st.rerun()
-
-with tab2:
-    st.markdown('<div class="corp-card"><h4>🎯 Step 2: JD Screening</h4>', unsafe_allow_html=True)
-    catalog = load_arl_job_catalog()
-    dept = st.selectbox("Department", list(catalog.keys()))
-    job_role = st.selectbox("Position", catalog.get(dept, []))
-    jd_text = st.text_area("Job Description", height=130)
-    slider_thresh = st.slider("Match Threshold (%)", 0, 100, 40, step=5)
-
-    if st.button("⚡ Run AI Screening", type="primary", use_container_width=True, disabled=not jd_text.strip()):
-        client = Groq(api_key=g_key)
-        res = []
-        for _, row in df_all.iterrows():
-            score, _, missing = evaluate_candidate_against_jd(client, row, jd_text, selected_job_title=job_role)
-            if score >= slider_thresh: res.append({"job_title": job_role, "name": row["Name"], "email": row["Email"], "match_score": score})
-        st.session_state.screening_results = res
-        st.success("Screening complete!")
-
-# ----------------- TAB 3: DATABASE GRIDS -----------------
-with tab3:
-    st.markdown('<div class="corp-card"><h4>🗄️ Real-Time Synchronized Database Grids</h4>', unsafe_allow_html=True)
-    g1, g2 = st.tabs(["Screened Candidates", "Master Talent Pool"])
-    with g1:
-        s_df = load_screened_database()
-        if not s_df.empty:
-            st.dataframe(s_df, use_container_width=True)
-            if st.button("🗑️ Clear Screened Candidates Table", type="secondary", key="clear_screened_btn"):
-                clear_screened_database()
-                st.success("Screened candidates records cleared from Supabase.")
-                st.rerun()
-        else:
-            st.info("No screened candidates found.")
-    with g2:
-        m_df = load_database()
-        if not m_df.empty:
-            st.dataframe(m_df, use_container_width=True)
-            if st.button("🗑️ Clear Master Talent Pool", type="secondary", key="clear_pool_btn"):
-                clear_candidate_database()
-                st.success("Master talent pool cleared.")
-                st.rerun()
-        else:
-            st.info("Master talent pool is empty.")
-    st.markdown('</div>', unsafe_allow_html=True)
-
-# ----------------- TAB 4: ADMIN CONTROLS -----------------
-with tab4:
-    st.markdown('<div class="corp-card"><h4>🛡 Admin User Controls</h4>', unsafe_allow_html=True)
-    profiles = get_all_verified_profiles()
-    for p_em, p_nm, p_p, p_r in profiles:
-        c1, c2, c3 = st.columns([3, 1.5, 1], vertical_alignment="center")
-        with c1: st.write(f"👤 **{p_nm}** ({p_em})")
-        with c2: st.write(f"Role: `{p_r}`")
-        with c3:
-            if st.button("Revoke", key=f"rev_{p_em}", type="secondary"):
-                delete_employee_profile(p_em)
-                st.rerun()
-    st.markdown('</div>', unsafe_allow_html=True)
+                st
