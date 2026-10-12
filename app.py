@@ -872,6 +872,42 @@ with tab2:
         st.session_state.screening_results = res
         st.success("Screening complete!")
 
+# ----------------- TAB 3: DATABASE GRIDS -----------------
 with tab3:
-    st.markdown('<div class="corp-card"><h4>🗄️ Database Grid</h4>', unsafe_allow_html=True)
-    st.dataframe(df_all, use_container_width=True)
+    st.markdown('<div class="corp-card"><h4>🗄️ Real-Time Synchronized Database Grids</h4>', unsafe_allow_html=True)
+    g1, g2 = st.tabs(["Screened Candidates", "Master Talent Pool"])
+    with g1:
+        s_df = load_screened_database()
+        if not s_df.empty:
+            st.dataframe(s_df, use_container_width=True)
+            if st.button("🗑️ Clear Screened Candidates Table", type="secondary", key="clear_screened_btn"):
+                clear_screened_database()
+                st.success("Screened candidates records cleared from Supabase.")
+                st.rerun()
+        else:
+            st.info("No screened candidates found.")
+    with g2:
+        m_df = load_database()
+        if not m_df.empty:
+            st.dataframe(m_df, use_container_width=True)
+            if st.button("🗑️ Clear Master Talent Pool", type="secondary", key="clear_pool_btn"):
+                clear_candidate_database()
+                st.success("Master talent pool cleared.")
+                st.rerun()
+        else:
+            st.info("Master talent pool is empty.")
+    st.markdown('</div>', unsafe_allow_html=True)
+
+# ----------------- TAB 4: ADMIN CONTROLS -----------------
+with tab4:
+    st.markdown('<div class="corp-card"><h4>🛡 Admin User Controls</h4>', unsafe_allow_html=True)
+    profiles = get_all_verified_profiles()
+    for p_em, p_nm, p_p, p_r in profiles:
+        c1, c2, c3 = st.columns([3, 1.5, 1], vertical_alignment="center")
+        with c1: st.write(f"👤 **{p_nm}** ({p_em})")
+        with c2: st.write(f"Role: `{p_r}`")
+        with c3:
+            if st.button("Revoke", key=f"rev_{p_em}", type="secondary"):
+                delete_employee_profile(p_em)
+                st.rerun()
+    st.markdown('</div>', unsafe_allow_html=True)
