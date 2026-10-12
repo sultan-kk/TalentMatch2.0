@@ -1,9 +1,7 @@
 """
 ARL TalentMatch — Official Corporate Edition (Enterprise Suite)
 =============================================================================
-Branding: Attock Refinery Limited (ARL Forest Green & Adaptive Theme)
-Features: Guaranteed 165x165px Square Profile Cards, Emerald Glow Hover,
-Permanent Supabase Badges, Deduplication Engine, AI Vision OCR for JPG/PNG.
+Branding: Attock Refinery Limited (ARL Forest Green & Premium High-Contrast Theme)
 """
 
 import io
@@ -14,6 +12,7 @@ import hashlib
 import random
 import smtplib
 import base64
+import time
 from datetime import datetime
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
@@ -36,7 +35,6 @@ EXE_DIRECT_DOWNLOAD_URL = "https://github.com/sultan-kk/TalentMatch2.0/releases/
 AVAILABLE_BADGES = ["👔", "💼", "🛡️", "🎖️", "⚡", "🔬", "🛢️", "⚙️", "📈", "🎯", "👑", "🚀", "💡", "💻", "💎", "🏛️"]
 
 def get_arl_favicon():
-    """Generates an authentic, elegant, and attractive ARL geometric favicon."""
     img = Image.new("RGBA", (128, 128), (255, 255, 255, 0))
     draw = ImageDraw.Draw(img)
     draw.ellipse([(8, 8), (120, 120)], fill=(28, 30, 34), outline=(16, 185, 129), width=6)
@@ -61,7 +59,7 @@ def init_supabase():
         url = st.secrets["SUPABASE_URL"]
         key = st.secrets["SUPABASE_KEY"]
         return create_client(url, key)
-    except Exception as e:
+    except Exception:
         return None
 
 supabase: Client = init_supabase()
@@ -183,17 +181,6 @@ def register_initial_employee(name, email, password):
     except Exception as e:
         return False, f"Database Error: {e}"
 
-def verify_otp_code(email, entered_otp):
-    if not supabase:
-        return False, "Supabase client not initialized."
-    try:
-        response = supabase.table("hr_users").select("otp").eq("email", email.lower().strip()).execute().data
-        if response and response[0].get("otp") == entered_otp:
-            return True, "OTP verified successfully!"
-    except Exception:
-        pass
-    return False, "Invalid OTP code."
-
 def save_employee_pin(email, pin):
     if not supabase:
         return False, "Supabase client not initialized."
@@ -240,6 +227,7 @@ def load_arl_job_catalog():
         except Exception:
             pass
     return DEFAULT_ARL_CATALOG
+
 
 # ===========================================================================
 # 4. DATABASE STORAGE LOGIC
@@ -332,7 +320,7 @@ def save_candidates_to_repository(new_candidates):
 
 
 # ===========================================================================
-# 5. ADAPTIVE CSS (SPACIOUS UI & BOMBPROOF OVERRIDES)
+# 5. ADAPTIVE CSS (HIGH CONTRAST & PREMIUM SPACING)
 # ===========================================================================
 ADAPTIVE_CSS = """
 <style>
@@ -357,28 +345,23 @@ textarea, div[data-testid="stForm"] input, [data-testid="stTextInput"] input {
     -webkit-user-select: auto !important;
 }
 
-/* Make Buttons Sleek and Rounded globally */
-button[kind="primary"], button[kind="secondary"] {
-    border-radius: 12px !important;
-}
+/* Rounded UI */
+button[kind="primary"], button[kind="secondary"] { border-radius: 12px !important; }
 
-/* Style the Streamlit File Uploader to look Premium */
+/* Style the Streamlit File Uploader */
 [data-testid="stFileUploader"] > section {
-    background-color: rgba(16, 185, 129, 0.05) !important;
-    border: 2px dashed rgba(16, 185, 129, 0.4) !important;
+    background-color: transparent !important;
+    border: 2px dashed rgba(16, 185, 129, 0.5) !important;
     border-radius: 16px !important;
     padding: 2.5rem !important;
     transition: all 0.3s ease !important;
     margin-bottom: 1.5rem !important;
 }
-[data-testid="stFileUploader"] > section:hover {
-    border-color: #10B981 !important;
-    background-color: rgba(16, 185, 129, 0.1) !important;
-}
-[data-testid="stFileUploader"] small { display: none !important; } /* Hide file size limit text */
+[data-testid="stFileUploader"] > section:hover { border-color: #10B981 !important; background-color: rgba(16, 185, 129, 0.05) !important; }
+[data-testid="stFileUploader"] small { display: none !important; }
 
 
-/* 1. PERFECTLY ALIGNED PROFILE CARDS */
+/* 1. PROFILE CARDS */
 div[data-testid="stColumn"]:has(.profile-card-marker) {
     position: relative !important; display: flex !important; flex-direction: column !important;
     align-items: center !important; justify-content: flex-start !important; padding-top: 15px !important;
@@ -387,8 +370,7 @@ div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="primary"] {
     width: 165px !important; height: 165px !important; min-width: 165px !important; max-width: 165px !important;
     border-radius: 26px !important; backdrop-filter: blur(10px) !important; -webkit-backdrop-filter: blur(10px) !important;
     padding: 0 !important; margin: 0 auto !important; display: flex !important; align-items: center !important; justify-content: center !important;
-    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important; z-index: 1 !important;
-    cursor: pointer !important;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important; z-index: 1 !important; cursor: pointer !important;
 }
 div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="primary"] p { font-size: 5rem !important; line-height: 1 !important; margin: 0 !important; transition: transform 0.3s ease !important; cursor: pointer !important; }
 div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="primary"]:hover { transform: translateY(-6px) !important; }
@@ -405,17 +387,13 @@ div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="secondary"] {
 div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="secondary"] p { font-size: 14px !important; margin: 0 !important; cursor: pointer !important;}
 div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="secondary"]:hover { transform: scale(1.15) !important; }
 
-/* TEXT ALIGNMENT */
-.profile-meta-container {
-    display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
-    height: 60px; margin-top: 15px; width: 100%; max-width: 170px;
-}
+.profile-meta-container { display: flex; flex-direction: column; align-items: center; justify-content: flex-start; height: 60px; margin-top: 15px; width: 100%; max-width: 170px; }
 .profile-meta-title { font-size: 1.15rem; font-weight: 700; line-height: 1.2; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; }
 .profile-meta-role { font-size: 0.72rem; font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 0.6px; margin-top: 4px; text-align: center; }
 
 
 /* ========================================= */
-/* 2. THE P.I.N MODAL & SEAMLESS INPUT FIX   */
+/* 2. P.I.N MODAL (Transparent & Centered)   */
 /* ========================================= */
 div[data-testid="stDialog"] > div {
     backdrop-filter: blur(25px) !important; -webkit-backdrop-filter: blur(25px) !important;
@@ -446,74 +424,94 @@ div[role="dialog"] div[data-testid="stTextInput"] input {
 div[role="dialog"] div[data-testid="stTextInput"] input:focus { border: none !important; outline: none !important; box-shadow: none !important; background: transparent !important; border-bottom: 2px solid #10B981 !important;}
 div[role="dialog"] div[data-testid="stTextInput"] button { display: none !important; visibility: hidden !important; width: 0 !important;}
 
+/* Download Setup Button Animation */
+@keyframes pulseGlow { 0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); } 70% { box-shadow: 0 0 0 20px rgba(16, 185, 129, 0); } 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); } }
+.dl-btn { background: #10B981 !important; color: #FFFFFF !important; padding: 1.2rem 3.5rem !important; border-radius: 50px !important; font-weight: 800 !important; font-size: 1.2rem !important; text-decoration: none !important; display: inline-block !important; transition: all 0.3s ease !important; animation: pulseGlow 2s infinite !important; }
+.dl-btn:hover { transform: translateY(-3px) scale(1.02) !important; background: #059669 !important; }
+
 
 /* ========================================= */
-/* === THEME COLORS (DARK MODE DEFAULT) ==== */
+/* === THEME COLORS: DARK MODE (HIGH CONTRAST) */
 /* ========================================= */
 @media (prefers-color-scheme: dark) {
-    .stApp, [data-testid="stAppViewContainer"], .main, body, html { background: radial-gradient(circle at top right, #055030 0%, #01150c 100%) !important; background-color: #01150c !important; color: #E2E8F0 !important; }
-    h1, h2, h3, h4, h5, h6, p, label, .stMarkdown, div { color: #FFFFFF; }
+    .stApp, [data-testid="stAppViewContainer"], .main, body, html { 
+        background: #0B1120 !important; /* Premium Dark Slate / Almost Black */
+        background-color: #0B1120 !important; 
+        color: #F8FAFC !important; 
+    }
+    
+    h1, h2, h3, h4, h5, h6, p, label, .stMarkdown, div { color: #F8FAFC; }
     h1 span:not(.dl-title-gradient), h2 span, h3 span { color: #10B981 !important; }
-    
-    div[data-testid="stTabs"] button * { color: #FFFFFF !important; }
+
+    div[data-testid="stTabs"] button * { color: #CBD5E1 !important; }
     div[data-testid="stTabs"] button[aria-selected="true"] * { color: #10B981 !important; font-weight: 800 !important; }
+
+    button[kind="secondary"] { background-color: #1E293B !important; border: 1px solid #334155 !important; }
+    button[kind="secondary"] * { color: #F8FAFC !important; }
+    button[kind="secondary"]:hover { border-color: #10B981 !important; background-color: rgba(16, 185, 129, 0.1) !important;}
     
-    button[kind="secondary"] { background-color: #36454F !important; border: 1px solid #10B981 !important; }
-    button[kind="secondary"] * { color: #FFFFFF !important; }
-    button[kind="secondary"]:hover { background-color: #10B981 !important; }
-    button[kind="secondary"]:hover * { color: #01150c !important; }
-    div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="secondary"] { background-color: rgba(16, 185, 129, 0.85) !important; border: 2px solid #01150c !important; }
-    
+    div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="secondary"] { background-color: rgba(16, 185, 129, 0.85) !important; border: 2px solid #0B1120 !important; }
+
     button[kind="primary"], button[kind="primaryFormSubmit"] { background-color: #10B981 !important; border: none !important; cursor: pointer !important;}
     button[kind="primary"] *, button[kind="primaryFormSubmit"] * { color: #01150c !important; font-weight: 800 !important; cursor: pointer !important;}
-    button[kind="primary"]:disabled { background-color: rgba(16, 185, 129, 0.2) !important; }
-    button[kind="primary"]:disabled * { color: #64748b !important; }
-    div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="primary"] { background: rgba(6, 68, 41, 0.6) !important; border: 2px solid rgba(16, 185, 129, 0.6) !important; }
+    button[kind="primary"]:disabled { background-color: #1E293B !important; border: 1px solid #334155 !important;}
+    button[kind="primary"]:disabled * { color: #64748B !important; }
+
+    div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="primary"] { background: #1E293B !important; border: 1px solid #334155 !important; }
+    div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="primary"]:hover { border-color: #10B981 !important; box-shadow: 0 0 20px rgba(16, 185, 129, 0.2) !important;}
     
-    .profile-meta-title { color: #FFFFFF !important; }
-    div[data-testid="stDialog"] > div { background: rgba(4, 45, 26, 0.8) !important; border: 1px solid #10B981 !important; }
-    .pin-modal-title { color: #10B981 !important; text-shadow: 0 0 15px rgba(16, 185, 129, 0.5) !important; }
+    div[data-testid="stDialog"] > div { background: #1E293B !important; border: 1px solid rgba(16, 185, 129, 0.4) !important; }
+    .pin-modal-title { color: #10B981 !important; text-shadow: none !important; }
     
-    /* Optimized Spacious Cards for Dashboard */
-    .corp-hero { background: rgba(4, 45, 26, 0.4) !important; border: 1px solid rgba(16, 185, 129, 0.2) !important; border-left: 5px solid #10B981 !important; padding: 2rem 2.5rem; border-radius: 16px; margin-bottom: 2rem; margin-top: 1rem;}
-    .corp-card { background: rgba(4, 45, 26, 0.4) !important; border: 1px solid rgba(16, 185, 129, 0.2) !important; padding: 2.5rem; border-radius: 16px; margin-bottom: 2rem; }
+    /* High Contrast Spacious Cards */
+    .corp-hero { background: #1E293B !important; border: 1px solid #334155 !important; border-left: 5px solid #10B981 !important; padding: 2rem 2.5rem; border-radius: 16px; margin-bottom: 2rem; margin-top: 1rem;}
+    .corp-card { background: #1E293B !important; border: 1px solid #334155 !important; padding: 2.5rem; border-radius: 16px; margin-bottom: 2rem; }
     .corp-card h4 { color: #34D399 !important; font-size: 1.4rem; margin-bottom: 1.5rem; }
+
+    .dl-card { background: #1E293B; border: 1px solid #334155; border-top: 4px solid #10B981; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
+    .dl-feature-badge { background: #0B1120; border: 1px solid #334155; color: #F8FAFC; }
 }
 
 
 /* ========================================= */
-/* === THEME COLORS (LIGHT MODE OVERRIDES)== */
+/* === THEME COLORS: LIGHT MODE (CLEAN SAAS) */
 /* ========================================= */
 @media (prefers-color-scheme: light) {
-    html, body, .stApp, [data-testid="stAppViewContainer"], .main { background: #F4FBF7 !important; background-color: #F4FBF7 !important; background-image: none !important; }
+    html, body, .stApp, [data-testid="stAppViewContainer"], .main { 
+        background: #F8FAFC !important; background-color: #F8FAFC !important; background-image: none !important; 
+    }
+    
     h1, h2, h3, h4, h5, h6, p, label, .stMarkdown, div { color: #0F172A !important; }
-    
-    div[data-testid="stTabs"] button * { color: #475569 !important; }
+
+    div[data-testid="stTabs"] button * { color: #64748B !important; }
     div[data-testid="stTabs"] button[aria-selected="true"] * { color: #059669 !important; font-weight: 800 !important; }
+
+    button[kind="secondary"] { background-color: #FFFFFF !important; border: 1px solid #E2E8F0 !important; }
+    button[kind="secondary"] * { color: #0F172A !important; }
+    button[kind="secondary"]:hover { border-color: #059669 !important; background-color: #F4FBF7 !important;}
     
-    button[kind="secondary"] { background-color: #FFFFFF !important; border: 1px solid #059669 !important; }
-    button[kind="secondary"] * { color: #000000 !important; }
-    button[kind="secondary"]:hover { background-color: #059669 !important; }
-    button[kind="secondary"]:hover * { color: #FFFFFF !important; }
     div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="secondary"] { background-color: #10B981 !important; border: 2px solid #FFFFFF !important; }
     div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="secondary"] p { color: #FFFFFF !important; }
-    
+
     button[kind="primary"], button[kind="primaryFormSubmit"] { background-color: #10B981 !important; border: none !important; cursor: pointer !important;}
     button[kind="primary"] *, button[kind="primaryFormSubmit"] * { color: #FFFFFF !important; font-weight: 800 !important; cursor: pointer !important;}
-    button[kind="primary"]:disabled { background-color: rgba(16, 185, 129, 0.2) !important; }
-    button[kind="primary"]:disabled * { color: #94a3b8 !important; }
-    div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="primary"] { background: rgba(255, 255, 255, 0.9) !important; border: 2px solid rgba(16, 185, 129, 0.5) !important; }
+    button[kind="primary"]:disabled { background-color: #E2E8F0 !important; border: none !important; }
+    button[kind="primary"]:disabled * { color: #94A3B8 !important; }
+
+    div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="primary"] { background: #FFFFFF !important; border: 1px solid #E2E8F0 !important; box-shadow: 0 4px 10px rgba(0,0,0,0.05) !important;}
+    div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="primary"] p { color: #000000 !important; }
+    div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="primary"]:hover { border-color: #10B981 !important; box-shadow: 0 10px 25px rgba(16, 185, 129, 0.15) !important;}
     
-    .profile-meta-title { color: #0F172A !important; }
     div[data-testid="stDialog"] > div { background: #FFFFFF !important; border: 1px solid rgba(16, 185, 129, 0.4) !important; }
     .pin-modal-title { color: #059669 !important; text-shadow: none !important; }
     
-    /* Optimized Spacious Cards for Dashboard */
-    .corp-hero { background: #FFFFFF !important; border: 1px solid rgba(16, 185, 129, 0.3) !important; border-left: 5px solid #10B981 !important; padding: 2rem 2.5rem; border-radius: 16px; margin-bottom: 2rem; margin-top: 1rem; box-shadow: 0 10px 30px rgba(0,0,0,0.03) !important;}
-    .corp-card { background: #FFFFFF !important; border: 1px solid rgba(16, 185, 129, 0.3) !important; padding: 2.5rem; border-radius: 16px; margin-bottom: 2rem; box-shadow: 0 10px 30px rgba(0,0,0,0.03) !important;}
+    /* Light High Contrast Spacious Cards */
+    .corp-hero { background: #FFFFFF !important; border: 1px solid #E2E8F0 !important; border-left: 5px solid #10B981 !important; padding: 2rem 2.5rem; border-radius: 16px; margin-bottom: 2rem; margin-top: 1rem; box-shadow: 0 4px 15px rgba(0,0,0,0.03) !important;}
+    .corp-card { background: #FFFFFF !important; border: 1px solid #E2E8F0 !important; padding: 2.5rem; border-radius: 16px; margin-bottom: 2rem; box-shadow: 0 4px 15px rgba(0,0,0,0.03) !important;}
     .corp-card h4 { color: #059669 !important; font-size: 1.4rem; margin-bottom: 1.5rem;}
     
-    [data-testid="stFileUploader"] > section { background-color: #F4FBF7 !important; }
+    .dl-card { background: #FFFFFF; border: 1px solid #E2E8F0; border-top: 4px solid #10B981; box-shadow: 0 20px 50px rgba(16, 185, 129, 0.1); }
+    .dl-feature-badge { background: #F8FAFC; border: 1px solid #E2E8F0; color: #0F172A; }
 }
 </style>
 """
@@ -533,10 +531,11 @@ if "show_registration" not in st.session_state: st.session_state.show_registrati
 if "pending_pin_email" not in st.session_state: st.session_state.pending_pin_email = None
 if "pending_otp_email" not in st.session_state: st.session_state.pending_otp_email = None
 if "show_download_page" not in st.session_state: st.session_state.show_download_page = False
+if "upload_success_msg" not in st.session_state: st.session_state.upload_success_msg = ""
 
 
 # ===========================================================================
-# 7. DIALOGS (MINIMALIST PIN WITH NO BUTTON)
+# 7. DIALOGS (MINIMALIST PIN)
 # ===========================================================================
 @st.dialog(" ")  
 def show_pin_dialog(email, name, role):
@@ -819,9 +818,7 @@ def evaluate_candidate_against_jd(client, candidate_row, jd_text, selected_job_t
 df_all = load_database()
 user_avatar = get_user_avatar(st.session_state.hr_email)
 
-# --- RESTRUCTURED SPACIOUS HEADER ---
 col_h1, col_h2, col_h3 = st.columns([7, 1.5, 1.5], vertical_alignment="center")
-
 with col_h1:
     st.markdown(f"""
         <div style="display: flex; align-items: center; gap: 20px;">
@@ -856,11 +853,16 @@ st.markdown(f"""
     </div>
 """, unsafe_allow_html=True)
 
-
 tab1, tab2, tab3, tab4 = st.tabs(["📥 1. Repository Upload", "🎯 2. JD Screening", "🗄️ 3. Live Database Grids", "🛡️ 4. Admin Controls"])
 
 with tab1:
     st.markdown('<div class="corp-card"><h4>📥 Step 1: Ingest & Parse Resumes</h4>', unsafe_allow_html=True)
+    
+    # Handle Success Message Display properly via Session State
+    if st.session_state.upload_success_msg:
+        st.success(st.session_state.upload_success_msg)
+        st.session_state.upload_success_msg = "" # Clear after displaying once
+
     uploaded_files = st.file_uploader("Upload Candidates (PDF, DOCX, JPG)", type=ACCEPTED_TYPES, accept_multiple_files=True)
     g_key = st.secrets.get("GROQ_API_KEY", os.environ.get("GROQ_API_KEY", ""))
     
@@ -880,8 +882,8 @@ with tab1:
                 
                 if batch:
                     ins, skp = save_candidates_to_repository(batch)
-                    st.success(f"✅ Processed successfully! Extracted {len(batch)} candidates. Saved {ins} new records (Skipped {skp} duplicates).")
-                    st.rerun()
+                    st.session_state.upload_success_msg = f"✅ Processed successfully! Extracted {len(batch)} candidates. Saved {ins} new records (Skipped {skp} duplicates)."
+                    st.rerun() # Reloads app, success message will now be caught and displayed at the top!
                 else:
                     st.warning("⚠️ No valid candidates found. Check if the files contain readable text or if API limits were reached.")
     st.markdown('</div>', unsafe_allow_html=True)
