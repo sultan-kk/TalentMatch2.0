@@ -330,6 +330,7 @@ def save_candidates_to_repository(new_candidates):
         except Exception: skipped += 1
     return inserted, skipped
 
+
 # ===========================================================================
 # 5. ADAPTIVE CSS (FIXED TABS, BUTTONS, & LIGHT/DARK MODE)
 # ===========================================================================
@@ -346,21 +347,16 @@ html, body, [class*="css"], .stApp {
 
 /* 1. PERFECTLY ALIGNED PROFILE CARDS */
 div[data-testid="stColumn"]:has(.profile-card-marker) {
-    position: relative !important;
-    display: flex !important; flex-direction: column !important;
+    position: relative !important; display: flex !important; flex-direction: column !important;
     align-items: center !important; justify-content: flex-start !important; padding-top: 15px !important;
 }
 div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="primary"] {
-    width: 165px !important; height: 165px !important;
-    min-width: 165px !important; max-width: 165px !important;
+    width: 165px !important; height: 165px !important; min-width: 165px !important; max-width: 165px !important;
     border-radius: 26px !important; backdrop-filter: blur(10px) !important; -webkit-backdrop-filter: blur(10px) !important;
-    padding: 0 !important; margin: 0 auto !important;
-    display: flex !important; align-items: center !important; justify-content: center !important;
+    padding: 0 !important; margin: 0 auto !important; display: flex !important; align-items: center !important; justify-content: center !important;
     transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important; z-index: 1 !important;
 }
-div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="primary"] p {
-    font-size: 5rem !important; line-height: 1 !important; margin: 0 !important; transition: transform 0.3s ease !important;
-}
+div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="primary"] p { font-size: 5rem !important; line-height: 1 !important; margin: 0 !important; transition: transform 0.3s ease !important; }
 div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="primary"]:hover { transform: translateY(-6px) !important; }
 
 /* THE EDIT PENCIL BADGE */
@@ -395,7 +391,6 @@ div[role="dialog"] {
     border-radius: 20px !important; box-shadow: none !important; padding: 2.5rem 2rem !important; width: 340px !important;
 }
 div[role="dialog"] > div:first-child > div:first-child { display: none !important; }
-
 .pin-modal-title { text-align: center; font-size: 1.8rem; font-weight: 800; letter-spacing: 8px; margin-bottom: 25px; margin-top: -10px; }
 .pin-input-container div[data-baseweb="base-input"], .pin-input-container div[data-baseweb="input"] {
     background-color: transparent !important; background: transparent !important; border: none !important; box-shadow: none !important;
@@ -412,129 +407,145 @@ div[role="dialog"] button[kind="primaryFormSubmit"] {
 }
 div[role="dialog"] button[kind="primaryFormSubmit"]:hover { transform: scale(1.02); }
 
-/* Sections/Cards Glassmorphism */
-.corp-hero, .corp-card {
-    backdrop-filter: blur(14px) !important; -webkit-backdrop-filter: blur(14px) !important;
-    border-radius: 14px; padding: 1.5rem 1.8rem; margin-bottom: 1.5rem;
-}
-.corp-card h4 { margin-top: 0; margin-bottom: 1rem; font-weight: 700; }
-
 
 /* ========================================= */
 /* === THEME COLORS (DARK MODE DEFAULT) ==== */
 /* ========================================= */
-.stApp, [data-testid="stAppViewContainer"] {
-    background: radial-gradient(circle at top right, #055030 0%, #01150c 100%) !important;
-    color: #E2E8F0 !important;
+@media (prefers-color-scheme: dark) {
+    /* Background Override */
+    .stApp, [data-testid="stAppViewContainer"], .main {
+        background: radial-gradient(circle at top right, #055030 0%, #01150c 100%) !important;
+        color: #E2E8F0 !important;
+    }
+    
+    /* Tabs Fix (Dark Mode) */
+    button[data-baseweb="tab"] p, button[data-baseweb="tab"] div, button[data-baseweb="tab"] span { 
+        color: #A7F3D0 !important; 
+    }
+    button[data-baseweb="tab"][aria-selected="true"] p, button[data-baseweb="tab"][aria-selected="true"] span { 
+        color: #10B981 !important; 
+        font-weight: 800 !important; 
+    }
+
+    /* Secondary Buttons -> Charcoal background, White Text */
+    button[kind="secondary"], button[kind="secondaryFormSubmit"] {
+        background-color: #36454F !important;
+        border: 1px solid #10B981 !important;
+    }
+    button[kind="secondary"] p, button[kind="secondary"] div, button[kind="secondary"] span { 
+        color: #FFFFFF !important; 
+    }
+    button[kind="secondary"]:hover, button[kind="secondaryFormSubmit"]:hover { 
+        background-color: #10B981 !important; 
+    }
+    button[kind="secondary"]:hover p, button[kind="secondary"]:hover div { 
+        color: #01150c !important; 
+    }
+
+    /* Pencil override (keep green) */
+    div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="secondary"] {
+        background-color: rgba(16, 185, 129, 0.85) !important;
+        border: 2px solid #01150c !important;
+    }
+
+    /* Avatar Primary Buttons */
+    div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="primary"] {
+        background: rgba(6, 68, 41, 0.6) !important; border: 2px solid rgba(16, 185, 129, 0.6) !important;
+    }
+    .profile-meta-title { color: #FFFFFF !important; }
+    
+    /* Modals */
+    div[data-testid="stModal"] { background: rgba(1, 21, 12, 0.5) !important; }
+    div[role="dialog"] { background: rgba(4, 45, 26, 0.5) !important; border: 1px solid rgba(16, 185, 129, 0.4) !important; }
+    .pin-modal-title { color: #10B981; text-shadow: 0 0 15px rgba(16, 185, 129, 0.5); }
+    .pin-input-container input { color: #10B981 !important; border-bottom: 2px solid rgba(16, 185, 129, 0.3) !important; }
+    .pin-input-container input:focus { border-bottom: 2px solid #34D399 !important; }
+    div[role="dialog"] button[kind="primaryFormSubmit"] { background: #10B981 !important; color: #01150c !important; }
+    
+    /* Glass Cards */
+    .corp-hero, .corp-card {
+        background: rgba(4, 45, 26, 0.55) !important; 
+        border: 1px solid rgba(16, 185, 129, 0.35) !important;
+        border-left: 5px solid #10B981 !important; 
+        color: #FFFFFF !important;
+    }
+    .corp-card h4 { color: #34D399 !important; }
 }
 
-/* Tab Text Fix (Dark Mode) */
-button[data-baseweb="tab"] p, button[data-baseweb="tab"] div { color: #E2E8F0 !important; }
-button[data-baseweb="tab"][aria-selected="true"] p { color: #10B981 !important; font-weight: bold !important; }
-
-/* Secondary Button Fix (Revoke Button & Pencil) */
-button[kind="secondary"] {
-    background: rgba(16, 185, 129, 0.1) !important; border: 1px solid #10B981 !important;
-}
-button[kind="secondary"] p { color: #10B981 !important; }
-button[kind="secondary"]:hover { background: #10B981 !important; }
-button[kind="secondary"]:hover p { color: #01150c !important; }
-
-/* Pencil Button Override */
-div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="secondary"] {
-    background: rgba(16, 185, 129, 0.85) !important; border: 2px solid #01150c !important;
-}
-div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="secondary"] p { color: #FFFFFF !important; }
-div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="secondary"]:hover { background: #10B981 !important; }
-
-
-/* Primary Avatar Cards (Dark Mode) */
-div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="primary"] {
-    background: rgba(6, 68, 41, 0.6) !important; border: 2px solid rgba(16, 185, 129, 0.6) !important; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4) !important;
-}
-div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="primary"]:hover {
-    border-color: #10B981 !important; box-shadow: 0 0 25px rgba(16, 185, 129, 0.7), inset 0 0 15px rgba(16, 185, 129, 0.3) !important;
-}
-.profile-meta-title { color: #FFFFFF !important; }
-.profile-meta-role { color: #10B981 !important; }
-
-/* Modals & Inputs */
-div[data-testid="stModal"] { background: rgba(1, 21, 12, 0.5) !important; }
-div[role="dialog"] { background: rgba(4, 45, 26, 0.5) !important; border: 1px solid rgba(16, 185, 129, 0.4) !important; }
-.pin-modal-title { color: #10B981; text-shadow: 0 0 15px rgba(16, 185, 129, 0.5); }
-.pin-input-container input { color: #10B981 !important; border-bottom: 2px solid rgba(16, 185, 129, 0.3) !important; }
-.pin-input-container input:focus { border-bottom: 2px solid #34D399 !important; }
-.pin-input-container input::placeholder { color: rgba(16, 185, 129, 0.25) !important; }
-div[role="dialog"] button[kind="primaryFormSubmit"] { background: #10B981 !important; color: #01150c !important; }
-div[role="dialog"] button[kind="primaryFormSubmit"]:hover { background: #059669 !important; }
-
-.corp-hero, .corp-card {
-    background: rgba(4, 45, 26, 0.55) !important; border: 1px solid rgba(16, 185, 129, 0.35) !important;
-    border-left: 5px solid #10B981 !important; color: #FFFFFF !important; box-shadow: 0 10px 30px rgba(0,0,0,0.3) !important;
-}
-.corp-card h4 { color: #34D399; }
 
 /* ========================================= */
 /* === THEME COLORS (LIGHT MODE OVERRIDES)== */
 /* ========================================= */
 @media (prefers-color-scheme: light) {
-    /* Hard Target to force Light mode background */
-    .stApp, [data-testid="stAppViewContainer"], html, body { 
-        background: #F4FBF7 !important; 
+    /* Background Override -> Pure Light */
+    .stApp, [data-testid="stAppViewContainer"], .main { 
+        background-color: #F4FBF7 !important; 
         background-image: none !important;
-        color: #0F172A !important; 
     }
     
-    /* Tab Text Fix (Light Mode) */
-    button[data-baseweb="tab"] p, button[data-baseweb="tab"] div { color: #475569 !important; }
-    button[data-baseweb="tab"][aria-selected="true"] p { color: #059669 !important; font-weight: bold !important; }
-
-    /* Secondary Button Fix (Revoke) Light Mode */
-    button[kind="secondary"] {
-        background: #FFFFFF !important; border: 1px solid #059669 !important;
+    /* General Text overrides */
+    h1, h2, h3, h4, h5, h6, p, label, .stMarkdown, div {
+        color: #0F172A !important;
     }
-    button[kind="secondary"] p { color: #059669 !important; }
-    button[kind="secondary"]:hover { background: #059669 !important; }
-    button[kind="secondary"]:hover p { color: #FFFFFF !important; }
 
-    /* Pencil Button Override (Light Mode) */
+    /* Tabs Fix (Light Mode) */
+    button[data-baseweb="tab"] p, button[data-baseweb="tab"] div, button[data-baseweb="tab"] span { 
+        color: #475569 !important; 
+    }
+    button[data-baseweb="tab"][aria-selected="true"] p, button[data-baseweb="tab"][aria-selected="true"] span { 
+        color: #059669 !important; 
+        font-weight: 800 !important; 
+    }
+
+    /* Secondary Buttons -> White background, Black Text */
+    button[kind="secondary"], button[kind="secondaryFormSubmit"] {
+        background-color: #FFFFFF !important; 
+        border: 1px solid #059669 !important;
+    }
+    button[kind="secondary"] p, button[kind="secondary"] div, button[kind="secondary"] span { 
+        color: #000000 !important; 
+    }
+    button[kind="secondary"]:hover, button[kind="secondaryFormSubmit"]:hover { 
+        background-color: #059669 !important; 
+    }
+    button[kind="secondary"]:hover p, button[kind="secondary"]:hover div { 
+        color: #FFFFFF !important; 
+    }
+
+    /* Pencil override (keep green) */
     div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="secondary"] {
-        background: #10B981 !important; border: 2px solid #FFFFFF !important;
+        background-color: #10B981 !important;
+        border: 2px solid #FFFFFF !important;
     }
     div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="secondary"] p { color: #FFFFFF !important; }
 
-    /* Avatar Cards Light Mode */
+    /* Avatar Primary Buttons */
     div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="primary"] {
-        background: rgba(255, 255, 255, 0.7) !important; border: 2px solid rgba(16, 185, 129, 0.5) !important; box-shadow: 0 10px 25px rgba(16, 185, 129, 0.1) !important;
-    }
-    div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="primary"]:hover {
-        border-color: #059669 !important; box-shadow: 0 0 20px rgba(16, 185, 129, 0.3), inset 0 0 10px rgba(16, 185, 129, 0.1) !important;
+        background: rgba(255, 255, 255, 0.8) !important; border: 2px solid rgba(16, 185, 129, 0.5) !important;
     }
     .profile-meta-title { color: #0F172A !important; }
-    .profile-meta-role { color: #059669 !important; }
-
-    /* Modals Light Mode */
-    div[data-testid="stModal"] { background: rgba(244, 251, 247, 0.6) !important; }
-    div[role="dialog"] { background: rgba(255, 255, 255, 0.9) !important; border: 1px solid rgba(16, 185, 129, 0.4) !important; box-shadow: 0 10px 30px rgba(0,0,0,0.1) !important; }
-    .pin-modal-title { color: #059669; text-shadow: none; }
+    
+    /* Modals */
+    div[data-testid="stModal"] { background: rgba(244, 251, 247, 0.7) !important; }
+    div[role="dialog"] { background: #FFFFFF !important; border: 1px solid rgba(16, 185, 129, 0.4) !important; }
+    .pin-modal-title { color: #059669 !important; text-shadow: none !important; }
     .pin-input-container input { color: #059669 !important; border-bottom: 2px solid rgba(16, 185, 129, 0.3) !important; }
     .pin-input-container input:focus { border-bottom: 2px solid #059669 !important; }
     div[role="dialog"] button[kind="primaryFormSubmit"] { background: #10B981 !important; color: #FFFFFF !important; }
-    div[role="dialog"] button[kind="primaryFormSubmit"]:hover { background: #059669 !important; }
     
-    /* Cards Light Mode */
+    /* Glass Cards */
     .corp-hero, .corp-card {
-        background: rgba(255, 255, 255, 0.8) !important; border: 1px solid rgba(16, 185, 129, 0.3) !important;
-        border-left: 5px solid #10B981 !important; color: #0F172A !important; box-shadow: 0 10px 30px rgba(0,0,0,0.05) !important;
+        background: #FFFFFF !important; 
+        border: 1px solid rgba(16, 185, 129, 0.3) !important;
+        border-left: 5px solid #10B981 !important; 
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05) !important;
     }
     .corp-card h4 { color: #059669 !important; }
-    
-    /* Global Text overrides */
-    h1, h2, h3, p, span, b, div { color: inherit; }
 }
 </style>
 """
 st.markdown(ADAPTIVE_CSS, unsafe_allow_html=True)
+
 
 # ===========================================================================
 # 6. SESSION STATE INITIALIZATION
