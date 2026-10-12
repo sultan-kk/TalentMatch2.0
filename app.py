@@ -331,7 +331,7 @@ def save_candidates_to_repository(new_candidates):
     return inserted, skipped
 
 # ===========================================================================
-# 5. ADAPTIVE CSS (LIGHT & DARK MODE, ORIGINAL DESIGN)
+# 5. ADAPTIVE CSS (FIXED TABS, BUTTONS, & LIGHT/DARK MODE)
 # ===========================================================================
 ADAPTIVE_CSS = """
 <style>
@@ -347,36 +347,25 @@ html, body, [class*="css"], .stApp {
 /* 1. PERFECTLY ALIGNED PROFILE CARDS */
 div[data-testid="stColumn"]:has(.profile-card-marker) {
     position: relative !important;
-    display: flex !important;
-    flex-direction: column !important;
-    align-items: center !important;
-    justify-content: flex-start !important;
-    padding-top: 15px !important;
+    display: flex !important; flex-direction: column !important;
+    align-items: center !important; justify-content: flex-start !important; padding-top: 15px !important;
 }
 div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="primary"] {
     width: 165px !important; height: 165px !important;
     min-width: 165px !important; max-width: 165px !important;
-    min-height: 165px !important; max-height: 165px !important;
-    border-radius: 26px !important;
-    backdrop-filter: blur(10px) !important;
-    -webkit-backdrop-filter: blur(10px) !important;
+    border-radius: 26px !important; backdrop-filter: blur(10px) !important; -webkit-backdrop-filter: blur(10px) !important;
     padding: 0 !important; margin: 0 auto !important;
     display: flex !important; align-items: center !important; justify-content: center !important;
-    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
-    z-index: 1 !important;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important; z-index: 1 !important;
 }
 div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="primary"] p {
-    font-size: 5rem !important; line-height: 1 !important; margin: 0 !important;
-    transition: transform 0.3s ease !important;
+    font-size: 5rem !important; line-height: 1 !important; margin: 0 !important; transition: transform 0.3s ease !important;
 }
-div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="primary"]:hover {
-    transform: translateY(-6px) !important;
-}
+div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="primary"]:hover { transform: translateY(-6px) !important; }
 
 /* THE EDIT PENCIL BADGE */
 div[data-testid="stColumn"]:has(.profile-card-marker) div[data-testid="element-container"]:has(button[kind="secondary"]) {
-    position: absolute !important; top: 20px !important; right: 50% !important;
-    margin-right: -75px !important; z-index: 10 !important; width: auto !important;
+    position: absolute !important; top: 20px !important; right: 50% !important; margin-right: -75px !important; z-index: 10 !important; width: auto !important;
 }
 div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="secondary"] {
     width: 34px !important; height: 34px !important; min-width: 34px !important; min-height: 34px !important;
@@ -430,28 +419,46 @@ div[role="dialog"] button[kind="primaryFormSubmit"]:hover { transform: scale(1.0
 }
 .corp-card h4 { margin-top: 0; margin-bottom: 1rem; font-weight: 700; }
 
+
 /* ========================================= */
 /* === THEME COLORS (DARK MODE DEFAULT) ==== */
 /* ========================================= */
-
-.stApp {
+.stApp, [data-testid="stAppViewContainer"] {
     background: radial-gradient(circle at top right, #055030 0%, #01150c 100%) !important;
     color: #E2E8F0 !important;
 }
+
+/* Tab Text Fix (Dark Mode) */
+button[data-baseweb="tab"] p, button[data-baseweb="tab"] div { color: #E2E8F0 !important; }
+button[data-baseweb="tab"][aria-selected="true"] p { color: #10B981 !important; font-weight: bold !important; }
+
+/* Secondary Button Fix (Revoke Button & Pencil) */
+button[kind="secondary"] {
+    background: rgba(16, 185, 129, 0.1) !important; border: 1px solid #10B981 !important;
+}
+button[kind="secondary"] p { color: #10B981 !important; }
+button[kind="secondary"]:hover { background: #10B981 !important; }
+button[kind="secondary"]:hover p { color: #01150c !important; }
+
+/* Pencil Button Override */
+div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="secondary"] {
+    background: rgba(16, 185, 129, 0.85) !important; border: 2px solid #01150c !important;
+}
+div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="secondary"] p { color: #FFFFFF !important; }
+div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="secondary"]:hover { background: #10B981 !important; }
+
+
+/* Primary Avatar Cards (Dark Mode) */
 div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="primary"] {
-    background: rgba(6, 68, 41, 0.6) !important; border: 2px solid rgba(16, 185, 129, 0.6) !important;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4) !important;
+    background: rgba(6, 68, 41, 0.6) !important; border: 2px solid rgba(16, 185, 129, 0.6) !important; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4) !important;
 }
 div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="primary"]:hover {
     border-color: #10B981 !important; box-shadow: 0 0 25px rgba(16, 185, 129, 0.7), inset 0 0 15px rgba(16, 185, 129, 0.3) !important;
 }
-div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="secondary"] {
-    background: rgba(16, 185, 129, 0.85) !important; border: 2px solid #01150c !important; box-shadow: 0 4px 10px rgba(0,0,0,0.5) !important;
-}
-div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="secondary"]:hover { background: #10B981 !important; }
 .profile-meta-title { color: #FFFFFF !important; }
 .profile-meta-role { color: #10B981 !important; }
 
+/* Modals & Inputs */
 div[data-testid="stModal"] { background: rgba(1, 21, 12, 0.5) !important; }
 div[role="dialog"] { background: rgba(4, 45, 26, 0.5) !important; border: 1px solid rgba(16, 185, 129, 0.4) !important; }
 .pin-modal-title { color: #10B981; text-shadow: 0 0 15px rgba(16, 185, 129, 0.5); }
@@ -471,39 +478,58 @@ div[role="dialog"] button[kind="primaryFormSubmit"]:hover { background: #059669 
 /* === THEME COLORS (LIGHT MODE OVERRIDES)== */
 /* ========================================= */
 @media (prefers-color-scheme: light) {
-    .stApp { background: #F4FBF7 !important; color: #0F172A !important; }
-    html, body, [class*="css"] { color: #0F172A !important; }
+    /* Hard Target to force Light mode background */
+    .stApp, [data-testid="stAppViewContainer"], html, body { 
+        background: #F4FBF7 !important; 
+        background-image: none !important;
+        color: #0F172A !important; 
+    }
     
+    /* Tab Text Fix (Light Mode) */
+    button[data-baseweb="tab"] p, button[data-baseweb="tab"] div { color: #475569 !important; }
+    button[data-baseweb="tab"][aria-selected="true"] p { color: #059669 !important; font-weight: bold !important; }
+
+    /* Secondary Button Fix (Revoke) Light Mode */
+    button[kind="secondary"] {
+        background: #FFFFFF !important; border: 1px solid #059669 !important;
+    }
+    button[kind="secondary"] p { color: #059669 !important; }
+    button[kind="secondary"]:hover { background: #059669 !important; }
+    button[kind="secondary"]:hover p { color: #FFFFFF !important; }
+
+    /* Pencil Button Override (Light Mode) */
+    div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="secondary"] {
+        background: #10B981 !important; border: 2px solid #FFFFFF !important;
+    }
+    div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="secondary"] p { color: #FFFFFF !important; }
+
+    /* Avatar Cards Light Mode */
     div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="primary"] {
-        background: rgba(255, 255, 255, 0.7) !important; border: 2px solid rgba(16, 185, 129, 0.5) !important;
-        box-shadow: 0 10px 25px rgba(16, 185, 129, 0.1) !important;
+        background: rgba(255, 255, 255, 0.7) !important; border: 2px solid rgba(16, 185, 129, 0.5) !important; box-shadow: 0 10px 25px rgba(16, 185, 129, 0.1) !important;
     }
     div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="primary"]:hover {
         border-color: #059669 !important; box-shadow: 0 0 20px rgba(16, 185, 129, 0.3), inset 0 0 10px rgba(16, 185, 129, 0.1) !important;
     }
-    div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="secondary"] {
-        background: rgba(16, 185, 129, 1) !important; border: 2px solid #FFFFFF !important; box-shadow: 0 4px 10px rgba(0,0,0,0.15) !important;
-    }
     .profile-meta-title { color: #0F172A !important; }
     .profile-meta-role { color: #059669 !important; }
 
+    /* Modals Light Mode */
     div[data-testid="stModal"] { background: rgba(244, 251, 247, 0.6) !important; }
-    div[role="dialog"] {
-        background: rgba(255, 255, 255, 0.9) !important; border: 1px solid rgba(16, 185, 129, 0.4) !important; box-shadow: 0 10px 30px rgba(0,0,0,0.1) !important;
-    }
+    div[role="dialog"] { background: rgba(255, 255, 255, 0.9) !important; border: 1px solid rgba(16, 185, 129, 0.4) !important; box-shadow: 0 10px 30px rgba(0,0,0,0.1) !important; }
     .pin-modal-title { color: #059669; text-shadow: none; }
     .pin-input-container input { color: #059669 !important; border-bottom: 2px solid rgba(16, 185, 129, 0.3) !important; }
     .pin-input-container input:focus { border-bottom: 2px solid #059669 !important; }
     div[role="dialog"] button[kind="primaryFormSubmit"] { background: #10B981 !important; color: #FFFFFF !important; }
     div[role="dialog"] button[kind="primaryFormSubmit"]:hover { background: #059669 !important; }
     
+    /* Cards Light Mode */
     .corp-hero, .corp-card {
         background: rgba(255, 255, 255, 0.8) !important; border: 1px solid rgba(16, 185, 129, 0.3) !important;
         border-left: 5px solid #10B981 !important; color: #0F172A !important; box-shadow: 0 10px 30px rgba(0,0,0,0.05) !important;
     }
     .corp-card h4 { color: #059669 !important; }
     
-    /* Global Text inheritance for inline styles in light mode */
+    /* Global Text overrides */
     h1, h2, h3, p, span, b, div { color: inherit; }
 }
 </style>
@@ -618,7 +644,6 @@ if not st.session_state.logged_in:
                 st.rerun()
         st.stop()
 
-    # NOTE: Header text colors removed from inline style to allow CSS inheritance (adaptive light/dark)
     col_t1, col_t2 = st.columns([7.5, 2.5], vertical_alignment="center")
     with col_t1:
         st.markdown("""
