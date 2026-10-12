@@ -316,6 +316,14 @@ def save_candidates_to_repository(new_candidates):
         except Exception: skipped += 1
     return inserted, skipped
 
+# ===========================================================================
+# 4.5 CUSTOM RENDERER FOR TEXT WRAPPED HTML TABLES (Excel Style)
+# ===========================================================================
+def render_wrapped_table(df):
+    """Renders a pandas DataFrame as a beautifully styled, text-wrapping HTML table."""
+    html = df.to_html(index=False, classes="styled-table", escape=False)
+    st.markdown(f'<div class="table-container">{html}</div>', unsafe_allow_html=True)
+
 
 # ===========================================================================
 # 5. ADAPTIVE CSS (HIGH CONTRAST & PREMIUM SPACING)
@@ -330,7 +338,7 @@ html, body, [class*="css"], .stApp { font-family: 'Plus Jakarta Sans', sans-seri
 [data-testid="stSidebar"], [data-testid="collapsedControl"] { display: none !important; }
 
 /* Disable Text Selection and Typing Cursor globally for a Native App feel */
-html, body, .stApp, [data-testid="stAppViewContainer"], .main, h1, h2, h3, h4, h5, h6, p, label, .stMarkdown, div, span {
+html, body, .stApp, [data-testid="stAppViewContainer"], .main, h1, h2, h3, h4, h5, h6, p, label, .stMarkdown, div:not(.styled-table *), span {
     cursor: default !important;
     user-select: none !important;
     -webkit-user-select: none !important;
@@ -356,8 +364,13 @@ button[kind="primary"], button[kind="secondary"] { border-radius: 12px !importan
     margin-bottom: 1.5rem !important;
 }
 [data-testid="stFileUploader"] > section:hover { border-color: #10B981 !important; background-color: rgba(16, 185, 129, 0.05) !important; }
-[data-testid="stFileUploader"] small { display: none !important; }
 
+/* Make sure the X button for removing files in uploader stays visible */
+[data-testid="stFileUploader"] button {
+    display: inline-flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
 
 /* 1. PROFILE CARDS */
 div[data-testid="stColumn"]:has(.profile-card-marker) {
@@ -391,7 +404,25 @@ div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="secondary"]:h
 
 
 /* ========================================= */
-/* 2. P.I.N MODAL (Transparent & Centered)   */
+/* 2. CUSTOM HTML TABLE (TEXT WRAP FEATURE)  */
+/* ========================================= */
+.table-container {
+    width: 100%; overflow-x: auto; border-radius: 12px; border: 1px solid rgba(16, 185, 129, 0.3); margin-top: 10px;
+}
+.styled-table {
+    width: 100%; border-collapse: collapse; font-size: 0.9rem; font-family: 'Plus Jakarta Sans', sans-serif; text-align: left;
+}
+.styled-table th {
+    background-color: rgba(16, 185, 129, 0.15); color: #10B981; font-weight: 700; padding: 12px 15px; border-bottom: 2px solid rgba(16, 185, 129, 0.3);
+}
+.styled-table td {
+    padding: 12px 15px; white-space: normal !important; /* FORCES TEXT WRAPPING */
+    word-wrap: break-word; border-bottom: 1px solid rgba(16, 185, 129, 0.1); vertical-align: top;
+    user-select: auto !important; /* Allow users to select text in the table */
+}
+
+/* ========================================= */
+/* 3. P.I.N MODAL (Transparent & Centered)   */
 /* ========================================= */
 div[data-testid="stDialog"] > div {
     backdrop-filter: blur(25px) !important; -webkit-backdrop-filter: blur(25px) !important;
@@ -421,6 +452,9 @@ div[role="dialog"] div[data-testid="stTextInput"] input {
 }
 div[role="dialog"] div[data-testid="stTextInput"] input:focus { border: none !important; outline: none !important; box-shadow: none !important; background: transparent !important; border-bottom: 2px solid #10B981 !important;}
 div[role="dialog"] div[data-testid="stTextInput"] button { display: none !important; visibility: hidden !important; width: 0 !important;}
+
+/* Download Setup Button Animation */
+@keyframes pulseGlow { 0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); } 70% { box-shadow: 0 0 0 20px rgba(16, 185, 129, 0); } 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); } }
 
 
 /* ========================================= */
@@ -460,7 +494,12 @@ div[role="dialog"] div[data-testid="stTextInput"] button { display: none !import
     .corp-hero { background: #1E293B !important; border: 1px solid #334155 !important; border-left: 5px solid #10B981 !important; padding: 2rem 2.5rem; border-radius: 16px; margin-bottom: 2rem; margin-top: 1rem;}
     .corp-card { background: #1E293B !important; border: 1px solid #334155 !important; padding: 2.5rem; border-radius: 16px; margin-bottom: 2rem; }
     .corp-card h4 { color: #34D399 !important; font-size: 1.4rem; margin-bottom: 1.5rem; }
+
+    /* Custom Table Dark */
+    .styled-table td { color: #F8FAFC; border-bottom: 1px solid #334155; }
+    .styled-table tr:hover { background-color: rgba(16, 185, 129, 0.05); }
 }
+
 
 /* ========================================= */
 /* === THEME COLORS: LIGHT MODE (CLEAN SAAS) */
@@ -498,6 +537,11 @@ div[role="dialog"] div[data-testid="stTextInput"] button { display: none !import
     .corp-hero { background: #FFFFFF !important; border: 1px solid #E2E8F0 !important; border-left: 5px solid #10B981 !important; padding: 2rem 2.5rem; border-radius: 16px; margin-bottom: 2rem; margin-top: 1rem; box-shadow: 0 4px 15px rgba(0,0,0,0.03) !important;}
     .corp-card { background: #FFFFFF !important; border: 1px solid #E2E8F0 !important; padding: 2.5rem; border-radius: 16px; margin-bottom: 2rem; box-shadow: 0 4px 15px rgba(0,0,0,0.03) !important;}
     .corp-card h4 { color: #059669 !important; font-size: 1.4rem; margin-bottom: 1.5rem;}
+    
+    /* Custom Table Light */
+    .styled-table td { color: #0F172A; border-bottom: 1px solid #E2E8F0; }
+    .styled-table th { color: #059669; }
+    .styled-table tr:hover { background-color: rgba(16, 185, 129, 0.05); }
 }
 </style>
 """
@@ -518,6 +562,7 @@ if "pending_pin_email" not in st.session_state: st.session_state.pending_pin_ema
 if "pending_otp_email" not in st.session_state: st.session_state.pending_otp_email = None
 if "show_download_page" not in st.session_state: st.session_state.show_download_page = False
 if "upload_success_msg" not in st.session_state: st.session_state.upload_success_msg = ""
+if "uploader_key" not in st.session_state: st.session_state.uploader_key = 1 # Added to clear uploader
 
 
 # ===========================================================================
@@ -558,7 +603,6 @@ if not st.session_state.logged_in:
     saved_profiles = get_all_verified_profiles()
 
     if st.session_state.show_download_page:
-        # Re-engineered Desktop Download Page using robust inline styles
         st.markdown(f"""
             <div style="background: linear-gradient(135deg, #0f172a 0%, #064e3b 100%); padding: 4rem 2rem; border-radius: 24px; text-align: center; border: 1px solid #10b981; box-shadow: 0 20px 50px rgba(0,0,0,0.5); max-width: 800px; margin: 2rem auto;">
                 <div style="font-size: 6rem; margin-bottom: 20px; text-shadow: 0 10px 20px rgba(0,0,0,0.5);">💻</div>
@@ -693,38 +737,27 @@ if not st.session_state.logged_in:
 
 
 # ===========================================================================
-# 9. OCR & MULTI-RESUME EXTRACTION ENGINE (TESSERACT OCR INTEGRATION)
+# 9. OCR & MULTI-RESUME EXTRACTION ENGINE
 # ===========================================================================
 
 def extract_text_from_image(file_bytes: bytes, client: Groq = None) -> str:
-    """Extracts text from PNG/JPG/JPEG using Tesseract OCR locally (No Vision API Needed)."""
     try:
         from PIL import Image
         import pytesseract
-        
-        # Open image from bytes
         img = Image.open(io.BytesIO(file_bytes))
-        
-        # Run local OCR
         extracted_text = pytesseract.image_to_string(img)
-        
         if extracted_text and len(extracted_text.strip()) > 5:
             return extracted_text.strip()
         else:
-            st.warning("⚠️ OCR completed, but no readable text was found in the image.")
             return ""
-            
     except ImportError:
-        st.error("❌ 'pytesseract' library is missing! Please install it via pip.")
+        st.error("❌ 'pytesseract' is missing! Cannot scan images.")
         return ""
     except Exception as e: 
-        st.error(f"❌ Image OCR Error: {e}. (Make sure Tesseract-OCR is installed on your system)")
         return ""
 
 def extract_text_from_pdf(file_bytes: bytes, client: Groq = None) -> str:
     text_parts = []
-    
-    # Method 1: Try PyMuPDF (fitz) - Best for Mixed / Scanned PDFs
     try:
         import fitz
         doc = fitz.open(stream=file_bytes, filetype="pdf")
@@ -733,7 +766,6 @@ def extract_text_from_pdf(file_bytes: bytes, client: Groq = None) -> str:
             if text and len(text.strip()) > 20:
                 text_parts.append(text)
             else:
-                # Local OCR Fallback for Scanned PDF Pages
                 try:
                     from PIL import Image
                     import pytesseract
@@ -742,13 +774,12 @@ def extract_text_from_pdf(file_bytes: bytes, client: Groq = None) -> str:
                     vision_text = pytesseract.image_to_string(img)
                     if vision_text:
                         text_parts.append(vision_text.strip())
-                except Exception as e:
-                    pass # Skip if local OCR fails on page
+                except Exception:
+                    pass 
         return "\n\n---NEXT CANDIDATE PAGE---\n\n".join(text_parts)
     except ImportError:
         pass
 
-    # Method 2: Try pdfplumber
     try:
         import pdfplumber
         with pdfplumber.open(io.BytesIO(file_bytes)) as pdf:
@@ -757,7 +788,6 @@ def extract_text_from_pdf(file_bytes: bytes, client: Groq = None) -> str:
                 if text and len(text.strip()) > 20:
                     text_parts.append(text)
                 else:
-                    # Local OCR Fallback
                     try:
                         from PIL import Image
                         import pytesseract
@@ -765,26 +795,21 @@ def extract_text_from_pdf(file_bytes: bytes, client: Groq = None) -> str:
                         vision_text = pytesseract.image_to_string(pil_img)
                         if vision_text:
                             text_parts.append(vision_text.strip())
-                    except Exception as e:
+                    except Exception:
                         pass
         return "\n\n---NEXT CANDIDATE PAGE---\n\n".join(text_parts)
     except ImportError:
         pass
 
-    # Method 3: Try PyPDF2 (Basic text only, no OCR)
     try:
         import PyPDF2
         reader = PyPDF2.PdfReader(io.BytesIO(file_bytes))
         for page in reader.pages:
             text = page.extract_text()
             if text: text_parts.append(text)
-        if not text_parts:
-            st.warning("⚠️ Scanned PDF detected, but NO Image libraries (PyMuPDF/pdfplumber) found. Cannot extract text.")
         return "\n\n---NEXT CANDIDATE PAGE---\n\n".join(text_parts)
     except Exception as e:
-        st.error(f"⚠️ PDF Read Error: {e}")
         return ""
-
 
 def extract_text_from_docx(file_bytes: bytes) -> str:
     import docx
@@ -809,16 +834,22 @@ def parse_multiple_candidates_from_text(client, full_text):
     seen_identifiers = set()
 
     for chunk in chunks:
+        # HIGHLY OPTIMIZED PROMPT - EXCLUDES INTERNSHIPS
         prompt = f"""
         You are an elite HR AI Resume Parser. The document text provided below contains ONE OR MULTIPLE resumes/CVs stitched together. 
         Your task is to carefully read the text, identify EVERY DISTINCT CANDIDATE separately, and extract their details.
+
+        CRITICAL RULE FOR EXPERIENCE:
+        Calculate the total FULL-TIME PROFESSIONAL experience in years (e.g. "3", "1.5"). 
+        You MUST STRICTLY EXCLUDE any "Internships", "Trainee Programs", "Academic Projects", "Apprenticeships", and "Student Roles" from this calculation. 
+        If a candidate ONLY has internship or trainee experience, their "experience_years" MUST be strictly "0".
 
         Return ONLY a strictly valid JSON object with a "candidates" array. 
         Example Output Format:
         {{
             "candidates": [
                 {{"name": "Ali Khan", "email": "ali@gmail.com", "phone": "03001234567", "education": "BS Computer Science", "experience_years": "2"}},
-                {{"name": "Sara Ahmed", "email": "sara.a@yahoo.com", "phone": "03331234567", "education": "MBA HR", "experience_years": "5"}}
+                {{"name": "Sara Ahmed", "email": "sara.a@yahoo.com", "phone": "03331234567", "education": "MBA HR", "experience_years": "0"}}
             ]
         }}
 
@@ -834,7 +865,6 @@ def parse_multiple_candidates_from_text(client, full_text):
             )
             content = res.choices[0].message.content.strip()
             
-            # Robust JSON cleaning
             if "```json" in content:
                 content = content.split("```json")[1].split("```")[0].strip()
             elif "```" in content:
@@ -914,12 +944,18 @@ tab1, tab2, tab3, tab4 = st.tabs(["📥 1. Repository Upload", "🎯 2. JD Scree
 with tab1:
     st.markdown('<div class="corp-card"><h4>📥 Step 1: Ingest & Parse Resumes</h4>', unsafe_allow_html=True)
     
-    # Handle Success Message Display
     if st.session_state.upload_success_msg:
         st.success(st.session_state.upload_success_msg)
-        st.session_state.upload_success_msg = "" # Clear after displaying once
+        st.session_state.upload_success_msg = "" 
 
-    uploaded_files = st.file_uploader("Upload Candidates (PDF, DOCX, JPG)", type=ACCEPTED_TYPES, accept_multiple_files=True)
+    # Dynamic Key to Clear File Uploader upon Success
+    uploaded_files = st.file_uploader(
+        "Upload Candidates (PDF, DOCX, JPG)", 
+        type=ACCEPTED_TYPES, 
+        accept_multiple_files=True,
+        key=f"uploader_{st.session_state.uploader_key}"
+    )
+    
     g_key = st.secrets.get("GROQ_API_KEY", os.environ.get("GROQ_API_KEY", ""))
     
     if st.button("⚡ Extract & Append", type="primary", use_container_width=True, disabled=not uploaded_files):
@@ -939,7 +975,8 @@ with tab1:
                 if batch:
                     ins, skp = save_candidates_to_repository(batch)
                     st.session_state.upload_success_msg = f"✅ Processed successfully! Extracted {len(batch)} candidates. Saved {ins} new records (Skipped {skp} duplicates)."
-                    st.rerun() # Reloads app to update grids, message shown on reload
+                    st.session_state.uploader_key += 1  # THIS CLEARS THE UPLOADER
+                    st.rerun() 
                 else:
                     st.warning("⚠️ No valid candidates found. Ensure files contain readable text or check for OCR/API errors above.")
     st.markdown('</div>', unsafe_allow_html=True)
@@ -963,28 +1000,47 @@ with tab2:
             st.success("Screening complete!")
     st.markdown('</div>', unsafe_allow_html=True)
 
-# ----------------- TAB 3: DATABASE GRIDS -----------------
+# ----------------- TAB 3: DATABASE GRIDS (WITH TEXT WRAP) -----------------
 with tab3:
     st.markdown('<div class="corp-card"><h4>🗄️ Real-Time Synchronized Database Grids</h4>', unsafe_allow_html=True)
     g1, g2 = st.tabs(["Screened Candidates", "Master Talent Pool"])
+    
     with g1:
         s_df = load_screened_database()
         if not s_df.empty:
-            st.dataframe(s_df, use_container_width=True, height=350)
+            render_wrapped_table(s_df)
+            st.markdown("<br>", unsafe_allow_html=True)
             if st.button("🗑️ Clear Screened Candidates Table", type="secondary", key="clear_screened_btn"):
                 clear_screened_database()
                 st.success("Screened candidates records cleared from Supabase.")
                 st.rerun()
         else:
             st.info("No screened candidates found.")
+            
     with g2:
         m_df = load_database()
         if not m_df.empty:
-            st.dataframe(m_df, use_container_width=True, height=450)
-            if st.button("🗑️ Clear Master Talent Pool", type="secondary", key="clear_pool_btn"):
-                clear_candidate_database()
-                st.success("Master talent pool cleared.")
-                st.rerun()
+            # Drop the noisy columns for display to make it neat
+            display_df = m_df.drop(columns=["DOB", "Reference", "Latest Experience", "Added At"], errors="ignore")
+            render_wrapped_table(display_df)
+            st.markdown("<br>", unsafe_allow_html=True)
+            
+            col1, col2 = st.columns([1, 1])
+            with col1:
+                # Add a CSV Download Button for Excel compatibility
+                csv = m_df.to_csv(index=False).encode('utf-8')
+                st.download_button(
+                    label="📥 Download as Excel (CSV)",
+                    data=csv,
+                    file_name='ARL_TalentPool.csv',
+                    mime='text/csv',
+                    use_container_width=True
+                )
+            with col2:
+                if st.button("🗑️ Clear Master Talent Pool", type="secondary", key="clear_pool_btn", use_container_width=True):
+                    clear_candidate_database()
+                    st.success("Master talent pool cleared.")
+                    st.rerun()
         else:
             st.info("Master talent pool is empty.")
     st.markdown('</div>', unsafe_allow_html=True)
