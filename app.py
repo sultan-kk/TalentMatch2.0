@@ -357,64 +357,37 @@ textarea, div[data-testid="stForm"] input {
     -webkit-user-select: auto !important;
 }
 
-/* ========================================= */
-/* 1. PROFILE CARDS (UNIVERSAL CSS FIX)      */
-/* ========================================= */
-/* Primary Buttons inside layout columns (Profile Cards) */
-[data-testid="stHorizontalBlock"] button[kind="primary"] {
-    width: 165px !important; 
-    height: 165px !important; 
-    min-width: 165px !important; 
-    max-width: 165px !important;
-    border-radius: 26px !important; 
-    backdrop-filter: blur(10px) !important; 
-    -webkit-backdrop-filter: blur(10px) !important;
-    padding: 0 !important; 
-    margin: 0 auto !important; 
-    display: flex !important; 
-    align-items: center !important; 
-    justify-content: center !important;
-    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important; 
-    z-index: 1 !important;
+/* 1. PERFECTLY ALIGNED PROFILE CARDS */
+div[data-testid="stColumn"]:has(.profile-card-marker) {
+    position: relative !important; display: flex !important; flex-direction: column !important;
+    align-items: center !important; justify-content: flex-start !important; padding-top: 15px !important;
+}
+div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="primary"] {
+    width: 165px !important; height: 165px !important; min-width: 165px !important; max-width: 165px !important;
+    border-radius: 26px !important; backdrop-filter: blur(10px) !important; -webkit-backdrop-filter: blur(10px) !important;
+    padding: 0 !important; margin: 0 auto !important; display: flex !important; align-items: center !important; justify-content: center !important;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important; z-index: 1 !important;
     cursor: pointer !important;
 }
-/* Force Emoji Size */
-[data-testid="stHorizontalBlock"] button[kind="primary"] div[data-testid="stMarkdownContainer"] > p {
-    font-size: 5rem !important; 
-    line-height: 1 !important; 
-    margin: 0 !important; 
-    transition: transform 0.3s ease !important; 
-    cursor: pointer !important;
-}
-[data-testid="stHorizontalBlock"] button[kind="primary"]:hover { 
-    transform: translateY(-6px) !important; 
-}
+div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="primary"] p { font-size: 5rem !important; line-height: 1 !important; margin: 0 !important; transition: transform 0.3s ease !important; cursor: pointer !important; }
+div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="primary"]:hover { transform: translateY(-6px) !important; }
 
-/* --- THE EDIT PENCIL BADGE --- */
-button[title="Change Avatar"] {
-    width: 34px !important; 
-    height: 34px !important; 
-    min-width: 34px !important; 
-    min-height: 34px !important;
-    border-radius: 50% !important; 
-    display: flex !important; 
-    align-items: center !important; 
-    justify-content: center !important;
-    padding: 0 !important; 
-    transition: all 0.2s ease !important; 
-    cursor: pointer !important;
-    margin-top: -155px !important; /* Pull it up over the profile card */
-    margin-left: 125px !important; /* Push it to the right corner */
-    position: relative !important;
-    z-index: 10 !important;
+/* THE EDIT PENCIL BADGE */
+div[data-testid="stColumn"]:has(.profile-card-marker) div[data-testid="element-container"]:has(button[kind="secondary"]) {
+    position: absolute !important; top: 20px !important; right: 50% !important; margin-right: -75px !important; z-index: 10 !important; width: auto !important;
 }
-button[title="Change Avatar"] p { font-size: 14px !important; margin: 0 !important; cursor: pointer !important; }
-button[title="Change Avatar"]:hover { transform: scale(1.15) !important; }
+div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="secondary"] {
+    width: 34px !important; height: 34px !important; min-width: 34px !important; min-height: 34px !important;
+    border-radius: 50% !important; display: flex !important; align-items: center !important; justify-content: center !important;
+    padding: 0 !important; transition: all 0.2s ease !important; cursor: pointer !important;
+}
+div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="secondary"] p { font-size: 14px !important; margin: 0 !important; cursor: pointer !important;}
+div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="secondary"]:hover { transform: scale(1.15) !important; }
 
 /* TEXT ALIGNMENT */
 .profile-meta-container {
     display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
-    height: 60px; margin-top: 25px; width: 100%; max-width: 170px;
+    height: 60px; margin-top: 15px; width: 100%; max-width: 170px;
 }
 .profile-meta-title { font-size: 1.15rem; font-weight: 700; line-height: 1.2; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; }
 .profile-meta-role { font-size: 0.72rem; font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 0.6px; margin-top: 4px; text-align: center; }
@@ -425,34 +398,35 @@ button[title="Change Avatar"]:hover { transform: scale(1.15) !important; }
 /* ========================================= */
 
 /* Main Dialog Background & Glassmorphism */
-[role="dialog"] {
+div[data-testid="stDialog"] > div {
     backdrop-filter: blur(25px) !important; -webkit-backdrop-filter: blur(25px) !important;
-    border-radius: 20px !important; box-shadow: 0 10px 40px rgba(0,0,0,0.4) !important;
+    border-radius: 20px !important; box-shadow: 0 10px 40px rgba(0,0,0,0.3) !important;
     padding: 2.5rem 2rem !important; width: 340px !important;
 }
 
 /* Hide Streamlit Close Button (X) */
-[role="dialog"] button[aria-label="Close"], [role="dialog"] header { display: none !important; }
+div[data-testid="stDialog"] button[aria-label="Close"] { display: none !important; }
 
 /* P.I.N Title Style */
 .pin-modal-title { text-align: center; font-size: 1.8rem; font-weight: 800; letter-spacing: 8px; margin-bottom: 30px; margin-top: -10px; }
 
 /* HIDE STREAMLIT INSTRUCTIONS ("Press enter" & "0/4") */
-[data-testid="InputInstructions"], 
-[role="dialog"] small,
-[role="dialog"] [data-testid="stTextInput"] > div > div:nth-child(2) { 
+div[data-testid="InputInstructions"], 
+div[data-testid="stTextInput"] small,
+div[data-testid="stTextInput"] > div > div:nth-child(2) { 
     display: none !important; visibility: hidden !important; opacity: 0 !important; 
     height: 0 !important; margin: 0 !important; padding: 0 !important;
 }
 
 /* Strip Default Input Box & Borders */
-[role="dialog"] [data-baseweb="input"], [role="dialog"] [data-baseweb="base-input"] {
-    background: transparent !important; background-color: transparent !important;
+div[role="dialog"] div[data-testid="stTextInput"] div[data-baseweb="base-input"], 
+div[role="dialog"] div[data-testid="stTextInput"] div[data-baseweb="input"] {
+    background-color: transparent !important; background: transparent !important;
     border: none !important; box-shadow: none !important;
 }
 
 /* PURE TRANSPARENT PIN DOTS (No border, no line, no caret) */
-[role="dialog"] input[type="password"] {
+div[role="dialog"] div[data-testid="stTextInput"] input {
     text-align: center !important; font-size: 4rem !important; letter-spacing: 30px !important;
     background: transparent !important; background-color: transparent !important;
     border: none !important; box-shadow: none !important; outline: none !important;
@@ -460,14 +434,13 @@ button[title="Change Avatar"]:hover { transform: scale(1.15) !important; }
     font-family: 'JetBrains Mono', monospace !important; color: #10B981 !important;
     caret-color: transparent !important; /* HIDES THE BLINKING CURSOR */
     cursor: default !important; /* HIDES I-BEAM CURSOR */
-    border-bottom: 2px solid rgba(16, 185, 129, 0.4) !important;
 }
-[role="dialog"] input[type="password"]:focus { 
-    border-bottom: 2px solid #10B981 !important; outline: none !important; box-shadow: none !important; background: transparent !important; 
+div[role="dialog"] div[data-testid="stTextInput"] input:focus { 
+    border: none !important; outline: none !important; box-shadow: none !important; background: transparent !important; 
 }
 
 /* Hide Eye Icon Aggressively */
-[role="dialog"] [data-baseweb="input"] > div:last-child { display: none !important; visibility: hidden !important; width: 0 !important;}
+div[role="dialog"] div[data-testid="stTextInput"] button { display: none !important; visibility: hidden !important; }
 
 
 /* ========================================= */
@@ -499,96 +472,57 @@ button[title="Change Avatar"]:hover { transform: scale(1.15) !important; }
 /* === THEME COLORS (DARK MODE DEFAULT) ==== */
 /* ========================================= */
 @media (prefers-color-scheme: dark) {
-    .stApp, [data-testid="stAppViewContainer"], .main, body, html {
-        background: radial-gradient(circle at top right, #055030 0%, #01150c 100%) !important; background-color: #01150c !important; color: #E2E8F0 !important;
-    }
-    
+    .stApp, [data-testid="stAppViewContainer"], .main, body, html { background: radial-gradient(circle at top right, #055030 0%, #01150c 100%) !important; background-color: #01150c !important; color: #E2E8F0 !important; }
     h1, h2, h3, h4, h5, h6, p, label, .stMarkdown, div { color: #FFFFFF; }
     h1 span:not(.dl-title-gradient), h2 span, h3 span { color: #10B981 !important; }
-
-    /* Tabs Fix */
     div[data-testid="stTabs"] button * { color: #FFFFFF !important; }
     div[data-testid="stTabs"] button[aria-selected="true"] * { color: #10B981 !important; font-weight: 800 !important; }
-
-    /* Secondary Buttons */
     button[kind="secondary"] { background-color: #36454F !important; border: 1px solid #10B981 !important; }
     button[kind="secondary"] * { color: #FFFFFF !important; }
     button[kind="secondary"]:hover { background-color: #10B981 !important; }
     button[kind="secondary"]:hover * { color: #01150c !important; }
-
-    /* Pencil override */
-    button[title="Change Avatar"] { background-color: rgba(16, 185, 129, 0.85) !important; border: 2px solid #01150c !important; }
-
-    /* Primary Buttons */
-    button[kind="primary"], button[kind="primaryFormSubmit"] { background-color: #10B981 !important; border: none !important; }
-    button[kind="primary"] *, button[kind="primaryFormSubmit"] * { color: #01150c !important; font-weight: 800 !important; }
+    div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="secondary"] { background-color: rgba(16, 185, 129, 0.85) !important; border: 2px solid #01150c !important; }
+    button[kind="primary"], button[kind="primaryFormSubmit"] { background-color: #10B981 !important; border: none !important; cursor: pointer !important;}
+    button[kind="primary"] *, button[kind="primaryFormSubmit"] * { color: #01150c !important; font-weight: 800 !important; cursor: pointer !important;}
     button[kind="primary"]:disabled { background-color: rgba(16, 185, 129, 0.2) !important; }
     button[kind="primary"]:disabled * { color: #64748b !important; }
-
-    /* Avatar Primary Buttons */
-    [data-testid="stHorizontalBlock"] button[kind="primary"] { background: rgba(6, 68, 41, 0.6) !important; border: 2px solid rgba(16, 185, 129, 0.6) !important; }
+    div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="primary"] { background: rgba(6, 68, 41, 0.6) !important; border: 2px solid rgba(16, 185, 129, 0.6) !important; }
     .profile-meta-title { color: #FFFFFF !important; }
-    
-    /* Modal Dialog */
-    [role="dialog"] { background: rgba(4, 45, 26, 0.8) !important; border: 1px solid #10B981 !important; }
+    div[data-testid="stDialog"] > div { background: rgba(4, 45, 26, 0.8) !important; border: 1px solid #10B981 !important; }
     .pin-modal-title { color: #10B981 !important; text-shadow: 0 0 15px rgba(16, 185, 129, 0.5) !important; }
-    
-    /* Glass Cards */
     .corp-hero, .corp-card { background: rgba(4, 45, 26, 0.55) !important; border: 1px solid rgba(16, 185, 129, 0.35) !important; border-left: 5px solid #10B981 !important; }
     .corp-card h4 { color: #34D399 !important; }
-
-    /* Download Page Theme (Dark) */
     .dl-card { background: rgba(4, 45, 26, 0.65); border: 1px solid rgba(16, 185, 129, 0.4); border-top: 4px solid #10B981; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
     .dl-icon { text-shadow: 0 15px 25px rgba(0,0,0,0.5); }
     .dl-subtitle { color: #A7F3D0; }
     .dl-feature-badge { background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.2); color: #E2E8F0; }
 }
 
-
 /* ========================================= */
 /* === THEME COLORS (LIGHT MODE OVERRIDES)== */
 /* ========================================= */
 @media (prefers-color-scheme: light) {
-    html, body, .stApp, [data-testid="stAppViewContainer"], .main { 
-        background: #F4FBF7 !important; background-color: #F4FBF7 !important; background-image: none !important;
-    }
-    
+    html, body, .stApp, [data-testid="stAppViewContainer"], .main { background: #F4FBF7 !important; background-color: #F4FBF7 !important; background-image: none !important; }
     h1, h2, h3, h4, h5, h6, p, label, .stMarkdown, div { color: #0F172A !important; }
-
-    /* Tabs Fix */
     div[data-testid="stTabs"] button * { color: #475569 !important; }
     div[data-testid="stTabs"] button[aria-selected="true"] * { color: #059669 !important; font-weight: 800 !important; }
-
-    /* Secondary Buttons */
     button[kind="secondary"] { background-color: #FFFFFF !important; border: 1px solid #059669 !important; }
     button[kind="secondary"] * { color: #000000 !important; }
     button[kind="secondary"]:hover { background-color: #059669 !important; }
     button[kind="secondary"]:hover * { color: #FFFFFF !important; }
-
-    /* Pencil override */
-    button[title="Change Avatar"] { background-color: #10B981 !important; border: 2px solid #FFFFFF !important; }
-    button[title="Change Avatar"] p { color: #FFFFFF !important; }
-
-    /* Primary Buttons */
-    button[kind="primary"], button[kind="primaryFormSubmit"] { background-color: #10B981 !important; border: none !important; }
-    button[kind="primary"] *, button[kind="primaryFormSubmit"] * { color: #FFFFFF !important; font-weight: 800 !important; }
+    div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="secondary"] { background-color: #10B981 !important; border: 2px solid #FFFFFF !important; }
+    div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="secondary"] p { color: #FFFFFF !important; }
+    button[kind="primary"], button[kind="primaryFormSubmit"] { background-color: #10B981 !important; border: none !important; cursor: pointer !important;}
+    button[kind="primary"] *, button[kind="primaryFormSubmit"] * { color: #FFFFFF !important; font-weight: 800 !important; cursor: pointer !important;}
     button[kind="primary"]:disabled { background-color: rgba(16, 185, 129, 0.2) !important; }
     button[kind="primary"]:disabled * { color: #94a3b8 !important; }
-
-    /* Avatar Primary Buttons */
-    [data-testid="stHorizontalBlock"] button[kind="primary"] { background: rgba(255, 255, 255, 0.9) !important; border: 2px solid rgba(16, 185, 129, 0.5) !important; }
-    [data-testid="stHorizontalBlock"] button[kind="primary"] p { color: #000000 !important; }
+    div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="primary"] { background: rgba(255, 255, 255, 0.9) !important; border: 2px solid rgba(16, 185, 129, 0.5) !important; }
+    div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="primary"] p { color: #000000 !important; }
     .profile-meta-title { color: #0F172A !important; }
-    
-    /* Modal Dialog */
-    [role="dialog"] { background: #FFFFFF !important; border: 1px solid rgba(16, 185, 129, 0.4) !important; }
+    div[data-testid="stDialog"] > div { background: #FFFFFF !important; border: 1px solid rgba(16, 185, 129, 0.4) !important; }
     .pin-modal-title { color: #059669 !important; text-shadow: none !important; }
-    
-    /* Glass Cards */
     .corp-hero, .corp-card { background: #FFFFFF !important; border: 1px solid rgba(16, 185, 129, 0.3) !important; border-left: 5px solid #10B981 !important; box-shadow: 0 4px 15px rgba(0,0,0,0.05) !important; }
     .corp-card h4 { color: #059669 !important; }
-
-    /* Download Page Theme (Light) */
     .dl-card { background: #FFFFFF; border: 1px solid rgba(16, 185, 129, 0.3); border-top: 4px solid #10B981; box-shadow: 0 20px 50px rgba(16, 185, 129, 0.15); }
     .dl-icon { text-shadow: 0 15px 25px rgba(16, 185, 129, 0.2); }
     .dl-subtitle { color: #475569; }
