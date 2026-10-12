@@ -9,3 +9,4 @@ pytesseract
 openpyxl==3.1.5
 supabase==2.8.1
 httpx==0.27.2
+xlsxwriter
