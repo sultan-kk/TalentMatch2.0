@@ -412,15 +412,18 @@ div[data-testid="stTextInput"] div[data-baseweb="input"] {
     border: none !important; box-shadow: none !important;
 }
 
-/* Minimalist PIN Dots styling */
+/* Minimalist PIN Dots styling - NO BORDERS OR TYPING LINES */
 div[data-testid="stTextInput"] input {
     text-align: center !important; font-size: 3rem !important; letter-spacing: 25px !important;
     background: transparent !important; background-color: transparent !important;
-    border: none !important; border-bottom: 2px solid rgba(16, 185, 129, 0.4) !important;
+    border: none !important; box-shadow: none !important; outline: none !important;
     border-radius: 0 !important; padding: 10px 0 !important; margin-bottom: 15px !important;
     font-family: 'JetBrains Mono', monospace !important; color: #10B981 !important;
+    caret-color: transparent !important; /* HIDES THE BLINKING CURSOR COMPLETELY */
 }
-div[data-testid="stTextInput"] input:focus { border-bottom: 2px solid #10B981 !important; outline: none !important; }
+div[data-testid="stTextInput"] input:focus { 
+    border: none !important; outline: none !important; box-shadow: none !important; background: transparent !important; 
+}
 
 /* Hide Eye Icon Aggressively */
 div[data-testid="stTextInput"] button { display: none !important; visibility: hidden !important; }
