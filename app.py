@@ -379,28 +379,38 @@ div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="secondary"]:h
 .profile-meta-title { font-size: 1.15rem; font-weight: 700; line-height: 1.2; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; }
 .profile-meta-role { font-size: 0.72rem; font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 0.6px; margin-top: 4px; text-align: center; }
 
-/* 2. THE P.I.N MODAL & GLASSMORPHISM */
-div[data-testid="stModal"] { backdrop-filter: blur(8px) !important; -webkit-backdrop-filter: blur(8px) !important; }
-div[data-testid="stModal"] > div:first-child { background: transparent !important; }
-div[data-testid="stModal"], div[data-testid="stDialog"], div[role="dialog"] {
-    top: 50% !important; transform: translateY(-50%) !important; height: auto !important; bottom: auto !important;
-    display: flex !important; align-items: center !important; justify-content: center !important;
-}
+
+/* ========================================= */
+/* 2. THE P.I.N MODAL & GLASSMORPHISM        */
+/* ========================================= */
+[data-testid="stModal"] > div:first-child { background: transparent !important; }
 div[role="dialog"] {
+    border-radius: 20px !important; box-shadow: 0 10px 40px rgba(0,0,0,0.3) !important; 
+    padding: 2.5rem 2rem !important; width: 340px !important;
     backdrop-filter: blur(25px) !important; -webkit-backdrop-filter: blur(25px) !important;
-    border-radius: 20px !important; box-shadow: none !important; padding: 2.5rem 2rem !important; width: 340px !important;
 }
-div[role="dialog"] > div:first-child > div:first-child { display: none !important; }
+/* Hide Streamlit default close icon and header in Modal */
+div[role="dialog"] header { display: none !important; }
+
 .pin-modal-title { text-align: center; font-size: 1.8rem; font-weight: 800; letter-spacing: 8px; margin-bottom: 25px; margin-top: -10px; }
-.pin-input-container div[data-baseweb="base-input"], .pin-input-container div[data-baseweb="input"] {
-    background-color: transparent !important; background: transparent !important; border: none !important; box-shadow: none !important;
+
+/* Fix PIN Input: Removing White Box & Centering */
+div[role="dialog"] [data-testid="stTextInput"] > div:first-child > div {
+    background: transparent !important; background-color: transparent !important;
+    border: none !important; box-shadow: none !important;
 }
-.pin-input-container input {
+div[role="dialog"] [data-testid="stTextInput"] input {
     text-align: center !important; font-size: 2.8rem !important; letter-spacing: 25px !important;
-    background: transparent !important; border: none !important; border-radius: 0 !important; padding: 10px 0 !important;
-    font-family: 'JetBrains Mono', monospace !important; transition: all 0.3s ease;
+    background: transparent !important; border: none !important; 
+    border-bottom: 2px solid rgba(16, 185, 129, 0.3) !important;
+    border-radius: 0 !important; padding: 10px 0 !important;
+    font-family: 'JetBrains Mono', monospace !important; color: #10B981 !important;
 }
-.pin-input-container svg, .pin-input-container [role="button"] { display: none !important; }
+div[role="dialog"] [data-testid="stTextInput"] input:focus { border-bottom: 2px solid #34D399 !important; }
+
+/* Hide Eye Icon (Password Visibility Toggle) */
+div[role="dialog"] [data-testid="stTextInputPasswordVisibilityToggle"] { display: none !important; }
+
 div[role="dialog"] button[kind="primaryFormSubmit"] {
     font-weight: 800 !important; border-radius: 10px !important; border: none !important; margin-top: 25px !important;
     height: 48px !important; font-size: 1.05rem !important; transition: all 0.3s ease !important;
@@ -412,43 +422,35 @@ div[role="dialog"] button[kind="primaryFormSubmit"]:hover { transform: scale(1.0
 /* === THEME COLORS (DARK MODE DEFAULT) ==== */
 /* ========================================= */
 @media (prefers-color-scheme: dark) {
-    /* Background Override */
+    /* Extreme target to override Streamlit background injections */
     .stApp, [data-testid="stAppViewContainer"], .main, body, html {
         background: radial-gradient(circle at top right, #055030 0%, #01150c 100%) !important;
         background-color: #01150c !important;
         color: #E2E8F0 !important;
     }
     
-    /* Global Default Text overrides for dark mode */
+    /* Default Text overrides */
     h1, h2, h3, h4, h5, h6, p, label, .stMarkdown, div { color: #FFFFFF; }
     h1 span, h2 span, h3 span { color: #10B981 !important; }
 
-    /* --- TABS TEXT FIX (Dark Mode) --- */
+    /* Tabs Fix */
     div[data-testid="stTabs"] button * { color: #FFFFFF !important; }
     div[data-testid="stTabs"] button[aria-selected="true"] * { color: #10B981 !important; font-weight: 800 !important; }
 
-    /* --- SECONDARY BUTTONS (Download, Lock, Revoke) --- */
-    button[kind="secondary"] {
-        background-color: #36454F !important;
-        border: 1px solid #10B981 !important;
-    }
-    /* Select ALL nested elements inside secondary buttons to force white text */
+    /* Secondary Buttons (Download, Lock, Revoke) */
+    button[kind="secondary"] { background-color: #36454F !important; border: 1px solid #10B981 !important; }
     button[kind="secondary"] * { color: #FFFFFF !important; }
-    
     button[kind="secondary"]:hover { background-color: #10B981 !important; }
     button[kind="secondary"]:hover * { color: #01150c !important; }
 
-    /* Pencil override (keep it green) */
+    /* Pencil override */
     div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="secondary"] {
-        background-color: rgba(16, 185, 129, 0.85) !important;
-        border: 2px solid #01150c !important;
+        background-color: rgba(16, 185, 129, 0.85) !important; border: 2px solid #01150c !important;
     }
 
-    /* --- PRIMARY BUTTONS (Extract & Append, Run AI) --- */
+    /* Primary Buttons */
     button[kind="primary"] { background-color: #10B981 !important; border: none !important; }
     button[kind="primary"] * { color: #01150c !important; font-weight: 800 !important; }
-    
-    /* Disabled Primary Button (Extract & Append before upload) */
     button[kind="primary"]:disabled { background-color: rgba(16, 185, 129, 0.2) !important; }
     button[kind="primary"]:disabled * { color: #64748b !important; }
 
@@ -459,11 +461,9 @@ div[role="dialog"] button[kind="primaryFormSubmit"]:hover { transform: scale(1.0
     .profile-meta-title { color: #FFFFFF !important; }
     
     /* Modals */
-    div[data-testid="stModal"] { background: rgba(1, 21, 12, 0.5) !important; }
-    div[role="dialog"] { background: rgba(4, 45, 26, 0.5) !important; border: 1px solid rgba(16, 185, 129, 0.4) !important; }
+    [data-testid="stModal"] { background: rgba(1, 21, 12, 0.7) !important; }
+    div[role="dialog"] { background: rgba(4, 45, 26, 0.6) !important; border: 1px solid rgba(16, 185, 129, 0.4) !important; }
     .pin-modal-title { color: #10B981; text-shadow: 0 0 15px rgba(16, 185, 129, 0.5); }
-    .pin-input-container input { color: #10B981 !important; border-bottom: 2px solid rgba(16, 185, 129, 0.3) !important; }
-    .pin-input-container input:focus { border-bottom: 2px solid #34D399 !important; }
     div[role="dialog"] button[kind="primaryFormSubmit"] { background: #10B981 !important; color: #01150c !important; }
     
     /* Glass Cards */
@@ -480,7 +480,7 @@ div[role="dialog"] button[kind="primaryFormSubmit"]:hover { transform: scale(1.0
 /* === THEME COLORS (LIGHT MODE OVERRIDES)== */
 /* ========================================= */
 @media (prefers-color-scheme: light) {
-    /* Hard Target to force Light mode background to overcome Streamlit injecting styles */
+    /* Extreme Target to force Light mode background */
     html, body, .stApp, [data-testid="stAppViewContainer"], .main { 
         background: #F4FBF7 !important;
         background-color: #F4FBF7 !important; 
@@ -490,27 +490,23 @@ div[role="dialog"] button[kind="primaryFormSubmit"]:hover { transform: scale(1.0
     /* General Text overrides */
     h1, h2, h3, h4, h5, h6, p, label, .stMarkdown, div { color: #0F172A !important; }
 
-    /* --- TABS TEXT FIX (Light Mode) --- */
+    /* Tabs Fix */
     div[data-testid="stTabs"] button * { color: #475569 !important; }
     div[data-testid="stTabs"] button[aria-selected="true"] * { color: #059669 !important; font-weight: 800 !important; }
 
-    /* --- SECONDARY BUTTONS (Download, Lock, Revoke) --- */
-    button[kind="secondary"] {
-        background-color: #FFFFFF !important; 
-        border: 1px solid #059669 !important;
-    }
+    /* Secondary Buttons */
+    button[kind="secondary"] { background-color: #FFFFFF !important; border: 1px solid #059669 !important; }
     button[kind="secondary"] * { color: #000000 !important; }
     button[kind="secondary"]:hover { background-color: #059669 !important; }
     button[kind="secondary"]:hover * { color: #FFFFFF !important; }
 
-    /* Pencil override (keep green) */
+    /* Pencil override */
     div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="secondary"] {
-        background-color: #10B981 !important;
-        border: 2px solid #FFFFFF !important;
+        background-color: #10B981 !important; border: 2px solid #FFFFFF !important;
     }
     div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="secondary"] p { color: #FFFFFF !important; }
 
-    /* --- PRIMARY BUTTONS --- */
+    /* Primary Buttons */
     button[kind="primary"] { background-color: #10B981 !important; border: none !important; }
     button[kind="primary"] * { color: #FFFFFF !important; font-weight: 800 !important; }
     button[kind="primary"]:disabled { background-color: rgba(16, 185, 129, 0.2) !important; }
@@ -518,17 +514,15 @@ div[role="dialog"] button[kind="primaryFormSubmit"]:hover { transform: scale(1.0
 
     /* Avatar Primary Buttons */
     div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="primary"] {
-        background: rgba(255, 255, 255, 0.8) !important; border: 2px solid rgba(16, 185, 129, 0.5) !important;
+        background: rgba(255, 255, 255, 0.9) !important; border: 2px solid rgba(16, 185, 129, 0.5) !important;
     }
     div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="primary"] p { color: #000000 !important; }
     .profile-meta-title { color: #0F172A !important; }
     
     /* Modals */
-    div[data-testid="stModal"] { background: rgba(244, 251, 247, 0.7) !important; }
+    [data-testid="stModal"] { background: rgba(244, 251, 247, 0.8) !important; }
     div[role="dialog"] { background: #FFFFFF !important; border: 1px solid rgba(16, 185, 129, 0.4) !important; }
     .pin-modal-title { color: #059669 !important; text-shadow: none !important; }
-    .pin-input-container input { color: #059669 !important; border-bottom: 2px solid rgba(16, 185, 129, 0.3) !important; }
-    .pin-input-container input:focus { border-bottom: 2px solid #059669 !important; }
     div[role="dialog"] button[kind="primaryFormSubmit"] { background: #10B981 !important; color: #FFFFFF !important; }
     
     /* Glass Cards */
