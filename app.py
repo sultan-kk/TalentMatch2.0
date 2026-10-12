@@ -220,31 +220,51 @@ def delete_employee_profile(email):
 # 3. ARL JOB CATALOG
 # ===========================================================================
 DEFAULT_ARL_CATALOG = {
-    "Operations & Refining": ["Process Engineer", "Plant Shift Incharge"],
-    "Maintenance & Engineering": ["Mechanical Engineer", "Electrical Engineer"],
-    "Human Resources & Administration": ["Talent Acquisition", "HR Manager"]
+    "Operations & Refining": ["Process Engineer", "Plant Shift Incharge", "Senior Plant Operator (CDU / Reformer)", "Control Room DCS Operator", "Refining Operations Manager"],
+    "Maintenance & Engineering": ["Mechanical Maintenance Engineer", "Electrical Maintenance Engineer", "Instrumentation & Control (I&C) Engineer"],
+    "Human Resources & Administration": ["Talent Acquisition & Recruitment Specialist", "HR Operations & Payroll Executive"]
 }
 
 def load_arl_job_catalog():
+    catalog = {}
+    if supabase:
+        try:
+            res = supabase.table("arl_job_hierarchy").select("*").order("id", desc=False).execute()
+            if res.data and len(res.data) > 0:
+                for row in res.data:
+                    dept = row.get("department", "General")
+                    job = row.get("job_title", "")
+                    if job:
+                        catalog.setdefault(dept, []).append(job)
+                return catalog
+        except Exception:
+            pass
     return DEFAULT_ARL_CATALOG
 
 # ===========================================================================
 # 4. DATABASE STORAGE LOGIC
 # ===========================================================================
 def load_database():
-    expected_cols = ["Name", "Qualification", "Email", "Phone Number", "Experience", "Pipeline Status"]
+    expected_cols = ["Name", "Father Name", "Qualification", "CGPA", "Passing Year", "Institute", "DOB", "Email", "Phone Number", "Experience", "Latest Experience", "Reference", "Pipeline Status", "Added At"]
     if not supabase: return pd.DataFrame(columns=expected_cols)
     try:
         response = supabase.table("candidates").select("*").order("id", desc=False).execute()
-        if response.data:
+        rows = response.data
+        if rows:
             mapped = []
-            for r in response.data:
+            for r in rows:
                 mapped.append({
-                    "Name": r.get("candidate_name", "Unknown"), "Qualification": r.get("education", ""),
-                    "Email": r.get("email", ""), "Phone Number": r.get("phone", ""), 
-                    "Experience": str(r.get("experience_years", "0")), "Pipeline Status": r.get("pipeline_status", "Talent Pool")
+                    "Name": r.get("candidate_name", "Unknown"), "Father Name": r.get("father_name", "Not Provided"),
+                    "Qualification": r.get("education", "Not Provided"), "CGPA": r.get("cgpa", "Not Provided"),
+                    "Passing Year": r.get("passing_year", "Not Provided"), "Institute": r.get("university_name", "Not Provided"),
+                    "DOB": r.get("dob", "Not Provided"), "Email": r.get("email", "Not Provided"),
+                    "Phone Number": r.get("phone", "Not Provided"), "Experience": str(r.get("experience_years", "0")),
+                    "Latest Experience": r.get("latest_experience", "Not Provided"), "Reference": r.get("reference", "Not Provided"),
+                    "Pipeline Status": r.get("pipeline_status", "Talent Pool"), "Added At": r.get("added_at", "Not Provided")
                 })
-            return pd.DataFrame(mapped)[expected_cols]
+            df = pd.DataFrame(mapped)[expected_cols]
+            df.index = range(1, len(df) + 1)
+            return df
     except Exception: pass
     return pd.DataFrame(columns=expected_cols)
 
@@ -259,23 +279,54 @@ def clear_screened_database():
 def clear_candidate_database():
     if supabase:
         try:
-            supabase.table("candidates").delete().neq("id", 0).execute()
+            supabase.table("candidates").delete().neq("candidate_name", "THIS_WILL_NEVER_MATCH_123").execute()
         except Exception: 
             pass
 
 def save_candidates_to_repository(new_candidates):
     if not supabase: return 0, 0
     current_timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    existing_emails, existing_phones, existing_names = set(), set(), set()
+    try:
+        curr_res = supabase.table("candidates").select("candidate_name, email, phone").execute()
+        if curr_res.data:
+            for rec in curr_res.data:
+                em = str(rec.get("email", "")).strip().lower()
+                ph = str(rec.get("phone", "")).strip()
+                nm = str(rec.get("candidate_name", "")).strip().lower()
+                if em and "not" not in em: existing_emails.add(em)
+                if ph and "not" not in ph: existing_phones.add(ph)
+                if nm and "not" not in nm and "unknown" not in nm: existing_names.add(nm)
+    except Exception: pass
+
     inserted, skipped = 0, 0
     for c in new_candidates:
+        c_name = str(c.get("name", "Unknown")).strip()
+        c_email = str(c.get("email", "Not Provided")).strip().lower()
+        c_phone = str(c.get("phone", "Not Provided")).strip()
+
+        is_dup = False
+        if c_email and "not" not in c_email and c_email in existing_emails: is_dup = True
+        elif c_phone and "not" not in c_phone and c_phone in existing_phones: is_dup = True
+        elif c_name and c_name.lower() in existing_names and c_name.lower() not in ["unknown", "name"]: is_dup = True
+
+        if is_dup:
+            skipped += 1
+            continue
+
         payload = {
-            "candidate_name": c.get("name", "Unknown"), "education": c.get("education", "Not Provided"),
-            "email": c.get("email", "Not Provided"), "phone": c.get("phone", "Not Provided"),
-            "experience_years": str(c.get("experience_years", "0")), "pipeline_status": "Talent Pool", "added_at": current_timestamp
+            "candidate_name": c_name, "father_name": c.get("father_name", "Not Provided"), "education": c.get("education", "Not Provided"),
+            "cgpa": c.get("cgpa", "Not Provided"), "passing_year": c.get("passing_year", "Not Provided"), "university_name": c.get("university_name", "Not Provided"),
+            "dob": c.get("dob", "Not Provided"), "email": c.get("email", "Not Provided"), "phone": c.get("phone", "Not Provided"),
+            "experience_years": str(c.get("experience_years", "0")), "latest_experience": c.get("latest_experience", "Not Provided"),
+            "reference": c.get("reference", "Not Provided"), "pipeline_status": "Talent Pool", "added_at": current_timestamp
         }
         try:
             supabase.table("candidates").insert(payload).execute()
             inserted += 1
+            if c_email and "not" not in c_email: existing_emails.add(c_email)
+            if c_phone and "not" not in c_phone: existing_phones.add(c_phone)
+            if c_name: existing_names.add(c_name.lower())
         except Exception: skipped += 1
     return inserted, skipped
 
@@ -288,9 +339,7 @@ ADAPTIVE_CSS = """
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap');
 
 /* --- STRUCTURAL CSS (Applies to both modes) --- */
-html, body, [class*="css"], .stApp { 
-    font-family: 'Plus Jakarta Sans', sans-serif !important; 
-}
+html, body, [class*="css"], .stApp { font-family: 'Plus Jakarta Sans', sans-serif !important; }
 .stApp > header { background-color: transparent !important; }
 [data-testid="stSidebar"], [data-testid="collapsedControl"] { display: none !important; }
 
@@ -330,41 +379,52 @@ div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="secondary"]:h
 
 
 /* ========================================= */
-/* 2. THE P.I.N MODAL & GLASSMORPHISM FIX    */
+/* 2. THE P.I.N MODAL & SEAMLESS INPUT FIX   */
 /* ========================================= */
 
-/* Dialog Background & Glassmorphism */
+/* Main Dialog Background & Glassmorphism */
 div[data-testid="stDialog"] > div {
     backdrop-filter: blur(25px) !important; -webkit-backdrop-filter: blur(25px) !important;
-    border-radius: 20px !important; 
-    box-shadow: 0 10px 40px rgba(0,0,0,0.3) !important;
-    padding: 2.5rem 2rem !important; 
-    width: 340px !important;
+    border-radius: 20px !important; box-shadow: 0 10px 40px rgba(0,0,0,0.3) !important;
+    padding: 2.5rem 2rem !important; width: 340px !important;
 }
 
-/* Hide Streamlit Close Button in header */
+/* Hide Streamlit Close Button (X) */
 div[data-testid="stDialog"] button[aria-label="Close"] { display: none !important; }
 
-/* P.I.N Title */
-.pin-modal-title { text-align: center; font-size: 1.8rem; font-weight: 800; letter-spacing: 8px; margin-bottom: 25px; margin-top: -10px; }
+/* P.I.N Title Style */
+.pin-modal-title { text-align: center; font-size: 1.8rem; font-weight: 800; letter-spacing: 8px; margin-bottom: 30px; margin-top: -10px; }
 
-/* PIN Input Field Overrides - Strip White Box completely */
+/* ----------------------------------------------------- */
+/* HIDE STREAMLIT INSTRUCTIONS ("Press enter" & "0/4")   */
+/* ----------------------------------------------------- */
+div[data-testid="InputInstructions"], 
+div[data-testid="stTextInput"] small,
+div[data-testid="stTextInput"] > div > div:nth-child(2) { 
+    display: none !important; 
+    visibility: hidden !important; 
+    opacity: 0 !important; 
+    height: 0 !important; 
+    margin: 0 !important; 
+    padding: 0 !important;
+}
+
+/* Strip Default Input Box & Borders */
 div[data-testid="stTextInput"] div[data-baseweb="base-input"], 
 div[data-testid="stTextInput"] div[data-baseweb="input"] {
     background-color: transparent !important; background: transparent !important;
     border: none !important; box-shadow: none !important;
 }
 
-/* PIN Input Text Style (Centered, Huge dots) */
+/* Minimalist PIN Dots styling */
 div[data-testid="stTextInput"] input {
     text-align: center !important; font-size: 3rem !important; letter-spacing: 25px !important;
     background: transparent !important; background-color: transparent !important;
-    border: none !important; 
-    border-bottom: 2px solid rgba(16, 185, 129, 0.4) !important;
-    border-radius: 0 !important; padding: 10px 0 !important;
+    border: none !important; border-bottom: 2px solid rgba(16, 185, 129, 0.4) !important;
+    border-radius: 0 !important; padding: 10px 0 !important; margin-bottom: 15px !important;
     font-family: 'JetBrains Mono', monospace !important; color: #10B981 !important;
 }
-div[data-testid="stTextInput"] input:focus { border-bottom: 2px solid #10B981 !important; }
+div[data-testid="stTextInput"] input:focus { border-bottom: 2px solid #10B981 !important; outline: none !important; }
 
 /* Hide Eye Icon Aggressively */
 div[data-testid="stTextInput"] button { display: none !important; visibility: hidden !important; }
@@ -374,14 +434,11 @@ div[data-testid="stTextInput"] button { display: none !important; visibility: hi
 /* === THEME COLORS (DARK MODE DEFAULT) ==== */
 /* ========================================= */
 @media (prefers-color-scheme: dark) {
-    /* Extreme target to override Streamlit background injections */
     .stApp, [data-testid="stAppViewContainer"], .main, body, html {
         background: radial-gradient(circle at top right, #055030 0%, #01150c 100%) !important;
-        background-color: #01150c !important;
-        color: #E2E8F0 !important;
+        background-color: #01150c !important; color: #E2E8F0 !important;
     }
     
-    /* Default Text overrides */
     h1, h2, h3, h4, h5, h6, p, label, .stMarkdown, div { color: #FFFFFF; }
     h1 span, h2 span, h3 span { color: #10B981 !important; }
 
@@ -418,9 +475,7 @@ div[data-testid="stTextInput"] button { display: none !important; visibility: hi
     
     /* Glass Cards */
     .corp-hero, .corp-card {
-        background: rgba(4, 45, 26, 0.55) !important; 
-        border: 1px solid rgba(16, 185, 129, 0.35) !important;
-        border-left: 5px solid #10B981 !important; 
+        background: rgba(4, 45, 26, 0.55) !important; border: 1px solid rgba(16, 185, 129, 0.35) !important; border-left: 5px solid #10B981 !important; 
     }
     .corp-card h4 { color: #34D399 !important; }
 }
@@ -430,14 +485,10 @@ div[data-testid="stTextInput"] button { display: none !important; visibility: hi
 /* === THEME COLORS (LIGHT MODE OVERRIDES)== */
 /* ========================================= */
 @media (prefers-color-scheme: light) {
-    /* Extreme Target to force Light mode background to overcome Streamlit injecting styles */
     html, body, .stApp, [data-testid="stAppViewContainer"], .main { 
-        background: #F4FBF7 !important;
-        background-color: #F4FBF7 !important; 
-        background-image: none !important;
+        background: #F4FBF7 !important; background-color: #F4FBF7 !important; background-image: none !important;
     }
     
-    /* General Text overrides */
     h1, h2, h3, h4, h5, h6, p, label, .stMarkdown, div { color: #0F172A !important; }
 
     /* Tabs Fix */
@@ -475,10 +526,7 @@ div[data-testid="stTextInput"] button { display: none !important; visibility: hi
     
     /* Glass Cards */
     .corp-hero, .corp-card {
-        background: #FFFFFF !important; 
-        border: 1px solid rgba(16, 185, 129, 0.3) !important;
-        border-left: 5px solid #10B981 !important; 
-        box-shadow: 0 4px 15px rgba(0,0,0,0.05) !important;
+        background: #FFFFFF !important; border: 1px solid rgba(16, 185, 129, 0.3) !important; border-left: 5px solid #10B981 !important; box-shadow: 0 4px 15px rgba(0,0,0,0.05) !important;
     }
     .corp-card h4 { color: #059669 !important; }
 }
@@ -501,22 +549,23 @@ if "pending_pin_email" not in st.session_state: st.session_state.pending_pin_ema
 if "pending_otp_email" not in st.session_state: st.session_state.pending_otp_email = None
 if "show_download_page" not in st.session_state: st.session_state.show_download_page = False
 
+
 # ===========================================================================
-# 7. DIALOGS (MINIMALIST PIN & BADGE)
+# 7. DIALOGS (MINIMALIST PIN WITH NO BUTTON)
 # ===========================================================================
 @st.dialog(" ")  
 def show_pin_dialog(email, name, role):
     st.markdown("<div class='pin-modal-title'>P.I.N</div>", unsafe_allow_html=True)
-    with st.form(f"modal_pin_form_{email}", clear_on_submit=True):
-        st.markdown('<div class="pin-input-container">', unsafe_allow_html=True)
-        # Placeholder set to pure dots, label collapsed
-        pin_val = st.text_input("Enter PIN", type="password", max_chars=4, placeholder="••••", label_visibility="collapsed")
-        st.markdown('</div>', unsafe_allow_html=True)
-        
-        # Added type="primary" to apply green color styling perfectly
-        submit_btn = st.form_submit_button("Access Portal ➔", type="primary", use_container_width=True)
-        
-    if submit_btn:
+    st.markdown('<div class="pin-input-container">', unsafe_allow_html=True)
+    
+    # Form and Button REMOVED. Directly using text_input for a seamless lock-screen feel.
+    # It automatically triggers script execution when the user hits 'Enter'.
+    pin_val = st.text_input("Enter PIN", type="password", max_chars=4, placeholder="••••", label_visibility="collapsed", key=f"pin_entry_{email}")
+    
+    st.markdown('</div>', unsafe_allow_html=True)
+    
+    # When user presses Enter in the field, this block runs
+    if pin_val:
         ok, u_name, u_role = verify_employee_pin(email, pin_val)
         if ok:
             st.session_state.logged_in = True
