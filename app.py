@@ -332,7 +332,7 @@ def save_candidates_to_repository(new_candidates):
 
 
 # ===========================================================================
-# 5. ADAPTIVE CSS (BOMBPROOF OVERRIDES FOR STREAMLIT)
+# 5. ADAPTIVE CSS (SPACIOUS UI & BOMBPROOF OVERRIDES)
 # ===========================================================================
 ADAPTIVE_CSS = """
 <style>
@@ -350,12 +350,33 @@ html, body, .stApp, [data-testid="stAppViewContainer"], .main, h1, h2, h3, h4, h
     -webkit-user-select: none !important;
 }
 
-/* Re-enable typing cursor ONLY for necessary text inputs (JD Screening & Registration) */
-textarea, div[data-testid="stForm"] input {
+/* Re-enable typing cursor ONLY for necessary text inputs */
+textarea, div[data-testid="stForm"] input, [data-testid="stTextInput"] input {
     cursor: text !important;
     user-select: auto !important;
     -webkit-user-select: auto !important;
 }
+
+/* Make Buttons Sleek and Rounded globally */
+button[kind="primary"], button[kind="secondary"] {
+    border-radius: 12px !important;
+}
+
+/* Style the Streamlit File Uploader to look Premium */
+[data-testid="stFileUploader"] > section {
+    background-color: rgba(16, 185, 129, 0.05) !important;
+    border: 2px dashed rgba(16, 185, 129, 0.4) !important;
+    border-radius: 16px !important;
+    padding: 2.5rem !important;
+    transition: all 0.3s ease !important;
+    margin-bottom: 1.5rem !important;
+}
+[data-testid="stFileUploader"] > section:hover {
+    border-color: #10B981 !important;
+    background-color: rgba(16, 185, 129, 0.1) !important;
+}
+[data-testid="stFileUploader"] small { display: none !important; } /* Hide file size limit text */
+
 
 /* 1. PERFECTLY ALIGNED PROFILE CARDS */
 div[data-testid="stColumn"]:has(.profile-card-marker) {
@@ -396,76 +417,34 @@ div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="secondary"]:h
 /* ========================================= */
 /* 2. THE P.I.N MODAL & SEAMLESS INPUT FIX   */
 /* ========================================= */
-
-/* Main Dialog Background & Glassmorphism */
 div[data-testid="stDialog"] > div {
     backdrop-filter: blur(25px) !important; -webkit-backdrop-filter: blur(25px) !important;
     border-radius: 20px !important; box-shadow: 0 10px 40px rgba(0,0,0,0.3) !important;
     padding: 2.5rem 2rem !important; width: 340px !important;
 }
-
-/* Hide Streamlit Close Button (X) */
 div[data-testid="stDialog"] button[aria-label="Close"] { display: none !important; }
-
-/* P.I.N Title Style */
 .pin-modal-title { text-align: center; font-size: 1.8rem; font-weight: 800; letter-spacing: 8px; margin-bottom: 30px; margin-top: -10px; }
 
-/* HIDE STREAMLIT INSTRUCTIONS ("Press enter" & "0/4") */
-div[data-testid="InputInstructions"], 
-div[data-testid="stTextInput"] small,
-div[data-testid="stTextInput"] > div > div:nth-child(2) { 
-    display: none !important; visibility: hidden !important; opacity: 0 !important; 
-    height: 0 !important; margin: 0 !important; padding: 0 !important;
+div[data-testid="InputInstructions"], div[role="dialog"] small, div[role="dialog"] [data-testid="stTextInput"] > div > div:nth-child(2) { 
+    display: none !important; visibility: hidden !important; opacity: 0 !important; height: 0 !important; margin: 0 !important; padding: 0 !important;
 }
 
-/* Strip Default Input Box & Borders */
 div[role="dialog"] div[data-testid="stTextInput"] div[data-baseweb="base-input"], 
 div[role="dialog"] div[data-testid="stTextInput"] div[data-baseweb="input"] {
-    background-color: transparent !important; background: transparent !important;
-    border: none !important; box-shadow: none !important;
+    background-color: transparent !important; background: transparent !important; border: none !important; box-shadow: none !important;
 }
 
-/* PURE TRANSPARENT PIN DOTS (No border, no line, no caret) */
 div[role="dialog"] div[data-testid="stTextInput"] input {
     text-align: center !important; font-size: 4rem !important; letter-spacing: 30px !important;
     background: transparent !important; background-color: transparent !important;
     border: none !important; box-shadow: none !important; outline: none !important;
     border-radius: 0 !important; padding: 10px 0 !important; margin-bottom: 15px !important; margin-left: 20px !important;
     font-family: 'JetBrains Mono', monospace !important; color: #10B981 !important;
-    caret-color: transparent !important; /* HIDES THE BLINKING CURSOR */
-    cursor: default !important; /* HIDES I-BEAM CURSOR */
+    caret-color: transparent !important; cursor: default !important;
+    border-bottom: 2px solid rgba(16, 185, 129, 0.4) !important;
 }
-div[role="dialog"] div[data-testid="stTextInput"] input:focus { 
-    border: none !important; outline: none !important; box-shadow: none !important; background: transparent !important; 
-}
-
-/* Hide Eye Icon Aggressively */
-div[role="dialog"] div[data-testid="stTextInput"] button { display: none !important; visibility: hidden !important; }
-
-
-/* ========================================= */
-/* 3. PREMIUM DOWNLOAD DESKTOP PAGE EFFECTS  */
-/* ========================================= */
-@keyframes float {
-    0% { transform: translateY(0px); }
-    50% { transform: translateY(-12px); }
-    100% { transform: translateY(0px); }
-}
-@keyframes pulseGlow {
-    0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
-    70% { box-shadow: 0 0 0 20px rgba(16, 185, 129, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
-}
-.dl-hero-container { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2rem 1rem 1rem 1rem; }
-.dl-card { border-radius: 24px; padding: 4rem 3rem; text-align: center; max-width: 800px; width: 100%; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); transition: all 0.3s ease; }
-.dl-icon { font-size: 6rem; margin-bottom: 20px; animation: float 4s ease-in-out infinite; }
-.dl-title { margin: 0 0 15px 0; font-weight: 900; font-size: 3.2rem; line-height: 1.1; }
-.dl-title-gradient { background: -webkit-linear-gradient(45deg, #10B981, #34D399); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-.dl-subtitle { font-size: 1.15rem; margin: 0 auto 30px auto; max-width: 600px; line-height: 1.6; }
-.dl-features { display: flex; justify-content: center; gap: 20px; margin-bottom: 40px; flex-wrap: wrap; }
-.dl-feature-badge { border-radius: 12px; padding: 10px 20px; font-size: 0.95rem; font-weight: 600; display: flex; align-items: center; gap: 8px; }
-.dl-btn { background: #10B981 !important; color: #FFFFFF !important; padding: 1.2rem 3.5rem !important; border-radius: 50px !important; font-weight: 800 !important; font-size: 1.2rem !important; text-decoration: none !important; display: inline-block !important; transition: all 0.3s ease !important; animation: pulseGlow 2s infinite !important; }
-.dl-btn:hover { transform: translateY(-3px) scale(1.02) !important; background: #059669 !important; }
+div[role="dialog"] div[data-testid="stTextInput"] input:focus { border: none !important; outline: none !important; box-shadow: none !important; background: transparent !important; border-bottom: 2px solid #10B981 !important;}
+div[role="dialog"] div[data-testid="stTextInput"] button { display: none !important; visibility: hidden !important; width: 0 !important;}
 
 
 /* ========================================= */
@@ -475,28 +454,32 @@ div[role="dialog"] div[data-testid="stTextInput"] button { display: none !import
     .stApp, [data-testid="stAppViewContainer"], .main, body, html { background: radial-gradient(circle at top right, #055030 0%, #01150c 100%) !important; background-color: #01150c !important; color: #E2E8F0 !important; }
     h1, h2, h3, h4, h5, h6, p, label, .stMarkdown, div { color: #FFFFFF; }
     h1 span:not(.dl-title-gradient), h2 span, h3 span { color: #10B981 !important; }
+    
     div[data-testid="stTabs"] button * { color: #FFFFFF !important; }
     div[data-testid="stTabs"] button[aria-selected="true"] * { color: #10B981 !important; font-weight: 800 !important; }
+    
     button[kind="secondary"] { background-color: #36454F !important; border: 1px solid #10B981 !important; }
     button[kind="secondary"] * { color: #FFFFFF !important; }
     button[kind="secondary"]:hover { background-color: #10B981 !important; }
     button[kind="secondary"]:hover * { color: #01150c !important; }
     div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="secondary"] { background-color: rgba(16, 185, 129, 0.85) !important; border: 2px solid #01150c !important; }
+    
     button[kind="primary"], button[kind="primaryFormSubmit"] { background-color: #10B981 !important; border: none !important; cursor: pointer !important;}
     button[kind="primary"] *, button[kind="primaryFormSubmit"] * { color: #01150c !important; font-weight: 800 !important; cursor: pointer !important;}
     button[kind="primary"]:disabled { background-color: rgba(16, 185, 129, 0.2) !important; }
     button[kind="primary"]:disabled * { color: #64748b !important; }
     div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="primary"] { background: rgba(6, 68, 41, 0.6) !important; border: 2px solid rgba(16, 185, 129, 0.6) !important; }
+    
     .profile-meta-title { color: #FFFFFF !important; }
     div[data-testid="stDialog"] > div { background: rgba(4, 45, 26, 0.8) !important; border: 1px solid #10B981 !important; }
     .pin-modal-title { color: #10B981 !important; text-shadow: 0 0 15px rgba(16, 185, 129, 0.5) !important; }
-    .corp-hero, .corp-card { background: rgba(4, 45, 26, 0.55) !important; border: 1px solid rgba(16, 185, 129, 0.35) !important; border-left: 5px solid #10B981 !important; }
-    .corp-card h4 { color: #34D399 !important; }
-    .dl-card { background: rgba(4, 45, 26, 0.65); border: 1px solid rgba(16, 185, 129, 0.4); border-top: 4px solid #10B981; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
-    .dl-icon { text-shadow: 0 15px 25px rgba(0,0,0,0.5); }
-    .dl-subtitle { color: #A7F3D0; }
-    .dl-feature-badge { background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.2); color: #E2E8F0; }
+    
+    /* Optimized Spacious Cards for Dashboard */
+    .corp-hero { background: rgba(4, 45, 26, 0.4) !important; border: 1px solid rgba(16, 185, 129, 0.2) !important; border-left: 5px solid #10B981 !important; padding: 2rem 2.5rem; border-radius: 16px; margin-bottom: 2rem; margin-top: 1rem;}
+    .corp-card { background: rgba(4, 45, 26, 0.4) !important; border: 1px solid rgba(16, 185, 129, 0.2) !important; padding: 2.5rem; border-radius: 16px; margin-bottom: 2rem; }
+    .corp-card h4 { color: #34D399 !important; font-size: 1.4rem; margin-bottom: 1.5rem; }
 }
+
 
 /* ========================================= */
 /* === THEME COLORS (LIGHT MODE OVERRIDES)== */
@@ -504,29 +487,33 @@ div[role="dialog"] div[data-testid="stTextInput"] button { display: none !import
 @media (prefers-color-scheme: light) {
     html, body, .stApp, [data-testid="stAppViewContainer"], .main { background: #F4FBF7 !important; background-color: #F4FBF7 !important; background-image: none !important; }
     h1, h2, h3, h4, h5, h6, p, label, .stMarkdown, div { color: #0F172A !important; }
+    
     div[data-testid="stTabs"] button * { color: #475569 !important; }
     div[data-testid="stTabs"] button[aria-selected="true"] * { color: #059669 !important; font-weight: 800 !important; }
+    
     button[kind="secondary"] { background-color: #FFFFFF !important; border: 1px solid #059669 !important; }
     button[kind="secondary"] * { color: #000000 !important; }
     button[kind="secondary"]:hover { background-color: #059669 !important; }
     button[kind="secondary"]:hover * { color: #FFFFFF !important; }
     div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="secondary"] { background-color: #10B981 !important; border: 2px solid #FFFFFF !important; }
     div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="secondary"] p { color: #FFFFFF !important; }
+    
     button[kind="primary"], button[kind="primaryFormSubmit"] { background-color: #10B981 !important; border: none !important; cursor: pointer !important;}
     button[kind="primary"] *, button[kind="primaryFormSubmit"] * { color: #FFFFFF !important; font-weight: 800 !important; cursor: pointer !important;}
     button[kind="primary"]:disabled { background-color: rgba(16, 185, 129, 0.2) !important; }
     button[kind="primary"]:disabled * { color: #94a3b8 !important; }
     div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="primary"] { background: rgba(255, 255, 255, 0.9) !important; border: 2px solid rgba(16, 185, 129, 0.5) !important; }
-    div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="primary"] p { color: #000000 !important; }
+    
     .profile-meta-title { color: #0F172A !important; }
     div[data-testid="stDialog"] > div { background: #FFFFFF !important; border: 1px solid rgba(16, 185, 129, 0.4) !important; }
     .pin-modal-title { color: #059669 !important; text-shadow: none !important; }
-    .corp-hero, .corp-card { background: #FFFFFF !important; border: 1px solid rgba(16, 185, 129, 0.3) !important; border-left: 5px solid #10B981 !important; box-shadow: 0 4px 15px rgba(0,0,0,0.05) !important; }
-    .corp-card h4 { color: #059669 !important; }
-    .dl-card { background: #FFFFFF; border: 1px solid rgba(16, 185, 129, 0.3); border-top: 4px solid #10B981; box-shadow: 0 20px 50px rgba(16, 185, 129, 0.15); }
-    .dl-icon { text-shadow: 0 15px 25px rgba(16, 185, 129, 0.2); }
-    .dl-subtitle { color: #475569; }
-    .dl-feature-badge { background: #F4FBF7; border: 1px solid rgba(16, 185, 129, 0.3); color: #0F172A; }
+    
+    /* Optimized Spacious Cards for Dashboard */
+    .corp-hero { background: #FFFFFF !important; border: 1px solid rgba(16, 185, 129, 0.3) !important; border-left: 5px solid #10B981 !important; padding: 2rem 2.5rem; border-radius: 16px; margin-bottom: 2rem; margin-top: 1rem; box-shadow: 0 10px 30px rgba(0,0,0,0.03) !important;}
+    .corp-card { background: #FFFFFF !important; border: 1px solid rgba(16, 185, 129, 0.3) !important; padding: 2.5rem; border-radius: 16px; margin-bottom: 2rem; box-shadow: 0 10px 30px rgba(0,0,0,0.03) !important;}
+    .corp-card h4 { color: #059669 !important; font-size: 1.4rem; margin-bottom: 1.5rem;}
+    
+    [data-testid="stFileUploader"] > section { background-color: #F4FBF7 !important; }
 }
 </style>
 """
@@ -555,10 +542,8 @@ if "show_download_page" not in st.session_state: st.session_state.show_download_
 def show_pin_dialog(email, name, role):
     st.markdown("<div class='pin-modal-title'>P.I.N</div>", unsafe_allow_html=True)
     
-    # Text input for the minimalist pin screen
     pin_val = st.text_input("Enter PIN", type="password", max_chars=4, placeholder="••••", label_visibility="collapsed", key=f"pin_entry_{email}")
     
-    # When user types in the field and hits Enter, this block runs
     if pin_val:
         ok, u_name, u_role = verify_employee_pin(email, pin_val)
         if ok:
@@ -722,6 +707,7 @@ if not st.session_state.logged_in:
                     """, unsafe_allow_html=True)
     st.stop()
 
+
 # ===========================================================================
 # 9. OCR & MULTI-RESUME EXTRACTION ENGINE
 # ===========================================================================
@@ -741,13 +727,23 @@ def extract_text_from_image(file_bytes: bytes, client: Groq = None) -> str:
     return ""
 
 def extract_text_from_pdf(file_bytes: bytes, client: Groq = None) -> str:
-    import pdfplumber
-    text_parts = []
-    with pdfplumber.open(io.BytesIO(file_bytes)) as pdf:
-        for idx, page in enumerate(pdf.pages, start=1):
-            page_text = page.extract_text() or ""
-            if len(page_text.strip()) > 30: text_parts.append(page_text)
-    return "\n\n".join(text_parts)
+    try:
+        import pdfplumber
+        text_parts = []
+        with pdfplumber.open(io.BytesIO(file_bytes)) as pdf:
+            for page in pdf.pages:
+                text = page.extract_text()
+                if text: text_parts.append(text)
+        return "\n\n---NEXT PAGE---\n\n".join(text_parts)
+    except ImportError:
+        try:
+            import PyPDF2
+            reader = PyPDF2.PdfReader(io.BytesIO(file_bytes))
+            text_parts = [page.extract_text() for page in reader.pages if page.extract_text()]
+            return "\n\n---NEXT PAGE---\n\n".join(text_parts)
+        except Exception as e:
+            st.error(f"PDF library missing. Error: {e}")
+            return ""
 
 def extract_text_from_docx(file_bytes: bytes) -> str:
     import docx
@@ -766,22 +762,45 @@ def extract_resume_text(uploaded_file, client: Groq = None):
     return ""
 
 def parse_multiple_candidates_from_text(client, full_text):
-    chunk_size = 14000
+    chunk_size = 12000
     chunks = [full_text[i:i+chunk_size] for i in range(0, len(full_text), chunk_size - 500)]
     all_extracted_candidates, seen_identifiers = [], set()
 
     for chunk in chunks:
-        prompt = f"""Extract candidates to valid JSON format. Return purely JSON: {{"candidates": [{{"name": "...", "email": "...", "phone": "...", "education": "...", "experience_years": "0"}}]}} Document: {chunk}"""
+        prompt = f"""
+        You are an elite HR AI Resume Parser. The document text provided below contains ONE OR MULTIPLE resumes/CVs stitched together. 
+        Your task is to carefully read the text, identify EVERY DISTINCT CANDIDATE, and extract their details.
+
+        Return a STRICTLY valid JSON object with a "candidates" array. 
+        Example Output Format:
+        {{
+            "candidates": [
+                {{"name": "Ali Khan", "email": "ali@gmail.com", "phone": "03001234567", "education": "BS Computer Science", "experience_years": "2"}},
+                {{"name": "Sara Ahmed", "email": "sara.a@yahoo.com", "phone": "03331234567", "education": "MBA HR", "experience_years": "5"}}
+            ]
+        }}
+
+        Document Text:
+        {chunk}
+        """
         try:
-            res = client.chat.completions.create(model=GROQ_MODEL, messages=[{"role": "user", "content": prompt}], response_format={"type": "json_object"}, temperature=0.1)
+            res = client.chat.completions.create(
+                model=GROQ_MODEL, 
+                messages=[{"role": "user", "content": prompt}], 
+                response_format={"type": "json_object"}, 
+                temperature=0.1
+            )
             content = res.choices[0].message.content.strip()
-            parsed = json.loads(content[content.find('{'):content.rfind('}')+1]) if '{' in content else {}
+            parsed = json.loads(content)
+            
             for cand in parsed.get("candidates", []):
                 uid = str(cand.get("email", "")).lower() or f"{cand.get('name', '')}_{cand.get('phone', '')}"
-                if uid not in seen_identifiers:
+                if uid not in seen_identifiers and cand.get("name") and cand.get("name").lower() != "unknown":
                     seen_identifiers.add(uid)
                     all_extracted_candidates.append(cand)
-        except Exception: pass
+        except Exception as e:
+            st.error(f"⚠️ AI Parsing Error: {str(e)}")
+            
     return all_extracted_candidates
 
 def evaluate_candidate_against_jd(client, candidate_row, jd_text, selected_job_title=""):
@@ -793,11 +812,6 @@ def evaluate_candidate_against_jd(client, candidate_row, jd_text, selected_job_t
         return float(parsed.get("match_score", 50)), True, parsed.get("missing_skills", [])
     except Exception: return 50.0, True, []
 
-def generate_ai_interview_questions(client, name, role, skills):
-    try:
-        res = client.chat.completions.create(model=GROQ_MODEL, messages=[{"role": "user", "content": f"Generate 5 precise interview questions with ideal answers for candidate {name} applying for {role}. Skills: {skills}"}], temperature=0.3)
-        return res.choices[0].message.content.strip()
-    except Exception as e: return f"Error: {e}"
 
 # ===========================================================================
 # 10. MAIN DASHBOARD & TABS
@@ -805,24 +819,29 @@ def generate_ai_interview_questions(client, name, role, skills):
 df_all = load_database()
 user_avatar = get_user_avatar(st.session_state.hr_email)
 
-st.markdown(f"""
-    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 25px;">
-        <div style="display: flex; align-items: center; gap: 15px;">
-            <div style="font-size: 2.2rem; background: rgba(16, 185, 129, 0.2); backdrop-filter: blur(10px); border: 2px solid #10B981; border-radius: 16px; width: 65px; height: 65px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(16, 185, 129, 0.2);">{user_avatar}</div>
+# --- RESTRUCTURED SPACIOUS HEADER ---
+col_h1, col_h2, col_h3 = st.columns([7, 1.5, 1.5], vertical_alignment="center")
+
+with col_h1:
+    st.markdown(f"""
+        <div style="display: flex; align-items: center; gap: 20px;">
+            <div style="font-size: 2.5rem; background: rgba(16, 185, 129, 0.15); border: 2px solid rgba(16, 185, 129, 0.4); border-radius: 18px; width: 75px; height: 75px; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 20px rgba(16, 185, 129, 0.15);">{user_avatar}</div>
             <div>
-                <h2 style="margin: 0; font-size: 1.8rem; font-weight: 800;">{APP_NAME} Enterprise Portal</h2>
-                <span style="font-size: 0.95rem; opacity: 0.9; font-weight: 500;">Executive Session: <b>{st.session_state.hr_name}</b> &nbsp;|&nbsp; Role: <span style="color: #34D399;">{st.session_state.hr_role}</span></span>
+                <h2 style="margin: 0 0 5px 0; font-size: 2rem; font-weight: 800; letter-spacing: -0.5px;">{APP_NAME} <span style="font-weight: 400; opacity: 0.7;">| Enterprise</span></h2>
+                <div style="font-size: 0.95rem; opacity: 0.8; font-weight: 500; display: flex; gap: 15px;">
+                    <span>👤 Session: <b style="color: #34D399;">{st.session_state.hr_name}</b></span>
+                    <span>🛡️ Role: <b style="color: #34D399;">{st.session_state.hr_role}</b></span>
+                </div>
             </div>
         </div>
-    </div>
-""", unsafe_allow_html=True)
+    """, unsafe_allow_html=True)
 
-col_nav_right1, col_nav_right2 = st.columns([1, 1])
-with col_nav_right1:
-    if st.button("📥 Download Suite", key="dash_top_dl_btn", use_container_width=True):
+with col_h2:
+    if st.button("📥 Download App", key="dash_top_dl_btn", use_container_width=True):
         st.session_state.show_download_page = True
         st.rerun()
-with col_nav_right2:
+
+with col_h3:
     if st.button("🚪 Lock Portal", key="dash_top_lock_btn", use_container_width=True):
         st.session_state.logged_in = False
         st.session_state.hr_name = ""
@@ -831,11 +850,12 @@ with col_nav_right2:
         st.rerun()
 
 st.markdown(f"""
-    <div class="corp-hero" style="margin-top: 15px;">
-        <h2 style="margin: 0 0 8px 0; font-weight: 800;">Attock Refinery Master Repository</h2>
-        <p style="margin: 0; opacity: 0.9; font-size: 1.05rem;">Total Database Records: <b>{len(df_all)} Candidates</b></p>
+    <div class="corp-hero">
+        <h2 style="margin: 0 0 8px 0; font-weight: 800; font-size: 1.8rem;">Attock Refinery Master Repository</h2>
+        <p style="margin: 0; opacity: 0.9; font-size: 1.05rem;">Total Analyzed Database Records: <b style="color: #34D399; font-size: 1.2rem;">{len(df_all)} Candidates</b></p>
     </div>
 """, unsafe_allow_html=True)
+
 
 tab1, tab2, tab3, tab4 = st.tabs(["📥 1. Repository Upload", "🎯 2. JD Screening", "🗄️ 3. Live Database Grids", "🛡️ 4. Admin Controls"])
 
@@ -845,33 +865,45 @@ with tab1:
     g_key = st.secrets.get("GROQ_API_KEY", os.environ.get("GROQ_API_KEY", ""))
     
     if st.button("⚡ Extract & Append", type="primary", use_container_width=True, disabled=not uploaded_files):
-        client = Groq(api_key=g_key)
-        batch = []
-        for file in uploaded_files:
-            text = extract_resume_text(file, client=client)
-            if len(text.strip()) > 30:
-                batch.extend(parse_multiple_candidates_from_text(client, text))
-        if batch:
-            ins, skp = save_candidates_to_repository(batch)
-            st.success(f"Processed {len(batch)} candidates. Saved {ins} new records.")
-            st.rerun()
+        if not g_key:
+            st.error("⚠️ GROQ_API_KEY is missing! Please add it to your environment variables or Streamlit secrets.")
+        else:
+            client = Groq(api_key=g_key)
+            batch = []
+            
+            with st.spinner("🧠 AI is actively reading and extracting multiple CVs... Please wait."):
+                for file in uploaded_files:
+                    text = extract_resume_text(file, client=client)
+                    if len(text.strip()) > 30:
+                        candidates = parse_multiple_candidates_from_text(client, text)
+                        batch.extend(candidates)
+                
+                if batch:
+                    ins, skp = save_candidates_to_repository(batch)
+                    st.success(f"✅ Processed successfully! Extracted {len(batch)} candidates. Saved {ins} new records (Skipped {skp} duplicates).")
+                    st.rerun()
+                else:
+                    st.warning("⚠️ No valid candidates found. Check if the files contain readable text or if API limits were reached.")
+    st.markdown('</div>', unsafe_allow_html=True)
 
 with tab2:
     st.markdown('<div class="corp-card"><h4>🎯 Step 2: JD Screening</h4>', unsafe_allow_html=True)
     catalog = load_arl_job_catalog()
     dept = st.selectbox("Department", list(catalog.keys()))
     job_role = st.selectbox("Position", catalog.get(dept, []))
-    jd_text = st.text_area("Job Description", height=130)
-    slider_thresh = st.slider("Match Threshold (%)", 0, 100, 40, step=5)
+    jd_text = st.text_area("Paste Full Job Description Here", height=150)
+    slider_thresh = st.slider("Minimum Match Threshold (%)", 0, 100, 40, step=5)
 
-    if st.button("⚡ Run AI Screening", type="primary", use_container_width=True, disabled=not jd_text.strip()):
+    if st.button("⚡ Run AI Screening Analysis", type="primary", use_container_width=True, disabled=not jd_text.strip()):
         client = Groq(api_key=g_key)
         res = []
-        for _, row in df_all.iterrows():
-            score, _, missing = evaluate_candidate_against_jd(client, row, jd_text, selected_job_title=job_role)
-            if score >= slider_thresh: res.append({"job_title": job_role, "name": row["Name"], "email": row["Email"], "match_score": score})
-        st.session_state.screening_results = res
-        st.success("Screening complete!")
+        with st.spinner("🎯 AI is comparing candidates against JD requirements..."):
+            for _, row in df_all.iterrows():
+                score, _, missing = evaluate_candidate_against_jd(client, row, jd_text, selected_job_title=job_role)
+                if score >= slider_thresh: res.append({"job_title": job_role, "name": row["Name"], "email": row["Email"], "match_score": score})
+            st.session_state.screening_results = res
+            st.success("Screening complete!")
+    st.markdown('</div>', unsafe_allow_html=True)
 
 # ----------------- TAB 3: DATABASE GRIDS -----------------
 with tab3:
@@ -880,7 +912,7 @@ with tab3:
     with g1:
         s_df = load_screened_database()
         if not s_df.empty:
-            st.dataframe(s_df, use_container_width=True)
+            st.dataframe(s_df, use_container_width=True, height=350)
             if st.button("🗑️ Clear Screened Candidates Table", type="secondary", key="clear_screened_btn"):
                 clear_screened_database()
                 st.success("Screened candidates records cleared from Supabase.")
@@ -890,7 +922,7 @@ with tab3:
     with g2:
         m_df = load_database()
         if not m_df.empty:
-            st.dataframe(m_df, use_container_width=True)
+            st.dataframe(m_df, use_container_width=True, height=450)
             if st.button("🗑️ Clear Master Talent Pool", type="secondary", key="clear_pool_btn"):
                 clear_candidate_database()
                 st.success("Master talent pool cleared.")
@@ -908,7 +940,7 @@ with tab4:
         with c1: st.write(f"👤 **{p_nm}** ({p_em})")
         with c2: st.write(f"Role: `{p_r}`")
         with c3:
-            if st.button("Revoke", key=f"rev_{p_em}", type="secondary"):
+            if st.button("Revoke", key=f"rev_{p_em}", type="secondary", use_container_width=True):
                 delete_employee_profile(p_em)
                 st.rerun()
     st.markdown('</div>', unsafe_allow_html=True)
