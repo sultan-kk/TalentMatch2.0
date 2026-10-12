@@ -215,55 +215,36 @@ def delete_employee_profile(email):
     if "profile_avatars" in st.session_state and clean_email in st.session_state.profile_avatars:
         del st.session_state.profile_avatars[clean_email]
 
+
 # ===========================================================================
 # 3. ARL JOB CATALOG
 # ===========================================================================
 DEFAULT_ARL_CATALOG = {
-    "Operations & Refining": ["Process Engineer", "Plant Shift Incharge", "Senior Plant Operator (CDU / Reformer)", "Control Room DCS Operator", "Refining Operations Manager"],
-    "Maintenance & Engineering": ["Mechanical Maintenance Engineer", "Electrical Maintenance Engineer", "Instrumentation & Control (I&C) Engineer"],
-    "Human Resources & Administration": ["Talent Acquisition & Recruitment Specialist", "HR Operations & Payroll Executive"]
+    "Operations & Refining": ["Process Engineer", "Plant Shift Incharge"],
+    "Maintenance & Engineering": ["Mechanical Engineer", "Electrical Engineer"],
+    "Human Resources & Administration": ["Talent Acquisition", "HR Manager"]
 }
 
 def load_arl_job_catalog():
-    catalog = {}
-    if supabase:
-        try:
-            res = supabase.table("arl_job_hierarchy").select("*").order("id", desc=False).execute()
-            if res.data and len(res.data) > 0:
-                for row in res.data:
-                    dept = row.get("department", "General")
-                    job = row.get("job_title", "")
-                    if job:
-                        catalog.setdefault(dept, []).append(job)
-                return catalog
-        except Exception:
-            pass
     return DEFAULT_ARL_CATALOG
 
 # ===========================================================================
 # 4. DATABASE STORAGE LOGIC
 # ===========================================================================
 def load_database():
-    expected_cols = ["Name", "Father Name", "Qualification", "CGPA", "Passing Year", "Institute", "DOB", "Email", "Phone Number", "Experience", "Latest Experience", "Reference", "Pipeline Status", "Added At"]
+    expected_cols = ["Name", "Qualification", "Email", "Phone Number", "Experience", "Pipeline Status"]
     if not supabase: return pd.DataFrame(columns=expected_cols)
     try:
         response = supabase.table("candidates").select("*").order("id", desc=False).execute()
-        rows = response.data
-        if rows:
+        if response.data:
             mapped = []
-            for r in rows:
+            for r in response.data:
                 mapped.append({
-                    "Name": r.get("candidate_name", "Unknown"), "Father Name": r.get("father_name", "Not Provided"),
-                    "Qualification": r.get("education", "Not Provided"), "CGPA": r.get("cgpa", "Not Provided"),
-                    "Passing Year": r.get("passing_year", "Not Provided"), "Institute": r.get("university_name", "Not Provided"),
-                    "DOB": r.get("dob", "Not Provided"), "Email": r.get("email", "Not Provided"),
-                    "Phone Number": r.get("phone", "Not Provided"), "Experience": str(r.get("experience_years", "0")),
-                    "Latest Experience": r.get("latest_experience", "Not Provided"), "Reference": r.get("reference", "Not Provided"),
-                    "Pipeline Status": r.get("pipeline_status", "Talent Pool"), "Added At": r.get("added_at", "Not Provided")
+                    "Name": r.get("candidate_name", "Unknown"), "Qualification": r.get("education", ""),
+                    "Email": r.get("email", ""), "Phone Number": r.get("phone", ""), 
+                    "Experience": str(r.get("experience_years", "0")), "Pipeline Status": r.get("pipeline_status", "Talent Pool")
                 })
-            df = pd.DataFrame(mapped)[expected_cols]
-            df.index = range(1, len(df) + 1)
-            return df
+            return pd.DataFrame(mapped)[expected_cols]
     except Exception: pass
     return pd.DataFrame(columns=expected_cols)
 
@@ -278,55 +259,23 @@ def clear_screened_database():
 def clear_candidate_database():
     if supabase:
         try:
-            # Requires matching a condition to delete rows in Supabase
-            supabase.table("candidates").delete().neq("candidate_name", "THIS_WILL_NEVER_MATCH_123").execute()
+            supabase.table("candidates").delete().neq("id", 0).execute()
         except Exception: 
             pass
 
 def save_candidates_to_repository(new_candidates):
     if not supabase: return 0, 0
     current_timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    existing_emails, existing_phones, existing_names = set(), set(), set()
-    try:
-        curr_res = supabase.table("candidates").select("candidate_name, email, phone").execute()
-        if curr_res.data:
-            for rec in curr_res.data:
-                em = str(rec.get("email", "")).strip().lower()
-                ph = str(rec.get("phone", "")).strip()
-                nm = str(rec.get("candidate_name", "")).strip().lower()
-                if em and "not" not in em: existing_emails.add(em)
-                if ph and "not" not in ph: existing_phones.add(ph)
-                if nm and "not" not in nm and "unknown" not in nm: existing_names.add(nm)
-    except Exception: pass
-
     inserted, skipped = 0, 0
     for c in new_candidates:
-        c_name = str(c.get("name", "Unknown")).strip()
-        c_email = str(c.get("email", "Not Provided")).strip().lower()
-        c_phone = str(c.get("phone", "Not Provided")).strip()
-
-        is_dup = False
-        if c_email and "not" not in c_email and c_email in existing_emails: is_dup = True
-        elif c_phone and "not" not in c_phone and c_phone in existing_phones: is_dup = True
-        elif c_name and c_name.lower() in existing_names and c_name.lower() not in ["unknown", "name"]: is_dup = True
-
-        if is_dup:
-            skipped += 1
-            continue
-
         payload = {
-            "candidate_name": c_name, "father_name": c.get("father_name", "Not Provided"), "education": c.get("education", "Not Provided"),
-            "cgpa": c.get("cgpa", "Not Provided"), "passing_year": c.get("passing_year", "Not Provided"), "university_name": c.get("university_name", "Not Provided"),
-            "dob": c.get("dob", "Not Provided"), "email": c.get("email", "Not Provided"), "phone": c.get("phone", "Not Provided"),
-            "experience_years": str(c.get("experience_years", "0")), "latest_experience": c.get("latest_experience", "Not Provided"),
-            "reference": c.get("reference", "Not Provided"), "pipeline_status": "Talent Pool", "added_at": current_timestamp
+            "candidate_name": c.get("name", "Unknown"), "education": c.get("education", "Not Provided"),
+            "email": c.get("email", "Not Provided"), "phone": c.get("phone", "Not Provided"),
+            "experience_years": str(c.get("experience_years", "0")), "pipeline_status": "Talent Pool", "added_at": current_timestamp
         }
         try:
             supabase.table("candidates").insert(payload).execute()
             inserted += 1
-            if c_email and "not" not in c_email: existing_emails.add(c_email)
-            if c_phone and "not" not in c_phone: existing_phones.add(c_phone)
-            if c_name: existing_names.add(c_name.lower())
         except Exception: skipped += 1
     return inserted, skipped
 
@@ -381,41 +330,44 @@ div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="secondary"]:h
 
 
 /* ========================================= */
-/* 2. THE P.I.N MODAL & GLASSMORPHISM        */
+/* 2. THE P.I.N MODAL & GLASSMORPHISM FIX    */
 /* ========================================= */
-[data-testid="stModal"] > div:first-child { background: transparent !important; }
-div[role="dialog"] {
-    border-radius: 20px !important; box-shadow: 0 10px 40px rgba(0,0,0,0.3) !important; 
-    padding: 2.5rem 2rem !important; width: 340px !important;
-    backdrop-filter: blur(25px) !important; -webkit-backdrop-filter: blur(25px) !important;
-}
-/* Hide Streamlit default close icon and header in Modal */
-div[role="dialog"] header { display: none !important; }
 
+/* Dialog Background & Glassmorphism */
+div[data-testid="stDialog"] > div {
+    backdrop-filter: blur(25px) !important; -webkit-backdrop-filter: blur(25px) !important;
+    border-radius: 20px !important; 
+    box-shadow: 0 10px 40px rgba(0,0,0,0.3) !important;
+    padding: 2.5rem 2rem !important; 
+    width: 340px !important;
+}
+
+/* Hide Streamlit Close Button in header */
+div[data-testid="stDialog"] button[aria-label="Close"] { display: none !important; }
+
+/* P.I.N Title */
 .pin-modal-title { text-align: center; font-size: 1.8rem; font-weight: 800; letter-spacing: 8px; margin-bottom: 25px; margin-top: -10px; }
 
-/* Fix PIN Input: Removing White Box & Centering */
-div[role="dialog"] [data-testid="stTextInput"] > div:first-child > div {
-    background: transparent !important; background-color: transparent !important;
+/* PIN Input Field Overrides - Strip White Box completely */
+div[data-testid="stTextInput"] div[data-baseweb="base-input"], 
+div[data-testid="stTextInput"] div[data-baseweb="input"] {
+    background-color: transparent !important; background: transparent !important;
     border: none !important; box-shadow: none !important;
 }
-div[role="dialog"] [data-testid="stTextInput"] input {
-    text-align: center !important; font-size: 2.8rem !important; letter-spacing: 25px !important;
-    background: transparent !important; border: none !important; 
-    border-bottom: 2px solid rgba(16, 185, 129, 0.3) !important;
+
+/* PIN Input Text Style (Centered, Huge dots) */
+div[data-testid="stTextInput"] input {
+    text-align: center !important; font-size: 3rem !important; letter-spacing: 25px !important;
+    background: transparent !important; background-color: transparent !important;
+    border: none !important; 
+    border-bottom: 2px solid rgba(16, 185, 129, 0.4) !important;
     border-radius: 0 !important; padding: 10px 0 !important;
     font-family: 'JetBrains Mono', monospace !important; color: #10B981 !important;
 }
-div[role="dialog"] [data-testid="stTextInput"] input:focus { border-bottom: 2px solid #34D399 !important; }
+div[data-testid="stTextInput"] input:focus { border-bottom: 2px solid #10B981 !important; }
 
-/* Hide Eye Icon (Password Visibility Toggle) */
-div[role="dialog"] [data-testid="stTextInputPasswordVisibilityToggle"] { display: none !important; }
-
-div[role="dialog"] button[kind="primaryFormSubmit"] {
-    font-weight: 800 !important; border-radius: 10px !important; border: none !important; margin-top: 25px !important;
-    height: 48px !important; font-size: 1.05rem !important; transition: all 0.3s ease !important;
-}
-div[role="dialog"] button[kind="primaryFormSubmit"]:hover { transform: scale(1.02); }
+/* Hide Eye Icon Aggressively */
+div[data-testid="stTextInput"] button { display: none !important; visibility: hidden !important; }
 
 
 /* ========================================= */
@@ -449,8 +401,8 @@ div[role="dialog"] button[kind="primaryFormSubmit"]:hover { transform: scale(1.0
     }
 
     /* Primary Buttons */
-    button[kind="primary"] { background-color: #10B981 !important; border: none !important; }
-    button[kind="primary"] * { color: #01150c !important; font-weight: 800 !important; }
+    button[kind="primary"], button[kind="primaryFormSubmit"] { background-color: #10B981 !important; border: none !important; }
+    button[kind="primary"] *, button[kind="primaryFormSubmit"] * { color: #01150c !important; font-weight: 800 !important; }
     button[kind="primary"]:disabled { background-color: rgba(16, 185, 129, 0.2) !important; }
     button[kind="primary"]:disabled * { color: #64748b !important; }
 
@@ -460,11 +412,9 @@ div[role="dialog"] button[kind="primaryFormSubmit"]:hover { transform: scale(1.0
     }
     .profile-meta-title { color: #FFFFFF !important; }
     
-    /* Modals */
-    [data-testid="stModal"] { background: rgba(1, 21, 12, 0.7) !important; }
-    div[role="dialog"] { background: rgba(4, 45, 26, 0.6) !important; border: 1px solid rgba(16, 185, 129, 0.4) !important; }
-    .pin-modal-title { color: #10B981; text-shadow: 0 0 15px rgba(16, 185, 129, 0.5); }
-    div[role="dialog"] button[kind="primaryFormSubmit"] { background: #10B981 !important; color: #01150c !important; }
+    /* Modal Dialog Dark Mode */
+    div[data-testid="stDialog"] > div { background: rgba(4, 45, 26, 0.8) !important; border: 1px solid #10B981 !important; }
+    .pin-modal-title { color: #10B981 !important; text-shadow: 0 0 15px rgba(16, 185, 129, 0.5) !important; }
     
     /* Glass Cards */
     .corp-hero, .corp-card {
@@ -480,7 +430,7 @@ div[role="dialog"] button[kind="primaryFormSubmit"]:hover { transform: scale(1.0
 /* === THEME COLORS (LIGHT MODE OVERRIDES)== */
 /* ========================================= */
 @media (prefers-color-scheme: light) {
-    /* Extreme Target to force Light mode background */
+    /* Extreme Target to force Light mode background to overcome Streamlit injecting styles */
     html, body, .stApp, [data-testid="stAppViewContainer"], .main { 
         background: #F4FBF7 !important;
         background-color: #F4FBF7 !important; 
@@ -507,8 +457,8 @@ div[role="dialog"] button[kind="primaryFormSubmit"]:hover { transform: scale(1.0
     div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="secondary"] p { color: #FFFFFF !important; }
 
     /* Primary Buttons */
-    button[kind="primary"] { background-color: #10B981 !important; border: none !important; }
-    button[kind="primary"] * { color: #FFFFFF !important; font-weight: 800 !important; }
+    button[kind="primary"], button[kind="primaryFormSubmit"] { background-color: #10B981 !important; border: none !important; }
+    button[kind="primary"] *, button[kind="primaryFormSubmit"] * { color: #FFFFFF !important; font-weight: 800 !important; }
     button[kind="primary"]:disabled { background-color: rgba(16, 185, 129, 0.2) !important; }
     button[kind="primary"]:disabled * { color: #94a3b8 !important; }
 
@@ -519,11 +469,9 @@ div[role="dialog"] button[kind="primaryFormSubmit"]:hover { transform: scale(1.0
     div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="primary"] p { color: #000000 !important; }
     .profile-meta-title { color: #0F172A !important; }
     
-    /* Modals */
-    [data-testid="stModal"] { background: rgba(244, 251, 247, 0.8) !important; }
-    div[role="dialog"] { background: #FFFFFF !important; border: 1px solid rgba(16, 185, 129, 0.4) !important; }
+    /* Modal Dialog Light Mode */
+    div[data-testid="stDialog"] > div { background: #FFFFFF !important; border: 1px solid rgba(16, 185, 129, 0.4) !important; }
     .pin-modal-title { color: #059669 !important; text-shadow: none !important; }
-    div[role="dialog"] button[kind="primaryFormSubmit"] { background: #10B981 !important; color: #FFFFFF !important; }
     
     /* Glass Cards */
     .corp-hero, .corp-card {
@@ -561,10 +509,12 @@ def show_pin_dialog(email, name, role):
     st.markdown("<div class='pin-modal-title'>P.I.N</div>", unsafe_allow_html=True)
     with st.form(f"modal_pin_form_{email}", clear_on_submit=True):
         st.markdown('<div class="pin-input-container">', unsafe_allow_html=True)
+        # Placeholder set to pure dots, label collapsed
         pin_val = st.text_input("Enter PIN", type="password", max_chars=4, placeholder="••••", label_visibility="collapsed")
         st.markdown('</div>', unsafe_allow_html=True)
         
-        submit_btn = st.form_submit_button("Access Portal ➔", use_container_width=True)
+        # Added type="primary" to apply green color styling perfectly
+        submit_btn = st.form_submit_button("Access Portal ➔", type="primary", use_container_width=True)
         
     if submit_btn:
         ok, u_name, u_role = verify_employee_pin(email, pin_val)
