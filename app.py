@@ -732,14 +732,40 @@ def extract_text_from_pdf(file_bytes: bytes, client: Groq = None) -> str:
         with pdfplumber.open(io.BytesIO(file_bytes)) as pdf:
             for page in pdf.pages:
                 text = page.extract_text()
-                if text: text_parts.append(text)
-        return "\n\n---NEXT PAGE---\n\n".join(text_parts)
+                
+                # Check if it's a Digital PDF (Has Text)
+                if text and len(text.strip()) > 20:
+                    text_parts.append(text)
+                else:
+                    # If it's a Scanned PDF (No Text), Use AI Vision OCR automatically
+                    if client:
+                        try:
+                            # Convert PDF page to Image
+                            pil_img = page.to_image(resolution=150).original
+                            img_byte_arr = io.BytesIO()
+                            pil_img.save(img_byte_arr, format='JPEG')
+                            b64_img = base64.b64encode(img_byte_arr.getvalue()).decode("utf-8")
+                            
+                            # Send Image to LLaMA Vision Model
+                            resp = client.chat.completions.create(
+                                model=VISION_MODEL,
+                                messages=[{"role": "user", "content": [{"type": "text", "text": "Extract all text precisely from this scanned resume/CV document page."}, {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{b64_img}"}}] }],
+                                max_tokens=2500, temperature=0.1
+                            )
+                            vision_text = resp.choices[0].message.content.strip()
+                            if vision_text: 
+                                text_parts.append(vision_text)
+                        except Exception as e:
+                            pass # Skip page if OCR fails
+                            
+        # The separator helps AI distinguish multiple CVs within the same document
+        return "\n\n---NEXT CANDIDATE PAGE---\n\n".join(text_parts)
     except ImportError:
         try:
             import PyPDF2
             reader = PyPDF2.PdfReader(io.BytesIO(file_bytes))
             text_parts = [page.extract_text() for page in reader.pages if page.extract_text()]
-            return "\n\n---NEXT PAGE---\n\n".join(text_parts)
+            return "\n\n---NEXT CANDIDATE PAGE---\n\n".join(text_parts)
         except Exception as e:
             st.error(f"PDF library missing. Error: {e}")
             return ""
@@ -761,16 +787,19 @@ def extract_resume_text(uploaded_file, client: Groq = None):
     return ""
 
 def parse_multiple_candidates_from_text(client, full_text):
-    chunk_size = 12000
+    # Process in large chunks to handle multiple CVs in one go
+    chunk_size = 14000
     chunks = [full_text[i:i+chunk_size] for i in range(0, len(full_text), chunk_size - 500)]
-    all_extracted_candidates, seen_identifiers = [], set()
+    all_extracted_candidates = []
+    seen_identifiers = set()
 
     for chunk in chunks:
+        # Prompt explicitly forces AI to look for MULTIPLE candidates
         prompt = f"""
-        You are an elite HR AI Resume Parser. The document text provided below contains ONE OR MULTIPLE resumes/CVs stitched together. 
-        Your task is to carefully read the text, identify EVERY DISTINCT CANDIDATE, and extract their details.
+        You are an elite HR AI Resume Parser. The text below may contain ONE OR MULTIPLE DIFFERENT resumes/CVs merged together. 
+        Carefully read the text, identify EVERY DISTINCT CANDIDATE separately, and extract their details.
 
-        Return a STRICTLY valid JSON object with a "candidates" array. 
+        Return ONLY a valid JSON object with a "candidates" array. 
         Example Output Format:
         {{
             "candidates": [
@@ -793,6 +822,7 @@ def parse_multiple_candidates_from_text(client, full_text):
             parsed = json.loads(content)
             
             for cand in parsed.get("candidates", []):
+                # Using email or name+phone to prevent duplicates across chunks
                 uid = str(cand.get("email", "")).lower() or f"{cand.get('name', '')}_{cand.get('phone', '')}"
                 if uid not in seen_identifiers and cand.get("name") and cand.get("name").lower() != "unknown":
                     seen_identifiers.add(uid)
@@ -810,7 +840,6 @@ def evaluate_candidate_against_jd(client, candidate_row, jd_text, selected_job_t
         parsed = json.loads(content[content.find('{'):content.rfind('}')+1]) if '{' in content else {}
         return float(parsed.get("match_score", 50)), True, parsed.get("missing_skills", [])
     except Exception: return 50.0, True, []
-
 
 # ===========================================================================
 # 10. MAIN DASHBOARD & TABS
