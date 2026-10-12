@@ -29,7 +29,7 @@ from PIL import Image, ImageDraw
 APP_NAME = "ARL TalentMatch"
 APP_TAGLINE = "Attock Refinery Limited (ARL) • AI-Driven Automated CV Parser & JD Screener"
 GROQ_MODEL = "openai/gpt-oss-120b"
-VISION_MODEL = "llama-3.2-11b-vision-preview"
+VISION_MODEL = "llama-3.2-11b-vision-preview" # Ensure your proxy supports this or change it to your proxy's vision model
 ACCEPTED_TYPES = ["pdf", "docx", "png", "jpg", "jpeg"]
 EXE_DIRECT_DOWNLOAD_URL = "https://github.com/sultan-kk/TalentMatch2.0/releases/download/v1.0/TalentMatch.msi"
 AVAILABLE_BADGES = ["👔", "💼", "🛡️", "🎖️", "⚡", "🔬", "🛢️", "⚙️", "📈", "🎯", "👑", "🚀", "💡", "💻", "💎", "🏛️"]
@@ -227,7 +227,6 @@ def load_arl_job_catalog():
         except Exception:
             pass
     return DEFAULT_ARL_CATALOG
-
 
 # ===========================================================================
 # 4. DATABASE STORAGE LOGIC
@@ -711,64 +710,92 @@ if not st.session_state.logged_in:
 # 9. OCR & MULTI-RESUME EXTRACTION ENGINE
 # ===========================================================================
 def extract_text_from_image(file_bytes: bytes, client: Groq = None) -> str:
-    g_key = st.secrets.get("GROQ_API_KEY", os.environ.get("GROQ_API_KEY", ""))
-    if g_key:
-        try:
-            g_client = client or Groq(api_key=g_key)
-            b64_img = base64.b64encode(file_bytes).decode("utf-8")
-            resp = g_client.chat.completions.create(
-                model=VISION_MODEL,
-                messages=[{"role": "user", "content": [{"type": "text", "text": "Extract pure clean text from resume."}, {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{b64_img}"}}] }],
-                max_tokens=2500, temperature=0.1
-            )
-            return resp.choices[0].message.content.strip()
-        except Exception: pass
-    return ""
+    if not client: 
+        st.error("⚠️ AI Client missing for image extraction.")
+        return ""
+    try:
+        b64_img = base64.b64encode(file_bytes).decode("utf-8")
+        resp = client.chat.completions.create(
+            model=VISION_MODEL,
+            messages=[{"role": "user", "content": [{"type": "text", "text": "Extract pure clean text from resume."}, {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{b64_img}"}}] }],
+            max_tokens=2500, temperature=0.1
+        )
+        return resp.choices[0].message.content.strip()
+    except Exception as e: 
+        st.error(f"⚠️ Image Extract Error: {e}")
+        return ""
 
 def extract_text_from_pdf(file_bytes: bytes, client: Groq = None) -> str:
+    text_parts = []
+    
+    # Method 1: Try PyMuPDF (fitz) - Best for Mixed / Scanned PDFs
+    try:
+        import fitz
+        doc = fitz.open(stream=file_bytes, filetype="pdf")
+        for page in doc:
+            text = page.get_text()
+            if text and len(text.strip()) > 20:
+                text_parts.append(text)
+            else:
+                if client:
+                    try:
+                        pix = page.get_pixmap(dpi=150)
+                        b64_img = base64.b64encode(pix.tobytes("jpeg")).decode("utf-8")
+                        resp = client.chat.completions.create(
+                            model=VISION_MODEL,
+                            messages=[{"role": "user", "content": [{"type": "text", "text": "Extract all text precisely from this scanned resume/CV document page."}, {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{b64_img}"}}] }],
+                            max_tokens=2500, temperature=0.1
+                        )
+                        if resp.choices[0].message.content:
+                            text_parts.append(resp.choices[0].message.content.strip())
+                    except Exception as e:
+                        st.error(f"⚠️ PDF Vision OCR Error (Page Level): {e}")
+        return "\n\n---NEXT CANDIDATE PAGE---\n\n".join(text_parts)
+    except ImportError:
+        pass
+
+    # Method 2: Try pdfplumber
     try:
         import pdfplumber
-        text_parts = []
         with pdfplumber.open(io.BytesIO(file_bytes)) as pdf:
             for page in pdf.pages:
                 text = page.extract_text()
-                
-                # Check if it's a Digital PDF (Has Text)
                 if text and len(text.strip()) > 20:
                     text_parts.append(text)
                 else:
-                    # If it's a Scanned PDF (No Text), Use AI Vision OCR automatically
                     if client:
                         try:
-                            # Convert PDF page to Image
                             pil_img = page.to_image(resolution=150).original
                             img_byte_arr = io.BytesIO()
                             pil_img.save(img_byte_arr, format='JPEG')
                             b64_img = base64.b64encode(img_byte_arr.getvalue()).decode("utf-8")
-                            
-                            # Send Image to LLaMA Vision Model
                             resp = client.chat.completions.create(
                                 model=VISION_MODEL,
                                 messages=[{"role": "user", "content": [{"type": "text", "text": "Extract all text precisely from this scanned resume/CV document page."}, {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{b64_img}"}}] }],
                                 max_tokens=2500, temperature=0.1
                             )
-                            vision_text = resp.choices[0].message.content.strip()
-                            if vision_text: 
-                                text_parts.append(vision_text)
+                            if resp.choices[0].message.content:
+                                text_parts.append(resp.choices[0].message.content.strip())
                         except Exception as e:
-                            pass # Skip page if OCR fails
-                            
-        # The separator helps AI distinguish multiple CVs within the same document
+                            st.error(f"⚠️ PDF Vision OCR Error (pdfplumber): {e}")
         return "\n\n---NEXT CANDIDATE PAGE---\n\n".join(text_parts)
     except ImportError:
-        try:
-            import PyPDF2
-            reader = PyPDF2.PdfReader(io.BytesIO(file_bytes))
-            text_parts = [page.extract_text() for page in reader.pages if page.extract_text()]
-            return "\n\n---NEXT CANDIDATE PAGE---\n\n".join(text_parts)
-        except Exception as e:
-            st.error(f"PDF library missing. Error: {e}")
-            return ""
+        pass
+
+    # Method 3: Try PyPDF2 (Basic text only, no OCR)
+    try:
+        import PyPDF2
+        reader = PyPDF2.PdfReader(io.BytesIO(file_bytes))
+        for page in reader.pages:
+            text = page.extract_text()
+            if text: text_parts.append(text)
+        if not text_parts:
+            st.warning("⚠️ Scanned PDF detected, but NO Image libraries (PyMuPDF/pdfplumber) found. Cannot extract text.")
+        return "\n\n---NEXT CANDIDATE PAGE---\n\n".join(text_parts)
+    except Exception as e:
+        st.error(f"⚠️ PDF Read Error: {e}")
+        return ""
+
 
 def extract_text_from_docx(file_bytes: bytes) -> str:
     import docx
@@ -787,19 +814,17 @@ def extract_resume_text(uploaded_file, client: Groq = None):
     return ""
 
 def parse_multiple_candidates_from_text(client, full_text):
-    # Process in large chunks to handle multiple CVs in one go
     chunk_size = 14000
     chunks = [full_text[i:i+chunk_size] for i in range(0, len(full_text), chunk_size - 500)]
     all_extracted_candidates = []
     seen_identifiers = set()
 
     for chunk in chunks:
-        # Prompt explicitly forces AI to look for MULTIPLE candidates
         prompt = f"""
-        You are an elite HR AI Resume Parser. The text below may contain ONE OR MULTIPLE DIFFERENT resumes/CVs merged together. 
-        Carefully read the text, identify EVERY DISTINCT CANDIDATE separately, and extract their details.
+        You are an elite HR AI Resume Parser. The document text provided below contains ONE OR MULTIPLE resumes/CVs stitched together. 
+        Your task is to carefully read the text, identify EVERY DISTINCT CANDIDATE separately, and extract their details.
 
-        Return ONLY a valid JSON object with a "candidates" array. 
+        Return ONLY a strictly valid JSON object with a "candidates" array. 
         Example Output Format:
         {{
             "candidates": [
@@ -819,16 +844,22 @@ def parse_multiple_candidates_from_text(client, full_text):
                 temperature=0.1
             )
             content = res.choices[0].message.content.strip()
+            
+            # Robust JSON cleaning
+            if "```json" in content:
+                content = content.split("```json")[1].split("```")[0].strip()
+            elif "```" in content:
+                content = content.split("```")[1].split("```")[0].strip()
+                
             parsed = json.loads(content)
             
             for cand in parsed.get("candidates", []):
-                # Using email or name+phone to prevent duplicates across chunks
                 uid = str(cand.get("email", "")).lower() or f"{cand.get('name', '')}_{cand.get('phone', '')}"
                 if uid not in seen_identifiers and cand.get("name") and cand.get("name").lower() != "unknown":
                     seen_identifiers.add(uid)
                     all_extracted_candidates.append(cand)
         except Exception as e:
-            st.error(f"⚠️ AI Parsing Error: {str(e)}")
+            st.error(f"⚠️ AI Parsing Logic Error: {str(e)}")
             
     return all_extracted_candidates
 
@@ -837,9 +868,16 @@ def evaluate_candidate_against_jd(client, candidate_row, jd_text, selected_job_t
         prompt = f"""Evaluate candidate for '{selected_job_title}'. CANDIDATE: {candidate_row['Name']} - {candidate_row['Qualification']} - {candidate_row['Experience']} yrs. JD: {jd_text}. Return strictly valid JSON: {{"match_score": 75, "missing_skills": ["Skill 1"]}}"""
         res = client.chat.completions.create(model=GROQ_MODEL, messages=[{"role": "user", "content": prompt}], response_format={"type": "json_object"}, temperature=0.2)
         content = res.choices[0].message.content.strip()
-        parsed = json.loads(content[content.find('{'):content.rfind('}')+1]) if '{' in content else {}
+        if "```json" in content:
+            content = content.split("```json")[1].split("```")[0].strip()
+        elif "```" in content:
+            content = content.split("```")[1].split("```")[0].strip()
+        parsed = json.loads(content)
         return float(parsed.get("match_score", 50)), True, parsed.get("missing_skills", [])
-    except Exception: return 50.0, True, []
+    except Exception as e: 
+        st.error(f"⚠️ AI JD Evaluation Error: {str(e)}")
+        return 50.0, True, []
+
 
 # ===========================================================================
 # 10. MAIN DASHBOARD & TABS
@@ -887,7 +925,7 @@ tab1, tab2, tab3, tab4 = st.tabs(["📥 1. Repository Upload", "🎯 2. JD Scree
 with tab1:
     st.markdown('<div class="corp-card"><h4>📥 Step 1: Ingest & Parse Resumes</h4>', unsafe_allow_html=True)
     
-    # Handle Success Message Display properly via Session State
+    # Handle Success Message Display
     if st.session_state.upload_success_msg:
         st.success(st.session_state.upload_success_msg)
         st.session_state.upload_success_msg = "" # Clear after displaying once
@@ -905,16 +943,16 @@ with tab1:
             with st.spinner("🧠 AI is actively reading and extracting multiple CVs... Please wait."):
                 for file in uploaded_files:
                     text = extract_resume_text(file, client=client)
-                    if len(text.strip()) > 30:
+                    if text and len(text.strip()) > 30:
                         candidates = parse_multiple_candidates_from_text(client, text)
                         batch.extend(candidates)
                 
                 if batch:
                     ins, skp = save_candidates_to_repository(batch)
                     st.session_state.upload_success_msg = f"✅ Processed successfully! Extracted {len(batch)} candidates. Saved {ins} new records (Skipped {skp} duplicates)."
-                    st.rerun() # Reloads app, success message will now be caught and displayed at the top!
+                    st.rerun() # Reloads app to update grids, message shown on reload
                 else:
-                    st.warning("⚠️ No valid candidates found. Check if the files contain readable text or if API limits were reached.")
+                    st.warning("⚠️ No valid candidates found. Ensure files contain readable text or check for API errors above.")
     st.markdown('</div>', unsafe_allow_html=True)
 
 with tab2:
