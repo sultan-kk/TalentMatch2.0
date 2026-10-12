@@ -401,12 +401,8 @@ div[data-testid="stDialog"] button[aria-label="Close"] { display: none !importan
 div[data-testid="InputInstructions"], 
 div[data-testid="stTextInput"] small,
 div[data-testid="stTextInput"] > div > div:nth-child(2) { 
-    display: none !important; 
-    visibility: hidden !important; 
-    opacity: 0 !important; 
-    height: 0 !important; 
-    margin: 0 !important; 
-    padding: 0 !important;
+    display: none !important; visibility: hidden !important; opacity: 0 !important; 
+    height: 0 !important; margin: 0 !important; padding: 0 !important;
 }
 
 /* Strip Default Input Box & Borders */
@@ -431,22 +427,55 @@ div[data-testid="stTextInput"] button { display: none !important; visibility: hi
 
 
 /* ========================================= */
+/* 3. PREMIUM DOWNLOAD DESKTOP PAGE EFFECTS  */
+/* ========================================= */
+@keyframes float {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-12px); }
+    100% { transform: translateY(0px); }
+}
+@keyframes pulseGlow {
+    0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
+    70% { box-shadow: 0 0 0 20px rgba(16, 185, 129, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+.dl-hero-container {
+    display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2rem 1rem 1rem 1rem;
+}
+.dl-card {
+    border-radius: 24px; padding: 4rem 3rem; text-align: center; max-width: 800px; width: 100%;
+    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); transition: all 0.3s ease;
+}
+.dl-icon { font-size: 6rem; margin-bottom: 20px; animation: float 4s ease-in-out infinite; }
+.dl-title { margin: 0 0 15px 0; font-weight: 900; font-size: 3.2rem; line-height: 1.1; }
+.dl-title-gradient { background: -webkit-linear-gradient(45deg, #10B981, #34D399); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.dl-subtitle { font-size: 1.15rem; margin: 0 auto 30px auto; max-width: 600px; line-height: 1.6; }
+.dl-features { display: flex; justify-content: center; gap: 20px; margin-bottom: 40px; flex-wrap: wrap; }
+.dl-feature-badge { border-radius: 12px; padding: 10px 20px; font-size: 0.95rem; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+.dl-btn {
+    background: #10B981 !important; color: #FFFFFF !important; padding: 1.2rem 3.5rem !important; border-radius: 50px !important;
+    font-weight: 800 !important; font-size: 1.2rem !important; text-decoration: none !important; display: inline-block !important;
+    transition: all 0.3s ease !important; animation: pulseGlow 2s infinite !important;
+}
+.dl-btn:hover { transform: translateY(-3px) scale(1.02) !important; background: #059669 !important; }
+
+
+/* ========================================= */
 /* === THEME COLORS (DARK MODE DEFAULT) ==== */
 /* ========================================= */
 @media (prefers-color-scheme: dark) {
     .stApp, [data-testid="stAppViewContainer"], .main, body, html {
-        background: radial-gradient(circle at top right, #055030 0%, #01150c 100%) !important;
-        background-color: #01150c !important; color: #E2E8F0 !important;
+        background: radial-gradient(circle at top right, #055030 0%, #01150c 100%) !important; background-color: #01150c !important; color: #E2E8F0 !important;
     }
     
     h1, h2, h3, h4, h5, h6, p, label, .stMarkdown, div { color: #FFFFFF; }
-    h1 span, h2 span, h3 span { color: #10B981 !important; }
+    h1 span:not(.dl-title-gradient), h2 span, h3 span { color: #10B981 !important; }
 
     /* Tabs Fix */
     div[data-testid="stTabs"] button * { color: #FFFFFF !important; }
     div[data-testid="stTabs"] button[aria-selected="true"] * { color: #10B981 !important; font-weight: 800 !important; }
 
-    /* Secondary Buttons (Download, Lock, Revoke) */
+    /* Secondary Buttons */
     button[kind="secondary"] { background-color: #36454F !important; border: 1px solid #10B981 !important; }
     button[kind="secondary"] * { color: #FFFFFF !important; }
     button[kind="secondary"]:hover { background-color: #10B981 !important; }
@@ -469,15 +498,19 @@ div[data-testid="stTextInput"] button { display: none !important; visibility: hi
     }
     .profile-meta-title { color: #FFFFFF !important; }
     
-    /* Modal Dialog Dark Mode */
+    /* Modal Dialog */
     div[data-testid="stDialog"] > div { background: rgba(4, 45, 26, 0.8) !important; border: 1px solid #10B981 !important; }
     .pin-modal-title { color: #10B981 !important; text-shadow: 0 0 15px rgba(16, 185, 129, 0.5) !important; }
     
     /* Glass Cards */
-    .corp-hero, .corp-card {
-        background: rgba(4, 45, 26, 0.55) !important; border: 1px solid rgba(16, 185, 129, 0.35) !important; border-left: 5px solid #10B981 !important; 
-    }
+    .corp-hero, .corp-card { background: rgba(4, 45, 26, 0.55) !important; border: 1px solid rgba(16, 185, 129, 0.35) !important; border-left: 5px solid #10B981 !important; }
     .corp-card h4 { color: #34D399 !important; }
+
+    /* Download Page Theme (Dark) */
+    .dl-card { background: rgba(4, 45, 26, 0.65); border: 1px solid rgba(16, 185, 129, 0.4); border-top: 4px solid #10B981; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
+    .dl-icon { text-shadow: 0 15px 25px rgba(0,0,0,0.5); }
+    .dl-subtitle { color: #A7F3D0; }
+    .dl-feature-badge { background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.2); color: #E2E8F0; }
 }
 
 
@@ -502,9 +535,7 @@ div[data-testid="stTextInput"] button { display: none !important; visibility: hi
     button[kind="secondary"]:hover * { color: #FFFFFF !important; }
 
     /* Pencil override */
-    div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="secondary"] {
-        background-color: #10B981 !important; border: 2px solid #FFFFFF !important;
-    }
+    div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="secondary"] { background-color: #10B981 !important; border: 2px solid #FFFFFF !important; }
     div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="secondary"] p { color: #FFFFFF !important; }
 
     /* Primary Buttons */
@@ -514,21 +545,23 @@ div[data-testid="stTextInput"] button { display: none !important; visibility: hi
     button[kind="primary"]:disabled * { color: #94a3b8 !important; }
 
     /* Avatar Primary Buttons */
-    div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="primary"] {
-        background: rgba(255, 255, 255, 0.9) !important; border: 2px solid rgba(16, 185, 129, 0.5) !important;
-    }
+    div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="primary"] { background: rgba(255, 255, 255, 0.9) !important; border: 2px solid rgba(16, 185, 129, 0.5) !important; }
     div[data-testid="stColumn"]:has(.profile-card-marker) button[kind="primary"] p { color: #000000 !important; }
     .profile-meta-title { color: #0F172A !important; }
     
-    /* Modal Dialog Light Mode */
+    /* Modal Dialog */
     div[data-testid="stDialog"] > div { background: #FFFFFF !important; border: 1px solid rgba(16, 185, 129, 0.4) !important; }
     .pin-modal-title { color: #059669 !important; text-shadow: none !important; }
     
     /* Glass Cards */
-    .corp-hero, .corp-card {
-        background: #FFFFFF !important; border: 1px solid rgba(16, 185, 129, 0.3) !important; border-left: 5px solid #10B981 !important; box-shadow: 0 4px 15px rgba(0,0,0,0.05) !important;
-    }
+    .corp-hero, .corp-card { background: #FFFFFF !important; border: 1px solid rgba(16, 185, 129, 0.3) !important; border-left: 5px solid #10B981 !important; box-shadow: 0 4px 15px rgba(0,0,0,0.05) !important; }
     .corp-card h4 { color: #059669 !important; }
+
+    /* Download Page Theme (Light) */
+    .dl-card { background: #FFFFFF; border: 1px solid rgba(16, 185, 129, 0.3); border-top: 4px solid #10B981; box-shadow: 0 20px 50px rgba(16, 185, 129, 0.15); }
+    .dl-icon { text-shadow: 0 15px 25px rgba(16, 185, 129, 0.2); }
+    .dl-subtitle { color: #475569; }
+    .dl-feature-badge { background: #F4FBF7; border: 1px solid rgba(16, 185, 129, 0.3); color: #0F172A; }
 }
 </style>
 """
@@ -564,7 +597,7 @@ def show_pin_dialog(email, name, role):
     
     st.markdown('</div>', unsafe_allow_html=True)
     
-    # When user presses Enter in the field, this block runs
+    # When user types in the field and hits Enter, this block runs
     if pin_val:
         ok, u_name, u_role = verify_employee_pin(email, pin_val)
         if ok:
@@ -595,18 +628,30 @@ if not st.session_state.logged_in:
 
     if st.session_state.show_download_page:
         st.markdown(f"""
-            <div style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.4); border-radius: 16px; padding: 3rem; text-align: center; margin-bottom: 2rem; backdrop-filter: blur(10px);">
-                <div style="font-size: 3.5rem; margin-bottom: 10px;">💻</div>
-                <h2 style="margin-bottom: 10px; font-weight: 800;">ARL TalentMatch Desktop</h2>
-                <p style="max-width: 650px; margin: 0 auto 25px auto; opacity: 0.9; line-height: 1.5;">
-                    Run Attock Refinery's recruitment suite natively on your Windows PC.
-                </p>
-                <a href="{EXE_DIRECT_DOWNLOAD_URL}" target="_blank" style="background: #10B981; color: #01150c; padding: 0.85rem 2.5rem; border-radius: 8px; font-weight: 800; text-decoration: none; display: inline-block;">📥 Download Installer</a>
+            <div class="dl-hero-container">
+                <div class="dl-card">
+                    <div class="dl-icon">💻</div>
+                    <h1 class="dl-title">ARL TalentMatch <span class="dl-title-gradient">Desktop</span></h1>
+                    <p class="dl-subtitle">
+                        Experience lightning-fast CV parsing and seamless JD screening natively on Windows. No browser limits, full offline enterprise security.
+                    </p>
+                    <div class="dl-features">
+                        <div class="dl-feature-badge"><span style="color:#10B981; font-size: 1.2rem;">⚡</span> 10x Faster Engine</div>
+                        <div class="dl-feature-badge"><span style="color:#10B981; font-size: 1.2rem;">🔒</span> Offline Security</div>
+                        <div class="dl-feature-badge"><span style="color:#10B981; font-size: 1.2rem;">🚀</span> Native Windows OS</div>
+                    </div>
+                    <a href="{EXE_DIRECT_DOWNLOAD_URL}" target="_blank" class="dl-btn">📥 Download Setup (v1.0)</a>
+                    <div style="margin-top: 25px; font-size: 0.85rem; opacity: 0.6; font-weight: 500;">Supported on Windows 10/11 • 64-bit Architecture • 125 MB</div>
+                </div>
             </div>
         """, unsafe_allow_html=True)
-        if st.button("⬅ Back to Login", use_container_width=True):
-            st.session_state.show_download_page = False
-            st.rerun()
+        
+        # Center the Back to Login button elegantly below the card
+        _, btn_col, _ = st.columns([1, 1, 1])
+        with btn_col:
+            if st.button("⬅ Return to Login", use_container_width=True):
+                st.session_state.show_download_page = False
+                st.rerun()
         st.stop()
 
     if st.session_state.pending_pin_email:
